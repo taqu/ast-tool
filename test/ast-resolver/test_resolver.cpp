@@ -63,14 +63,14 @@ namespace
         ok &= check(u.candidates.empty(), "make_unresolved → candidates empty");
 
         WorkspaceSymbol ws;
-        ws.name = "foo"; ws.fqn = "foo"; ws.kind = SymbolKind::Variable;
+        ws.symbol.name = "foo"; ws.symbol.fqn = "foo"; ws.symbol.kind = SymbolKind::Variable;
         auto r = ResolutionResult::make_resolved(ws);
-        ok &= check(r.resolved(),               "make_resolved → resolved()");
-        ok &= check(!r.unresolved(),            "make_resolved → !unresolved()");
-        ok &= check(r.candidates.size() == 1,   "make_resolved → 1 candidate");
-        ok &= check(r.symbol().name == "foo",   "make_resolved → symbol name correct");
+        ok &= check(r.resolved(),                      "make_resolved → resolved()");
+        ok &= check(!r.unresolved(),                   "make_resolved → !unresolved()");
+        ok &= check(r.candidates.size() == 1,          "make_resolved → 1 candidate");
+        ok &= check(r.symbol().symbol.name == "foo",   "make_resolved → symbol name correct");
 
-        WorkspaceSymbol w2; w2.name = "bar"; w2.fqn = "bar";
+        WorkspaceSymbol w2; w2.symbol.name = "bar"; w2.symbol.fqn = "bar";
         auto a = ResolutionResult::make_ambiguous({ws, w2});
         ok &= check(a.ambiguous(),              "make_ambiguous → ambiguous()");
         ok &= check(!a.resolved(),              "make_ambiguous → !resolved()");
@@ -94,11 +94,11 @@ namespace
 
         IdentifierResolver resolver(tree, syms, "test.cpp");
         auto r = resolver.resolve("x", global);
-        ok &= check(r.resolved(),                "single match → Resolved");
-        ok &= check(r.symbol().name == "x",      "resolved symbol name");
-        ok &= check(r.symbol().kind == SymbolKind::Variable, "resolved symbol kind");
-        ok &= check(r.symbol().sourceFile == "test.cpp",     "resolved symbol sourceFile");
-        ok &= check(r.symbol().owningScope == ScopeKind::Global, "resolved symbol owningScope");
+        ok &= check(r.resolved(),                                        "single match → Resolved");
+        ok &= check(r.symbol().symbol.name == "x",                       "resolved symbol name");
+        ok &= check(r.symbol().symbol.kind == SymbolKind::Variable,      "resolved symbol kind");
+        ok &= check(r.symbol().sourceFile == "test.cpp",                 "resolved symbol sourceFile");
+        ok &= check(r.symbol().owningScope == ScopeKind::Global,         "resolved symbol owningScope");
         return ok;
     }
 
@@ -245,9 +245,9 @@ namespace
 
         IdentifierResolver resolver(tree, syms, "test.cpp");
         auto r = resolver.resolve("m_val", method);
-        ok &= check(r.resolved(),                       "method scope finds class member");
-        ok &= check(r.symbol().kind == SymbolKind::Field, "kind is Field");
-        ok &= check(r.symbol().owningScope == ScopeKind::Class, "owningScope is Class");
+        ok &= check(r.resolved(),                                 "method scope finds class member");
+        ok &= check(r.symbol().symbol.kind == SymbolKind::Field,  "kind is Field");
+        ok &= check(r.symbol().owningScope == ScopeKind::Class,   "owningScope is Class");
         return ok;
     }
 
@@ -275,8 +275,8 @@ namespace
 
         auto rn   = resolver.resolve("n",   block);
         auto rtmp = resolver.resolve("tmp", block);
-        ok &= check(rn.resolved()   && rn.symbol().name == "n",    "block finds parameter 'n'");
-        ok &= check(rtmp.resolved() && rtmp.symbol().name == "tmp", "block finds local 'tmp'");
+        ok &= check(rn.resolved()   && rn.symbol().symbol.name == "n",    "block finds parameter 'n'");
+        ok &= check(rtmp.resolved() && rtmp.symbol().symbol.name == "tmp", "block finds local 'tmp'");
         ok &= check(rn.symbol().owningScope   == ScopeKind::Function, "'n' owned by Function");
         ok &= check(rtmp.symbol().owningScope == ScopeKind::Block,    "'tmp' owned by Block");
         return ok;
@@ -312,10 +312,10 @@ namespace
 
         IdentifierResolver resolver(emptyTree, noSyms, "other.cpp", ws);
         auto r = resolver.resolve_global("alphaVar");
-        ok &= check(r.resolved(),                             "alphaVar found globally");
-        ok &= check(r.symbol().name == "alphaVar",            "global result name correct");
-        ok &= check(r.symbol().kind == SymbolKind::Variable,  "global result kind correct");
-        ok &= check(!r.symbol().sourceFile.empty(),           "global result has sourceFile");
+        ok &= check(r.resolved(),                                          "alphaVar found globally");
+        ok &= check(r.symbol().symbol.name == "alphaVar",                  "global result name correct");
+        ok &= check(r.symbol().symbol.kind == SymbolKind::Variable,        "global result kind correct");
+        ok &= check(!r.symbol().sourceFile.empty(),                        "global result has sourceFile");
         return ok;
     }
 
@@ -363,9 +363,9 @@ namespace
 
         // "alphaFunc" is not in the local scope, but is in the workspace
         auto r = resolver.resolve("alphaFunc", global);
-        ok &= check(r.resolved(),                              "cross-file fallback resolves alphaFunc");
-        ok &= check(r.symbol().name == "alphaFunc",            "cross-file result name");
-        ok &= check(r.symbol().kind == SymbolKind::Function,   "cross-file result kind");
+        ok &= check(r.resolved(),                                         "cross-file fallback resolves alphaFunc");
+        ok &= check(r.symbol().symbol.name == "alphaFunc",                "cross-file result name");
+        ok &= check(r.symbol().symbol.kind == SymbolKind::Function,       "cross-file result kind");
 
         // Truly unknown name → Unresolved even with workspace
         auto ru = resolver.resolve("zzz_missing", global);
@@ -384,8 +384,8 @@ namespace
 
         // Inject a duplicate symbol name to trigger Ambiguous
         WorkspaceSymbol dup;
-        dup.name = "alphaVar"; dup.fqn = "DupNs::alphaVar";
-        dup.kind = SymbolKind::Variable; dup.sourceFile = "dup.cpp";
+        dup.symbol.name = "alphaVar"; dup.symbol.fqn = "DupNs::alphaVar";
+        dup.symbol.kind = SymbolKind::Variable; dup.sourceFile = "dup.cpp";
         ws.symbols.push_back(dup);
 
         ScopeTree emptyTree;
@@ -415,10 +415,10 @@ namespace
         ok &= check(r.resolved(),                            "BetaStruct resolves");
         if(!r.resolved()) return false;
         const WorkspaceSymbol& sym = r.symbol();
-        ok &= check(sym.name == "BetaStruct",                "metadata: name");
-        ok &= check(sym.kind == SymbolKind::Struct,          "metadata: kind=Struct");
+        ok &= check(sym.symbol.name == "BetaStruct",         "metadata: name");
+        ok &= check(sym.symbol.kind == SymbolKind::Struct,   "metadata: kind=Struct");
         ok &= check(!sym.sourceFile.empty(),                 "metadata: sourceFile set");
-        ok &= check(sym.fqn == "BetaStruct",                 "metadata: fqn");
+        ok &= check(sym.symbol.fqn == "BetaStruct",          "metadata: fqn");
         return ok;
     }
 

@@ -87,25 +87,6 @@ std::expected<SearchQuery, std::string> build_search_query(
     const char* file_regex);
 
 /**
- * @brief A single semantic search result, expressed entirely in semantic terms.
- *
- * Contains no parser-specific or tree-sitter objects.
- * nodeIndex is preserved from the workspace for future consumers that need to
- * correlate results with the original AST (e.g. find-references, call graph).
- */
-struct SearchResult
-{
-    std::string name;        ///< Unqualified symbol name.
-    std::string fqn;         ///< Fully qualified name.
-    SymbolKind  kind;        ///< Declaration category.
-    std::string sourceFile;  ///< Path of the file that declares this symbol.
-    uint32_t    line   = 0;  ///< 0-based source line within sourceFile.
-    uint32_t    column = 0;  ///< 0-based source column within sourceFile.
-    ScopeKind   owningScope; ///< Kind of the scope that declares this symbol.
-    size_t      nodeIndex;   ///< Index in the per-file AST (for future consumers).
-};
-
-/**
  * @brief Evaluates SearchQuery objects against a Workspace symbol table.
  *
  * The engine assumes every query passed to search() is already valid.
@@ -129,9 +110,11 @@ public:
      * Filters are applied in the order documented on SearchQuery: exact
      * (kind → name → fqn → file) before regex (name_regex → fqn_regex → file_regex).
      *
-     * @return All matching symbols as SearchResult objects, in stable order.
+     * @return Pointers to all matching WorkspaceSymbol objects owned by the
+     *         Workspace, in stable order.  The returned pointers are valid as
+     *         long as the Workspace is not modified.  No symbol data is copied.
      */
-    std::vector<SearchResult> search(const SearchQuery& query) const;
+    std::vector<const WorkspaceSymbol*> search(const SearchQuery& query) const;
 
 private:
     const Workspace& workspace_;

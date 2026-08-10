@@ -5,18 +5,16 @@
  * @brief Workspace-wide reference discovery built on IdentifierResolver.
  *
  * FindReferences locates every use-site of a given semantic symbol across the
- * entire workspace.  It does not implement new semantic analysis; it coordinates
- * existing components:
+ * entire workspace.  It operates entirely on already-built TranslationUnit
+ * objects stored in the Workspace; it never re-parses source files.
  *
- *   Semantic Symbol → Workspace → Identifier Nodes → IdentifierResolver
- *                   → Resolved Symbol → Reference Match → Reference Set
+ *   Workspace::translationUnits → IdentifierResolver → Reference Match → Reference Set
  *
- * For each workspace file the service:
- *   1. Parses the file using the existing AST pipeline.
- *   2. Builds a ScopeTree and associates symbols via the existing semantic layer.
- *   3. Constructs a workspace-aware IdentifierResolver for the file.
- *   4. Traverses every identifier node in the parsed AST.
- *   5. Resolves each identifier; if it resolves to the target declaration, the
+ * For each TranslationUnit the service:
+ *   1. Constructs a workspace-aware IdentifierResolver using the TU's
+ *      pre-built ScopeTree and Symbol list.
+ *   2. Traverses every identifier node in the TU's AST.
+ *   3. Resolves each identifier; if it resolves to the target declaration, the
  *      node is recorded as a reference.
  *
  * Identifier matching is semantic (resolved-symbol comparison), never textual.

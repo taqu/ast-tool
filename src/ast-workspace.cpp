@@ -60,7 +60,6 @@ namespace
             // Python: import numpy  /  from os import path
             if(0 == ::strcmp(t, "import_statement")
             || 0 == ::strcmp(t, "import_from_statement")) {
-                // Look for dotted_name or relative_import child as the module identifier
                 for(uintptr_t childIdx : node.children_) {
                     if(childIdx == InvalidId) continue;
                     const ASTNode& child = ast[childIdx];
@@ -129,34 +128,32 @@ namespace
         }
         ++ws.parsedCount;
 
-        // Extract symbols
+        // Run the parsing pipeline exactly once for this file.
         std::vector<Symbol> syms = extract_symbols(ast);
-
-        // Scope analysis for owningScope
         ScopeTree tree = build_scope_tree(ast);
         associate_symbols(tree, syms);
 
-        // Merge symbols into workspace symbol table
-        for(size_t i = 0; i < syms.size(); ++i) {
-            const Symbol& s = syms[i];
-
-            uintptr_t scopeId = tree.getScopeOfSymbol(i);
-            ScopeKind owning  = (scopeId != ScopeTree::InvalidId)
-                              ? tree[scopeId].kind_
-                              : ScopeKind::Unknown;
-
-            ws.symbols.push_back({
-                s.name, s.fqn, s.kind, s.access,
-                s.isStatic, s.isConstexpr, s.isInline,
-                path, s.line, s.column, s.nodeIndex, owning
-            });
-        }
-
-        // Collect include/import dependencies
+        // Collect include/import dependencies (before moving ast).
         FileDependencies dep;
         dep.file     = path;
         dep.includes = collect_includes(ast);
         ws.deps.push_back(std::move(dep));
+
+        // Build the flat WorkspaceSymbol index from a copy of the symbols.
+        for(size_t i = 0; i < syms.size(); ++i) {
+            uintptr_t scopeId = tree.getScopeOfSymbol(i);
+            ScopeKind owning  = (scopeId != ScopeTree::InvalidId)
+                              ? tree[scopeId].kind_
+                              : ScopeKind::Unknown;
+            WorkspaceSymbol wsym;
+            wsym.symbol      = syms[i];
+            wsym.sourceFile  = path;
+            wsym.owningScope = owning;
+            ws.symbols.push_back(std::move(wsym));
+        }
+
+        // Store the TranslationUnit — primary ownership of parsed state.
+        ws.translationUnits.push_back({std::move(ast), std::move(tree), std::move(syms), path});
     }
 
 } // namespace
@@ -195,8 +192,9 @@ Workspace analyze_files(const std::vector<std::string>& files)
 {
     Workspace ws;
     ws.files = files;
-    ws.symbols.reserve(files.size() * 8); // rough heuristic
+    ws.symbols.reserve(files.size() * 8);
     ws.deps.reserve(files.size());
+    ws.translationUnits.reserve(files.size());
 
     for(const std::string& path : files) {
         analyze_one(path, ws);

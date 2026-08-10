@@ -11,29 +11,29 @@ namespace ast
 {
 namespace
 {
-    void print_result_json_pretty(const SearchResult& r, bool last)
+    void print_result_json_pretty(const WorkspaceSymbol& r, bool last)
     {
         std::print(" {{\n");
-        std::print("  \"kind\": \"{}\",\n",        getSymbolKindName(r.kind));
-        std::print("  \"name\": \"{}\",\n",        r.name);
-        std::print("  \"fqn\": \"{}\",\n",         r.fqn);
+        std::print("  \"kind\": \"{}\",\n",        getSymbolKindName(r.symbol.kind));
+        std::print("  \"name\": \"{}\",\n",        r.symbol.name);
+        std::print("  \"fqn\": \"{}\",\n",         r.symbol.fqn);
         std::print("  \"file\": \"{}\",\n",        r.sourceFile);
-        std::print("  \"line\": {},\n",            r.line + 1);
-        std::print("  \"column\": {},\n",          r.column + 1);
+        std::print("  \"line\": {},\n",            r.symbol.line + 1);
+        std::print("  \"column\": {},\n",          r.symbol.column + 1);
         std::print("  \"owning_scope\": \"{}\"\n", getScopeKindName(r.owningScope));
         std::print(" }}");
         std::print("{}\n", last ? "" : ",");
     }
 
-    void print_result_json(const SearchResult& r, bool last)
+    void print_result_json(const WorkspaceSymbol& r, bool last)
     {
         std::print("{{");
-        std::print("\"kind\":\"{}\",",        getSymbolKindName(r.kind));
-        std::print("\"name\":\"{}\",",        r.name);
-        std::print("\"fqn\":\"{}\",",         r.fqn);
+        std::print("\"kind\":\"{}\",",        getSymbolKindName(r.symbol.kind));
+        std::print("\"name\":\"{}\",",        r.symbol.name);
+        std::print("\"fqn\":\"{}\",",         r.symbol.fqn);
         std::print("\"file\":\"{}\",",        r.sourceFile);
-        std::print("\"line\":{},",            r.line + 1);
-        std::print("\"column\":{},",          r.column + 1);
+        std::print("\"line\":{},",            r.symbol.line + 1);
+        std::print("\"column\":{},",          r.symbol.column + 1);
         std::print("\"owning_scope\":\"{}\"", getScopeKindName(r.owningScope));
         std::print("}}");
         if(!last) {
@@ -122,7 +122,7 @@ bool search(const ArgSearch& arguments)
 
     Workspace ws = analyze_workspace(arguments.root_);
     SemanticSearchEngine engine(ws);
-    std::vector<SearchResult> results = engine.search(*q);
+    std::vector<const WorkspaceSymbol*> results = engine.search(*q);
 
     if(arguments.json_) {
         std::print("[");
@@ -132,20 +132,20 @@ bool search(const ArgSearch& arguments)
         for(size_t i = 0; i < results.size(); ++i) {
             bool last = (i == results.size() - 1);
             if(arguments.pretty_) {
-                print_result_json_pretty(results[i], last);
+                print_result_json_pretty(*results[i], last);
             } else {
-                print_result_json(results[i], last);
+                print_result_json(*results[i], last);
             }
         }
         std::print("]\n");
     } else {
-        for(const SearchResult& r : results) {
+        for(const WorkspaceSymbol* r : results) {
             std::print("{} {} {}:{}:{}\n",
-                getSymbolKindName(r.kind),
-                r.fqn,
-                r.sourceFile,
-                r.line + 1,
-                r.column + 1);
+                getSymbolKindName(r->symbol.kind),
+                r->symbol.fqn,
+                r->sourceFile,
+                r->symbol.line + 1,
+                r->symbol.column + 1);
         }
     }
     return true;

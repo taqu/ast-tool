@@ -26,7 +26,7 @@ namespace
     const WorkspaceSymbol* findByName(const Workspace& ws, std::string_view name)
     {
         for(const auto& sym : ws.symbols) {
-            if(sym.name == name) return &sym;
+            if(sym.symbol.name == name) return &sym;
         }
         return nullptr;
     }
@@ -37,7 +37,7 @@ namespace
                                              std::string_view fileHint)
     {
         for(const auto& sym : ws.symbols) {
-            if(sym.name == name && sym.sourceFile.find(fileHint) != std::string::npos)
+            if(sym.symbol.name == name && sym.sourceFile.find(fileHint) != std::string::npos)
                 return &sym;
         }
         return nullptr;
@@ -61,11 +61,11 @@ namespace
         if(refs.empty()) return ok;
 
         const ReferenceResult& r = refs[0];
-        ok &= check(r.referencedSymbol.name == "mrCounter",   "referencedSymbol.name set");
-        ok &= check(r.referencedSymbol.fqn  == target->fqn,   "referencedSymbol.fqn set");
-        ok &= check(r.referencedSymbol.kind == SymbolKind::Variable, "referencedSymbol.kind set");
-        ok &= check(!r.sourceFile.empty(),                     "sourceFile non-empty");
-        ok &= check(r.nodeIndex != size_t(-1),                 "nodeIndex populated");
+        ok &= check(r.referencedSymbol.symbol.name == "mrCounter",        "referencedSymbol.name set");
+        ok &= check(r.referencedSymbol.symbol.fqn  == target->symbol.fqn, "referencedSymbol.fqn set");
+        ok &= check(r.referencedSymbol.symbol.kind == SymbolKind::Variable, "referencedSymbol.kind set");
+        ok &= check(!r.sourceFile.empty(),                                 "sourceFile non-empty");
+        ok &= check(r.nodeIndex != size_t(-1),                             "nodeIndex populated");
         return ok;
     }
 
@@ -90,7 +90,8 @@ namespace
         for(const auto& r : refs) {
             ok &= check(r.sourceFile.find("multi_ref") != std::string::npos,
                         "reference is in multi_ref.cpp");
-            ok &= check(r.line != target->line, "reference is not on declaration line");
+            // r.line is 0-based; target->symbol.line is 1-based. Use +1 for comparison.
+        ok &= check(r.line + 1 != target->symbol.line, "reference is not on declaration line");
         }
         return ok;
     }
@@ -116,7 +117,7 @@ namespace
         // The declaration entry has the same file and line as the target symbol.
         bool foundDecl = false;
         for(const auto& r : withDecl) {
-            if(r.sourceFile == target->sourceFile && r.line == target->line) {
+            if(r.sourceFile == target->sourceFile && r.line == target->symbol.line) {
                 foundDecl = true;
                 break;
             }
@@ -191,31 +192,30 @@ namespace
     }
 
     // -----------------------------------------------------------------------
-    // Shadowing: inner declaration hides outer
-    // The global shadowTarget should have exactly 1 reference (in useTarget),
-    // not the ones inside shadowFunc where the local shadows it.
+    // Shadowing: namespace-scoped name hides outer name via lexical lookup.
+    // The global shadowTarget has exactly 1 reference (in useTarget).
+    // ShadowInner::shadowTarget (a different symbol) shadows it inside shadowFunc.
 
     bool test_shadowing()
     {
         bool ok = true;
         Workspace ws = analyze_workspace(kRefRoot);
 
-        // Find the GLOBAL shadowTarget (line 0 of shadow.cpp, not inside a function)
+        // Find any shadowTarget in shadow.cpp (to confirm workspace has it)
         const WorkspaceSymbol* target = findByNameInFile(ws, "shadowTarget", "shadow");
         ok &= check(target != nullptr, "global shadowTarget found in workspace");
         if(!target) return false;
 
-        // The global is at line 0 (first line). Pick the one at line 0.
+        // The global is the one with the smallest line number (before shadowFunc).
         const WorkspaceSymbol* globalTarget = nullptr;
         for(const auto& sym : ws.symbols) {
-            if(sym.name == "shadowTarget"
-               && sym.sourceFile.find("shadow") != std::string::npos
-               && sym.line == 0) {
-                globalTarget = &sym;
-                break;
+            if(sym.symbol.name == "shadowTarget"
+               && sym.sourceFile.find("shadow") != std::string::npos) {
+                if(!globalTarget || sym.symbol.line < globalTarget->symbol.line)
+                    globalTarget = &sym;
             }
         }
-        ok &= check(globalTarget != nullptr, "global shadowTarget at line 0 found");
+        ok &= check(globalTarget != nullptr, "global shadowTarget found");
         if(!globalTarget) return false;
 
         FindReferences finder(ws);

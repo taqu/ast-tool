@@ -8,20 +8,20 @@
  * The analysis pipeline for a workspace is:
  *   1. scan_workspace()  — discover all supported source files under a root.
  *   2. analyze_workspace() / analyze_files() — for each file:
- *        a. parse using the existing AST IR
- *        b. extract symbols via the existing semantic layer
- *        c. run scope analysis to determine the owning scope of each symbol
- *        d. collect direct include/import references
- *        e. merge results into the returned Workspace
+ *        a. parse → build_scope_tree → extract_symbols → associate_symbols
+ *        b. collect direct include/import references
+ *        c. store a TranslationUnit (owns AST, ScopeTree, Symbol list)
+ *        d. merge results into the returned Workspace
  *
- * No intermediate results are persisted.  The entire workspace is parsed on
- * every invocation.  Parallel parsing, incremental updates, and caching are
- * non-goals of this phase and are left to future layers.
+ * Each source file is parsed exactly once during workspace construction.
+ * Semantic services receive the already-built TranslationUnit objects and
+ * never re-parse files.
  */
 #include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "ast-ir.h"
 #include "ast-extractor.h"
 #include "ast-scope.h"
 
@@ -29,28 +29,32 @@ namespace ast
 {
 
 /**
+ * @brief All semantic objects produced from one source file.
+ *
+ * Owns the AST, ScopeTree, and Symbol list for a single translation unit.
+ * Lifetime is managed by Workspace.  TranslationUnit is move-only because
+ * AST is move-only.
+ */
+struct TranslationUnit
+{
+    AST                 ast;
+    ScopeTree           scopeTree;
+    std::vector<Symbol> symbols;
+    std::string         path;
+};
+
+/**
  * @brief A symbol extracted from a workspace file, augmented with file-level context.
  *
- * Mirrors ast::Symbol but adds the source file path and the kind of the
- * lexical scope that owns the declaration.
+ * Embeds a Symbol (name, fqn, kind, access, modifiers, line, column, nodeIndex)
+ * and adds the source file path and the kind of the lexical scope that owns
+ * the declaration.
  */
 struct WorkspaceSymbol
 {
-    std::string name;        ///< Unqualified symbol name.
-    std::string fqn;         ///< Fully qualified name (language-specific separator).
-    SymbolKind  kind     = SymbolKind::Function; ///< Declaration category.
-    Access      access   = Access::Unknown;       ///< Access specifier in effect.
-
-    bool isStatic    = false;
-    bool isConstexpr = false;
-    bool isInline    = false;
-
-    std::string sourceFile; ///< Path of the file that declares this symbol.
-    uint32_t    line   = 0; ///< 0-based source line within sourceFile.
-    uint32_t    column = 0; ///< 0-based source column within sourceFile.
-
-    size_t    nodeIndex   = size_t(-1); ///< Index in the per-file AST, or size_t(-1) if unavailable.
-    ScopeKind owningScope = ScopeKind::Unknown; ///< Kind of the scope that declares this symbol.
+    Symbol      symbol;                              ///< Symbol data (name, fqn, kind, etc.).
+    std::string sourceFile;                          ///< Path of the file that declares this symbol.
+    ScopeKind   owningScope = ScopeKind::Unknown;   ///< Kind of the scope that declares this symbol.
 };
 
 /**
@@ -68,15 +72,19 @@ struct FileDependencies
 /**
  * @brief In-memory representation of a parsed workspace.
  *
- * Aggregates symbols and dependency information from every source file found
- * under the scanned directory.  This structure is valid only for the duration
- * of the current execution; nothing is persisted.
+ * Owns one TranslationUnit per parsed source file (primary storage).
+ * Also maintains a flat symbol index (symbols) for O(N) queries that span
+ * all files, and a dependency graph (deps) for include/import analysis.
+ *
+ * This structure is valid only for the duration of the current execution;
+ * nothing is persisted.
  */
 struct Workspace
 {
-    std::vector<std::string>      files;        ///< All discovered source files, sorted.
-    std::vector<WorkspaceSymbol>  symbols;      ///< All symbols from all files.
-    std::vector<FileDependencies> deps;         ///< Per-file direct include/import graph.
+    std::vector<std::string>      files;            ///< All discovered source files, sorted.
+    std::vector<WorkspaceSymbol>  symbols;          ///< Flat symbol index (all files).
+    std::vector<FileDependencies> deps;             ///< Per-file direct include/import graph.
+    std::vector<TranslationUnit>  translationUnits; ///< Primary ownership: one TU per parsed file.
     uint32_t parsedCount = 0; ///< Number of files successfully parsed.
     uint32_t failedCount = 0; ///< Number of files that failed to parse.
 };
@@ -108,8 +116,8 @@ Workspace analyze_workspace(const char* root);
  * @brief Parses and analyzes the given list of source files.
  *
  * For each file the pipeline is:
- *   parse → extract_symbols → build_scope_tree → associate_symbols →
- *   collect_includes → merge into Workspace.
+ *   parse → build_scope_tree → extract_symbols → associate_symbols →
+ *   collect_includes → store TranslationUnit → merge into Workspace.
  *
  * Files that fail to parse contribute to failedCount and are otherwise
  * skipped; the remaining files are processed normally.

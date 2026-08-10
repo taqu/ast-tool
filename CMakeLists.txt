@@ -99,6 +99,10 @@ set(HEADERS
     "${HEADER_ROOT}/ast-search.h"
     "${HEADER_ROOT}/ast-resolver.h"
     "${HEADER_ROOT}/ast-references.h"
+    "${HEADER_ROOT}/ast-callers.h"
+    "${HEADER_ROOT}/ast-callees.h"
+    "${HEADER_ROOT}/ast-semantic-diff.h"
+    "${HEADER_ROOT}/ast-context-export.h"
 )
 
 set(SOURCES
@@ -146,6 +150,11 @@ set(SOURCES
     "${SOURCE_ROOT}/ast-search.cpp"
     "${SOURCE_ROOT}/ast-resolver.cpp"
     "${SOURCE_ROOT}/ast-references.cpp"
+    "${SOURCE_ROOT}/ast-callers.cpp"
+    "${SOURCE_ROOT}/ast-callees.cpp"
+    "${SOURCE_ROOT}/ast-call-utils.h"
+    "${SOURCE_ROOT}/ast-semantic-diff.cpp"
+    "${SOURCE_ROOT}/ast-context-export.cpp"
     "${SOURCE_ROOT}/search.h"
     "${SOURCE_ROOT}/search.cpp"
     "${SOURCE_ROOT}/ast-scope.cpp"

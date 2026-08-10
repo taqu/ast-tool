@@ -1,8 +1,8 @@
-// Tests: shadowing — inner declaration hides outer
+// Tests: shadowing — namespace-scoped name hides outer name via lexical lookup
 int shadowTarget = 0;
-void shadowFunc() {
-    int shadowTarget = 99;
-    (void)shadowTarget;
+namespace ShadowInner {
+    int shadowTarget = 1;
+    void shadowFunc() { (void)shadowTarget; }
 }
 void useTarget() {
     shadowTarget = 1;

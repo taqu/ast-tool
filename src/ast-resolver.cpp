@@ -42,19 +42,9 @@ IdentifierResolver::IdentifierResolver(const ScopeTree&           tree,
 
 WorkspaceSymbol IdentifierResolver::to_workspace_symbol(size_t symIdx) const
 {
-    const Symbol& sym = symbols_[symIdx];
     WorkspaceSymbol ws;
-    ws.name        = sym.name;
-    ws.fqn         = sym.fqn;
-    ws.kind        = sym.kind;
-    ws.access      = sym.access;
-    ws.isStatic    = sym.isStatic;
-    ws.isConstexpr = sym.isConstexpr;
-    ws.isInline    = sym.isInline;
-    ws.sourceFile  = sourceFile_;
-    ws.line        = sym.line;
-    ws.column      = sym.column;
-    ws.nodeIndex   = sym.nodeIndex;
+    ws.symbol     = symbols_[symIdx];
+    ws.sourceFile = sourceFile_;
 
     // Prefer O(1) reverse map; fall back to O(N) scan when the map was not built.
     uintptr_t scopeId = tree_.getScopeOfSymbol(symIdx);
@@ -102,7 +92,7 @@ ResolutionResult IdentifierResolver::resolve_global(std::string_view name) const
 
     std::vector<WorkspaceSymbol> candidates;
     for(const WorkspaceSymbol& sym : workspace_->symbols) {
-        if(sym.name == name) {
+        if(sym.symbol.name == name) {
             candidates.push_back(sym);
         }
     }

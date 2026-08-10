@@ -1,7 +1,5 @@
 #include "ast-references.h"
 #include "ast-resolver.h"
-#include "ast-scope-builder.h"
-#include "ast-symbol-scope.h"
 #include "ast-ir.h"
 #include <cstring>
 
@@ -12,7 +10,6 @@ namespace ast
 static bool is_identifier_type(const char* type)
 {
     if(!type) return false;
-    // Common identifier node types in C/C++, Python, Rust, Go, Java, JavaScript
     return strcmp(type, "identifier")           == 0
         || strcmp(type, "type_identifier")      == 0
         || strcmp(type, "field_identifier")     == 0
@@ -21,15 +18,12 @@ static bool is_identifier_type(const char* type)
 }
 
 // Returns true when @p a and @p b refer to the same declaration.
-// Comparison uses FQN + kind + source file + declaration line; this uniquely
-// identifies a symbol even when multiple files contain declarations with the
-// same unqualified name.
 static bool same_declaration(const WorkspaceSymbol& a, const WorkspaceSymbol& b)
 {
-    return a.fqn        == b.fqn
-        && a.kind       == b.kind
-        && a.sourceFile == b.sourceFile
-        && a.line       == b.line;
+    return a.symbol.fqn  == b.symbol.fqn
+        && a.symbol.kind == b.symbol.kind
+        && a.sourceFile  == b.sourceFile
+        && a.symbol.line == b.symbol.line;
 }
 
 // -----------------------------------------------------------------------
@@ -46,23 +40,16 @@ std::vector<ReferenceResult> FindReferences::find(
 {
     std::vector<ReferenceResult> results;
 
-    for(const std::string& file : workspace_.files) {
-        AST ast = parse(file.c_str());
-        if(!ast) continue;
+    for(const TranslationUnit& tu : workspace_.translationUnits) {
+        IdentifierResolver resolver(tu.scopeTree, tu.symbols, tu.path, workspace_);
 
-        ScopeTree            tree    = build_scope_tree(ast);
-        std::vector<Symbol>  symbols = extract_symbols(ast);
-        associate_symbols(tree, symbols);
-
-        IdentifierResolver resolver(tree, symbols, file, workspace_);
-
-        for(size_t i = 0; i < ast.size(); ++i) {
-            const ASTNode& node = ast[i];
+        for(size_t i = 0; i < tu.ast.size(); ++i) {
+            const ASTNode& node = tu.ast[i];
             if(!is_identifier_type(node.type_)) continue;
             if(node.text_.empty()) continue;
 
             std::string text    = node.text_.getText();
-            uintptr_t   scopeId = tree.getNodeScope(i);
+            uintptr_t   scopeId = tu.scopeTree.getNodeScope(i);
 
             ResolutionResult resolution = resolver.resolve(text, scopeId);
             if(!resolution.resolved()) continue;
@@ -71,18 +58,18 @@ std::vector<ReferenceResult> FindReferences::find(
 
             ReferenceResult ref;
             ref.referencedSymbol = target;
-            ref.sourceFile       = file;
+            ref.sourceFile       = tu.path;
             ref.line             = node.start_.row_;
             ref.column           = node.start_.column_;
             ref.nodeIndex        = i;
             ref.owningScope      = (scopeId != ScopeTree::InvalidId)
-                                   ? tree[scopeId].kind_
+                                   ? tu.scopeTree[scopeId].kind_
                                    : ScopeKind::Unknown;
 
-            // Exclude the declaration site: same file and same 0-based line.
+            // ref.line is 0-based (ASTNode.start_.row_); target.symbol.line is 1-based.
             if(!includeDeclaration
-               && ref.sourceFile == target.sourceFile
-               && ref.line       == target.line) {
+               && ref.sourceFile    == target.sourceFile
+               && ref.line + 1      == target.symbol.line) {
                 continue;
             }
 

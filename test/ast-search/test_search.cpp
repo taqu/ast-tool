@@ -18,10 +18,10 @@ namespace
         return condition;
     }
 
-    bool hasResult(const std::vector<SearchResult>& results, std::string_view fqn)
+    bool hasResult(const std::vector<const WorkspaceSymbol*>& results, std::string_view fqn)
     {
-        for(const auto& r : results) {
-            if(r.fqn == fqn) return true;
+        for(const auto* r : results) {
+            if(r->symbol.fqn == fqn) return true;
         }
         return false;
     }
@@ -202,8 +202,8 @@ namespace
         auto results = engine.search(*q);
         ok &= check(!results.empty(), "exact name match finds alphaVar");
         ok &= check(hasResult(results, "AlphaNs::alphaVar"), "result fqn is AlphaNs::alphaVar");
-        for(const auto& r : results) {
-            ok &= check(r.name == "alphaVar", "all results have name == alphaVar");
+        for(const auto* r : results) {
+            ok &= check(r->symbol.name == "alphaVar", "all results have name == alphaVar");
         }
         return ok;
     }
@@ -258,9 +258,9 @@ namespace
         auto results = engine.search(*q);
         ok &= check(!results.empty(), "file_regex \\.cpp$ finds results");
         ok &= check(hasResult(results, "AlphaNs::alphaVar"), "file_regex finds symbols in .cpp files");
-        for(const auto& r : results) {
-            bool endsCpp = r.sourceFile.size() >= 4 &&
-                           r.sourceFile.substr(r.sourceFile.size() - 4) == ".cpp";
+        for(const auto* r : results) {
+            bool endsCpp = r->sourceFile.size() >= 4 &&
+                           r->sourceFile.substr(r->sourceFile.size() - 4) == ".cpp";
             ok &= check(endsCpp, "every file_regex result comes from a .cpp file");
             if(!endsCpp) break;
         }
@@ -309,8 +309,8 @@ namespace
         ok &= check(q.has_value(), "query builds successfully");
         if(!q.has_value()) return false;
         auto results = engine.search(*q);
-        for(const auto& r : results) {
-            ok &= check(r.kind == SymbolKind::Function,
+        for(const auto* r : results) {
+            ok &= check(r->symbol.kind == SymbolKind::Function,
                         "kind=function + name_regex: every result is a function");
         }
         return ok;
@@ -328,8 +328,8 @@ namespace
         if(!q.has_value()) return false;
         auto results = engine.search(*q);
         ok &= check(!results.empty(), "kind=variable + fqn_regex finds results");
-        for(const auto& r : results) {
-            ok &= check(r.kind == SymbolKind::Variable,
+        for(const auto* r : results) {
+            ok &= check(r->symbol.kind == SymbolKind::Variable,
                         "kind=variable + fqn_regex: every result is a variable");
         }
         ok &= check(hasResult(results, "AlphaNs::alphaVar"),
@@ -369,8 +369,8 @@ namespace
         ok &= check(!results.empty(), "file substring 'alpha.cpp' finds results");
         ok &= check(hasResult(results, "AlphaNs::alphaVar"),  "file substring finds alphaVar");
         ok &= check(hasResult(results, "AlphaNs::alphaFunc"), "file substring finds alphaFunc");
-        for(const auto& r : results) {
-            ok &= check(r.sourceFile.find("alpha.cpp") != std::string::npos,
+        for(const auto* r : results) {
+            ok &= check(r->sourceFile.find("alpha.cpp") != std::string::npos,
                         "every result's source file contains 'alpha.cpp'");
         }
 

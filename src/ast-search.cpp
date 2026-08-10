@@ -103,30 +103,20 @@ SemanticSearchEngine::SemanticSearchEngine(const Workspace& workspace)
 {
 }
 
-std::vector<SearchResult> SemanticSearchEngine::search(const SearchQuery& query) const
+std::vector<const WorkspaceSymbol*> SemanticSearchEngine::search(const SearchQuery& query) const
 {
-    std::vector<SearchResult> results;
+    std::vector<const WorkspaceSymbol*> results;
     for(const WorkspaceSymbol& sym : workspace_.symbols) {
         // Exact filters first — cheap comparisons reduce the candidate set.
-        if(query.kind && sym.kind != *query.kind)                                    continue;
-        if(query.name && sym.name != *query.name)                                    continue;
-        if(query.fqn  && sym.fqn  != *query.fqn)                                    continue;
-        if(query.file && sym.sourceFile.find(*query.file) == std::string::npos)      continue;
+        if(query.kind && sym.symbol.kind != *query.kind)                                    continue;
+        if(query.name && sym.symbol.name != *query.name)                                    continue;
+        if(query.fqn  && sym.symbol.fqn  != *query.fqn)                                    continue;
+        if(query.file && sym.sourceFile.find(*query.file) == std::string::npos)             continue;
         // Regex filters after exact — RE2 evaluation only on surviving candidates.
-        if(query.name_regex && !query.name_regex->matches(sym.name))                 continue;
-        if(query.fqn_regex  && !query.fqn_regex->matches(sym.fqn))                  continue;
-        if(query.file_regex && !query.file_regex->matches(sym.sourceFile))           continue;
-
-        SearchResult result;
-        result.name        = sym.name;
-        result.fqn         = sym.fqn;
-        result.kind        = sym.kind;
-        result.sourceFile  = sym.sourceFile;
-        result.line        = sym.line;
-        result.column      = sym.column;
-        result.owningScope = sym.owningScope;
-        result.nodeIndex   = sym.nodeIndex;
-        results.push_back(std::move(result));
+        if(query.name_regex && !query.name_regex->matches(sym.symbol.name))                 continue;
+        if(query.fqn_regex  && !query.fqn_regex->matches(sym.symbol.fqn))                  continue;
+        if(query.file_regex && !query.file_regex->matches(sym.sourceFile))                  continue;
+        results.push_back(&sym);
     }
     return results;
 }

@@ -16,6 +16,10 @@
 #include "ast-search/test_search.h"
 #include "ast-resolver/test_resolver.h"
 #include "ast-references/test_references.h"
+#include "ast-callers/test_callers.h"
+#include "ast-callees/test_callees.h"
+#include "ast-semantic-diff/test_semantic_diff.h"
+#include "ast-context-export/test_context_export.h"
 #include <cassert>
 #include <iostream>
 
@@ -46,6 +50,10 @@ int main(void)
     all_passed &= run_tests_search();
     all_passed &= run_tests_resolver();
     all_passed &= run_tests_references();
+    all_passed &= run_tests_callers();
+    all_passed &= run_tests_callees();
+    all_passed &= run_tests_semantic_diff();
+    all_passed &= run_tests_context_export();
 
     std::cout << "===================================================" << std::endl;
     std::cout << (all_passed ? "ALL TESTS PASSED" : "SOME TESTS FAILED") << std::endl;

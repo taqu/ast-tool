@@ -58,6 +58,18 @@ set(MAIN_SOURCES
     # Find references tests
     "${CMAKE_CURRENT_SOURCE_DIR}/ast-references/test_references.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/ast-references/test_references.cpp"
+    # Callers tests
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-callers/test_callers.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-callers/test_callers.cpp"
+    # Callees tests
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-callees/test_callees.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-callees/test_callees.cpp"
+    # Semantic diff tests
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-semantic-diff/test_semantic_diff.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-semantic-diff/test_semantic_diff.cpp"
+    # Context export tests
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-context-export/test_context_export.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-context-export/test_context_export.cpp"
 )
 
 source_group("include" FILES ${HEADERS})

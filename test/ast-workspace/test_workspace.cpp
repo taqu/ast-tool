@@ -31,7 +31,7 @@ namespace
     bool hasSymbolFqn(const std::vector<WorkspaceSymbol>& syms, std::string_view fqn, SymbolKind kind)
     {
         for(const auto& s : syms) {
-            if(s.fqn == fqn && s.kind == kind) return true;
+            if(s.symbol.fqn == fqn && s.symbol.kind == kind) return true;
         }
         return false;
     }
@@ -39,7 +39,7 @@ namespace
     bool hasSymbolFqn(const std::vector<WorkspaceSymbol>& syms, std::string_view fqn)
     {
         for(const auto& s : syms) {
-            if(s.fqn == fqn) return true;
+            if(s.symbol.fqn == fqn) return true;
         }
         return false;
     }
@@ -48,7 +48,7 @@ namespace
                          std::string_view fqn, std::string_view fileSuffix)
     {
         for(const auto& s : syms) {
-            if(s.fqn != fqn) continue;
+            if(s.symbol.fqn != fqn) continue;
             if(s.sourceFile.size() >= fileSuffix.size() &&
                s.sourceFile.substr(s.sourceFile.size() - fileSuffix.size()) == fileSuffix) {
                 return true;
@@ -162,17 +162,17 @@ namespace
 
         // AlphaNs (namespace) should be in Global scope
         for(const auto& s : ws.symbols) {
-            if(s.fqn == "AlphaNs" && s.kind == SymbolKind::Namespace) {
+            if(s.symbol.fqn == "AlphaNs" && s.symbol.kind == SymbolKind::Namespace) {
                 ok &= check(s.owningScope == ScopeKind::Global,
                             "AlphaNs owning scope is Global");
             }
             // alphaVar lives inside AlphaNs → Namespace scope
-            if(s.fqn == "AlphaNs::alphaVar") {
+            if(s.symbol.fqn == "AlphaNs::alphaVar") {
                 ok &= check(s.owningScope == ScopeKind::Namespace,
                             "alphaVar owning scope is Namespace");
             }
             // BetaStruct::betaField lives inside a Struct scope
-            if(s.fqn == "BetaStruct::betaField") {
+            if(s.symbol.fqn == "BetaStruct::betaField") {
                 ok &= check(s.owningScope == ScopeKind::Struct,
                             "betaField owning scope is Struct");
             }
