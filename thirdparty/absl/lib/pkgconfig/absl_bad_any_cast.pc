@@ -1,0 +1,12 @@
+prefix=D:/Projects/Cpp/ast-tool/abseil/install
+exec_prefix=${prefix}
+libdir=D:/Projects/Cpp/ast-tool/abseil/install/lib
+includedir=D:/Projects/Cpp/ast-tool/abseil/install/include
+
+Name: absl_bad_any_cast
+Description: Abseil bad_any_cast library
+URL: https://abseil.io/
+Version: 20260526
+Requires:
+Libs: -L${libdir}  
+Cflags: -I${includedir}
