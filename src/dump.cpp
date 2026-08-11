@@ -25,7 +25,7 @@ bool dump(const ArgDump& arguments)
     }
     for(uint32_t i=0; i<ast.size(); ++i){
         const ASTNode& node = ast[i];
-        std::print("{}:{}\n", node.type_, node.grammar_type_);
+        std::print("{} {:X}\n", node.type_, node.hash_);
     }
     return true;
 }

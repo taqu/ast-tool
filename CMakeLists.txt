@@ -157,6 +157,8 @@ set(SOURCES
     "${SOURCE_ROOT}/ast-context-export.cpp"
     "${SOURCE_ROOT}/search.h"
     "${SOURCE_ROOT}/search.cpp"
+    "${SOURCE_ROOT}/help.h"
+    "${SOURCE_ROOT}/help.cpp"
     "${SOURCE_ROOT}/ast-scope.cpp"
     "${SOURCE_ROOT}/ast-scope-builder.cpp"
     "${SOURCE_ROOT}/ast-symbol-scope.cpp"

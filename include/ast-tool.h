@@ -23,6 +23,7 @@ namespace ast
 enum class SubCommand
 {
     None,
+    Help,
     Dump,
     Symbols,
     Outline,
@@ -31,6 +32,12 @@ enum class SubCommand
     Parent,
     Children,
     Search,
+};
+
+/** Arguments for the "help" subcommand. */
+struct ArgHelp
+{
+    const char* topic_; ///< Command name to show help for, or nullptr for top-level help.
 };
 
 /** Arguments for the "dump" subcommand. */
@@ -119,6 +126,7 @@ struct Arguments
     SubCommand sub_;
     union
     {
+        ArgHelp     help_;
         ArgDump     dump_;
         ArgSymbols  symbols_;
         ArgOutline  outline_;

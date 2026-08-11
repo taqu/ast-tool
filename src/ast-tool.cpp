@@ -26,6 +26,7 @@
 #include "parent.h"
 #include "children.h"
 #include "search.h"
+#include "help.h"
 
 namespace ast
 {
@@ -35,16 +36,44 @@ void initialize()
     absl::InitializeLog();
 }
 
+namespace
+{
+    bool is_help_flag(const char* arg)
+    {
+        return strcmp(arg, "--help") == 0 || strcmp(arg, "-h") == 0;
+    }
+
+    bool set_help(Arguments& arguments, const char* topic)
+    {
+        arguments.sub_        = SubCommand::Help;
+        arguments.help_.topic_ = topic;
+        return true;
+    }
+} // namespace
+
 bool parse(Arguments& arguments, int32_t argc, const char** argv)
 {
     assert(nullptr != argv);
     arguments.sub_ = SubCommand::None;
-    if(argc <= 1) {
-        return false;
+
+    if(argc <= 1 || is_help_flag(argv[1])) {
+        return set_help(arguments, nullptr);
     }
+
+    if(strcmp(argv[1], "help") == 0) {
+        return set_help(arguments, argc > 2 ? argv[2] : nullptr);
+    }
+
+    // Pre-scan for --help / -h anywhere after the subcommand name.
+    for(int32_t i = 2; i < argc; ++i) {
+        if(is_help_flag(argv[i])) {
+            return set_help(arguments, argv[1]);
+        }
+    }
+
     if(strncmp(argv[1], "dump", ::strlen("dump")) == 0) {
         return parse_dump(arguments, argc, argv);
-    }else if(strncmp(argv[1], "symbols", ::strlen("symbols")) == 0) {
+    } else if(strncmp(argv[1], "symbols", ::strlen("symbols")) == 0) {
         return parse_symbols(arguments, argc, argv);
     } else if(strncmp(argv[1], "outline", ::strlen("outline")) == 0) {
         return parse_outline(arguments, argc, argv);
@@ -66,6 +95,9 @@ bool parse(Arguments& arguments, int32_t argc, const char** argv)
 bool dispatch(const Arguments& arguments)
 {
     switch(arguments.sub_) {
+    case SubCommand::Help:
+        print_command_help(arguments.help_.topic_);
+        return true;
     case SubCommand::Dump:
         return dump(arguments.dump_);
     case SubCommand::Symbols:
