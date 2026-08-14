@@ -1,8 +1,11 @@
 #include "test_workspace.h"
 #include "ast-workspace.h"
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <string_view>
+#include <git2/global.h>
+#include <git2/repository.h>
 
 namespace ast
 {
@@ -243,6 +246,134 @@ namespace
         return ok;
     }
 
+    // -----------------------------------------------------------------------
+    // Git ignore tests
+    // -----------------------------------------------------------------------
+
+    struct TempRepo
+    {
+        std::filesystem::path root;
+        bool ok = false;
+
+        explicit TempRepo(const char* suffix)
+        {
+            std::error_code ec;
+            root = std::filesystem::temp_directory_path(ec) / suffix;
+            if(ec) return;
+            std::filesystem::remove_all(root, ec);
+            std::filesystem::create_directories(root, ec);
+            if(ec) return;
+
+            git_libgit2_init();
+            git_repository* repo = nullptr;
+            std::u8string rootU8 = root.u8string();
+            const char* rootUtf8 = reinterpret_cast<const char*>(rootU8.c_str());
+            if(git_repository_init(&repo, rootUtf8, 0) == 0) {
+                git_repository_free(repo);
+                ok = true;
+            }
+        }
+
+        ~TempRepo()
+        {
+            std::error_code ec;
+            std::filesystem::remove_all(root, ec);
+            git_libgit2_shutdown();
+        }
+
+        void write(const std::filesystem::path& relPath, const char* content) const
+        {
+            auto full = root / relPath;
+            std::error_code ec;
+            std::filesystem::create_directories(full.parent_path(), ec);
+            std::ofstream(full) << content;
+        }
+
+        TempRepo(const TempRepo&) = delete;
+        TempRepo& operator=(const TempRepo&) = delete;
+    };
+
+    bool test_git_ignore_basic()
+    {
+        TempRepo repo("ast-tool-test-ignore-basic");
+        if(!repo.ok) {
+            std::cerr << "    SKIP: could not init git repo\n";
+            return true;
+        }
+
+        repo.write(".gitignore", "build/\n");
+        repo.write("src/main.cpp", "int main() {}\n");
+        repo.write("build/generated.cpp", "void gen() {}\n");
+
+        std::u8string rootU8 = repo.root.u8string();
+        auto files = scan_workspace(rootU8.c_str());
+
+        bool ok = true;
+        ok &= check(hasFile(files, u8"main.cpp"),      "src/main.cpp is scanned");
+        ok &= check(!hasFile(files, u8"generated.cpp"), "build/generated.cpp is skipped");
+        return ok;
+    }
+
+    bool test_git_ignore_nested()
+    {
+        TempRepo repo("ast-tool-test-ignore-nested");
+        if(!repo.ok) {
+            std::cerr << "    SKIP: could not init git repo\n";
+            return true;
+        }
+
+        repo.write(".gitignore", "src/generated/\n");
+        repo.write("src/main.cpp", "int main() {}\n");
+        repo.write("src/generated/gen.cpp", "void gen() {}\n");
+
+        std::u8string rootU8 = repo.root.u8string();
+        auto files = scan_workspace(rootU8.c_str());
+
+        bool ok = true;
+        ok &= check(hasFile(files, u8"main.cpp"),  "src/main.cpp is scanned");
+        ok &= check(!hasFile(files, u8"gen.cpp"),   "src/generated/gen.cpp is skipped");
+        return ok;
+    }
+
+    bool test_git_ignore_file_pattern()
+    {
+        TempRepo repo("ast-tool-test-ignore-pattern");
+        if(!repo.ok) {
+            std::cerr << "    SKIP: could not init git repo\n";
+            return true;
+        }
+
+        repo.write(".gitignore", "*.generated.cpp\n");
+        repo.write("src/main.cpp", "int main() {}\n");
+        repo.write("src/foo.generated.cpp", "void foo() {}\n");
+
+        std::u8string rootU8 = repo.root.u8string();
+        auto files = scan_workspace(rootU8.c_str());
+
+        bool ok = true;
+        ok &= check(hasFile(files, u8"main.cpp"),          "main.cpp is scanned");
+        ok &= check(!hasFile(files, u8"foo.generated.cpp"), "foo.generated.cpp is skipped");
+        return ok;
+    }
+
+    bool test_non_git_workspace()
+    {
+        std::error_code ec;
+        auto tmp = std::filesystem::temp_directory_path(ec) / "ast-tool-test-nongit";
+        std::filesystem::remove_all(tmp, ec);
+        std::filesystem::create_directories(tmp / "src", ec);
+        { std::ofstream(tmp / "src" / "main.cpp") << "int main() {}\n"; }
+
+        std::u8string rootU8 = tmp.u8string();
+        auto files = scan_workspace(rootU8.c_str());
+
+        bool ok = check(!files.empty(), "non-git workspace scans successfully");
+        ok &= check(hasFile(files, u8"main.cpp"), "main.cpp found in non-git workspace");
+
+        std::filesystem::remove_all(tmp, ec);
+        return ok;
+    }
+
     struct TestCase { const char* name; bool(*fn)(); };
 
 } // namespace
@@ -259,6 +390,10 @@ bool run_tests_workspace()
         {"dependency graph",           test_dependency_graph},
         {"analyze_files (explicit)",   test_analyze_files_explicit},
         {"analyze empty inputs",       test_analyze_empty},
+        {"git ignore: basic",          test_git_ignore_basic},
+        {"git ignore: nested dir",     test_git_ignore_nested},
+        {"git ignore: file pattern",   test_git_ignore_file_pattern},
+        {"non-git workspace",          test_non_git_workspace},
     };
 
     std::cout << "=== workspace analysis tests ===\n";

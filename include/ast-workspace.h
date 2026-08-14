@@ -30,6 +30,51 @@ namespace ast
 {
 
 /**
+ * @brief Encapsulates Git ignore matching for workspace scans.
+ *
+ * Constructed from a search path; internally opens the nearest Git repository
+ * (if one exists) and exposes ignore queries via isIgnored().  libgit2 types
+ * are not exposed through this interface.
+ *
+ * Non-copyable; move-only.
+ */
+class IgnoreMatcher
+{
+public:
+    /** Opens the repository containing @p searchPath (searches upward). */
+    explicit IgnoreMatcher(const std::filesystem::path& searchPath);
+    ~IgnoreMatcher();
+    IgnoreMatcher(IgnoreMatcher&&) noexcept;
+    IgnoreMatcher& operator=(IgnoreMatcher&&) noexcept;
+    IgnoreMatcher(const IgnoreMatcher&) = delete;
+    IgnoreMatcher& operator=(const IgnoreMatcher&) = delete;
+
+    /** Returns true when a Git repository was found and is usable. */
+    bool valid() const noexcept;
+
+    /**
+     * @brief Returns the Git working-directory root path.
+     *
+     * Used by the scanner to compute repository-relative paths before calling
+     * isIgnored().  Returns an empty path when valid() is false.
+     */
+    const std::filesystem::path& workdir() const noexcept;
+
+    /**
+     * @brief Returns true if @p relativePath is ignored by Git ignore rules.
+     *
+     * @p relativePath must be relative to workdir().  Always returns false
+     * when valid() is false.
+     */
+    bool isIgnored(const std::filesystem::path& relativePath) const;
+
+private:
+    void* repo_;                   ///< git_repository*, nullptr when not in a repo.
+    std::filesystem::path workdir_; ///< Git working-directory root.
+};
+
+
+/**
  * @brief All semantic objects produced from one source file.
  *
  * Owns the AST, ScopeTree, and Symbol list for a single translation unit.

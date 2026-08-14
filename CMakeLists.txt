@@ -65,6 +65,7 @@ set(MIMALLOC_SOURCES
     "${MIMALLOC_SOURCE}/threadlocal.c"
     "${MIMALLOC_SOURCE}/prim/prim.c")
 
+# re2
 set(RE2_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/re2")
 set(RE2_INCLUDE ${RE2_ROOT}/include)
 set(RE2_LIB ${RE2_ROOT}/lib)
@@ -73,6 +74,7 @@ link_directories(AFTER ${RE2_LIB})
 add_library(RE2 MODULE IMPORTED)
 set_target_properties(RE2 PROPERTIES IMPORTED_LOCATION_DEBUG "re2d.lib" IMPORTED_LOCATION_RELEASE "re2.lib")
 
+# abseil
 set(ABSL_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/absl")
 set(ABSL_INCLUDE ${ABSL_ROOT}/include)
 set(ABSL_LIB ${ABSL_ROOT}/lib)
@@ -80,6 +82,15 @@ include_directories(AFTER ${ABSL_INCLUDE})
 link_directories(AFTER ${ABSL_LIB})
 add_library(ABSL MODULE IMPORTED)
 include("${ABSL_ROOT}/absl_libs.cmake")
+
+# libgit2
+set(GIT2_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/libgit2")
+set(GIT2_INCLUDE ${GIT2_ROOT}/include)
+set(GIT2_LIB ${GIT2_ROOT}/lib)
+include_directories(AFTER ${GIT2_INCLUDE})
+link_directories(AFTER ${GIT2_LIB})
+add_library(GIT2 MODULE IMPORTED)
+set_target_properties(GIT2 PROPERTIES IMPORTED_LOCATION_DEBUG "git2d.lib" IMPORTED_LOCATION_RELEASE "git2.lib")
 
 file(GLOB DLL_FILES "${TREESITTER_BIN}/*.dll")
 
@@ -200,15 +211,15 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS_RELEASE "/MD /O2 /GL /GR- /DNDEBUG")
     target_link_libraries(${PROJECT_NAME}
     PRIVATE
-        $<$<CONFIG:Debug>:TREESITTER ${TREESITTER_LANGS} ${ABSL_DEBUG_LIBS} RE2>
-        $<$<NOT:$<CONFIG:Debug>>:TREESITTER ${TREESITTER_LANGS} ${ABSL_RELEASE_LIBS} RE2>)
+        $<$<CONFIG:Debug>:TREESITTER ${TREESITTER_LANGS} ${ABSL_DEBUG_LIBS} RE2 GIT2 winhttp.lib rpcrt4.lib crypt32.lib>
+        $<$<NOT:$<CONFIG:Debug>>:TREESITTER ${TREESITTER_LANGS} ${ABSL_RELEASE_LIBS} RE2 GIT2 winhttp.lib rpcrt4.lib crypt32.lib>)
 elseif(UNIX)
     set(DEFAULT_CXX_FLAGS "-Wall -O0 -g -march=x86-64-v3")
     set(CMAKE_CXX_FLAGS "${DEFAULT_CXX_FLAGS}")
     target_link_libraries(${PROJECT_NAME}
     PRIVATE
-        $<$<CONFIG:Debug>:TREESITTER ${TREESITTER_LANGS} ${ABSL_DEBUG_LIBS} RE2>
-        $<$<NOT:$<CONFIG:Debug>>:TREESITTER ${TREESITTER_LANGS} ${ABSL_RELEASE_LIBS} RE2>)
+        $<$<CONFIG:Debug>:TREESITTER ${TREESITTER_LANGS} ${ABSL_DEBUG_LIBS} RE2 GIT2>
+        $<$<NOT:$<CONFIG:Debug>>:TREESITTER ${TREESITTER_LANGS} ${ABSL_RELEASE_LIBS} RE2 GIT2>)
 elseif(APPLE)
 endif()
 

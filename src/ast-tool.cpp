@@ -568,7 +568,7 @@ const ASTNode& AST::operator[](size_t index) const
 
 ASTText AST::get_string(uint32_t start, uint32_t end) const
 {
-    if(size_<=0){
+    if(size_<=start){
         return {0, text_};
     }
     assert(start < size_);
