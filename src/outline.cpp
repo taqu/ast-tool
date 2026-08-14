@@ -61,9 +61,9 @@ namespace
         }
         std::print("{}", node.type_);
         if(node.children_.empty()) {
-            std::string text = preview_text(node);
+            std::u8string text = preview_text(node);
             if(!text.empty()) {
-                std::print(" \"{}\"", text);
+                std::print(" \"{}\"", (const char*)text.c_str());
             }
         }
         std::print(" @{}:{}\n", node.start_.row_ + 1, node.start_.column_ + 1);
@@ -78,7 +78,7 @@ namespace
     }
 } // namespace
 
-bool parse_outline(Arguments& arguments, int32_t argc, const char** argv)
+bool parse_outline(Arguments& arguments, int32_t argc, const char8_t** argv)
 {
     arguments.sub_ = SubCommand::Outline;
     if(argc <= 2) {

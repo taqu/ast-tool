@@ -6,7 +6,7 @@ namespace ast
 {
 	struct Arguments;
 	struct ArgDump;
-	bool parse_dump(Arguments& arguments, int32_t argc, const char** argv);
+	bool parse_dump(Arguments& arguments, int32_t argc, const char8_t** argv);
 	bool dump(const ArgDump& arguments);
 }
 #endif //INC_AST_DUMP_H_

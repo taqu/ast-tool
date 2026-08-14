@@ -21,13 +21,14 @@
  * Identifier matching is semantic (resolved-symbol comparison), never textual.
  * Calls that cannot be resolved are silently skipped.
  */
-#include <cstddef>
-#include <cstdint>
-#include <string>
-#include <vector>
 #include "ast-extractor.h"
 #include "ast-scope.h"
 #include "ast-workspace.h"
+#include <cstddef>
+#include <cstdint>
+#include <filesystem>
+#include <string>
+#include <vector>
 
 namespace ast
 {
@@ -41,12 +42,12 @@ namespace ast
  */
 struct CallSite
 {
-    const WorkspaceSymbol* caller;     ///< The function containing this call, or nullptr if at file scope.
-    const WorkspaceSymbol* callee;     ///< The target function being called.
-    std::string            sourceFile; ///< Path of the file containing this call.
-    uint32_t               line   = 0; ///< 0-based source line of the callee identifier.
-    uint32_t               column = 0; ///< 0-based source column of the callee identifier.
-    size_t                 nodeIndex = size_t(-1); ///< Index of the call-expression ASTNode.
+    const WorkspaceSymbol* caller;    ///< The function containing this call, or nullptr if at file scope.
+    const WorkspaceSymbol* callee;    ///< The target function being called.
+    std::filesystem::path sourceFile; ///< Path of the file containing this call.
+    uint32_t line = 0;                ///< 0-based source line of the callee identifier.
+    uint32_t column = 0;              ///< 0-based source column of the callee identifier.
+    size_t nodeIndex = size_t(-1);    ///< Index of the call-expression ASTNode.
 };
 
 /**

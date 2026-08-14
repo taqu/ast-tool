@@ -6,7 +6,7 @@ namespace ast
 {
     struct Arguments;
     struct ArgOutline;
-    bool parse_outline(Arguments& arguments, int32_t argc, const char** argv);
+    bool parse_outline(Arguments& arguments, int32_t argc, const char8_t** argv);
     bool outline(const ArgOutline& arguments);
 }
 #endif //INC_AST_OUTLINE_H_

@@ -14,14 +14,14 @@
  *   SemanticSearchEngine engine(workspace);
  *   auto results = engine.search(*q);
  */
-#include <expected>
-#include <optional>
-#include <string>
-#include <vector>
 #include "ast-extractor.h"
 #include "ast-regex.h"
 #include "ast-scope.h"
 #include "ast-workspace.h"
+#include <expected>
+#include <optional>
+#include <string>
+#include <vector>
 
 namespace ast
 {
@@ -51,10 +51,10 @@ namespace ast
  */
 struct SearchQuery
 {
-    std::optional<std::string>  name;       ///< Exact unqualified name match.
-    std::optional<std::string>  fqn;        ///< Exact fully qualified name match.
-    std::optional<SymbolKind>   kind;       ///< Exact declaration category.
-    std::optional<std::string>  file;       ///< Substring in source file path.
+    std::optional<std::u8string> name;      ///< Exact unqualified name match.
+    std::optional<std::u8string> fqn;       ///< Exact fully qualified name match.
+    std::optional<SymbolKind> kind;         ///< Exact declaration category.
+    std::optional<std::u8string> file;      ///< Substring in source file path.
     std::optional<RegexPattern> name_regex; ///< RE2 partial match on unqualified name.
     std::optional<RegexPattern> fqn_regex;  ///< RE2 partial match on fully qualified name.
     std::optional<RegexPattern> file_regex; ///< RE2 partial match on source file path.
@@ -77,14 +77,14 @@ struct SearchQuery
  *         describing why the query is invalid. The caller is responsible for
  *         reporting the error to the user.
  */
-std::expected<SearchQuery, std::string> build_search_query(
-    const char* name,
-    const char* fqn,
-    const char* kind_str,
-    const char* file,
-    const char* name_regex,
-    const char* fqn_regex,
-    const char* file_regex);
+std::expected<SearchQuery, std::u8string> build_search_query(
+    const char8_t* name,
+    const char8_t* fqn,
+    const char8_t* kind_str,
+    const char8_t* file,
+    const char8_t* name_regex,
+    const char8_t* fqn_regex,
+    const char8_t* file_regex);
 
 /**
  * @brief Evaluates SearchQuery objects against a Workspace symbol table.

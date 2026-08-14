@@ -1,3 +1,4 @@
+#include "ast-tool.h"
 #include "ast-extractor-langs.h"
 #include "ast-extractor-common.h"
 #include "ast-ir.h"
@@ -32,24 +33,24 @@ namespace
     // Returns Unknown for package-private (no explicit access keyword).
     Access getAccess(const ast::AST& tree, const ast::ASTNode& node)
     {
-        const ast::ASTNode* mods = findChild(tree, node, k_modifiers);
+        const ast::ASTNode* mods = findChild(tree, node, (const char8_t*)k_modifiers);
         if(!mods) return Access::Unknown;
-        if(childHasText(tree, *mods, "public"))    return Access::Public;
-        if(childHasText(tree, *mods, "private"))   return Access::Private;
-        if(childHasText(tree, *mods, "protected")) return Access::Protected;
+        if(childHasText(tree, *mods, u8"public"))    return Access::Public;
+        if(childHasText(tree, *mods, u8"private"))   return Access::Private;
+        if(childHasText(tree, *mods, u8"protected")) return Access::Protected;
         return Access::Unknown;
     }
 
     // Returns true if the node's modifiers child contains the given keyword.
-    bool hasModifier(const ast::AST& tree, const ast::ASTNode& node, const char* kw)
+    bool hasModifier(const ast::AST& tree, const ast::ASTNode& node, const char8_t* kw)
     {
-        const ast::ASTNode* mods = findChild(tree, node, k_modifiers);
+        const ast::ASTNode* mods = findChild(tree, node, (const char8_t*)k_modifiers);
         return mods && childHasText(tree, *mods, kw);
     }
 
     // Extract the package name from a package_declaration node.
     // The name is a scoped_identifier ("com.example.app") or plain identifier.
-    std::string getPackageName(const ast::AST& tree, const ast::ASTNode& node)
+    std::u8string getPackageName(const ast::AST& tree, const ast::ASTNode& node)
     {
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
@@ -65,11 +66,12 @@ namespace
 std::vector<Symbol> extract_symbols_java(const ast::AST& tree)
 {
     std::vector<Symbol>             result;
-    std::unordered_set<std::string> seen;   // key = fqn + ":" + kind ordinal
+    std::unordered_set<std::u8string> seen;   // key = fqn + ":" + kind ordinal
     std::vector<ScopeFrame>         scopeStack;
 
     auto emit = [&](Symbol sym) {
-        std::string key = sym.fqn + ":" + std::to_string(static_cast<int>(sym.kind));
+        char8_t buffer[BUFFER_SIZE];
+        std::u8string key = sym.fqn + u8":" + ast::to_string_intermediate(buffer, static_cast<int>(sym.kind));
         if(!sym.fqn.empty() && seen.insert(key).second)
             result.push_back(std::move(sym));
     };
@@ -88,7 +90,7 @@ std::vector<Symbol> extract_symbols_java(const ast::AST& tree)
         // Treated as a Namespace. Pushed with an infinite range so every type
         // declaration in the file receives the correct FQN prefix.
         if(node.typeEquals(k_package_declaration)) {
-            std::string name = getPackageName(tree, node);
+            std::u8string name = getPackageName(tree, node);
             if(!name.empty()) {
                 emit(makeSymbol(name, name, SymbolKind::Namespace, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
@@ -102,14 +104,14 @@ std::vector<Symbol> extract_symbols_java(const ast::AST& tree)
         // @interface is an annotation type; Class is the closest SymbolKind.
         if(node.typeEquals(k_class_declaration) ||
            node.typeEquals(k_annotation_type_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 Access      acc  = getAccess(tree, node);
                 Symbol sym = makeSymbol(name, fqn, SymbolKind::Class, acc,
                                        i, node.start_.row_, node.start_.column_);
-                sym.isStatic = hasModifier(tree, node, "static");
+                sym.isStatic = hasModifier(tree, node, u8"static");
                 emit(std::move(sym));
                 scopeStack.push_back({name, SymbolKind::Class, node.endByte_,
                                       acc, false});
@@ -119,10 +121,10 @@ std::vector<Symbol> extract_symbols_java(const ast::AST& tree)
 
         // ── Interface ─────────────────────────────────────────────────────────
         if(node.typeEquals(k_interface_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 Access      acc  = getAccess(tree, node);
                 emit(makeSymbol(name, fqn, SymbolKind::Class, acc,
                                i, node.start_.row_, node.start_.column_));
@@ -134,10 +136,10 @@ std::vector<Symbol> extract_symbols_java(const ast::AST& tree)
 
         // ── Enum ──────────────────────────────────────────────────────────────
         if(node.typeEquals(k_enum_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 Access      acc  = getAccess(tree, node);
                 emit(makeSymbol(name, fqn, SymbolKind::Enum, acc,
                                i, node.start_.row_, node.start_.column_));
@@ -149,10 +151,10 @@ std::vector<Symbol> extract_symbols_java(const ast::AST& tree)
 
         // ── Enum constant ─────────────────────────────────────────────────────
         if(node.typeEquals(k_enum_constant)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::EnumValue, Access::Public,
                                i, node.start_.row_, node.start_.column_));
             }
@@ -161,10 +163,10 @@ std::vector<Symbol> extract_symbols_java(const ast::AST& tree)
 
         // ── Constructor ───────────────────────────────────────────────────────
         if(node.typeEquals(k_constructor_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 Access      acc  = getAccess(tree, node);
                 emit(makeSymbol(name, fqn, SymbolKind::Constructor, acc,
                                i, node.start_.row_, node.start_.column_));
@@ -179,14 +181,14 @@ std::vector<Symbol> extract_symbols_java(const ast::AST& tree)
         // appears before it but has node type "type_identifier" (not "identifier"),
         // so findChild(k_identifier) correctly skips over it to the method name.
         if(node.typeEquals(k_method_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 Access      acc  = getAccess(tree, node);
                 Symbol sym = makeSymbol(name, fqn, SymbolKind::Method, acc,
                                        i, node.start_.row_, node.start_.column_);
-                sym.isStatic = hasModifier(tree, node, "static");
+                sym.isStatic = hasModifier(tree, node, u8"static");
                 emit(std::move(sym));
                 scopeStack.push_back({name, SymbolKind::Method, node.endByte_,
                                       acc, false});
@@ -199,16 +201,16 @@ std::vector<Symbol> extract_symbols_java(const ast::AST& tree)
         // so iterate over all variable_declarator children.
         if(node.typeEquals(k_field_declaration)) {
             Access acc      = getAccess(tree, node);
-            bool   isStatic = hasModifier(tree, node, "static");
-            bool   isFinal  = hasModifier(tree, node, "final");
+            bool   isStatic = hasModifier(tree, node, u8"static");
+            bool   isFinal  = hasModifier(tree, node, u8"final");
             for(uintptr_t cid : node.children_) {
                 if(cid == ast::InvalidId) continue;
                 const ast::ASTNode& decl = tree[static_cast<uint32_t>(cid)];
                 if(!decl.typeEquals(k_variable_declarator)) continue;
-                const ast::ASTNode* id = findChild(tree, decl, k_identifier);
+                const ast::ASTNode* id = findChild(tree, decl, (const char8_t*)k_identifier);
                 if(!id) continue;
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 Symbol sym = makeSymbol(name, fqn, SymbolKind::Field, acc,
                                        i, node.start_.row_, node.start_.column_);
                 sym.isStatic    = isStatic;
@@ -222,10 +224,10 @@ std::vector<Symbol> extract_symbols_java(const ast::AST& tree)
         // Annotation elements behave like abstract method signatures;
         // Method is the closest SymbolKind.
         if(node.typeEquals(k_annotation_type_element_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Method, Access::Public,
                                i, node.start_.row_, node.start_.column_));
             }

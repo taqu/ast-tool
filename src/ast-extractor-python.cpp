@@ -1,3 +1,4 @@
+#include "ast-tool.h"
 #include "ast-extractor-langs.h"
 #include "ast-extractor-common.h"
 #include "ast-ir.h"
@@ -19,7 +20,7 @@ namespace
     // Extract the simple name from a class/function definition node: the
     // first identifier-grammar child. Stops at the body ("block") so a
     // malformed tree can never pick up a name from inside the body.
-    std::string getDefName(const ast::AST& tree, const ast::ASTNode& node)
+    std::u8string getDefName(const ast::AST& tree, const ast::ASTNode& node)
     {
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
@@ -32,7 +33,7 @@ namespace
 
     // Returns the simple name from a Python assignment left side.
     // Returns empty for attribute assignments (self.x = ...) and other complex forms.
-    std::string getAssignmentName(const ast::AST& tree, const ast::ASTNode& node)
+    std::u8string getAssignmentName(const ast::AST& tree, const ast::ASTNode& node)
     {
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
@@ -49,11 +50,12 @@ namespace
 std::vector<Symbol> extract_symbols_python(const ast::AST& tree)
 {
     std::vector<Symbol>             result;
-    std::unordered_set<std::string> seen;   // key = fqn + ":" + kind ordinal
+    std::unordered_set<std::u8string> seen;   // key = fqn + ":" + kind ordinal
     std::vector<ScopeFrame>         scopeStack;
 
     auto emit = [&](Symbol sym) {
-        std::string key = sym.fqn + ":" + std::to_string(static_cast<int>(sym.kind));
+        char8_t buffer[BUFFER_SIZE];
+        std::u8string key = sym.fqn + u8":" + ast::to_string_intermediate(buffer, static_cast<int32_t>(sym.kind));
         if(!sym.fqn.empty() && seen.insert(key).second) {
             result.push_back(std::move(sym));
         }
@@ -68,9 +70,9 @@ std::vector<Symbol> extract_symbols_python(const ast::AST& tree)
 
         // ── Class ────────────────────────────────────────────────────────
         if(node.typeEquals(k_class_definition)) {
-            std::string name = getDefName(tree, node);
+            std::u8string name = getDefName(tree, node);
             if(!name.empty()) {
-                std::string fqn = buildFQN(scopeStack, name, ".");
+                std::u8string fqn = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Class, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
                 scopeStack.push_back({name, SymbolKind::Class, node.endByte_,
@@ -81,14 +83,14 @@ std::vector<Symbol> extract_symbols_python(const ast::AST& tree)
 
         // ── Function / Method ─────────────────────────────────────────────
         if(node.typeEquals(k_function_definition)) {
-            std::string name = getDefName(tree, node);
+            std::u8string name = getDefName(tree, node);
             if(!name.empty()) {
                 SymbolKind kind = SymbolKind::Function;
                 if(inNamedClassScope(scopeStack)) {
-                    kind = (name == "__init__") ? SymbolKind::Constructor
+                    kind = (name == u8"__init__") ? SymbolKind::Constructor
                                                 : SymbolKind::Method;
                 }
-                std::string fqn = buildFQN(scopeStack, name, ".");
+                std::u8string fqn = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, kind, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
                 // Push a function scope so nested locals and inner functions
@@ -101,12 +103,12 @@ std::vector<Symbol> extract_symbols_python(const ast::AST& tree)
         // ── Assignment → module variable or class variable ────────────────
         // Skip assignments inside function bodies (local variables).
         if(node.typeEquals(k_assignment) && !insideFunctionScope(scopeStack)) {
-            std::string name = getAssignmentName(tree, node);
+            std::u8string name = getAssignmentName(tree, node);
             if(!name.empty()) {
                 SymbolKind kind = inNamedClassScope(scopeStack)
                                       ? SymbolKind::Field
                                       : SymbolKind::Variable;
-                std::string fqn = buildFQN(scopeStack, name, ".");
+                std::u8string fqn = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, kind, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
             }

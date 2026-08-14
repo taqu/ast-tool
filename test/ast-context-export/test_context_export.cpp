@@ -20,7 +20,7 @@ namespace
         return condition;
     }
 
-    const WorkspaceSymbol* findByName(const Workspace& ws, std::string_view name)
+    const WorkspaceSymbol* findByName(const Workspace& ws, std::u8string_view name)
     {
         for(const auto& s : ws.symbols)
             if(s.symbol.name == name) return &s;
@@ -28,16 +28,18 @@ namespace
     }
 
     const WorkspaceSymbol* findByNameInFile(const Workspace& ws,
-                                             std::string_view name,
-                                             std::string_view fileHint)
+                                             std::u8string_view name,
+                                             std::u8string_view fileHint)
     {
-        for(const auto& s : ws.symbols)
+        for(const auto& s : ws.symbols){
+            std::u8string sourceFile = s.sourceFile.u8string();
             if(s.symbol.name == name &&
-               s.sourceFile.find(fileHint) != std::string::npos) return &s;
+               sourceFile.find(fileHint) != std::string::npos) return &s;
+        }
         return nullptr;
     }
 
-    const WorkspaceSymbol* findByFQN(const Workspace& ws, std::string_view fqn)
+    const WorkspaceSymbol* findByFQN(const Workspace& ws, std::u8string_view fqn)
     {
         for(const auto& s : ws.symbols)
             if(s.symbol.fqn == fqn) return &s;
@@ -50,8 +52,8 @@ namespace
     bool test_symbol_pointer_always_set()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kRefsRoot);
-        const WorkspaceSymbol* target = findByName(ws, "mrCounter");
+        Workspace ws = analyze_workspace((const char8_t*)kRefsRoot);
+        const WorkspaceSymbol* target = findByName(ws, u8"mrCounter");
         ok &= check(target != nullptr, "mrCounter found");
         if(!target) return false;
 
@@ -60,7 +62,7 @@ namespace
 
         ok &= check(ctx.symbol != nullptr,       "symbol pointer is set");
         ok &= check(ctx.symbol == target,        "symbol pointer matches target");
-        ok &= check(ctx.symbol->symbol.name == "mrCounter", "symbol name is correct");
+        ok &= check(ctx.symbol->symbol.name == u8"mrCounter", "symbol name is correct");
         return ok;
     }
 
@@ -70,9 +72,9 @@ namespace
     bool test_function_with_references()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kRefsRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kRefsRoot);
         // mrCounter is referenced in mrInc and mrDec (4 non-declaration references).
-        const WorkspaceSymbol* target = findByName(ws, "mrCounter");
+        const WorkspaceSymbol* target = findByName(ws, u8"mrCounter");
         ok &= check(target != nullptr, "mrCounter found");
         if(!target) return false;
 
@@ -90,8 +92,8 @@ namespace
     bool test_function_with_callers()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCallersRoot);
-        const WorkspaceSymbol* target = findByName(ws, "calTarget");
+        Workspace ws = analyze_workspace((const char8_t*)kCallersRoot);
+        const WorkspaceSymbol* target = findByName(ws, u8"calTarget");
         ok &= check(target != nullptr, "calTarget found");
         if(!target) return false;
 
@@ -104,7 +106,7 @@ namespace
         // The caller should be callerFn.
         bool found = false;
         for(const auto& site : ctx.callers)
-            if(site.caller && site.caller->symbol.name == "callerFn") { found = true; break; }
+            if(site.caller && site.caller->symbol.name == u8"callerFn") { found = true; break; }
         ok &= check(found, "callerFn is among calTarget's callers");
         return ok;
     }
@@ -115,8 +117,8 @@ namespace
     bool test_function_with_callees()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCalleesRoot);
-        const WorkspaceSymbol* target = findByName(ws, "scSource");
+        Workspace ws = analyze_workspace((const char8_t*)kCalleesRoot);
+        const WorkspaceSymbol* target = findByName(ws, u8"scSource");
         ok &= check(target != nullptr, "scSource found");
         if(!target) return false;
 
@@ -128,7 +130,7 @@ namespace
 
         bool found = false;
         for(const auto& site : ctx.callees)
-            if(site.callee && site.callee->symbol.name == "scTarget") { found = true; break; }
+            if(site.callee && site.callee->symbol.name == u8"scTarget") { found = true; break; }
         ok &= check(found, "scTarget is a callee of scSource");
         return ok;
     }
@@ -139,8 +141,8 @@ namespace
     bool test_symbol_no_references()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kRefsRoot);
-        const WorkspaceSymbol* target = findByName(ws, "zeroRefVar");
+        Workspace ws = analyze_workspace((const char8_t*)kRefsRoot);
+        const WorkspaceSymbol* target = findByName(ws, u8"zeroRefVar");
         ok &= check(target != nullptr, "zeroRefVar found");
         if(!target) return false;
 
@@ -158,8 +160,8 @@ namespace
     bool test_symbol_no_callers()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCallersRoot);
-        const WorkspaceSymbol* target = findByName(ws, "noCalTarget");
+        Workspace ws = analyze_workspace((const char8_t*)kCallersRoot);
+        const WorkspaceSymbol* target = findByName(ws, u8"noCalTarget");
         ok &= check(target != nullptr, "noCalTarget found");
         if(!target) return false;
 
@@ -177,8 +179,8 @@ namespace
     bool test_symbol_no_callees()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCalleesRoot);
-        const WorkspaceSymbol* target = findByName(ws, "noCallee");
+        Workspace ws = analyze_workspace((const char8_t*)kCalleesRoot);
+        const WorkspaceSymbol* target = findByName(ws, u8"noCallee");
         ok &= check(target != nullptr, "noCallee found");
         if(!target) return false;
 
@@ -196,8 +198,8 @@ namespace
     bool test_cross_file_symbol()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCallersRoot);
-        const WorkspaceSymbol* target = findByNameInFile(ws, "xfileTarget", "xfile_fn");
+        Workspace ws = analyze_workspace((const char8_t*)kCallersRoot);
+        const WorkspaceSymbol* target = findByNameInFile(ws, u8"xfileTarget", u8"xfile_fn");
         ok &= check(target != nullptr, "xfileTarget found in xfile_fn");
         if(!target) return false;
 
@@ -207,9 +209,11 @@ namespace
         ok &= check(ctx.symbol != nullptr, "symbol pointer is set");
         // xfileCaller calls xfileTarget from a different file.
         bool foundCaller = false;
-        for(const auto& site : ctx.callers)
-            if(site.sourceFile.find("xfile_caller") != std::string::npos)
+        for(const auto& site : ctx.callers){
+            std::u8string sourceFile = site.sourceFile.u8string();
+            if(sourceFile.find(u8"xfile_caller") != std::string::npos)
                 { foundCaller = true; break; }
+        }
         ok &= check(foundCaller, "cross-file caller found in context");
         return ok;
     }
@@ -220,8 +224,8 @@ namespace
     bool test_namespace_member()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCallersRoot);
-        const WorkspaceSymbol* target = findByFQN(ws, "NsCal::nsTarget");
+        Workspace ws = analyze_workspace((const char8_t*)kCallersRoot);
+        const WorkspaceSymbol* target = findByFQN(ws, u8"NsCal::nsTarget");
         ok &= check(target != nullptr, "NsCal::nsTarget found");
         if(!target) return false;
 
@@ -239,8 +243,8 @@ namespace
     bool test_class_member()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCallersRoot);
-        const WorkspaceSymbol* target = findByFQN(ws, "MbObj::mbTarget");
+        Workspace ws = analyze_workspace((const char8_t*)kCallersRoot);
+        const WorkspaceSymbol* target = findByFQN(ws, u8"MbObj::mbTarget");
         ok &= check(target != nullptr, "MbObj::mbTarget found");
         if(!target) return false;
 
@@ -258,10 +262,10 @@ namespace
     bool test_partially_populated_context()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kRefsRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kRefsRoot);
         // mrCounter is a variable: it has references, but cannot be "called"
         // and has no function body to traverse for callees.
-        const WorkspaceSymbol* target = findByName(ws, "mrCounter");
+        const WorkspaceSymbol* target = findByName(ws, u8"mrCounter");
         ok &= check(target != nullptr, "mrCounter found");
         if(!target) return false;
 
@@ -281,10 +285,10 @@ namespace
     bool test_independent_calls()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCallersRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kCallersRoot);
 
-        const WorkspaceSymbol* t1 = findByName(ws, "calTarget");
-        const WorkspaceSymbol* t2 = findByName(ws, "noCalTarget");
+        const WorkspaceSymbol* t1 = findByName(ws, u8"calTarget");
+        const WorkspaceSymbol* t2 = findByName(ws, u8"noCalTarget");
         ok &= check(t1 != nullptr && t2 != nullptr, "both symbols found");
         if(!t1 || !t2) return false;
 

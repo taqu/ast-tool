@@ -15,9 +15,9 @@ namespace
     {
         std::print(" {{\n");
         std::print("  \"kind\": \"{}\",\n",        getSymbolKindName(r.symbol.kind));
-        std::print("  \"name\": \"{}\",\n",        r.symbol.name);
-        std::print("  \"fqn\": \"{}\",\n",         r.symbol.fqn);
-        std::print("  \"file\": \"{}\",\n",        r.sourceFile);
+        std::print("  \"name\": \"{}\",\n",        (const char*)r.symbol.name.c_str());
+        std::print("  \"fqn\": \"{}\",\n",         (const char*)r.symbol.fqn.c_str());
+        std::print("  \"file\": \"{}\",\n",        (const char*)r.sourceFile.u8string().c_str());
         std::print("  \"line\": {},\n",            r.symbol.line + 1);
         std::print("  \"column\": {},\n",          r.symbol.column + 1);
         std::print("  \"owning_scope\": \"{}\"\n", getScopeKindName(r.owningScope));
@@ -29,9 +29,9 @@ namespace
     {
         std::print("{{");
         std::print("\"kind\":\"{}\",",        getSymbolKindName(r.symbol.kind));
-        std::print("\"name\":\"{}\",",        r.symbol.name);
-        std::print("\"fqn\":\"{}\",",         r.symbol.fqn);
-        std::print("\"file\":\"{}\",",        r.sourceFile);
+        std::print("\"name\":\"{}\",",        (const char*)r.symbol.name.c_str());
+        std::print("\"fqn\":\"{}\",",         (const char*)r.symbol.fqn.c_str());
+        std::print("\"file\":\"{}\",",        (const char*)r.sourceFile.u8string().c_str());
         std::print("\"line\":{},",            r.symbol.line + 1);
         std::print("\"column\":{},",          r.symbol.column + 1);
         std::print("\"owning_scope\":\"{}\"", getScopeKindName(r.owningScope));
@@ -42,9 +42,9 @@ namespace
     }
 } // namespace
 
-bool parse_search(Arguments& arguments, int32_t argc, const char** argv)
+bool parse_search(Arguments& arguments, int32_t argc, const char8_t** argv)
 {
-#define STREQUALS(str, literal) (0 == ::strcmp(str, literal))
+#define STREQUALS(str, literal) (0 == ::strcmp(reinterpret_cast<const char*>(str), literal))
     arguments.sub_ = SubCommand::Search;
     ArgSearch& args = arguments.search_;
     args.root_        = nullptr;
@@ -116,7 +116,7 @@ bool search(const ArgSearch& arguments)
         arguments.fqn_regex_,
         arguments.file_regex_);
     if(!q) {
-        std::print(stderr, "error: {}\n", q.error());
+        std::print(stderr, "error: {}\n", (const char*)q.error().c_str());
         return false;
     }
 
@@ -142,8 +142,8 @@ bool search(const ArgSearch& arguments)
         for(const WorkspaceSymbol* r : results) {
             std::print("{} {} {}:{}:{}\n",
                 getSymbolKindName(r->symbol.kind),
-                r->symbol.fqn,
-                r->sourceFile,
+                (const char*)r->symbol.fqn.c_str(),
+                (const char*)r->sourceFile.u8string().c_str(),
                 r->symbol.line + 1,
                 r->symbol.column + 1);
         }

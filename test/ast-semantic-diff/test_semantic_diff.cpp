@@ -29,7 +29,7 @@ namespace
     }
 
     // Returns true if any entry matches: kind + after->symbol.name == name.
-    bool has_added(const SemanticDiffResult& r, std::string_view name)
+    bool has_added(const SemanticDiffResult& r, std::u8string_view name)
     {
         for(const DiffEntry& e : r.changes)
             if(e.kind == DiffKind::Added && e.after && e.after->symbol.name == name)
@@ -38,7 +38,7 @@ namespace
     }
 
     // Returns true if any entry matches: kind + before->symbol.name == name.
-    bool has_removed(const SemanticDiffResult& r, std::string_view name)
+    bool has_removed(const SemanticDiffResult& r, std::u8string_view name)
     {
         for(const DiffEntry& e : r.changes)
             if(e.kind == DiffKind::Removed && e.before && e.before->symbol.name == name)
@@ -48,7 +48,7 @@ namespace
 
     // Returns the first Modified entry for a symbol whose FQN equals @p fqn,
     // or nullptr if none exists.
-    const DiffEntry* find_modified(const SemanticDiffResult& r, std::string_view fqn)
+    const DiffEntry* find_modified(const SemanticDiffResult& r, std::u8string_view fqn)
     {
         for(const DiffEntry& e : r.changes)
             if(e.kind == DiffKind::Modified && e.before && e.before->symbol.fqn == fqn)
@@ -71,10 +71,10 @@ namespace
         ok &= check(count_kind(result, DiffKind::Added)    == 1, "exactly 1 Added entry");
         ok &= check(count_kind(result, DiffKind::Removed)  == 0, "0 Removed entries");
         ok &= check(count_kind(result, DiffKind::Modified) == 0, "0 Modified entries");
-        ok &= check(has_added(result, "afAdded"), "afAdded is in Added entries");
+        ok &= check(has_added(result, u8"afAdded"), "afAdded is in Added entries");
         // afBase is unchanged → must NOT appear
-        ok &= check(!has_added(result, "afBase"),   "afBase not in Added (unchanged)");
-        ok &= check(!has_removed(result, "afBase"), "afBase not in Removed (unchanged)");
+        ok &= check(!has_added(result, u8"afBase"),   "afBase not in Added (unchanged)");
+        ok &= check(!has_removed(result, u8"afBase"), "afBase not in Removed (unchanged)");
         return ok;
     }
 
@@ -93,7 +93,7 @@ namespace
         ok &= check(count_kind(result, DiffKind::Removed)  == 1, "exactly 1 Removed entry");
         ok &= check(count_kind(result, DiffKind::Added)    == 0, "0 Added entries");
         ok &= check(count_kind(result, DiffKind::Modified) == 0, "0 Modified entries");
-        ok &= check(has_removed(result, "rfRemoved"), "rfRemoved is in Removed entries");
+        ok &= check(has_removed(result, u8"rfRemoved"), "rfRemoved is in Removed entries");
 
         // Verify DiffEntry pointer layout for a Removed entry.
         for(const DiffEntry& e : result.changes) {
@@ -119,8 +119,8 @@ namespace
 
         ok &= check(count_kind(result, DiffKind::Removed) == 1, "1 Removed (old name gone)");
         ok &= check(count_kind(result, DiffKind::Added)   == 1, "1 Added   (new name)");
-        ok &= check(has_removed(result, "rnOldName"), "rnOldName is Removed");
-        ok &= check(has_added(result,   "rnNewName"), "rnNewName is Added");
+        ok &= check(has_removed(result, u8"rnOldName"), "rnOldName is Removed");
+        ok &= check(has_added(result,   u8"rnNewName"), "rnNewName is Added");
         return ok;
     }
 
@@ -137,7 +137,7 @@ namespace
         auto result = diff.compare(oldWs, newWs);
 
         // AcStruct itself is unchanged.  AcStruct::acMethod changes access.
-        const DiffEntry* entry = find_modified(result, "AcStruct::acMethod");
+        const DiffEntry* entry = find_modified(result, u8"AcStruct::acMethod");
         ok &= check(entry != nullptr, "AcStruct::acMethod is Modified");
         if(entry) {
             ok &= check(entry->before != nullptr, "Modified entry: before is set");
@@ -163,7 +163,7 @@ namespace
         SemanticDiff diff;
         auto result = diff.compare(oldWs, newWs);
 
-        const DiffEntry* entry = find_modified(result, "scFunc");
+        const DiffEntry* entry = find_modified(result, u8"scFunc");
         ok &= check(entry != nullptr, "scFunc is Modified");
         if(entry) {
             ok &= check(!entry->before->symbol.isStatic, "before: isStatic is false");
@@ -184,7 +184,7 @@ namespace
         SemanticDiff diff;
         auto result = diff.compare(oldWs, newWs);
 
-        const DiffEntry* entry = find_modified(result, "ccFunc");
+        const DiffEntry* entry = find_modified(result, u8"ccFunc");
         ok &= check(entry != nullptr, "ccFunc is Modified");
         if(entry) {
             ok &= check(!entry->before->symbol.isConstexpr, "before: isConstexpr is false");
@@ -205,7 +205,7 @@ namespace
         SemanticDiff diff;
         auto result = diff.compare(oldWs, newWs);
 
-        const DiffEntry* entry = find_modified(result, "icFunc");
+        const DiffEntry* entry = find_modified(result, u8"icFunc");
         ok &= check(entry != nullptr, "icFunc is Modified");
         if(entry) {
             ok &= check(!entry->before->symbol.isInline, "before: isInline is false");
@@ -284,9 +284,9 @@ namespace
         bool foundRemoved = false, foundAdded = false;
         for(const DiffEntry& e : result.changes) {
             if(e.kind == DiffKind::Removed && e.before &&
-               e.before->symbol.fqn == "NsA::nmFunc") foundRemoved = true;
+               e.before->symbol.fqn == u8"NsA::nmFunc") foundRemoved = true;
             if(e.kind == DiffKind::Added   && e.after  &&
-               e.after->symbol.fqn  == "NsB::nmFunc") foundAdded   = true;
+               e.after->symbol.fqn  == u8"NsB::nmFunc") foundAdded   = true;
         }
         ok &= check(foundRemoved, "NsA::nmFunc is Removed");
         ok &= check(foundAdded,   "NsB::nmFunc is Added");

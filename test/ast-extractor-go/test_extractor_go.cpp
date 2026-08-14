@@ -8,39 +8,39 @@
 namespace ast {
 namespace {
 
-bool parseAndCheck(const char* path, std::vector<std::pair<const char*, SymbolKind>> expected)
+bool parseAndCheck(const char8_t* path, std::vector<std::pair<const char8_t*, SymbolKind>> expected)
 {
     AST tree = parse(path);
     if(!tree) {
-        std::cerr << "    FAIL: could not parse " << path << "\n";
+        std::cerr << "    FAIL: could not parse " << (const char*)path << "\n";
         return false;
     }
     auto syms = extract_symbols(tree);
     bool ok = true;
     for(const auto& [fqn, kind] : expected)
-        ok &= test::check(test::hasFQN(syms, fqn, kind), fqn);
+        ok &= test::check(test::hasFQN(syms, fqn, kind), (const char*)fqn);
     return ok;
 }
 
 bool testStructs()
 {
     std::cout << "  testGo_Structs... ";
-    AST tree = parse("test/ast-extractor-go/samples/structs.go");
+    AST tree = parse(u8"test/ast-extractor-go/samples/structs.go");
     if(!tree) { std::cerr << "    FAIL: could not parse\n"; return false; }
     auto syms = extract_symbols(tree);
     bool ok = true;
-    ok &= test::check(test::hasFQN(syms, "shapes",          SymbolKind::Namespace), "shapes package");
-    ok &= test::check(test::hasFQN(syms, "shapes.Point",    SymbolKind::Struct),    "shapes.Point struct");
-    ok &= test::check(test::hasFQN(syms, "shapes.Point.X",  SymbolKind::Field),     "shapes.Point.X field");
-    ok &= test::check(test::hasFQN(syms, "shapes.Point.Y",  SymbolKind::Field),     "shapes.Point.Y field");
-    ok &= test::check(test::hasFQN(syms, "shapes.circle",   SymbolKind::Struct),    "shapes.circle struct");
-    ok &= test::check(test::hasFQN(syms, "shapes.circle.radius", SymbolKind::Field),"shapes.circle.radius field");
-    ok &= test::check(test::hasFQN(syms, "shapes.circle.center", SymbolKind::Field),"shapes.circle.center field");
+    ok &= test::check(test::hasFQN(syms, u8"shapes",          SymbolKind::Namespace), "shapes package");
+    ok &= test::check(test::hasFQN(syms, u8"shapes.Point",    SymbolKind::Struct),    "shapes.Point struct");
+    ok &= test::check(test::hasFQN(syms, u8"shapes.Point.X",  SymbolKind::Field),     "shapes.Point.X field");
+    ok &= test::check(test::hasFQN(syms, u8"shapes.Point.Y",  SymbolKind::Field),     "shapes.Point.Y field");
+    ok &= test::check(test::hasFQN(syms, u8"shapes.circle",   SymbolKind::Struct),    "shapes.circle struct");
+    ok &= test::check(test::hasFQN(syms, u8"shapes.circle.radius", SymbolKind::Field),"shapes.circle.radius field");
+    ok &= test::check(test::hasFQN(syms, u8"shapes.circle.center", SymbolKind::Field),"shapes.circle.center field");
 
-    const auto* point = test::findSymbol(syms, "shapes.Point", SymbolKind::Struct);
+    const auto* point = test::findSymbol(syms, u8"shapes.Point", SymbolKind::Struct);
     ok &= test::check(point && point->access == Access::Public, "Point access=Public (uppercase)");
 
-    const auto* circ = test::findSymbol(syms, "shapes.circle", SymbolKind::Struct);
+    const auto* circ = test::findSymbol(syms, u8"shapes.circle", SymbolKind::Struct);
     ok &= test::check(circ && circ->access == Access::Private, "circle access=Private (lowercase)");
 
     std::cout << (ok ? "PASS" : "FAIL") << "\n";
@@ -51,14 +51,14 @@ bool testInterfaces()
 {
     std::cout << "  testGo_Interfaces... ";
     bool ok = parseAndCheck(
-        "test/ast-extractor-go/samples/interfaces.go",
+        u8"test/ast-extractor-go/samples/interfaces.go",
         {
-            {"io",               SymbolKind::Namespace},
-            {"io.Reader",        SymbolKind::Class},
-            {"io.Reader.Read",   SymbolKind::Method},
-            {"io.ReadWriter",    SymbolKind::Class},
-            {"io.ReadWriter.Read",  SymbolKind::Method},
-            {"io.ReadWriter.Write", SymbolKind::Method},
+            {u8"io",               SymbolKind::Namespace},
+            {u8"io.Reader",        SymbolKind::Class},
+            {u8"io.Reader.Read",   SymbolKind::Method},
+            {u8"io.ReadWriter",    SymbolKind::Class},
+            {u8"io.ReadWriter.Read",  SymbolKind::Method},
+            {u8"io.ReadWriter.Write", SymbolKind::Method},
         });
     std::cout << (ok ? "PASS" : "FAIL") << "\n";
     return ok;
@@ -67,24 +67,24 @@ bool testInterfaces()
 bool testFunctions()
 {
     std::cout << "  testGo_Functions... ";
-    AST tree = parse("test/ast-extractor-go/samples/functions.go");
+    AST tree = parse(u8"test/ast-extractor-go/samples/functions.go");
     if(!tree) { std::cerr << "    FAIL: could not parse\n"; return false; }
     auto syms = extract_symbols(tree);
     bool ok = true;
-    ok &= test::check(test::hasFQN(syms, "math",              SymbolKind::Namespace), "math package");
-    ok &= test::check(test::hasFQN(syms, "math.Add",          SymbolKind::Function),  "math.Add function");
-    ok &= test::check(test::hasFQN(syms, "math.subtract",     SymbolKind::Function),  "math.subtract function");
-    ok &= test::check(test::hasFQN(syms, "math.Pi",           SymbolKind::Variable),  "math.Pi const");
-    ok &= test::check(test::hasFQN(syms, "math.maxSize",      SymbolKind::Variable),  "math.maxSize const");
-    ok &= test::check(test::hasFQN(syms, "math.globalCounter",SymbolKind::Variable),  "math.globalCounter var");
+    ok &= test::check(test::hasFQN(syms, u8"math",              SymbolKind::Namespace), "math package");
+    ok &= test::check(test::hasFQN(syms, u8"math.Add",          SymbolKind::Function),  "math.Add function");
+    ok &= test::check(test::hasFQN(syms, u8"math.subtract",     SymbolKind::Function),  "math.subtract function");
+    ok &= test::check(test::hasFQN(syms, u8"math.Pi",           SymbolKind::Variable),  "math.Pi const");
+    ok &= test::check(test::hasFQN(syms, u8"math.maxSize",      SymbolKind::Variable),  "math.maxSize const");
+    ok &= test::check(test::hasFQN(syms, u8"math.globalCounter",SymbolKind::Variable),  "math.globalCounter var");
 
-    const auto* addSym = test::findSymbol(syms, "math.Add", SymbolKind::Function);
+    const auto* addSym = test::findSymbol(syms, u8"math.Add", SymbolKind::Function);
     ok &= test::check(addSym && addSym->access == Access::Public, "Add access=Public (uppercase)");
 
-    const auto* subSym = test::findSymbol(syms, "math.subtract", SymbolKind::Function);
+    const auto* subSym = test::findSymbol(syms, u8"math.subtract", SymbolKind::Function);
     ok &= test::check(subSym && subSym->access == Access::Private, "subtract access=Private (lowercase)");
 
-    const auto* pi = test::findSymbol(syms, "math.Pi", SymbolKind::Variable);
+    const auto* pi = test::findSymbol(syms, u8"math.Pi", SymbolKind::Variable);
     ok &= test::check(pi && pi->isConstexpr, "Pi isConstexpr (const)");
 
     std::cout << (ok ? "PASS" : "FAIL") << "\n";
@@ -95,14 +95,14 @@ bool testMethods()
 {
     std::cout << "  testGo_Methods... ";
     bool ok = parseAndCheck(
-        "test/ast-extractor-go/samples/methods.go",
+        u8"test/ast-extractor-go/samples/methods.go",
         {
-            {"shapes",                   SymbolKind::Namespace},
-            {"shapes.Rectangle",         SymbolKind::Struct},
-            {"shapes.Rectangle.Width",   SymbolKind::Field},
-            {"shapes.Rectangle.Height",  SymbolKind::Field},
-            {"shapes.Rectangle.Area",    SymbolKind::Method},
-            {"shapes.Rectangle.Scale",   SymbolKind::Method},
+            {u8"shapes",                   SymbolKind::Namespace},
+            {u8"shapes.Rectangle",         SymbolKind::Struct},
+            {u8"shapes.Rectangle.Width",   SymbolKind::Field},
+            {u8"shapes.Rectangle.Height",  SymbolKind::Field},
+            {u8"shapes.Rectangle.Area",    SymbolKind::Method},
+            {u8"shapes.Rectangle.Scale",   SymbolKind::Method},
         });
     std::cout << (ok ? "PASS" : "FAIL") << "\n";
     return ok;
@@ -111,20 +111,20 @@ bool testMethods()
 bool testConsts()
 {
     std::cout << "  testGo_Consts... ";
-    AST tree = parse("test/ast-extractor-go/samples/consts.go");
+    AST tree = parse(u8"test/ast-extractor-go/samples/consts.go");
     if(!tree) { std::cerr << "    FAIL: could not parse\n"; return false; }
     auto syms = extract_symbols(tree);
     bool ok = true;
-    ok &= test::check(test::hasFQN(syms, "config",             SymbolKind::Namespace), "config package");
-    ok &= test::check(test::hasFQN(syms, "config.MaxRetries",  SymbolKind::Variable),  "config.MaxRetries");
-    ok &= test::check(test::hasFQN(syms, "config.Timeout",     SymbolKind::Variable),  "config.Timeout");
-    ok &= test::check(test::hasFQN(syms, "config.debug",       SymbolKind::Variable),  "config.debug");
-    ok &= test::check(test::hasFQN(syms, "config.verbose",     SymbolKind::Variable),  "config.verbose");
+    ok &= test::check(test::hasFQN(syms, u8"config",             SymbolKind::Namespace), "config package");
+    ok &= test::check(test::hasFQN(syms, u8"config.MaxRetries",  SymbolKind::Variable),  "config.MaxRetries");
+    ok &= test::check(test::hasFQN(syms, u8"config.Timeout",     SymbolKind::Variable),  "config.Timeout");
+    ok &= test::check(test::hasFQN(syms, u8"config.debug",       SymbolKind::Variable),  "config.debug");
+    ok &= test::check(test::hasFQN(syms, u8"config.verbose",     SymbolKind::Variable),  "config.verbose");
 
-    const auto* mr = test::findSymbol(syms, "config.MaxRetries", SymbolKind::Variable);
+    const auto* mr = test::findSymbol(syms, u8"config.MaxRetries", SymbolKind::Variable);
     ok &= test::check(mr && mr->isConstexpr, "MaxRetries isConstexpr");
 
-    const auto* dbg = test::findSymbol(syms, "config.debug", SymbolKind::Variable);
+    const auto* dbg = test::findSymbol(syms, u8"config.debug", SymbolKind::Variable);
     ok &= test::check(dbg && !dbg->isConstexpr, "debug is not constexpr (var)");
 
     std::cout << (ok ? "PASS" : "FAIL") << "\n";

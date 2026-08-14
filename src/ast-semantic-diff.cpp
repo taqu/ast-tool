@@ -17,7 +17,7 @@ namespace
 
 struct SymbolKey
 {
-    std::string fqn;
+    std::u8string fqn;
     SymbolKind  kind;
 
     bool operator==(const SymbolKey& o) const
@@ -30,7 +30,7 @@ struct SymbolKeyHash
 {
     size_t operator()(const SymbolKey& k) const
     {
-        size_t h = std::hash<std::string>{}(k.fqn);
+        size_t h = std::hash<std::u8string>{}(k.fqn);
         // Mix in the kind using Fibonacci hashing to reduce collisions.
         h ^= std::hash<size_t>{}(static_cast<size_t>(k.kind))
              + size_t{0x9e3779b97f4a7c15u} + (h << 6) + (h >> 2);

@@ -18,7 +18,7 @@ namespace
         return condition;
     }
 
-    bool hasResult(const std::vector<const WorkspaceSymbol*>& results, std::string_view fqn)
+    bool hasResult(const std::vector<const WorkspaceSymbol*>& results, std::u8string_view fqn)
     {
         for(const auto* r : results) {
             if(r->symbol.fqn == fqn) return true;
@@ -94,7 +94,7 @@ namespace
     bool test_build_query_invalid_kind()
     {
         bool ok = true;
-        auto q = build_search_query(nullptr, nullptr, "notakind", nullptr,
+        auto q = build_search_query(nullptr, nullptr, u8"notakind", nullptr,
                                     nullptr, nullptr, nullptr);
         ok &= check(!q.has_value(), "unknown kind string is rejected");
         ok &= check(!q.error().empty(), "unknown kind error message is non-empty");
@@ -105,7 +105,7 @@ namespace
     {
         bool ok = true;
         auto q = build_search_query(nullptr, nullptr, nullptr, nullptr,
-                                    "(bad", nullptr, nullptr);
+                                    u8"(bad", nullptr, nullptr);
         ok &= check(!q.has_value(), "invalid name_regex is rejected");
         return ok;
     }
@@ -114,7 +114,7 @@ namespace
     {
         bool ok = true;
         auto q = build_search_query(nullptr, nullptr, nullptr, nullptr,
-                                    nullptr, "[bad", nullptr);
+                                    nullptr, u8"[bad", nullptr);
         ok &= check(!q.has_value(), "invalid fqn_regex is rejected");
         return ok;
     }
@@ -123,7 +123,7 @@ namespace
     {
         bool ok = true;
         auto q = build_search_query(nullptr, nullptr, nullptr, nullptr,
-                                    nullptr, nullptr, "**bad**");
+                                    nullptr, nullptr, u8"**bad**");
         ok &= check(!q.has_value(), "invalid file_regex is rejected");
         return ok;
     }
@@ -131,8 +131,8 @@ namespace
     bool test_build_query_conflict_name()
     {
         bool ok = true;
-        auto q = build_search_query("foo", nullptr, nullptr, nullptr,
-                                    "^foo", nullptr, nullptr);
+        auto q = build_search_query(u8"foo", nullptr, nullptr, nullptr,
+                                    u8"^foo", nullptr, nullptr);
         ok &= check(!q.has_value(), "name + name_regex conflict is rejected");
         return ok;
     }
@@ -140,8 +140,8 @@ namespace
     bool test_build_query_conflict_fqn()
     {
         bool ok = true;
-        auto q = build_search_query(nullptr, "ns::foo", nullptr, nullptr,
-                                    nullptr, "^ns::", nullptr);
+        auto q = build_search_query(nullptr, u8"ns::foo", nullptr, nullptr,
+                                    nullptr, u8"^ns::", nullptr);
         ok &= check(!q.has_value(), "fqn + fqn_regex conflict is rejected");
         return ok;
     }
@@ -149,8 +149,8 @@ namespace
     bool test_build_query_conflict_file()
     {
         bool ok = true;
-        auto q = build_search_query(nullptr, nullptr, nullptr, "src/",
-                                    nullptr, nullptr, "\\.cpp$");
+        auto q = build_search_query(nullptr, nullptr, nullptr, u8"src/",
+                                    nullptr, nullptr, u8"\\.cpp$");
         ok &= check(!q.has_value(), "file + file_regex conflict is rejected");
         return ok;
     }
@@ -158,13 +158,13 @@ namespace
     bool test_build_query_kind_case_insensitive()
     {
         bool ok = true;
-        auto q1 = build_search_query(nullptr, nullptr, "FUNCTION", nullptr,
+        auto q1 = build_search_query(nullptr, nullptr, u8"FUNCTION", nullptr,
                                      nullptr, nullptr, nullptr);
         ok &= check(q1.has_value(), "uppercase kind string accepted");
         ok &= check(q1.has_value() && q1->kind == SymbolKind::Function,
                     "uppercase 'FUNCTION' maps to SymbolKind::Function");
 
-        auto q2 = build_search_query(nullptr, nullptr, "Struct", nullptr,
+        auto q2 = build_search_query(nullptr, nullptr, u8"Struct", nullptr,
                                      nullptr, nullptr, nullptr);
         ok &= check(q2.has_value(), "mixed-case kind string accepted");
         ok &= check(q2.has_value() && q2->kind == SymbolKind::Struct,
@@ -178,7 +178,7 @@ namespace
     bool test_search_empty_query()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kWorkspaceRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kWorkspaceRoot);
         SemanticSearchEngine engine(ws);
 
         SearchQuery q;
@@ -192,18 +192,18 @@ namespace
     bool test_search_name_exact()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kWorkspaceRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kWorkspaceRoot);
         SemanticSearchEngine engine(ws);
 
-        auto q = build_search_query("alphaVar", nullptr, nullptr, nullptr,
+        auto q = build_search_query(u8"alphaVar", nullptr, nullptr, nullptr,
                                     nullptr, nullptr, nullptr);
         ok &= check(q.has_value(), "query builds successfully");
         if(!q.has_value()) return false;
         auto results = engine.search(*q);
         ok &= check(!results.empty(), "exact name match finds alphaVar");
-        ok &= check(hasResult(results, "AlphaNs::alphaVar"), "result fqn is AlphaNs::alphaVar");
+        ok &= check(hasResult(results, u8"AlphaNs::alphaVar"), "result fqn is AlphaNs::alphaVar");
         for(const auto* r : results) {
-            ok &= check(r->symbol.name == "alphaVar", "all results have name == alphaVar");
+            ok &= check(r->symbol.name == u8"alphaVar", "all results have name == alphaVar");
         }
         return ok;
     }
@@ -211,56 +211,57 @@ namespace
     bool test_search_name_regex()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kWorkspaceRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kWorkspaceRoot);
         SemanticSearchEngine engine(ws);
 
         auto q = build_search_query(nullptr, nullptr, nullptr, nullptr,
-                                    "^alpha", nullptr, nullptr);
+                                    u8"^alpha", nullptr, nullptr);
         ok &= check(q.has_value(), "query builds successfully");
         if(!q.has_value()) return false;
         auto results = engine.search(*q);
         ok &= check(!results.empty(), "name_regex ^alpha finds results");
-        ok &= check(hasResult(results, "AlphaNs::alphaVar"),  "name_regex finds alphaVar");
-        ok &= check(hasResult(results, "AlphaNs::alphaFunc"), "name_regex finds alphaFunc");
-        ok &= check(!hasResult(results, "BetaStruct"),        "name_regex ^alpha excludes BetaStruct");
+        ok &= check(hasResult(results, u8"AlphaNs::alphaVar"),  "name_regex finds alphaVar");
+        ok &= check(hasResult(results, u8"AlphaNs::alphaFunc"), "name_regex finds alphaFunc");
+        ok &= check(!hasResult(results, u8"BetaStruct"),        "name_regex ^alpha excludes BetaStruct");
         return ok;
     }
 
     bool test_search_fqn_regex()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kWorkspaceRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kWorkspaceRoot);
         SemanticSearchEngine engine(ws);
 
         auto q = build_search_query(nullptr, nullptr, nullptr, nullptr,
-                                    nullptr, "^AlphaNs::", nullptr);
+                                    nullptr, u8"^AlphaNs::", nullptr);
         ok &= check(q.has_value(), "query builds successfully");
         if(!q.has_value()) return false;
         auto results = engine.search(*q);
         ok &= check(!results.empty(),                         "fqn_regex ^AlphaNs:: finds results");
-        ok &= check(hasResult(results, "AlphaNs::alphaVar"),  "fqn_regex finds alphaVar");
-        ok &= check(hasResult(results, "AlphaNs::alphaFunc"), "fqn_regex finds alphaFunc");
-        ok &= check(!hasResult(results, "AlphaNs"),           "fqn_regex excludes AlphaNs namespace itself");
-        ok &= check(!hasResult(results, "BetaStruct"),        "fqn_regex excludes BetaStruct");
+        ok &= check(hasResult(results, u8"AlphaNs::alphaVar"),  "fqn_regex finds alphaVar");
+        ok &= check(hasResult(results, u8"AlphaNs::alphaFunc"), "fqn_regex finds alphaFunc");
+        ok &= check(!hasResult(results, u8"AlphaNs"),           "fqn_regex excludes AlphaNs namespace itself");
+        ok &= check(!hasResult(results, u8"BetaStruct"),        "fqn_regex excludes BetaStruct");
         return ok;
     }
 
     bool test_search_file_regex()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kWorkspaceRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kWorkspaceRoot);
         SemanticSearchEngine engine(ws);
 
         auto q = build_search_query(nullptr, nullptr, nullptr, nullptr,
-                                    nullptr, nullptr, "\\.cpp$");
+                                    nullptr, nullptr, u8"\\.cpp$");
         ok &= check(q.has_value(), "query builds successfully");
         if(!q.has_value()) return false;
         auto results = engine.search(*q);
         ok &= check(!results.empty(), "file_regex \\.cpp$ finds results");
-        ok &= check(hasResult(results, "AlphaNs::alphaVar"), "file_regex finds symbols in .cpp files");
+        ok &= check(hasResult(results, u8"AlphaNs::alphaVar"), "file_regex finds symbols in .cpp files");
         for(const auto* r : results) {
-            bool endsCpp = r->sourceFile.size() >= 4 &&
-                           r->sourceFile.substr(r->sourceFile.size() - 4) == ".cpp";
+            std::u8string sourceFile = r->sourceFile.u8string();
+            bool endsCpp = sourceFile.size() >= 4 &&
+                           sourceFile.substr(sourceFile.size() - 4) == u8".cpp";
             ok &= check(endsCpp, "every file_regex result comes from a .cpp file");
             if(!endsCpp) break;
         }
@@ -270,11 +271,11 @@ namespace
     bool test_search_empty_result()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kWorkspaceRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kWorkspaceRoot);
         SemanticSearchEngine engine(ws);
 
         auto q = build_search_query(nullptr, nullptr, nullptr, nullptr,
-                                    "^zzz_no_such_symbol_xyz$", nullptr, nullptr);
+                                    u8"^zzz_no_such_symbol_xyz$", nullptr, nullptr);
         ok &= check(q.has_value(), "query builds successfully");
         if(!q.has_value()) return false;
         auto results = engine.search(*q);
@@ -285,11 +286,11 @@ namespace
     bool test_search_multiple_matches()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kWorkspaceRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kWorkspaceRoot);
         SemanticSearchEngine engine(ws);
 
         auto q = build_search_query(nullptr, nullptr, nullptr, nullptr,
-                                    ".", nullptr, nullptr);
+                                    u8".", nullptr, nullptr);
         ok &= check(q.has_value(), "query builds successfully");
         if(!q.has_value()) return false;
         auto results = engine.search(*q);
@@ -300,12 +301,12 @@ namespace
     bool test_search_kind_exact_with_name_regex()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kWorkspaceRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kWorkspaceRoot);
         SemanticSearchEngine engine(ws);
 
         // kind (exact) evaluated before name_regex — only functions reach regex stage
-        auto q = build_search_query(nullptr, nullptr, "function", nullptr,
-                                    ".", nullptr, nullptr);
+        auto q = build_search_query(nullptr, nullptr, u8"function", nullptr,
+                                    u8".", nullptr, nullptr);
         ok &= check(q.has_value(), "query builds successfully");
         if(!q.has_value()) return false;
         auto results = engine.search(*q);
@@ -319,11 +320,11 @@ namespace
     bool test_search_kind_exact_with_fqn_regex()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kWorkspaceRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kWorkspaceRoot);
         SemanticSearchEngine engine(ws);
 
-        auto q = build_search_query(nullptr, nullptr, "variable", nullptr,
-                                    nullptr, "^AlphaNs::", nullptr);
+        auto q = build_search_query(nullptr, nullptr, u8"variable", nullptr,
+                                    nullptr, u8"^AlphaNs::", nullptr);
         ok &= check(q.has_value(), "query builds successfully");
         if(!q.has_value()) return false;
         auto results = engine.search(*q);
@@ -332,7 +333,7 @@ namespace
             ok &= check(r->symbol.kind == SymbolKind::Variable,
                         "kind=variable + fqn_regex: every result is a variable");
         }
-        ok &= check(hasResult(results, "AlphaNs::alphaVar"),
+        ok &= check(hasResult(results, u8"AlphaNs::alphaVar"),
                     "kind=variable + fqn_regex finds AlphaNs::alphaVar");
         return ok;
     }
@@ -340,42 +341,43 @@ namespace
     bool test_search_fqn_regex_anchored()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kWorkspaceRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kWorkspaceRoot);
         SemanticSearchEngine engine(ws);
 
         auto q = build_search_query(nullptr, nullptr, nullptr, nullptr,
-                                    nullptr, "^Beta", nullptr);
+                                    nullptr, u8"^Beta", nullptr);
         ok &= check(q.has_value(), "query builds successfully");
         if(!q.has_value()) return false;
         auto results = engine.search(*q);
         ok &= check(!results.empty(),                         "fqn_regex ^Beta finds results");
-        ok &= check(hasResult(results, "BetaStruct"),         "fqn_regex finds BetaStruct");
-        ok &= check(!hasResult(results, "AlphaNs::alphaVar"), "fqn_regex ^Beta excludes AlphaNs symbols");
+        ok &= check(hasResult(results, u8"BetaStruct"),         "fqn_regex finds BetaStruct");
+        ok &= check(!hasResult(results, u8"AlphaNs::alphaVar"), "fqn_regex ^Beta excludes AlphaNs symbols");
         return ok;
     }
 
     bool test_search_file_exact_substring()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kWorkspaceRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kWorkspaceRoot);
         SemanticSearchEngine engine(ws);
 
         // file exact uses substring containment, not full-path equality
-        auto q = build_search_query(nullptr, nullptr, nullptr, "alpha.cpp",
+        auto q = build_search_query(nullptr, nullptr, nullptr, u8"alpha.cpp",
                                     nullptr, nullptr, nullptr);
         ok &= check(q.has_value(), "query builds successfully");
         if(!q.has_value()) return false;
         auto results = engine.search(*q);
         ok &= check(!results.empty(), "file substring 'alpha.cpp' finds results");
-        ok &= check(hasResult(results, "AlphaNs::alphaVar"),  "file substring finds alphaVar");
-        ok &= check(hasResult(results, "AlphaNs::alphaFunc"), "file substring finds alphaFunc");
+        ok &= check(hasResult(results, u8"AlphaNs::alphaVar"),  "file substring finds alphaVar");
+        ok &= check(hasResult(results, u8"AlphaNs::alphaFunc"), "file substring finds alphaFunc");
         for(const auto* r : results) {
-            ok &= check(r->sourceFile.find("alpha.cpp") != std::string::npos,
+            std::u8string sourceFile = r->sourceFile.u8string();
+            ok &= check(sourceFile.find(u8"alpha.cpp") != std::string::npos,
                         "every result's source file contains 'alpha.cpp'");
         }
 
         // Verify it does not match beta.h symbols
-        ok &= check(!hasResult(results, "BetaStruct"),
+        ok &= check(!hasResult(results, u8"BetaStruct"),
                     "file substring 'alpha.cpp' excludes BetaStruct from beta.h");
         return ok;
     }
@@ -383,10 +385,10 @@ namespace
     bool test_search_file_exact_no_match()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kWorkspaceRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kWorkspaceRoot);
         SemanticSearchEngine engine(ws);
 
-        auto q = build_search_query(nullptr, nullptr, nullptr, "no_such_file.cpp",
+        auto q = build_search_query(nullptr, nullptr, nullptr, u8"no_such_file.cpp",
                                     nullptr, nullptr, nullptr);
         ok &= check(q.has_value(), "query builds successfully");
         if(!q.has_value()) return false;

@@ -19,7 +19,7 @@ namespace
     }
 
     /** Returns the index of the first symbol matching @p fqn and @p kind, or ExtractorInvalidId. */
-    size_t symbolIndex(const std::vector<Symbol>& syms, std::string_view fqn, SymbolKind kind)
+    size_t symbolIndex(const std::vector<Symbol>& syms, std::u8string_view fqn, SymbolKind kind)
     {
         for(size_t i = 0; i < syms.size(); ++i) {
             if(syms[i].fqn == fqn && syms[i].kind == kind) return i;
@@ -62,7 +62,7 @@ namespace
     bool test_ns_symbols()
     {
         bool ok = true;
-        AST ast = parse("test/ast-symbol-scope/samples/ns_symbols.cpp");
+        AST ast = parse(u8"test/ast-symbol-scope/samples/ns_symbols.cpp");
         ok &= check(!!ast, "ns_symbols.cpp parsed");
         if(!ast) return false;
 
@@ -71,7 +71,7 @@ namespace
         associate_symbols(tree, syms);
 
         // MyNs (Namespace) → declared in Global scope
-        size_t nsIdx = symbolIndex(syms, "MyNs", SymbolKind::Namespace);
+        size_t nsIdx = symbolIndex(syms, u8"MyNs", SymbolKind::Namespace);
         ok &= check(nsIdx != ExtractorInvalidId, "MyNs symbol exists");
         if(nsIdx != ExtractorInvalidId) {
             uintptr_t ownerScope = tree.getScopeOfSymbol(nsIdx);
@@ -81,7 +81,7 @@ namespace
         }
 
         // nsVar (Variable) → declared in MyNs namespace scope
-        size_t varIdx = symbolIndex(syms, "MyNs::nsVar", SymbolKind::Variable);
+        size_t varIdx = symbolIndex(syms, u8"MyNs::nsVar", SymbolKind::Variable);
         ok &= check(varIdx != ExtractorInvalidId, "nsVar symbol exists");
         if(varIdx != ExtractorInvalidId) {
             uintptr_t ownerScope = tree.getScopeOfSymbol(varIdx);
@@ -91,7 +91,7 @@ namespace
         }
 
         // nsFunc (Function) → declared in MyNs namespace scope
-        size_t fnIdx = symbolIndex(syms, "MyNs::nsFunc", SymbolKind::Function);
+        size_t fnIdx = symbolIndex(syms, u8"MyNs::nsFunc", SymbolKind::Function);
         ok &= check(fnIdx != ExtractorInvalidId, "nsFunc symbol exists");
         if(fnIdx != ExtractorInvalidId) {
             uintptr_t ownerScope = tree.getScopeOfSymbol(fnIdx);
@@ -106,7 +106,7 @@ namespace
     bool test_class_members()
     {
         bool ok = true;
-        AST ast = parse("test/ast-symbol-scope/samples/class_members.cpp");
+        AST ast = parse(u8"test/ast-symbol-scope/samples/class_members.cpp");
         ok &= check(!!ast, "class_members.cpp parsed");
         if(!ast) return false;
 
@@ -115,7 +115,7 @@ namespace
         associate_symbols(tree, syms);
 
         // MyClass (Class) → declared in Global scope
-        size_t clsIdx = symbolIndex(syms, "MyClass", SymbolKind::Class);
+        size_t clsIdx = symbolIndex(syms, u8"MyClass", SymbolKind::Class);
         ok &= check(clsIdx != ExtractorInvalidId, "MyClass symbol exists");
         if(clsIdx != ExtractorInvalidId) {
             uintptr_t ownerScope = tree.getScopeOfSymbol(clsIdx);
@@ -124,8 +124,8 @@ namespace
         }
 
         // field1 and field2 (Field) → declared in Class scope
-        size_t f1Idx = symbolIndex(syms, "MyClass::field1", SymbolKind::Field);
-        size_t f2Idx = symbolIndex(syms, "MyClass::field2", SymbolKind::Field);
+        size_t f1Idx = symbolIndex(syms, u8"MyClass::field1", SymbolKind::Field);
+        size_t f2Idx = symbolIndex(syms, u8"MyClass::field2", SymbolKind::Field);
         ok &= check(f1Idx != ExtractorInvalidId, "field1 symbol exists");
         ok &= check(f2Idx != ExtractorInvalidId, "field2 symbol exists");
 
@@ -147,7 +147,7 @@ namespace
     bool test_sibling_scopes()
     {
         bool ok = true;
-        AST ast = parse("test/ast-symbol-scope/samples/sibling_ns.cpp");
+        AST ast = parse(u8"test/ast-symbol-scope/samples/sibling_ns.cpp");
         ok &= check(!!ast, "sibling_ns.cpp parsed");
         if(!ast) return false;
 
@@ -156,8 +156,8 @@ namespace
         associate_symbols(tree, syms);
 
         // varA → NsA scope  (not NsB)
-        size_t varAIdx = symbolIndex(syms, "NsA::varA", SymbolKind::Variable);
-        size_t varBIdx = symbolIndex(syms, "NsB::varB", SymbolKind::Variable);
+        size_t varAIdx = symbolIndex(syms, u8"NsA::varA", SymbolKind::Variable);
+        size_t varBIdx = symbolIndex(syms, u8"NsB::varB", SymbolKind::Variable);
         ok &= check(varAIdx != ExtractorInvalidId, "varA symbol exists");
         ok &= check(varBIdx != ExtractorInvalidId, "varB symbol exists");
 
@@ -184,7 +184,7 @@ namespace
     bool test_nested_ns_symbols()
     {
         bool ok = true;
-        AST ast = parse("test/ast-symbol-scope/samples/nested_ns.cpp");
+        AST ast = parse(u8"test/ast-symbol-scope/samples/nested_ns.cpp");
         ok &= check(!!ast, "nested_ns.cpp parsed");
         if(!ast) return false;
 
@@ -193,11 +193,11 @@ namespace
         associate_symbols(tree, syms);
 
         // outerVar (Variable in Outer) → Outer scope
-        size_t outerVarIdx = symbolIndex(syms, "Outer::outerVar", SymbolKind::Variable);
+        size_t outerVarIdx = symbolIndex(syms, u8"Outer::outerVar", SymbolKind::Variable);
         ok &= check(outerVarIdx != ExtractorInvalidId, "outerVar symbol exists");
 
         // innerVar (Variable in Outer::Inner) → Inner scope
-        size_t innerVarIdx = symbolIndex(syms, "Outer::Inner::innerVar", SymbolKind::Variable);
+        size_t innerVarIdx = symbolIndex(syms, u8"Outer::Inner::innerVar", SymbolKind::Variable);
         ok &= check(innerVarIdx != ExtractorInvalidId, "innerVar symbol exists");
 
         uintptr_t outerNs = nthScopeOfKind(tree, ScopeKind::Namespace, 0); // Outer
@@ -224,7 +224,7 @@ namespace
         // For every symbol: if symbol→scope gives scopeId, then scope→symbols must include that symbol.
         // For every scope:  if scope→symbols lists symIdx, then symbol→scope must give that scope.
         bool ok = true;
-        AST ast = parse("test/ast-symbol-scope/samples/ns_symbols.cpp");
+        AST ast = parse(u8"test/ast-symbol-scope/samples/ns_symbols.cpp");
         if(!ast) return false;
 
         ScopeTree tree = build_scope_tree(ast);

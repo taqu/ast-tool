@@ -17,7 +17,7 @@ namespace
         return condition;
     }
 
-    const WorkspaceSymbol* findByName(const Workspace& ws, std::string_view name)
+    const WorkspaceSymbol* findByName(const Workspace& ws, std::u8string_view name)
     {
         for(const auto& sym : ws.symbols) {
             if(sym.symbol.name == name) return &sym;
@@ -26,18 +26,19 @@ namespace
     }
 
     const WorkspaceSymbol* findByNameInFile(const Workspace& ws,
-                                             std::string_view name,
-                                             std::string_view fileHint)
+                                             std::u8string_view name,
+                                             std::u8string_view fileHint)
     {
         for(const auto& sym : ws.symbols) {
+            std::u8string sourceFile = sym.sourceFile.u8string();
             if(sym.symbol.name == name &&
-               sym.sourceFile.find(fileHint) != std::string::npos)
+               sourceFile.find(fileHint) != std::string::npos)
                 return &sym;
         }
         return nullptr;
     }
 
-    const WorkspaceSymbol* findByFQN(const Workspace& ws, std::string_view fqn)
+    const WorkspaceSymbol* findByFQN(const Workspace& ws, std::u8string_view fqn)
     {
         for(const auto& sym : ws.symbols) {
             if(sym.symbol.fqn == fqn) return &sym;
@@ -51,8 +52,8 @@ namespace
     bool test_callsite_fields()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCeRoot);
-        const WorkspaceSymbol* caller = findByName(ws, "scSource");
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        const WorkspaceSymbol* caller = findByName(ws, u8"scSource");
         ok &= check(caller != nullptr, "scSource found in workspace");
         if(!caller) return false;
 
@@ -67,8 +68,8 @@ namespace
         ok &= check(s.callee != nullptr,                  "callee pointer is set");
         ok &= check(!s.sourceFile.empty(),                "sourceFile is non-empty");
         ok &= check(s.nodeIndex != size_t(-1),            "nodeIndex is populated");
-        ok &= check(s.caller->symbol.name == "scSource",  "caller name is scSource");
-        ok &= check(s.callee->symbol.name == "scTarget",  "callee name is scTarget");
+        ok &= check(s.caller->symbol.name == u8"scSource",  "caller name is scSource");
+        ok &= check(s.callee->symbol.name == u8"scTarget",  "callee name is scTarget");
         return ok;
     }
 
@@ -78,8 +79,8 @@ namespace
     bool test_single_callee()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCeRoot);
-        const WorkspaceSymbol* caller = findByName(ws, "scSource");
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        const WorkspaceSymbol* caller = findByName(ws, u8"scSource");
         ok &= check(caller != nullptr, "scSource found");
         if(!caller) return false;
 
@@ -88,7 +89,7 @@ namespace
 
         ok &= check(sites.size() == 1, "scSource has exactly 1 callee");
         if(!sites.empty())
-            ok &= check(sites[0].callee->symbol.name == "scTarget", "callee is scTarget");
+            ok &= check(sites[0].callee->symbol.name == u8"scTarget", "callee is scTarget");
         return ok;
     }
 
@@ -98,8 +99,8 @@ namespace
     bool test_multiple_callees()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCeRoot);
-        const WorkspaceSymbol* caller = findByName(ws, "mcSource");
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        const WorkspaceSymbol* caller = findByName(ws, u8"mcSource");
         ok &= check(caller != nullptr, "mcSource found");
         if(!caller) return false;
 
@@ -110,8 +111,8 @@ namespace
 
         bool foundAlpha = false, foundBeta = false;
         for(const auto& s : sites) {
-            if(s.callee && s.callee->symbol.name == "mcAlpha") foundAlpha = true;
-            if(s.callee && s.callee->symbol.name == "mcBeta")  foundBeta  = true;
+            if(s.callee && s.callee->symbol.name == u8"mcAlpha") foundAlpha = true;
+            if(s.callee && s.callee->symbol.name == u8"mcBeta")  foundBeta  = true;
         }
         ok &= check(foundAlpha, "mcAlpha is a callee of mcSource");
         ok &= check(foundBeta,  "mcBeta  is a callee of mcSource");
@@ -124,8 +125,8 @@ namespace
     bool test_nested_calls()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCeRoot);
-        const WorkspaceSymbol* caller = findByName(ws, "ncNestedSource");
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        const WorkspaceSymbol* caller = findByName(ws, u8"ncNestedSource");
         ok &= check(caller != nullptr, "ncNestedSource found");
         if(!caller) return false;
 
@@ -136,8 +137,8 @@ namespace
 
         bool foundPrint = false, foundGet = false;
         for(const auto& s : sites) {
-            if(s.callee && s.callee->symbol.name == "ncPrint") foundPrint = true;
-            if(s.callee && s.callee->symbol.name == "ncGet")   foundGet   = true;
+            if(s.callee && s.callee->symbol.name == u8"ncPrint") foundPrint = true;
+            if(s.callee && s.callee->symbol.name == u8"ncGet")   foundGet   = true;
         }
         ok &= check(foundPrint, "ncPrint is a callee of ncNestedSource");
         ok &= check(foundGet,   "ncGet   is a callee of ncNestedSource");
@@ -152,8 +153,8 @@ namespace
     bool test_traversal_scope()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCeRoot);
-        const WorkspaceSymbol* caller = findByName(ws, "ncTransitive");
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        const WorkspaceSymbol* caller = findByName(ws, u8"ncTransitive");
         ok &= check(caller != nullptr, "ncTransitive found");
         if(!caller) return false;
 
@@ -162,7 +163,7 @@ namespace
 
         ok &= check(sites.size() == 1, "ncTransitive has exactly 1 callee (not transitive)");
         if(!sites.empty())
-            ok &= check(sites[0].callee->symbol.name == "ncNestedSource",
+            ok &= check(sites[0].callee->symbol.name == u8"ncNestedSource",
                         "callee of ncTransitive is ncNestedSource only");
         return ok;
     }
@@ -173,8 +174,8 @@ namespace
     bool test_no_callees()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCeRoot);
-        const WorkspaceSymbol* caller = findByName(ws, "noCallee");
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        const WorkspaceSymbol* caller = findByName(ws, u8"noCallee");
         ok &= check(caller != nullptr, "noCallee found");
         if(!caller) return false;
 
@@ -191,8 +192,8 @@ namespace
     bool test_recursive()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCeRoot);
-        const WorkspaceSymbol* caller = findByName(ws, "recCe");
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        const WorkspaceSymbol* caller = findByName(ws, u8"recCe");
         ok &= check(caller != nullptr, "recCe found");
         if(!caller) return false;
 
@@ -203,7 +204,7 @@ namespace
         if(!sites.empty()) {
             ok &= check(sites[0].callee != nullptr, "callee pointer is set");
             if(sites[0].callee)
-                ok &= check(sites[0].callee->symbol.name == "recCe",
+                ok &= check(sites[0].callee->symbol.name == u8"recCe",
                             "recursive: callee is recCe itself");
         }
         return ok;
@@ -215,8 +216,8 @@ namespace
     bool test_namespace_callee()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCeRoot);
-        const WorkspaceSymbol* caller = findByName(ws, "nsCeSource");
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        const WorkspaceSymbol* caller = findByName(ws, u8"nsCeSource");
         ok &= check(caller != nullptr, "nsCeSource found");
         if(!caller) return false;
 
@@ -227,7 +228,7 @@ namespace
         if(!sites.empty()) {
             ok &= check(sites[0].callee != nullptr, "callee pointer is set");
             if(sites[0].callee)
-                ok &= check(sites[0].callee->symbol.fqn == "NsCe::nsTarget",
+                ok &= check(sites[0].callee->symbol.fqn == u8"NsCe::nsTarget",
                             "callee FQN is NsCe::nsTarget");
         }
         return ok;
@@ -239,8 +240,8 @@ namespace
     bool test_member_callee()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCeRoot);
-        const WorkspaceSymbol* caller = findByFQN(ws, "MbCe::mbSource");
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        const WorkspaceSymbol* caller = findByFQN(ws, u8"MbCe::mbSource");
         ok &= check(caller != nullptr, "MbCe::mbSource found");
         if(!caller) return false;
 
@@ -251,7 +252,7 @@ namespace
         if(!sites.empty()) {
             ok &= check(sites[0].callee != nullptr, "callee pointer is set");
             if(sites[0].callee)
-                ok &= check(sites[0].callee->symbol.fqn == "MbCe::mbTarget",
+                ok &= check(sites[0].callee->symbol.fqn == u8"MbCe::mbTarget",
                             "callee FQN is MbCe::mbTarget");
         }
         return ok;
@@ -265,10 +266,10 @@ namespace
     bool test_overloaded()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCeRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
 
         // Extractor keeps only the first ovCeTarget overload; callee is found.
-        const WorkspaceSymbol* ambigCaller = findByName(ws, "ovCeAmbig");
+        const WorkspaceSymbol* ambigCaller = findByName(ws, u8"ovCeAmbig");
         ok &= check(ambigCaller != nullptr, "ovCeAmbig found");
         if(ambigCaller) {
             Callees callees;
@@ -278,14 +279,14 @@ namespace
         }
 
         // Unique: ovCeNsSource calls ovCeNsTarget (no ambiguity within namespace).
-        const WorkspaceSymbol* nsCaller = findByFQN(ws, "OvCeNs::ovCeNsSource");
+        const WorkspaceSymbol* nsCaller = findByFQN(ws, u8"OvCeNs::ovCeNsSource");
         ok &= check(nsCaller != nullptr, "OvCeNs::ovCeNsSource found");
         if(nsCaller) {
             Callees callees;
             auto sites = callees.find(ws, *nsCaller);
             ok &= check(sites.size() == 1, "ovCeNsSource has 1 callee");
             if(!sites.empty() && sites[0].callee)
-                ok &= check(sites[0].callee->symbol.fqn == "OvCeNs::ovCeNsTarget",
+                ok &= check(sites[0].callee->symbol.fqn == u8"OvCeNs::ovCeNsTarget",
                             "callee is OvCeNs::ovCeNsTarget");
         }
 
@@ -298,8 +299,8 @@ namespace
     bool test_unresolved_call()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCeRoot);
-        const WorkspaceSymbol* caller = findByName(ws, "unresCeSource");
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        const WorkspaceSymbol* caller = findByName(ws, u8"unresCeSource");
         ok &= check(caller != nullptr, "unresCeSource found");
         if(!caller) return false;
 
@@ -316,8 +317,8 @@ namespace
     bool test_cross_file_callee()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCeRoot);
-        const WorkspaceSymbol* caller = findByName(ws, "xfCeSource");
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        const WorkspaceSymbol* caller = findByName(ws, u8"xfCeSource");
         ok &= check(caller != nullptr, "xfCeSource found");
         if(!caller) return false;
 
@@ -327,10 +328,11 @@ namespace
         ok &= check(!sites.empty(), "xfCeSource has at least one callee");
         bool foundTarget = false;
         for(const auto& s : sites) {
-            if(s.callee && s.callee->symbol.name == "xfCeTarget") {
+            if(s.callee && s.callee->symbol.name == u8"xfCeTarget") {
                 foundTarget = true;
+                std::u8string sourceFile = s.callee->sourceFile.u8string();
                 // The callee's definition is in xfile_def.cpp.
-                ok &= check(s.callee->sourceFile.find("xfile_def") != std::string::npos,
+                ok &= check(sourceFile.find(u8"xfile_def") != std::string::npos,
                             "cross-file callee source is xfile_def.cpp");
                 break;
             }
@@ -345,8 +347,8 @@ namespace
     bool test_result_ordering()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kCeRoot);
-        const WorkspaceSymbol* caller = findByName(ws, "mcSource");
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        const WorkspaceSymbol* caller = findByName(ws, u8"mcSource");
         ok &= check(caller != nullptr, "mcSource found");
         if(!caller) return false;
 

@@ -1,6 +1,10 @@
 #include "ast-tool.h"
 #include <cassert>
+#include <charconv>
 #include <cstring>
+#include <span>
+#include <string>
+#include <vector>
 #if defined(_WIN32) || defined(_WIN64)
 #    include <sys/stat.h>
 #    include <sys/types.h>
@@ -12,21 +16,21 @@
 #    define STAT_STRUCT struct stat
 #    define STAT_FUNC(path, buf) stat(path, buf)
 #endif
+#include "children.h"
+#include "dump.h"
+#include "find.h"
+#include "help.h"
+#include "outline.h"
+#include "parent.h"
+#include "range.h"
+#include "search.h"
+#include "symbols.h"
 #include "xxhash.h"
+#include <absl/log/initialize.h>
 #include <mimalloc-new-delete.h>
 #include <mimalloc.h>
 #include <tree_sitter/api.h>
 #include <tree_sitter/tree-sitter-languages.h>
-#include <absl/log/initialize.h>
-#include "dump.h"
-#include "symbols.h"
-#include "outline.h"
-#include "find.h"
-#include "range.h"
-#include "parent.h"
-#include "children.h"
-#include "search.h"
-#include "help.h"
 
 namespace ast
 {
@@ -38,58 +42,84 @@ void initialize()
 
 namespace
 {
-    bool is_help_flag(const char* arg)
+    bool is_help_flag(const char8_t* arg)
     {
-        return strcmp(arg, "--help") == 0 || strcmp(arg, "-h") == 0;
+        std::u8string_view arg_sv{arg};
+        return arg_sv == u8"--help" || arg_sv == u8"-h";
     }
 
-    bool set_help(Arguments& arguments, const char* topic)
+    bool set_help(Arguments& arguments, const char8_t* topic)
     {
-        arguments.sub_        = SubCommand::Help;
+        arguments.sub_ = SubCommand::Help;
         arguments.help_.topic_ = topic;
         return true;
     }
-} // namespace
 
-bool parse(Arguments& arguments, int32_t argc, const char** argv)
-{
-    assert(nullptr != argv);
-    arguments.sub_ = SubCommand::None;
+    bool parse_impl(Arguments& arguments, int32_t argc, const char8_t** argv)
+    {
+        assert(nullptr != argv);
+        arguments.sub_ = SubCommand::None;
 
-    if(argc <= 1 || is_help_flag(argv[1])) {
-        return set_help(arguments, nullptr);
-    }
+        if(argc <= 1 || is_help_flag(argv[1])) {
+            return set_help(arguments, nullptr);
+        }
 
-    if(strcmp(argv[1], "help") == 0) {
-        return set_help(arguments, argc > 2 ? argv[2] : nullptr);
-    }
+        std::u8string_view arg1_sv{argv[1]};
+        if(arg1_sv == u8"help") {
+            return set_help(arguments, argc > 2 ? argv[2] : nullptr);
+        }
 
-    // Pre-scan for --help / -h anywhere after the subcommand name.
-    for(int32_t i = 2; i < argc; ++i) {
-        if(is_help_flag(argv[i])) {
-            return set_help(arguments, argv[1]);
+        // Pre-scan for --help / -h anywhere after the subcommand name.
+        for(int32_t i = 2; i < argc; ++i) {
+            if(is_help_flag(argv[i])) {
+                return set_help(arguments, argv[1]);
+            }
+        }
+
+        if(arg1_sv == u8"dump") {
+            return parse_dump(arguments, argc, argv);
+        } else if(arg1_sv == u8"symbols") {
+            return parse_symbols(arguments, argc, argv);
+        } else if(arg1_sv == u8"outline") {
+            return parse_outline(arguments, argc, argv);
+        } else if(arg1_sv == u8"find") {
+            return parse_find(arguments, argc, argv);
+        } else if(arg1_sv == u8"range") {
+            return parse_range(arguments, argc, argv);
+        } else if(arg1_sv == u8"parent") {
+            return parse_parent(arguments, argc, argv);
+        } else if(arg1_sv == u8"children") {
+            return parse_children(arguments, argc, argv);
+        } else if(arg1_sv == u8"search") {
+            return parse_search(arguments, argc, argv);
+        } else {
+            return false;
         }
     }
+} // namespace
 
-    if(strncmp(argv[1], "dump", ::strlen("dump")) == 0) {
-        return parse_dump(arguments, argc, argv);
-    } else if(strncmp(argv[1], "symbols", ::strlen("symbols")) == 0) {
-        return parse_symbols(arguments, argc, argv);
-    } else if(strncmp(argv[1], "outline", ::strlen("outline")) == 0) {
-        return parse_outline(arguments, argc, argv);
-    } else if(strncmp(argv[1], "find", ::strlen("find")) == 0) {
-        return parse_find(arguments, argc, argv);
-    } else if(strncmp(argv[1], "range", ::strlen("range")) == 0) {
-        return parse_range(arguments, argc, argv);
-    } else if(strncmp(argv[1], "parent", ::strlen("parent")) == 0) {
-        return parse_parent(arguments, argc, argv);
-    } else if(strncmp(argv[1], "children", ::strlen("children")) == 0) {
-        return parse_children(arguments, argc, argv);
-    } else if(strncmp(argv[1], "search", ::strlen("search")) == 0) {
-        return parse_search(arguments, argc, argv);
-    } else {
-        return false;
+bool parse(Arguments& arguments, std::span<const std::u8string> argv)
+{
+    // Build a transient char* view for the internal ASCII-keyed parsers.
+    // The u8string data remains valid for the duration of this call and
+    // any const char* stored in Arguments points into the caller's argv storage.
+    std::vector<const char8_t*> raw;
+    raw.reserve(argv.size());
+    for(const std::u8string& s: argv) {
+        // UTF-8 entry-point boundary: reinterpret char8_t* as char*.
+        raw.push_back(s.data());
     }
+    return parse_impl(arguments, static_cast<int32_t>(raw.size()), raw.data());
+}
+
+std::vector<std::u8string> args_to_utf8(int32_t argc, const char** argv)
+{
+    std::vector<std::u8string> args;
+    args.reserve(static_cast<size_t>(argc));
+    for(int i = 0; i < argc; ++i) {
+        args.emplace_back(reinterpret_cast<const char8_t*>(argv[i]));
+    }
+    return args;
 }
 
 bool dispatch(const Arguments& arguments)
@@ -124,26 +154,38 @@ bool ASTNode::typeEquals(const char* type) const
     return 0 == ::strcmp(type_, type);
 }
 
+bool ASTNode::typeEquals(const char8_t* type) const
+{
+    return 0 == ::strcmp(type_, reinterpret_cast<const char*>(type));
+}
+
 bool ASTNode::grammarEquals(const char* type) const
 {
     return 0 == ::strcmp(grammar_type_, type);
 }
 
-std::string ASTText::getText() const
+bool ASTNode::grammarEquals(const char8_t* type) const
 {
-    return std::string(text_, text_ + length_);
+    return 0 == ::strcmp(grammar_type_, reinterpret_cast<const char*>(type));
 }
 
-std::string ASTNode::getText() const
+std::u8string ASTText::getText() const
+{
+    const char8_t* str = reinterpret_cast<const char8_t*>(text_);
+    return std::u8string(str, str + length_);
+}
+
+std::u8string ASTNode::getText() const
 {
     return text_.getText();
 }
 
-ASTLanguage get_language_type(const char* path)
+ASTLanguage get_language_type(const char8_t* p)
 {
-    if(nullptr == path) {
+    if(nullptr == p) {
         return ASTLanguage::Unknown;
     }
+    const char* path = reinterpret_cast<const char*>(p);
     const char* ext = ::strrchr(path, '.');
     if(nullptr == ext) {
         return ASTLanguage::Unknown;
@@ -191,6 +233,103 @@ ASTLanguage get_language_type(const char* path)
     }
 }
 
+ASTLanguage get_language_type_from_extension(const char8_t* e)
+{
+    const char* extension = reinterpret_cast<const char*>(e);
+    if(nullptr == extension) {
+        return ASTLanguage::Unknown;
+    }
+    ++extension;
+    if(0 == strcmp("sh", extension)) {
+        return ASTLanguage::Bash;
+    } else if(0 == strcmp("c", extension)) {
+        return ASTLanguage::C;
+    } else if(0 == strcmp("h", extension)
+              || 0 == strcmp("hpp", extension)
+              || 0 == strcmp("cpp", extension)
+              || 0 == strcmp("cxx", extension)
+              || 0 == strcmp("cc", extension)
+              || 0 == strcmp("ixx", extension)
+              || 0 == strcmp("cppm", extension)) {
+        return ASTLanguage::CPP;
+    } else if(0 == strcmp("cs", extension)) {
+        return ASTLanguage::CSharp;
+    } else if(0 == strcmp("css", extension)) {
+        return ASTLanguage::CSS;
+    } else if(0 == strcmp("go", extension)) {
+        return ASTLanguage::Go;
+    } else if(0 == strcmp("html", extension)
+              || 0 == strcmp("htm", extension)) {
+        return ASTLanguage::HTML;
+    } else if(0 == strcmp("java", extension)) {
+        return ASTLanguage::Java;
+    } else if(0 == strcmp("js", extension)) {
+        return ASTLanguage::JavaScript;
+    } else if(0 == strcmp("py", extension)) {
+        return ASTLanguage::Python;
+    } else if(0 == strcmp("rb", extension)) {
+        return ASTLanguage::Ruby;
+    } else if(0 == strcmp("rs", extension)) {
+        return ASTLanguage::Rust;
+    } else if(0 == strcmp("scala", extension)) {
+        return ASTLanguage::Scala;
+    } else if(0 == strcmp("tsx", extension)) {
+        return ASTLanguage::TypeScriptX;
+    } else if(0 == strcmp("ts", extension)) {
+        return ASTLanguage::TypeScript;
+    } else {
+        return ASTLanguage::Unknown;
+    }
+}
+
+ASTLanguage get_language_type_from_extension(const wchar_t* extension)
+{
+    if(nullptr == extension) {
+        return ASTLanguage::Unknown;
+    }
+    ++extension;
+    if(0 == wcscmp(L"sh", extension)) {
+        return ASTLanguage::Bash;
+    } else if(0 == wcscmp(L"c", extension)) {
+        return ASTLanguage::C;
+    } else if(0 == wcscmp(L"h", extension)
+              || 0 == wcscmp(L"hpp", extension)
+              || 0 == wcscmp(L"cpp", extension)
+              || 0 == wcscmp(L"cxx", extension)
+              || 0 == wcscmp(L"cc", extension)
+              || 0 == wcscmp(L"ixx", extension)
+              || 0 == wcscmp(L"cppm", extension)) {
+        return ASTLanguage::CPP;
+    } else if(0 == wcscmp(L"cs", extension)) {
+        return ASTLanguage::CSharp;
+    } else if(0 == wcscmp(L"css", extension)) {
+        return ASTLanguage::CSS;
+    } else if(0 == wcscmp(L"go", extension)) {
+        return ASTLanguage::Go;
+    } else if(0 == wcscmp(L"html", extension)
+              || 0 == wcscmp(L"htm", extension)) {
+        return ASTLanguage::HTML;
+    } else if(0 == wcscmp(L"java", extension)) {
+        return ASTLanguage::Java;
+    } else if(0 == wcscmp(L"js", extension)) {
+        return ASTLanguage::JavaScript;
+    } else if(0 == wcscmp(L"py", extension)) {
+        return ASTLanguage::Python;
+    } else if(0 == wcscmp(L"rb", extension)) {
+        return ASTLanguage::Ruby;
+    } else if(0 == wcscmp(L"rs", extension)) {
+        return ASTLanguage::Rust;
+    } else if(0 == wcscmp(L"scala", extension)) {
+        return ASTLanguage::Scala;
+    } else if(0 == wcscmp(L"tsx", extension)) {
+        return ASTLanguage::TypeScriptX;
+    } else if(0 == wcscmp(L"ts", extension)) {
+        return ASTLanguage::TypeScript;
+    } else {
+        return ASTLanguage::Unknown;
+    }
+}
+
 const struct TSLanguage* get_language(ASTLanguage language)
 {
     switch(language) {
@@ -231,11 +370,11 @@ const struct TSLanguage* get_language(ASTLanguage language)
 
 namespace
 {
-    int64_t get_file_size(const char* path)
+    int64_t get_file_size(const char8_t* path)
     {
         STAT_STRUCT st;
 
-        if(STAT_FUNC(path, &st) == 0) {
+        if(STAT_FUNC(reinterpret_cast<const char*>(path), &st) == 0) {
             return (int64_t)st.st_size;
         }
         return -1;
@@ -251,7 +390,7 @@ AST::AST()
 {
 }
 
-AST::AST(const char* path)
+AST::AST(const char8_t* path)
     : language_(ASTLanguage::Unknown)
     , filepath_hash_(0)
     , size_(0)
@@ -265,12 +404,12 @@ AST::AST(const char* path)
         return;
     }
 
-    FILE* file = fopen(path, "rb");
+    FILE* file = fopen(reinterpret_cast<const char*>(path), "rb");
     if(nullptr == file) {
         return;
     }
     language_ = get_language_type(path);
-    filepath_hash_ = XXH32(path, ::strlen(path), 42);
+    filepath_hash_ = XXH32(path, ::strlen(reinterpret_cast<const char*>(path)), 42);
     size_t size = static_cast<size_t>(size_);
     text_ = (char*)mi_calloc(size + 1, sizeof(char));
     if(nullptr == text_) {
@@ -429,6 +568,9 @@ const ASTNode& AST::operator[](size_t index) const
 
 ASTText AST::get_string(uint32_t start, uint32_t end) const
 {
+    if(size_<=0){
+        return {0, text_};
+    }
     assert(start < size_);
     assert(end <= size_);
     return {end - start, text_ + start};
@@ -446,8 +588,8 @@ uintptr_t AST::find(uintptr_t id) const
 
 bool AST::existsHash(uint32_t hash) const
 {
-    for(const ASTNode& node : nodes_){
-        if(hash == node.hash_){
+    for(const ASTNode& node: nodes_) {
+        if(hash == node.hash_) {
             return true;
         }
     }
@@ -457,16 +599,16 @@ bool AST::existsHash(uint32_t hash) const
 void AST::setHash(ASTNode& node)
 {
     XXH32_state_t* state = XXH32_createState();
-    while(true){
+    while(true) {
         XXH32_reset(state, filepath_hash_);
         XXH32_update(state, node.type_, strlen(node.type_));
         XXH32_update(state, &node.startByte_, sizeof(node.startByte_));
         XXH32_update(state, &node.endByte_, sizeof(node.endByte_));
         XXH32_update(state, &collisions_, sizeof(collisions_));
         node.hash_ = XXH32_digest(state);
-        if(existsHash(node.hash_)){
+        if(existsHash(node.hash_)) {
             ++collisions_;
-        }else{
+        } else {
             break;
         }
     }
@@ -526,7 +668,7 @@ namespace
     }
 } // namespace
 
-AST parse(const char* path)
+AST parse(const char8_t* path)
 {
     assert(nullptr != path);
     AST ast(path);
@@ -553,4 +695,24 @@ AST parse(const char* path)
     ts_parser_delete(parser);
     return ast;
 }
+
+bool from_chars_10(const char8_t* begin, std::uint32_t& value)
+{
+    assert(nullptr != begin);
+    const char8_t* end = begin + ::strlen(reinterpret_cast<const char*>(begin));
+    auto [ptr, ec] = std::from_chars(reinterpret_cast<const char*>(begin), reinterpret_cast<const char*>(end), value, 10);
+    return ec == std::errc() && ptr == reinterpret_cast<const char*>(end);
+}
+
+bool from_chars_16(const char8_t* begin, std::uint32_t& value)
+{
+    assert(nullptr != begin);
+    const char8_t* end = begin + ::strlen(reinterpret_cast<const char*>(begin));
+    if(2 <= (end - begin) && begin[0] == u8'0' && (begin[1] == u8'x' || begin[1] == u8'X')) {
+        begin += 2;
+    }
+    auto [ptr, ec] = std::from_chars(reinterpret_cast<const char*>(begin), reinterpret_cast<const char*>(end), value, 16);
+    return ec == std::errc() && ptr == reinterpret_cast<const char*>(end);
+}
+
 } // namespace ast

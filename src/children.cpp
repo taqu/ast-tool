@@ -25,17 +25,17 @@ namespace
     void format_match(const ASTNode& node)
     {
         std::print("{:X} {} @{}:{}", node.hash_, node.type_, node.start_.row_ + 1, node.start_.column_ + 1);
-        std::string text = preview_text(node);
+        std::u8string text = preview_text(node);
         if(!text.empty()) {
-            std::print(" \"{}\"", text);
+            std::print(" \"{}\"", (const char*)text.c_str());
         }
         std::print("\n");
     }
 } // namespace
 
-bool parse_children(Arguments& arguments, int32_t argc, const char** argv)
+bool parse_children(Arguments& arguments, int32_t argc, const char8_t** argv)
 {
-#define STREQUALS(str, literal) (0 == ::strcmp(str, literal))
+#define STREQUALS(str, literal) (0 == ::strcmp(reinterpret_cast<const char*>(str), literal))
     arguments.sub_ = SubCommand::Children;
     if(argc <= 2) {
         return false;

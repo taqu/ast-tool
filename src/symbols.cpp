@@ -6,7 +6,7 @@
 
 namespace ast
 {
-bool parse_symbols(Arguments& arguments, int32_t argc, const char** argv)
+bool parse_symbols(Arguments& arguments, int32_t argc, const char8_t** argv)
 {
 #define STREQUALS(str, literal) (0 == ::strncmp(str, literal, ::strlen(literal)))
     arguments.sub_ = SubCommand::Symbols;
@@ -17,11 +17,11 @@ bool parse_symbols(Arguments& arguments, int32_t argc, const char** argv)
     arguments.symbols_.json_ = false;
     arguments.symbols_.pretty_ = false;
     for(int32_t i = 1; i < argc; ++i) {
-        if(STREQUALS(argv[i], "--json")) {
+        if(STREQUALS(reinterpret_cast<const char*>(argv[i]), "--json")) {
             arguments.symbols_.json_ = true;
             continue;
         }
-        if(STREQUALS(argv[i], "--pretty")) {
+        if(STREQUALS(reinterpret_cast<const char*>(argv[i]), "--pretty")) {
             arguments.symbols_.pretty_ = true;
             continue;
         }
@@ -47,8 +47,8 @@ bool symbols(const ArgSymbols& arguments)
             for(size_t i = 0; i < symbols.size(); ++i) {
                 std::print(" {{\n");
                 std::print("  \"kind\": \"{}\",\n", getSymbolKindName(symbols[i].kind));
-                std::print("  \"name\": \"{}\",\n", symbols[i].name.c_str());
-                std::print("  \"qualified_name\": \"{}\",\n", symbols[i].fqn.c_str());
+                std::print("  \"name\": \"{}\",\n", (const char*)symbols[i].name.c_str());
+                std::print("  \"qualified_name\": \"{}\",\n", (const char*)symbols[i].fqn.c_str());
                 std::print("  \"access\": \"{}\",\n", getAccessName(symbols[i].access));
                 std::print("  \"static\": \"{}\",\n", symbols[i].isStatic);
                 std::print("  \"constexpr\": \"{}\",\n", symbols[i].isConstexpr);
@@ -67,8 +67,8 @@ bool symbols(const ArgSymbols& arguments)
             for(size_t i = 0; i < symbols.size(); ++i) {
                 std::print("{{");
                 std::print("\"kind\":\"{}\",", getSymbolKindName(symbols[i].kind));
-                std::print("\"name\":\"{}\",", symbols[i].name.c_str());
-                std::print("\"qualified_name\":\"{}\",", symbols[i].fqn.c_str());
+                std::print("\"name\":\"{}\",", (const char*)symbols[i].name.c_str());
+                std::print("\"qualified_name\":\"{}\",", (const char*)symbols[i].fqn.c_str());
                 std::print("\"access\":\"{}\",", getAccessName(symbols[i].access));
                 std::print("\"static\":\"{}\",", symbols[i].isStatic);
                 std::print("\"constexpr\":\"{}\",", symbols[i].isConstexpr);
@@ -83,7 +83,7 @@ bool symbols(const ArgSymbols& arguments)
         }
     } else {
         for(const ast::Symbol& symbol: symbols) {
-            std::print("{} {:X}\n", symbol.fqn, ast[symbol.nodeIndex].hash_);
+            std::print("{} {:X}\n", (const char*)symbol.fqn.c_str(), ast[symbol.nodeIndex].hash_);
         }
     }
     return true;

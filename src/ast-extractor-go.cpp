@@ -1,3 +1,4 @@
+#include "ast-tool.h"
 #include "ast-extractor-langs.h"
 #include "ast-extractor-common.h"
 #include "ast-ir.h"
@@ -37,29 +38,29 @@ namespace
 
     // Go's only visibility rule: an identifier is exported (public) iff its
     // first letter is uppercase. There is no access-modifier keyword to parse.
-    Access accessFromName(const std::string& name)
+    Access accessFromName(const std::u8string& name)
     {
         if(name.empty()) return Access::Unknown;
-        char c = name[0];
-        if(c >= 'A' && c <= 'Z') return Access::Public;
-        if((c >= 'a' && c <= 'z') || c == '_') return Access::Private;
+        char8_t c = name[0];
+        if(c >= u8'A' && c <= u8'Z') return Access::Public;
+        if((c >= u8'a' && c <= u8'z') || c == u8'_') return Access::Private;
         return Access::Unknown; // non-ASCII leading rune: not classified here
     }
 
     // Unwraps pointer_type / qualified_type / generic_type down to the base
     // type name, e.g. "*io.Reader" -> "Reader", "List[int]" -> "List".
-    std::string baseTypeName(const ast::AST& tree, const ast::ASTNode& node)
+    std::u8string baseTypeName(const ast::AST& tree, const ast::ASTNode& node)
     {
         if(node.typeEquals(k_type_identifier)) return node.getText();
         if(node.typeEquals(k_qualified_type)) {
-            const ast::ASTNode* ident = findChild(tree, node, k_type_identifier);
-            return ident ? ident->getText() : std::string();
+            const ast::ASTNode* ident = findChild(tree, node, (const char8_t*)k_type_identifier);
+            return ident ? ident->getText() : std::u8string();
         }
         if(node.typeEquals(k_pointer_type) || node.typeEquals(k_generic_type)) {
             for(uintptr_t id : node.children_) {
                 if(id == ast::InvalidId) continue;
                 const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
-                std::string name = baseTypeName(tree, child);
+                std::u8string name = baseTypeName(tree, child);
                 if(!name.empty()) return name;
             }
         }
@@ -70,24 +71,24 @@ namespace
     // direct child. It always precedes the underlying type expression, so the
     // first match is unambiguous (unlike C#, Go never places a return/field
     // type before the name at this level).
-    std::string getTypeSpecName(const ast::AST& tree, const ast::ASTNode& node)
+    std::u8string getTypeSpecName(const ast::AST& tree, const ast::ASTNode& node)
     {
-        const ast::ASTNode* ident = findChild(tree, node, k_type_identifier);
-        return ident ? ident->getText() : std::string();
+        const ast::ASTNode* ident = findChild(tree, node, (const char8_t*)k_type_identifier);
+        return ident ? ident->getText() : std::u8string();
     }
 
     // The receiver type name of a method_declaration, e.g. "Foo" from both
     // "(f Foo)" and "(f *Foo)". The receiver is always the first parameter_list.
-    std::string getReceiverTypeName(const ast::AST& tree, const ast::ASTNode& node)
+    std::u8string getReceiverTypeName(const ast::AST& tree, const ast::ASTNode& node)
     {
-        const ast::ASTNode* recv = findChild(tree, node, k_parameter_list);
+        const ast::ASTNode* recv = findChild(tree, node, (const char8_t*)k_parameter_list);
         if(!recv) return {};
-        const ast::ASTNode* param = findChild(tree, *recv, k_parameter_declaration);
+        const ast::ASTNode* param = findChild(tree, *recv, (const char8_t*)k_parameter_declaration);
         if(!param) return {};
         for(uintptr_t id : param->children_) {
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
-            std::string name = baseTypeName(tree, child);
+            std::u8string name = baseTypeName(tree, child);
             if(!name.empty()) return name;
         }
         return {};
@@ -98,11 +99,12 @@ namespace
 std::vector<Symbol> extract_symbols_go(const ast::AST& tree)
 {
     std::vector<Symbol>             result;
-    std::unordered_set<std::string> seen;   // key = fqn + ":" + kind ordinal
+    std::unordered_set<std::u8string> seen;   // key = fqn + ":" + kind ordinal
     std::vector<ScopeFrame>         scopeStack;
 
     auto emit = [&](Symbol sym) {
-        std::string key = sym.fqn + ":" + std::to_string(static_cast<int>(sym.kind));
+        char8_t buffer[BUFFER_SIZE];
+        std::u8string key = sym.fqn + u8":" + ast::to_string_intermediate(buffer, static_cast<int>(sym.kind));
         if(!sym.fqn.empty() && seen.insert(key).second) {
             result.push_back(std::move(sym));
         }
@@ -121,8 +123,8 @@ std::vector<Symbol> extract_symbols_go(const ast::AST& tree)
         // Applies to the whole file; there is no closing delimiter, so the
         // scope is given a byte range that never closes during this traversal.
         if(node.typeEquals(k_package_clause)) {
-            const ast::ASTNode* ident = findChild(tree, node, k_package_identifier);
-            std::string name = ident ? ident->getText() : std::string();
+            const ast::ASTNode* ident = findChild(tree, node, (const char8_t*)k_package_identifier);
+            std::u8string name = ident ? ident->getText() : std::u8string();
             if(!name.empty()) {
                 emit(makeSymbol(name, name, SymbolKind::Namespace, Access::Unknown,
                                 i, node.start_.row_, node.start_.column_));
@@ -134,10 +136,10 @@ std::vector<Symbol> extract_symbols_go(const ast::AST& tree)
 
         // ── Import alias: `import alias "path"` ─────────────────────────────
         if(node.typeEquals(k_import_spec)) {
-            const ast::ASTNode* alias = findChild(tree, node, k_package_identifier);
+            const ast::ASTNode* alias = findChild(tree, node, (const char8_t*)k_package_identifier);
             if(alias) {
-                std::string name = alias->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = alias->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::UsingAlias, Access::Unknown,
                                 i, node.start_.row_, node.start_.column_));
             }
@@ -147,24 +149,24 @@ std::vector<Symbol> extract_symbols_go(const ast::AST& tree)
         // ── Type declaration: struct / interface / defined type / alias ─────
         if((node.typeEquals(k_type_spec) || node.typeEquals(k_type_alias))
            && !insideFunctionScope(scopeStack)) {
-            std::string name = getTypeSpecName(tree, node);
+            std::u8string name = getTypeSpecName(tree, node);
             if(name.empty()) continue;
 
             SymbolKind kind;
             bool       isContainer = false;
             if(node.typeEquals(k_type_alias)) {
                 kind = SymbolKind::UsingAlias;
-            } else if(findChild(tree, node, k_struct_type)) {
+            } else if(findChild(tree, node, (const char8_t*)k_struct_type)) {
                 kind = SymbolKind::Struct;
                 isContainer = true;
-            } else if(findChild(tree, node, k_interface_type)) {
+            } else if(findChild(tree, node, (const char8_t*)k_interface_type)) {
                 kind = SymbolKind::Class; // closest available SymbolKind
                 isContainer = true;
             } else {
                 kind = SymbolKind::Typedef;
             }
 
-            std::string fqn = buildFQN(scopeStack, name, ".");
+            std::u8string fqn = buildFQN(scopeStack, name, u8".");
             emit(makeSymbol(name, fqn, kind, accessFromName(name),
                             i, node.start_.row_, node.start_.column_));
             if(isContainer) {
@@ -181,8 +183,8 @@ std::vector<Symbol> extract_symbols_go(const ast::AST& tree)
                 const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
                 if(!child.typeEquals(k_field_identifier)) continue;
                 any = true;
-                std::string name = child.getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = child.getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Field, accessFromName(name),
                                 i, node.start_.row_, node.start_.column_));
             }
@@ -192,9 +194,9 @@ std::vector<Symbol> extract_symbols_go(const ast::AST& tree)
                 for(uintptr_t id : node.children_) {
                     if(id == ast::InvalidId) continue;
                     const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
-                    std::string name = baseTypeName(tree, child);
+                    std::u8string name = baseTypeName(tree, child);
                     if(name.empty()) continue;
-                    std::string fqn = buildFQN(scopeStack, name, ".");
+                    std::u8string fqn = buildFQN(scopeStack, name, u8".");
                     emit(makeSymbol(name, fqn, SymbolKind::Field, accessFromName(name),
                                     i, node.start_.row_, node.start_.column_));
                     break;
@@ -205,10 +207,10 @@ std::vector<Symbol> extract_symbols_go(const ast::AST& tree)
 
         // ── Interface method signatures ─────────────────────────────────────
         if(node.typeEquals(k_method_elem)) {
-            const ast::ASTNode* ident = findChild(tree, node, k_field_identifier);
+            const ast::ASTNode* ident = findChild(tree, node, (const char8_t*)k_field_identifier);
             if(ident) {
-                std::string name = ident->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = ident->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Method, accessFromName(name),
                                 i, node.start_.row_, node.start_.column_));
             }
@@ -217,10 +219,10 @@ std::vector<Symbol> extract_symbols_go(const ast::AST& tree)
 
         // ── Free function ────────────────────────────────────────────────────
         if(node.typeEquals(k_function_declaration)) {
-            const ast::ASTNode* ident = findChild(tree, node, k_identifier);
+            const ast::ASTNode* ident = findChild(tree, node, (const char8_t*)k_identifier);
             if(ident) {
-                std::string name = ident->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = ident->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Function, accessFromName(name),
                                 i, node.start_.row_, node.start_.column_));
             }
@@ -232,12 +234,12 @@ std::vector<Symbol> extract_symbols_go(const ast::AST& tree)
 
         // ── Method (function with a receiver) ────────────────────────────────
         if(node.typeEquals(k_method_declaration)) {
-            const ast::ASTNode* ident = findChild(tree, node, k_field_identifier);
+            const ast::ASTNode* ident = findChild(tree, node, (const char8_t*)k_field_identifier);
             if(ident) {
-                std::string name      = ident->getText();
-                std::string recvType  = getReceiverTypeName(tree, node);
-                std::string qualified = recvType.empty() ? name : (recvType + "." + name);
-                std::string fqn       = buildFQN(scopeStack, qualified, ".");
+                std::u8string name      = ident->getText();
+                std::u8string recvType  = getReceiverTypeName(tree, node);
+                std::u8string qualified = recvType.empty() ? name : (recvType + u8"." + name);
+                std::u8string fqn       = buildFQN(scopeStack, qualified, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Method, accessFromName(name),
                                 i, node.start_.row_, node.start_.column_));
             }
@@ -253,8 +255,8 @@ std::vector<Symbol> extract_symbols_go(const ast::AST& tree)
                 if(id == ast::InvalidId) continue;
                 const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
                 if(!child.grammarEquals(k_identifier)) continue;
-                std::string name = child.getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = child.getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 Symbol sym = makeSymbol(name, fqn, SymbolKind::Variable, accessFromName(name),
                                        i, node.start_.row_, node.start_.column_);
                 sym.isConstexpr = isConst;

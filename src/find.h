@@ -6,7 +6,7 @@ namespace ast
 {
     struct Arguments;
     struct ArgFind;
-    bool parse_find(Arguments& arguments, int32_t argc, const char** argv);
+    bool parse_find(Arguments& arguments, int32_t argc, const char8_t** argv);
     bool find(const ArgFind& arguments);
 }
 #endif //INC_AST_FIND_CLI_H_

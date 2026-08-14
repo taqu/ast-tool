@@ -23,7 +23,7 @@ namespace
     }
 
     /** Builds a Variable Symbol with only name set. */
-    Symbol makeVar(const char* name)
+    Symbol makeVar(const char8_t* name)
     {
         Symbol s;
         s.name = name;
@@ -33,7 +33,7 @@ namespace
     }
 
     /** Builds a Function Symbol with only name set. */
-    Symbol makeFunc(const char* name)
+    Symbol makeFunc(const char8_t* name)
     {
         Symbol s;
         s.name = name;
@@ -51,12 +51,12 @@ namespace
         ScopeTree tree;
         uintptr_t global = tree.add(ScopeKind::Global, ScopeTree::InvalidNodeIndex, 0, 100);
 
-        std::vector<Symbol> syms = { makeVar("x"), makeVar("y") };
+        std::vector<Symbol> syms = { makeVar(u8"x"), makeVar(u8"y") };
         tree.addSymbol(global, 0);
         tree.addSymbol(global, 1);
 
-        auto rx = lookup("x", global, tree, syms);
-        auto ry = lookup("y", global, tree, syms);
+        auto rx = lookup(u8"x", global, tree, syms);
+        auto ry = lookup(u8"y", global, tree, syms);
         ok &= check(rx.size() == 1 && rx[0] == 0, "lookup 'x' in current scope returns sym0");
         ok &= check(ry.size() == 1 && ry[0] == 1, "lookup 'y' in current scope returns sym1");
 
@@ -74,10 +74,10 @@ namespace
         uintptr_t ns     = tree.add(ScopeKind::Namespace, ScopeTree::InvalidNodeIndex, 10, 500, global);
         uintptr_t block  = tree.add(ScopeKind::Block, ScopeTree::InvalidNodeIndex, 20, 200, ns);
 
-        std::vector<Symbol> syms = { makeVar("g") };
+        std::vector<Symbol> syms = { makeVar(u8"g") };
         tree.addSymbol(global, 0);  // "g" only in global
 
-        auto r = lookup("g", block, tree, syms);
+        auto r = lookup(u8"g", block, tree, syms);
         ok &= check(r.size() == 1 && r[0] == 0, "lookup 'g' from block finds it in global (grandparent)");
 
         return ok;
@@ -94,17 +94,17 @@ namespace
         uintptr_t block  = tree.add(ScopeKind::Block,  ScopeTree::InvalidNodeIndex, 10, 500, global);
 
         // sym0 = "z" in global; sym1 = "z" in block (shadows)
-        std::vector<Symbol> syms = { makeVar("z"), makeVar("z") };
+        std::vector<Symbol> syms = { makeVar(u8"z"), makeVar(u8"z") };
         tree.addSymbol(global, 0);
         tree.addSymbol(block,  1);
 
-        auto r = lookup("z", block, tree, syms);
+        auto r = lookup(u8"z", block, tree, syms);
         ok &= check(r.size() == 1,       "shadowing: exactly one result");
         ok &= check(hasIdx(r, 1),        "inner 'z' (sym1) is returned");
         ok &= check(!hasIdx(r, 0),       "outer 'z' (sym0) is shadowed, NOT returned");
 
         // Lookup from outer scope still sees sym0
-        auto rg = lookup("z", global, tree, syms);
+        auto rg = lookup(u8"z", global, tree, syms);
         ok &= check(rg.size() == 1 && rg[0] == 0, "outer scope still resolves to sym0");
 
         return ok;
@@ -119,12 +119,12 @@ namespace
         ScopeTree tree;
         uintptr_t global = tree.add(ScopeKind::Global, ScopeTree::InvalidNodeIndex, 0, 100);
 
-        std::vector<Symbol> syms = { makeVar("x") };
+        std::vector<Symbol> syms = { makeVar(u8"x") };
         tree.addSymbol(global, 0);
 
-        auto r = lookup("nope", global, tree, syms);
+        auto r = lookup(u8"nope", global, tree, syms);
         ok &= check(r.empty(), "lookup of unknown name returns empty");
-        ok &= check(!contains("nope", global, tree, syms), "contains returns false for unknown name");
+        ok &= check(!contains(u8"nope", global, tree, syms), "contains returns false for unknown name");
 
         return ok;
     }
@@ -141,16 +141,16 @@ namespace
 
         // Two overloads of "foo" in namespace; "foo" also in global (shadowed by ns overloads)
         std::vector<Symbol> syms = {
-            makeFunc("foo"),  // sym0 — global "foo"
-            makeFunc("foo"),  // sym1 — ns overload 1
-            makeFunc("foo"),  // sym2 — ns overload 2
+            makeFunc(u8"foo"),  // sym0 — global "foo"
+            makeFunc(u8"foo"),  // sym1 — ns overload 1
+            makeFunc(u8"foo"),  // sym2 — ns overload 2
         };
         tree.addSymbol(global, 0);
         tree.addSymbol(ns,     1);
         tree.addSymbol(ns,     2);
 
         // Lookup from ns: both overloads in ns are found; global "foo" is shadowed
-        auto r = lookup("foo", ns, tree, syms);
+        auto r = lookup(u8"foo", ns, tree, syms);
         ok &= check(r.size() == 2,    "overload set: two results from namespace");
         ok &= check(hasIdx(r, 1),     "overload sym1 is in result");
         ok &= check(hasIdx(r, 2),     "overload sym2 is in result");
@@ -158,7 +158,7 @@ namespace
 
         // Lookup from a child block: reaches ns, still finds both overloads
         uintptr_t block = tree.add(ScopeKind::Block, ScopeTree::InvalidNodeIndex, 20, 300, ns);
-        auto rb = lookup("foo", block, tree, syms);
+        auto rb = lookup(u8"foo", block, tree, syms);
         ok &= check(rb.size() == 2,   "overloads visible from nested block");
         ok &= check(!hasIdx(rb, 0),   "global overload still shadowed from block");
 
@@ -174,16 +174,16 @@ namespace
         ScopeTree tree;
         uintptr_t global = tree.add(ScopeKind::Global, ScopeTree::InvalidNodeIndex, 0, 9000);
 
-        std::vector<Symbol> syms = { makeFunc("bar"), makeFunc("bar"), makeVar("baz") };
+        std::vector<Symbol> syms = { makeFunc(u8"bar"), makeFunc(u8"bar"), makeVar(u8"baz") };
         tree.addSymbol(global, 0);
         tree.addSymbol(global, 1);
         tree.addSymbol(global, 2);
 
-        auto r = lookup("bar", global, tree, syms);
+        auto r = lookup(u8"bar", global, tree, syms);
         ok &= check(r.size() == 2, "two overloads of 'bar' in global");
         ok &= check(hasIdx(r, 0) && hasIdx(r, 1), "both overload indices present");
 
-        auto rz = lookup("baz", global, tree, syms);
+        auto rz = lookup(u8"baz", global, tree, syms);
         ok &= check(rz.size() == 1 && rz[0] == 2, "non-overloaded 'baz' found");
 
         return ok;
@@ -199,13 +199,13 @@ namespace
         uintptr_t global = tree.add(ScopeKind::Global, ScopeTree::InvalidNodeIndex, 0, 9000);
         uintptr_t ns     = tree.add(ScopeKind::Namespace, ScopeTree::InvalidNodeIndex, 10, 800, global);
 
-        std::vector<Symbol> syms = { makeVar("nsVar") };
+        std::vector<Symbol> syms = { makeVar(u8"nsVar") };
         tree.addSymbol(ns, 0);
 
-        auto r = lookup("nsVar", ns, tree, syms);
+        auto r = lookup(u8"nsVar", ns, tree, syms);
         ok &= check(r.size() == 1 && r[0] == 0, "lookup finds nsVar inside namespace");
-        ok &= check(contains("nsVar", ns, tree, syms), "contains returns true for nsVar in ns");
-        ok &= check(!contains("nsVar", global, tree, syms), "contains returns false for nsVar in global");
+        ok &= check(contains(u8"nsVar", ns, tree, syms), "contains returns true for nsVar in ns");
+        ok &= check(!contains(u8"nsVar", global, tree, syms), "contains returns false for nsVar in global");
 
         return ok;
     }
@@ -221,16 +221,16 @@ namespace
         uintptr_t cls    = tree.add(ScopeKind::Class,     ScopeTree::InvalidNodeIndex, 10, 500, global);
         uintptr_t method = tree.add(ScopeKind::Method,    ScopeTree::InvalidNodeIndex, 20, 400, cls);
 
-        std::vector<Symbol> syms = { makeVar("field"), makeVar("global_g") };
+        std::vector<Symbol> syms = { makeVar(u8"field"), makeVar(u8"global_g") };
         tree.addSymbol(cls,    0);  // "field" in class
         tree.addSymbol(global, 1);  // "global_g" in global
 
         // Lookup "field" from method scope — found in class (parent)
-        auto rf = lookup("field", method, tree, syms);
+        auto rf = lookup(u8"field", method, tree, syms);
         ok &= check(rf.size() == 1 && rf[0] == 0, "method scope finds class member 'field'");
 
         // Lookup "global_g" from method — found in global (grandparent)
-        auto rg = lookup("global_g", method, tree, syms);
+        auto rg = lookup(u8"global_g", method, tree, syms);
         ok &= check(rg.size() == 1 && rg[0] == 1, "method scope finds global symbol 'global_g'");
 
         return ok;
@@ -246,17 +246,17 @@ namespace
         uintptr_t global = tree.add(ScopeKind::Global,    ScopeTree::InvalidNodeIndex, 0, 9000);
         uintptr_t ns     = tree.add(ScopeKind::Namespace, ScopeTree::InvalidNodeIndex, 10, 500, global);
 
-        std::vector<Symbol> syms = { makeVar("alpha"), makeVar("beta") };
+        std::vector<Symbol> syms = { makeVar(u8"alpha"), makeVar(u8"beta") };
         tree.addSymbol(global, 0);
         tree.addSymbol(ns,     1);
 
         ScopeVisibility vis = ScopeVisibility::compute(tree, syms);
 
-        ok &= check(contains("alpha", global, vis), "global contains 'alpha'");
-        ok &= check(!contains("beta", global, vis), "global does not contain 'beta' (child scope)");
-        ok &= check(contains("alpha", ns, vis),     "ns inherits 'alpha' from global");
-        ok &= check(contains("beta",  ns, vis),     "ns contains its own 'beta'");
-        ok &= check(!contains("gamma", ns, vis),    "ns does not contain unknown 'gamma'");
+        ok &= check(contains(u8"alpha", global, vis), "global contains 'alpha'");
+        ok &= check(!contains(u8"beta", global, vis), "global does not contain 'beta' (child scope)");
+        ok &= check(contains(u8"alpha", ns, vis),     "ns inherits 'alpha' from global");
+        ok &= check(contains(u8"beta",  ns, vis),     "ns contains its own 'beta'");
+        ok &= check(!contains(u8"gamma", ns, vis),    "ns does not contain unknown 'gamma'");
 
         return ok;
     }
@@ -273,26 +273,26 @@ namespace
         uintptr_t b2     = tree.add(ScopeKind::Block,  ScopeTree::InvalidNodeIndex, 20, 600, b1);
         uintptr_t b3     = tree.add(ScopeKind::Block,  ScopeTree::InvalidNodeIndex, 30, 400, b2);
 
-        std::vector<Symbol> syms = { makeVar("a"), makeVar("b"), makeVar("c"), makeVar("d") };
+        std::vector<Symbol> syms = { makeVar(u8"a"), makeVar(u8"b"), makeVar(u8"c"), makeVar(u8"d") };
         tree.addSymbol(global, 0); // "a"
         tree.addSymbol(b1,     1); // "b"
         tree.addSymbol(b2,     2); // "c"
         tree.addSymbol(b3,     3); // "d"
 
         // b3 can see all four
-        ok &= check(lookup("a", b3, tree, syms).size() == 1, "b3 finds 'a' from global");
-        ok &= check(lookup("b", b3, tree, syms).size() == 1, "b3 finds 'b' from b1");
-        ok &= check(lookup("c", b3, tree, syms).size() == 1, "b3 finds 'c' from b2");
-        ok &= check(lookup("d", b3, tree, syms).size() == 1, "b3 finds 'd' in own scope");
+        ok &= check(lookup(u8"a", b3, tree, syms).size() == 1, "b3 finds 'a' from global");
+        ok &= check(lookup(u8"b", b3, tree, syms).size() == 1, "b3 finds 'b' from b1");
+        ok &= check(lookup(u8"c", b3, tree, syms).size() == 1, "b3 finds 'c' from b2");
+        ok &= check(lookup(u8"d", b3, tree, syms).size() == 1, "b3 finds 'd' in own scope");
 
         // global can only see "a"
-        ok &= check(lookup("b", global, tree, syms).empty(), "global cannot see 'b' (child scope)");
-        ok &= check(lookup("d", global, tree, syms).empty(), "global cannot see 'd' (deep child)");
+        ok &= check(lookup(u8"b", global, tree, syms).empty(), "global cannot see 'b' (child scope)");
+        ok &= check(lookup(u8"d", global, tree, syms).empty(), "global cannot see 'd' (deep child)");
 
         // b1 can see "a" and "b" but not "c" or "d"
-        ok &= check(lookup("a", b1, tree, syms).size() == 1, "b1 finds 'a'");
-        ok &= check(lookup("b", b1, tree, syms).size() == 1, "b1 finds its own 'b'");
-        ok &= check(lookup("c", b1, tree, syms).empty(), "b1 cannot see 'c' (b2 child)");
+        ok &= check(lookup(u8"a", b1, tree, syms).size() == 1, "b1 finds 'a'");
+        ok &= check(lookup(u8"b", b1, tree, syms).size() == 1, "b1 finds its own 'b'");
+        ok &= check(lookup(u8"c", b1, tree, syms).empty(), "b1 cannot see 'c' (b2 child)");
 
         return ok;
     }
@@ -305,11 +305,11 @@ namespace
         bool ok = true;
         ScopeTree tree;
         uintptr_t global = tree.add(ScopeKind::Global, ScopeTree::InvalidNodeIndex, 0, 100);
-        std::vector<Symbol> syms = { makeVar("x") };
+        std::vector<Symbol> syms = { makeVar(u8"x") };
         tree.addSymbol(global, 0);
 
         // Passing InvalidId as scope — the while loop condition fires immediately
-        auto r = lookup("x", ScopeTree::InvalidId, tree, syms);
+        auto r = lookup(u8"x", ScopeTree::InvalidId, tree, syms);
         ok &= check(r.empty(), "lookup from InvalidId scope returns empty");
 
         return ok;

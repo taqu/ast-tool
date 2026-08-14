@@ -25,7 +25,7 @@ namespace
         return std::find(v.begin(), v.end(), symIdx) != v.end();
     }
 
-    size_t symbolIndex(const std::vector<Symbol>& syms, std::string_view fqn, SymbolKind kind)
+    size_t symbolIndex(const std::vector<Symbol>& syms, std::u8string_view fqn, SymbolKind kind)
     {
         for(size_t i = 0; i < syms.size(); ++i) {
             if(syms[i].fqn == fqn && syms[i].kind == kind) return i;
@@ -59,9 +59,9 @@ namespace
         uintptr_t ns     = tree.add(ScopeKind::Namespace, ScopeTree::InvalidNodeIndex, 10, 500, global);
 
         std::vector<Symbol> syms(3);
-        syms[0].name = "a"; syms[0].kind = SymbolKind::Variable;
-        syms[1].name = "b"; syms[1].kind = SymbolKind::Variable;
-        syms[2].name = "c"; syms[2].kind = SymbolKind::Variable;
+        syms[0].name = u8"a"; syms[0].kind = SymbolKind::Variable;
+        syms[1].name = u8"b"; syms[1].kind = SymbolKind::Variable;
+        syms[2].name = u8"c"; syms[2].kind = SymbolKind::Variable;
 
         tree.addSymbol(global, 0);
         tree.addSymbol(global, 1);
@@ -93,9 +93,9 @@ namespace
         uintptr_t block  = tree.add(ScopeKind::Block,  ScopeTree::InvalidNodeIndex, 10, 200, global);
 
         std::vector<Symbol> syms(3);
-        syms[0].name = "x"; syms[0].kind = SymbolKind::Variable;
-        syms[1].name = "y"; syms[1].kind = SymbolKind::Variable;
-        syms[2].name = "x"; syms[2].kind = SymbolKind::Variable; // shadows sym0
+        syms[0].name = u8"x"; syms[0].kind = SymbolKind::Variable;
+        syms[1].name = u8"y"; syms[1].kind = SymbolKind::Variable;
+        syms[2].name = u8"x"; syms[2].kind = SymbolKind::Variable; // shadows sym0
 
         tree.addSymbol(global, 0);
         tree.addSymbol(global, 1);
@@ -104,12 +104,12 @@ namespace
         ScopeVisibility vis = ScopeVisibility::compute(tree, syms);
 
         // Global: "x" → sym0, "y" → sym1
-        ok &= check(vis.resolve(global, "x") == 0, "global resolves 'x' to sym0");
-        ok &= check(vis.resolve(global, "y") == 1, "global resolves 'y' to sym1");
+        ok &= check(vis.resolve(global, u8"x") == 0, "global resolves 'x' to sym0");
+        ok &= check(vis.resolve(global, u8"y") == 1, "global resolves 'y' to sym1");
 
         // Block: "x" → sym2 (shadowed), "y" → sym1 (inherited)
-        ok &= check(vis.resolve(block, "x") == 2, "block resolves 'x' to sym2 (shadows global)");
-        ok &= check(vis.resolve(block, "y") == 1, "block inherits 'y' from global");
+        ok &= check(vis.resolve(block, u8"x") == 2, "block resolves 'x' to sym2 (shadows global)");
+        ok &= check(vis.resolve(block, u8"y") == 1, "block inherits 'y' from global");
 
         // sym0 is NOT visible in block under name "x" — the shadow hides it
         ok &= check(!isVisible(vis, block, 0), "global 'x' (sym0) hidden in block by shadow");
@@ -133,8 +133,8 @@ namespace
         uintptr_t nsB    = tree.add(ScopeKind::Namespace, ScopeTree::InvalidNodeIndex, 300, 500, global);
 
         std::vector<Symbol> syms(2);
-        syms[0].name = "a"; syms[0].kind = SymbolKind::Variable;
-        syms[1].name = "b"; syms[1].kind = SymbolKind::Variable;
+        syms[0].name = u8"a"; syms[0].kind = SymbolKind::Variable;
+        syms[1].name = u8"b"; syms[1].kind = SymbolKind::Variable;
 
         tree.addSymbol(nsA, 0);
         tree.addSymbol(nsB, 1);
@@ -166,10 +166,10 @@ namespace
         uintptr_t block  = tree.add(ScopeKind::Block,    ScopeTree::InvalidNodeIndex, 30, 600, method);
 
         std::vector<Symbol> syms(4);
-        syms[0].name = "g"; syms[0].kind = SymbolKind::Variable;
-        syms[1].name = "m"; syms[1].kind = SymbolKind::Variable;
-        syms[2].name = "p"; syms[2].kind = SymbolKind::Variable;
-        syms[3].name = "l"; syms[3].kind = SymbolKind::Variable;
+        syms[0].name = u8"g"; syms[0].kind = SymbolKind::Variable;
+        syms[1].name = u8"m"; syms[1].kind = SymbolKind::Variable;
+        syms[2].name = u8"p"; syms[2].kind = SymbolKind::Variable;
+        syms[3].name = u8"l"; syms[3].kind = SymbolKind::Variable;
 
         tree.addSymbol(global, 0);
         tree.addSymbol(cls,    1);
@@ -183,13 +183,13 @@ namespace
         ok &= check(vis.visibleIn(method).size() == 3, "method sees 3 symbols");
         ok &= check(vis.visibleIn(block).size()  == 4, "block sees all 4 symbols");
 
-        ok &= check(vis.resolve(block, "g") == 0, "block resolves global symbol");
-        ok &= check(vis.resolve(block, "m") == 1, "block resolves class member");
-        ok &= check(vis.resolve(block, "p") == 2, "block resolves method parameter");
-        ok &= check(vis.resolve(block, "l") == 3, "block resolves local variable");
+        ok &= check(vis.resolve(block, u8"g") == 0, "block resolves global symbol");
+        ok &= check(vis.resolve(block, u8"m") == 1, "block resolves class member");
+        ok &= check(vis.resolve(block, u8"p") == 2, "block resolves method parameter");
+        ok &= check(vis.resolve(block, u8"l") == 3, "block resolves local variable");
 
-        ok &= check(vis.resolve(global, "m") == ScopeVisibility::InvalidSymbol, "global cannot see class member");
-        ok &= check(vis.resolve(cls,    "l") == ScopeVisibility::InvalidSymbol, "class cannot see local variable");
+        ok &= check(vis.resolve(global, u8"m") == ScopeVisibility::InvalidSymbol, "global cannot see class member");
+        ok &= check(vis.resolve(cls,    u8"l") == ScopeVisibility::InvalidSymbol, "class cannot see local variable");
 
         return ok;
     }
@@ -203,9 +203,9 @@ namespace
 
         ScopeVisibility vis = ScopeVisibility::compute(tree, syms);
 
-        ok &= check(vis.resolve(global, "unknown") == ScopeVisibility::InvalidSymbol,
+        ok &= check(vis.resolve(global, u8"unknown") == ScopeVisibility::InvalidSymbol,
                     "resolving unknown name returns InvalidSymbol");
-        ok &= check(vis.resolve(ScopeTree::InvalidId, "x") == ScopeVisibility::InvalidSymbol,
+        ok &= check(vis.resolve(ScopeTree::InvalidId, u8"x") == ScopeVisibility::InvalidSymbol,
                     "resolving in invalid scope returns InvalidSymbol");
         ok &= check(vis.visibleIn(ScopeTree::InvalidId).empty(),
                     "visibleIn invalid scope returns empty");
@@ -220,7 +220,7 @@ namespace
     bool test_nested_ns_inherits()
     {
         bool ok = true;
-        AST ast = parse("test/ast-scope-visibility/samples/nested_ns_visibility.cpp");
+        AST ast = parse(u8"test/ast-scope-visibility/samples/nested_ns_visibility.cpp");
         ok &= check(!!ast, "nested_ns_visibility.cpp parsed");
         if(!ast) return false;
 
@@ -229,8 +229,8 @@ namespace
         associate_symbols(tree, syms);
         ScopeVisibility vis = ScopeVisibility::compute(tree, syms);
 
-        size_t outerSymIdx = symbolIndex(syms, "Outer::outerSym", SymbolKind::Variable);
-        size_t innerSymIdx = symbolIndex(syms, "Outer::Inner::innerSym", SymbolKind::Variable);
+        size_t outerSymIdx = symbolIndex(syms, u8"Outer::outerSym", SymbolKind::Variable);
+        size_t innerSymIdx = symbolIndex(syms, u8"Outer::Inner::innerSym", SymbolKind::Variable);
         ok &= check(outerSymIdx != ScopeVisibility::InvalidSymbol, "outerSym exists");
         ok &= check(innerSymIdx != ScopeVisibility::InvalidSymbol, "innerSym exists");
 
@@ -258,7 +258,7 @@ namespace
     bool test_shadowing_integration()
     {
         bool ok = true;
-        AST ast = parse("test/ast-scope-visibility/samples/shadowing.cpp");
+        AST ast = parse(u8"test/ast-scope-visibility/samples/shadowing.cpp");
         ok &= check(!!ast, "shadowing.cpp parsed");
         if(!ast) return false;
 
@@ -268,8 +268,8 @@ namespace
         ScopeVisibility vis = ScopeVisibility::compute(tree, syms);
 
         // Global "value" and Ns "value" — same unqualified name
-        size_t globalValIdx = symbolIndex(syms, "value",    SymbolKind::Variable);
-        size_t nsValIdx     = symbolIndex(syms, "Ns::value", SymbolKind::Variable);
+        size_t globalValIdx = symbolIndex(syms, u8"value",    SymbolKind::Variable);
+        size_t nsValIdx     = symbolIndex(syms, u8"Ns::value", SymbolKind::Variable);
         ok &= check(globalValIdx != ScopeVisibility::InvalidSymbol, "global value exists");
         ok &= check(nsValIdx     != ScopeVisibility::InvalidSymbol, "Ns::value exists");
 
@@ -277,11 +277,11 @@ namespace
         uintptr_t nsScope     = nthScopeOfKind(tree, ScopeKind::Namespace);
 
         if(globalValIdx != ScopeVisibility::InvalidSymbol) {
-            ok &= check(vis.resolve(globalScope, "value") == globalValIdx,
+            ok &= check(vis.resolve(globalScope, u8"value") == globalValIdx,
                         "global scope resolves 'value' to global symbol");
         }
         if(nsValIdx != ScopeVisibility::InvalidSymbol && globalValIdx != ScopeVisibility::InvalidSymbol) {
-            ok &= check(vis.resolve(nsScope, "value") == nsValIdx,
+            ok &= check(vis.resolve(nsScope, u8"value") == nsValIdx,
                         "Ns scope resolves 'value' to its own (shadows global)");
             ok &= check(!isVisible(vis, nsScope, globalValIdx),
                         "global 'value' is hidden in Ns scope");
@@ -293,7 +293,7 @@ namespace
     bool test_sibling_isolation_integration()
     {
         bool ok = true;
-        AST ast = parse("test/ast-scope-visibility/samples/sibling_isolation.cpp");
+        AST ast = parse(u8"test/ast-scope-visibility/samples/sibling_isolation.cpp");
         ok &= check(!!ast, "sibling_isolation.cpp parsed");
         if(!ast) return false;
 
@@ -302,9 +302,9 @@ namespace
         associate_symbols(tree, syms);
         ScopeVisibility vis = ScopeVisibility::compute(tree, syms);
 
-        size_t globalIdx = symbolIndex(syms, "globalSym", SymbolKind::Variable);
-        size_t symAIdx   = symbolIndex(syms, "NsA::symA", SymbolKind::Variable);
-        size_t symBIdx   = symbolIndex(syms, "NsB::symB", SymbolKind::Variable);
+        size_t globalIdx = symbolIndex(syms, u8"globalSym", SymbolKind::Variable);
+        size_t symAIdx   = symbolIndex(syms, u8"NsA::symA", SymbolKind::Variable);
+        size_t symBIdx   = symbolIndex(syms, u8"NsB::symB", SymbolKind::Variable);
         ok &= check(globalIdx != ScopeVisibility::InvalidSymbol, "globalSym exists");
         ok &= check(symAIdx   != ScopeVisibility::InvalidSymbol, "symA exists");
         ok &= check(symBIdx   != ScopeVisibility::InvalidSymbol, "symB exists");
@@ -340,8 +340,8 @@ namespace
         uintptr_t ns     = tree.add(ScopeKind::Namespace, ScopeTree::InvalidNodeIndex, 10, 500, global);
 
         std::vector<Symbol> syms(2);
-        syms[0].name = "x"; syms[0].kind = SymbolKind::Variable;
-        syms[1].name = "y"; syms[1].kind = SymbolKind::Variable;
+        syms[0].name = u8"x"; syms[0].kind = SymbolKind::Variable;
+        syms[1].name = u8"y"; syms[1].kind = SymbolKind::Variable;
         tree.addSymbol(global, 0);
         tree.addSymbol(ns,     1);
 

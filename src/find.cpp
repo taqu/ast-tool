@@ -1,6 +1,5 @@
 #include "find.h"
 #include <cassert>
-#include <charconv>
 #include <print>
 #include <string>
 #include <vector>
@@ -16,49 +15,18 @@ namespace
     void format_match(const ASTNode& node)
     {
         std::print("{:X} {} @{}:{}", node.hash_, node.type_, node.start_.row_ + 1, node.start_.column_ + 1);
-        std::string text = preview_text(node);
+        std::u8string text = preview_text(node);
         if(!text.empty()) {
-            std::print(" \"{}\"", text);
+            std::print(" \"{}\"", (const char*)text.c_str());
         }
         std::print("\n");
     }
 
-    /**
-     * @brief Convert string to uint32_t as decimal 
-     * @param begin ... null terminated string
-     * @param[out] value ... 
-     * @return 
-     */
-    bool from_chars_10(const char* begin, std::uint32_t& value)
-    {
-        assert(nullptr != begin);
-        const char* end = begin + ::strlen(begin);
-        auto [ptr, ec] = std::from_chars(begin, end, value, 10);
-        return ec == std::errc() && ptr == end;
-    }
-
-    /**
-     * @brief Convert string to uint32_t as hexadecimal
-     * @param begin ... null terminated string
-     * @param value ...
-     * @return 
-     */
-    bool from_chars_16(const char* begin, std::uint32_t& value)
-    {
-        assert(nullptr != begin);
-        const char* end = begin + ::strlen(begin);
-        if(2<=(end - begin) && begin[0] == '0' && (begin[1] == 'x' || begin[1] == 'X')) {
-            begin += 2;
-        }
-
-        auto [ptr, ec] = std::from_chars(begin, end, value, 16);
-        return ec == std::errc() && ptr == end;
-    }
 } // namespace
 
-bool parse_find(Arguments& arguments, int32_t argc, const char** argv)
+bool parse_find(Arguments& arguments, int32_t argc, const char8_t** argv)
 {
-#define STREQUALS(str, literal) (0 == ::strcmp(str, literal))
+#define STREQUALS(str, literal) (0 == ::strcmp(reinterpret_cast<const char*>(str), literal))
     arguments.sub_ = SubCommand::Find;
     if(argc <= 2) {
         return false;

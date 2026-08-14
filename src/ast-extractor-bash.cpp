@@ -1,3 +1,4 @@
+#include "ast-tool.h"
 #include "ast-extractor-langs.h"
 #include "ast-extractor-common.h"
 #include "ast-ir.h"
@@ -17,7 +18,7 @@ namespace
 
     // Extract the function name from a function_definition node.
     // The grammar produces: [optional "function" keyword] word body
-    std::string getFuncName(const ast::AST& tree, const ast::ASTNode& node)
+    std::u8string getFuncName(const ast::AST& tree, const ast::ASTNode& node)
     {
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
@@ -28,7 +29,7 @@ namespace
     }
 
     // Extract the variable name from a variable_assignment node.
-    std::string getVarName(const ast::AST& tree, const ast::ASTNode& node)
+    std::u8string getVarName(const ast::AST& tree, const ast::ASTNode& node)
     {
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
@@ -43,11 +44,12 @@ namespace
 std::vector<Symbol> extract_symbols_bash(const ast::AST& tree)
 {
     std::vector<Symbol>             result;
-    std::unordered_set<std::string> seen;
+    std::unordered_set<std::u8string> seen;
     std::vector<ScopeFrame>         scopeStack;
 
     auto emit = [&](Symbol sym) {
-        std::string key = sym.fqn + ":" + std::to_string(static_cast<int>(sym.kind));
+        char8_t buffer[BUFFER_SIZE];
+        std::u8string key = sym.fqn + u8":" + ast::to_string_intermediate(buffer, static_cast<int32_t>(sym.kind));
         if(!sym.fqn.empty() && seen.insert(key).second)
             result.push_back(std::move(sym));
     };
@@ -61,9 +63,9 @@ std::vector<Symbol> extract_symbols_bash(const ast::AST& tree)
         // ── Function definition ──────────────────────────────────────────────
         // Handles both `name() { }` and `function name { }` forms.
         if(node.typeEquals(k_function_definition)) {
-            std::string name = getFuncName(tree, node);
+            std::u8string name = getFuncName(tree, node);
             if(!name.empty()) {
-                std::string fqn = buildFQN(scopeStack, name, "::");
+                std::u8string fqn = buildFQN(scopeStack, name, u8"::");
                 emit(makeSymbol(name, fqn, SymbolKind::Function, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
                 scopeStack.push_back({name, SymbolKind::Function, node.endByte_,
@@ -78,9 +80,9 @@ std::vector<Symbol> extract_symbols_bash(const ast::AST& tree)
         // in the DFS traversal at this point as well. Local variables inside
         // functions are suppressed by the insideFunctionScope guard.
         if(node.typeEquals(k_variable_assignment) && !insideFunctionScope(scopeStack)) {
-            std::string name = getVarName(tree, node);
+            std::u8string name = getVarName(tree, node);
             if(!name.empty()) {
-                std::string fqn = buildFQN(scopeStack, name, "::");
+                std::u8string fqn = buildFQN(scopeStack, name, u8"::");
                 emit(makeSymbol(name, fqn, SymbolKind::Variable, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
             }

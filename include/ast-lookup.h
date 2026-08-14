@@ -40,7 +40,7 @@ struct Symbol;
  * @return         Indices of all matching symbols at the winning scope level,
  *                 or an empty vector if the name is not found in any ancestor.
  */
-std::vector<size_t> lookup(std::string_view name,
+std::vector<size_t> lookup(std::u8string_view name,
                            uintptr_t scopeId,
                            const ScopeTree& tree,
                            const std::vector<Symbol>& symbols);
@@ -57,7 +57,7 @@ std::vector<size_t> lookup(std::string_view name,
  * @param vis     The visibility analysis result for the same tree.
  * @return        true if at least one symbol with @p name is visible.
  */
-bool contains(std::string_view name,
+bool contains(std::u8string_view name,
               uintptr_t scopeId,
               const ScopeVisibility& vis);
 
@@ -68,7 +68,7 @@ bool contains(std::string_view name,
  * the ancestor walk directly.  Prefer the ScopeVisibility overload when
  * visibility has already been computed.
  */
-bool contains(std::string_view name,
+bool contains(std::u8string_view name,
               uintptr_t scopeId,
               const ScopeTree& tree,
               const std::vector<Symbol>& symbols);

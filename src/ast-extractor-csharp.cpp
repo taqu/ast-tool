@@ -1,3 +1,4 @@
+#include "ast-tool.h"
 #include "ast-extractor-langs.h"
 #include "ast-extractor-common.h"
 #include "ast-ir.h"
@@ -61,10 +62,10 @@ namespace
     // type (also an identifier/qualified_name/generic_name in this grammar) may
     // appear earlier - taking the last match instead of the first sidesteps that
     // ambiguity without having to classify type nodes.
-    std::string getLastNameBefore(const ast::AST& tree, const ast::ASTNode& node,
+    std::u8string getLastNameBefore(const ast::AST& tree, const ast::ASTNode& node,
                                    std::initializer_list<const char*> stopTypes)
     {
-        std::string last;
+        std::u8string last;
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
@@ -78,7 +79,7 @@ namespace
         return last;
     }
 
-    bool hasModifier(const ast::AST& tree, const ast::ASTNode& node, const char* word)
+    bool hasModifier(const ast::AST& tree, const ast::ASTNode& node, const char8_t* word)
     {
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
@@ -98,10 +99,10 @@ namespace
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
             if(!child.typeEquals(k_modifier)) continue;
-            std::string t = child.getText();
-            if(t == "public") pub = true;
-            else if(t == "private") priv = true;
-            else if(t == "protected") prot = true;
+            std::u8string t = child.getText();
+            if(t == u8"public") pub = true;
+            else if(t == u8"private") priv = true;
+            else if(t == u8"protected") prot = true;
         }
         if(pub) return Access::Public;
         if(priv) return Access::Private;
@@ -113,14 +114,14 @@ namespace
     // token(s) immediately following the `operator` keyword. `prefix` supplies
     // the separator convention ("operator+" for overloaded operators,
     // "operator " for conversion operators, matching the C++ extractor).
-    std::string getOperatorSymbolName(const ast::AST& tree, const ast::ASTNode& node,
-                                       const char* prefix)
+    std::u8string getOperatorSymbolName(const ast::AST& tree, const ast::ASTNode& node,
+                                       const char8_t* prefix)
     {
         bool found = false;
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
-            if(found) return std::string(prefix) + child.getText();
+            if(found) return std::u8string(prefix) + child.getText();
             if(child.typeEquals(k_operator_kw)) found = true;
         }
         return {};
@@ -129,13 +130,13 @@ namespace
     // `using Alias = Some.Qualified.Name;` - the alias identifier is the last
     // identifier that appears before the `=` token. Plain `using Some.Name;`
     // (no `=`) is an import, not a declaration, and returns empty.
-    std::string getUsingAliasName(const ast::AST& tree, const ast::ASTNode& node)
+    std::u8string getUsingAliasName(const ast::AST& tree, const ast::ASTNode& node)
     {
-        std::string candidate;
+        std::u8string candidate;
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
-            if(child.getText() == "=") return candidate;
+            if(child.getText() == u8"=") return candidate;
             if(child.grammarEquals(k_identifier)) candidate = child.getText();
         }
         return {};
@@ -146,11 +147,12 @@ namespace
 std::vector<Symbol> extract_symbols_csharp(const ast::AST& tree)
 {
     std::vector<Symbol>             result;
-    std::unordered_set<std::string> seen;   // key = fqn + ":" + kind ordinal
+    std::unordered_set<std::u8string> seen;   // key = fqn + ":" + kind ordinal
     std::vector<ScopeFrame>         scopeStack;
 
     auto emit = [&](Symbol sym) {
-        std::string key = sym.fqn + ":" + std::to_string(static_cast<int>(sym.kind));
+        char8_t buffer[BUFFER_SIZE];
+        std::u8string key = sym.fqn + u8":" + ast::to_string_intermediate(buffer, static_cast<int>(sym.kind));
         if(!sym.fqn.empty() && seen.insert(key).second) {
             result.push_back(std::move(sym));
         }
@@ -167,9 +169,9 @@ std::vector<Symbol> extract_symbols_csharp(const ast::AST& tree)
 
         // ── Namespace (block-scoped: `namespace A.B { ... }`) ──────────────
         if(node.typeEquals(k_namespace_declaration)) {
-            std::string name = getLastNameBefore(tree, node, {k_declaration_list});
+            std::u8string name = getLastNameBefore(tree, node, {k_declaration_list});
             if(!name.empty()) {
-                std::string fqn = buildFQN(scopeStack, name, ".");
+                std::u8string fqn = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Namespace, Access::Unknown,
                                 i, node.start_.row_, node.start_.column_));
             }
@@ -180,9 +182,9 @@ std::vector<Symbol> extract_symbols_csharp(const ast::AST& tree)
 
         // ── Namespace (file-scoped: `namespace A.B;`) ───────────────────────
         if(node.typeEquals(k_file_scoped_namespace_declaration)) {
-            std::string name = getLastNameBefore(tree, node, {k_declaration_list});
+            std::u8string name = getLastNameBefore(tree, node, {k_declaration_list});
             if(!name.empty()) {
-                std::string fqn = buildFQN(scopeStack, name, ".");
+                std::u8string fqn = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Namespace, Access::Unknown,
                                 i, node.start_.row_, node.start_.column_));
                 // No closing brace: this scope naturally spans to the node's end,
@@ -196,7 +198,7 @@ std::vector<Symbol> extract_symbols_csharp(const ast::AST& tree)
         // ── Class / Struct / Interface / Record ─────────────────────────────
         if(node.typeEquals(k_class_declaration) || node.typeEquals(k_struct_declaration)
            || node.typeEquals(k_interface_declaration) || node.typeEquals(k_record_declaration)) {
-            std::string name = getLastNameBefore(tree, node, {k_declaration_list, k_parameter_list});
+            std::u8string name = getLastNameBefore(tree, node, {k_declaration_list, k_parameter_list});
 
             SymbolKind kind          = SymbolKind::Class;
             Access     defaultAccess = Access::Private; // class/struct/record member default
@@ -206,12 +208,12 @@ std::vector<Symbol> extract_symbols_csharp(const ast::AST& tree)
                 kind          = SymbolKind::Class; // closest available SymbolKind
                 defaultAccess = Access::Public;     // interface members default to public
             } else if(node.typeEquals(k_record_declaration)) {
-                kind = childHasText(tree, node, "struct") ? SymbolKind::Struct : SymbolKind::Class;
+                kind = childHasText(tree, node, u8"struct") ? SymbolKind::Struct : SymbolKind::Class;
             }
 
             if(!name.empty()) {
                 Access access = getAccess(tree, node, topAccess(scopeStack));
-                std::string fqn = buildFQN(scopeStack, name, ".");
+                std::u8string fqn = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, kind, access, i, node.start_.row_, node.start_.column_));
             }
             scopeStack.push_back({name, kind, node.endByte_, defaultAccess, true});
@@ -220,10 +222,10 @@ std::vector<Symbol> extract_symbols_csharp(const ast::AST& tree)
 
         // ── Enum ─────────────────────────────────────────────────────────
         if(node.typeEquals(k_enum_declaration)) {
-            std::string name = getLastNameBefore(tree, node, {k_enum_member_declaration_list});
+            std::u8string name = getLastNameBefore(tree, node, {k_enum_member_declaration_list});
             if(!name.empty()) {
                 Access access = getAccess(tree, node, topAccess(scopeStack));
-                std::string fqn = buildFQN(scopeStack, name, ".");
+                std::u8string fqn = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Enum, access,
                                 i, node.start_.row_, node.start_.column_));
             }
@@ -234,10 +236,10 @@ std::vector<Symbol> extract_symbols_csharp(const ast::AST& tree)
 
         // ── Enum members ─────────────────────────────────────────────────
         if(node.typeEquals(k_enum_member_declaration)) {
-            const ast::ASTNode* ident = findChild(tree, node, k_identifier);
+            const ast::ASTNode* ident = findChild(tree, node, (const char8_t*)k_identifier);
             if(ident) {
-                std::string name = ident->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = ident->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::EnumValue, Access::Public,
                                 i, node.start_.row_, node.start_.column_));
             }
@@ -246,10 +248,10 @@ std::vector<Symbol> extract_symbols_csharp(const ast::AST& tree)
 
         // ── Delegate (closest SymbolKind: a named function-signature type) ──
         if(node.typeEquals(k_delegate_declaration)) {
-            std::string name = getLastNameBefore(tree, node, {k_parameter_list});
+            std::u8string name = getLastNameBefore(tree, node, {k_parameter_list});
             if(!name.empty()) {
                 Access access = getAccess(tree, node, topAccess(scopeStack));
-                std::string fqn = buildFQN(scopeStack, name, ".");
+                std::u8string fqn = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Typedef, access,
                                 i, node.start_.row_, node.start_.column_));
             }
@@ -259,16 +261,16 @@ std::vector<Symbol> extract_symbols_csharp(const ast::AST& tree)
         // ── Methods (and local functions nested inside method bodies) ───────
         if(node.typeEquals(k_method_declaration) || node.typeEquals(k_local_function_statement)) {
             bool        isLocal = node.typeEquals(k_local_function_statement);
-            std::string name    = getLastNameBefore(tree, node, {k_parameter_list});
+            std::u8string name    = getLastNameBefore(tree, node, {k_parameter_list});
             SymbolKind  kind    = (!isLocal && inNamedClassScope(scopeStack))
                                      ? SymbolKind::Method : SymbolKind::Function;
             if(!name.empty()) {
                 Access access = isLocal ? Access::Unknown
                                          : getAccess(tree, node, topAccess(scopeStack));
-                std::string fqn = buildFQN(scopeStack, name, ".");
+                std::u8string fqn = buildFQN(scopeStack, name, u8".");
                 Symbol sym = makeSymbol(name, fqn, kind, access,
                                        i, node.start_.row_, node.start_.column_);
-                sym.isStatic = hasModifier(tree, node, "static");
+                sym.isStatic = hasModifier(tree, node, u8"static");
                 emit(std::move(sym));
             }
             scopeStack.push_back({name, kind, node.endByte_, Access::Unknown, false});
@@ -277,13 +279,13 @@ std::vector<Symbol> extract_symbols_csharp(const ast::AST& tree)
 
         // ── Constructor ──────────────────────────────────────────────────
         if(node.typeEquals(k_constructor_declaration)) {
-            std::string name = getLastNameBefore(tree, node, {k_parameter_list});
+            std::u8string name = getLastNameBefore(tree, node, {k_parameter_list});
             if(!name.empty()) {
                 Access access = getAccess(tree, node, topAccess(scopeStack));
-                std::string fqn = buildFQN(scopeStack, name, ".");
+                std::u8string fqn = buildFQN(scopeStack, name, u8".");
                 Symbol sym = makeSymbol(name, fqn, SymbolKind::Constructor, access,
                                        i, node.start_.row_, node.start_.column_);
-                sym.isStatic = hasModifier(tree, node, "static"); // static constructors
+                sym.isStatic = hasModifier(tree, node, u8"static"); // static constructors
                 emit(std::move(sym));
             }
             scopeStack.push_back({name, SymbolKind::Constructor, node.endByte_,
@@ -293,10 +295,10 @@ std::vector<Symbol> extract_symbols_csharp(const ast::AST& tree)
 
         // ── Destructor ───────────────────────────────────────────────────
         if(node.typeEquals(k_destructor_declaration)) {
-            std::string base = getLastNameBefore(tree, node, {k_parameter_list});
+            std::u8string base = getLastNameBefore(tree, node, {k_parameter_list});
             if(!base.empty()) {
-                std::string name = "~" + base;
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = u8"~" + base;
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Destructor, Access::Public,
                                 i, node.start_.row_, node.start_.column_));
             }
@@ -308,10 +310,10 @@ std::vector<Symbol> extract_symbols_csharp(const ast::AST& tree)
         // ── Operator overloads / conversion operators ───────────────────────
         if(node.typeEquals(k_operator_declaration) || node.typeEquals(k_conversion_operator_declaration)) {
             bool isConversion = node.typeEquals(k_conversion_operator_declaration);
-            std::string name  = getOperatorSymbolName(tree, node, isConversion ? "operator " : "operator");
+            std::u8string name  = getOperatorSymbolName(tree, node, isConversion ? u8"operator " : u8"operator");
             if(!name.empty()) {
                 Access access = getAccess(tree, node, topAccess(scopeStack));
-                std::string fqn = buildFQN(scopeStack, name, ".");
+                std::u8string fqn = buildFQN(scopeStack, name, u8".");
                 Symbol sym = makeSymbol(name, fqn, SymbolKind::Method, access,
                                        i, node.start_.row_, node.start_.column_);
                 sym.isStatic = true; // operator overloads are always static in C#
@@ -322,19 +324,19 @@ std::vector<Symbol> extract_symbols_csharp(const ast::AST& tree)
 
         // ── Fields (and event fields: `event Handler Foo;`) ─────────────────
         if(node.typeEquals(k_field_declaration) || node.typeEquals(k_event_field_declaration)) {
-            const ast::ASTNode* varDecl = findChild(tree, node, k_variable_declaration);
+            const ast::ASTNode* varDecl = findChild(tree, node, (const char8_t*)k_variable_declaration);
             if(varDecl) {
                 Access access   = getAccess(tree, node, topAccess(scopeStack));
-                bool   isStatic = hasModifier(tree, node, "static");
-                bool   isConst  = hasModifier(tree, node, "const");
+                bool   isStatic = hasModifier(tree, node, u8"static");
+                bool   isConst  = hasModifier(tree, node, u8"const");
                 for(uintptr_t id : varDecl->children_) {
                     if(id == ast::InvalidId) continue;
                     const ast::ASTNode& decl = tree[static_cast<uint32_t>(id)];
                     if(!decl.typeEquals(k_variable_declarator)) continue;
-                    const ast::ASTNode* ident = findChild(tree, decl, k_identifier);
+                    const ast::ASTNode* ident = findChild(tree, decl, (const char8_t*)k_identifier);
                     if(!ident) continue;
-                    std::string name = ident->getText();
-                    std::string fqn  = buildFQN(scopeStack, name, ".");
+                    std::u8string name = ident->getText();
+                    std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                     Symbol sym = makeSymbol(name, fqn, SymbolKind::Field, access,
                                            i, node.start_.row_, node.start_.column_);
                     sym.isStatic    = isStatic || isConst; // const members are implicitly static
@@ -347,13 +349,13 @@ std::vector<Symbol> extract_symbols_csharp(const ast::AST& tree)
 
         // ── Properties / events (closest SymbolKind: Field) ──────────────────
         if(node.typeEquals(k_property_declaration) || node.typeEquals(k_event_declaration)) {
-            std::string name = getLastNameBefore(tree, node, {k_accessor_list, k_arrow_expression_clause});
+            std::u8string name = getLastNameBefore(tree, node, {k_accessor_list, k_arrow_expression_clause});
             if(!name.empty()) {
                 Access access = getAccess(tree, node, topAccess(scopeStack));
-                std::string fqn = buildFQN(scopeStack, name, ".");
+                std::u8string fqn = buildFQN(scopeStack, name, u8".");
                 Symbol sym = makeSymbol(name, fqn, SymbolKind::Field, access,
                                        i, node.start_.row_, node.start_.column_);
-                sym.isStatic = hasModifier(tree, node, "static");
+                sym.isStatic = hasModifier(tree, node, u8"static");
                 emit(std::move(sym));
             }
             continue;
@@ -361,9 +363,9 @@ std::vector<Symbol> extract_symbols_csharp(const ast::AST& tree)
 
         // ── `using Alias = Namespace.Type;` ──────────────────────────────────
         if(node.typeEquals(k_using_directive)) {
-            std::string alias = getUsingAliasName(tree, node);
+            std::u8string alias = getUsingAliasName(tree, node);
             if(!alias.empty()) {
-                std::string fqn = buildFQN(scopeStack, alias, ".");
+                std::u8string fqn = buildFQN(scopeStack, alias, u8".");
                 emit(makeSymbol(alias, fqn, SymbolKind::UsingAlias, Access::Unknown,
                                 i, node.start_.row_, node.start_.column_));
             }

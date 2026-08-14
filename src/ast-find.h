@@ -23,9 +23,9 @@ struct ASTNode;
  */
 struct FindCriteria
 {
-    const char* type_    = nullptr; ///< Match ASTNode::type_ exactly, if set.
-    const char* grammar_ = nullptr; ///< Match ASTNode::grammar_type_ exactly, if set.
-    const char* text_    = nullptr; ///< Match if the node's source text contains this substring, if set.
+    const char8_t* type_    = nullptr; ///< Match ASTNode::type_ exactly, if set.
+    const char8_t* grammar_ = nullptr; ///< Match ASTNode::grammar_type_ exactly, if set.
+    const char8_t* text_    = nullptr; ///< Match if the node's source text contains this substring, if set.
 
     uint32_t id_ = 0;     ///< Value to match against ASTNode::id_, if #hasId_.
     bool hasId_ = false;

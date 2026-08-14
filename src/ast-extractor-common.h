@@ -23,16 +23,16 @@ namespace extractor
 
     // Returns the first direct child of `node` whose type equals `type`,
     // or nullptr if none is found.
-    const ast::ASTNode* findChild(const ast::AST& tree, const ast::ASTNode& node, const char* type);
+    const ast::ASTNode* findChild(const ast::AST& tree, const ast::ASTNode& node, const char8_t* type);
 
     // Returns true if any direct child of `node` has text exactly equal to `text`.
-    bool childHasText(const ast::AST& tree, const ast::ASTNode& node, const char* text);
+    bool childHasText(const ast::AST& tree, const ast::ASTNode& node, const char8_t* text);
 
     // ── Scope stack management ──────────────────────────────────────────────
 
     struct ScopeFrame
     {
-        std::string name;           // empty for anonymous scopes
+        std::u8string name;           // empty for anonymous scopes
         SymbolKind  kind;
         uint32_t    endByte;
         Access      currentAccess;
@@ -40,8 +40,7 @@ namespace extractor
     };
 
     // Joins the named scopes on `stack` with `sep`, appending `symName`.
-    std::string buildFQN(const std::vector<ScopeFrame>& stack, const std::string& symName,
-                          const char* sep = "::");
+    std::u8string buildFQN(const std::vector<ScopeFrame>& stack, const std::u8string& symName, const char8_t* sep = u8"::");
 
     // Returns the current access level of the innermost access-aware scope.
     Access topAccess(const std::vector<ScopeFrame>& stack);
@@ -54,7 +53,7 @@ namespace extractor
 
     // ── Symbol creation ──────────────────────────────────────────────────────
 
-    Symbol makeSymbol(std::string name, std::string fqn, SymbolKind kind,
+    Symbol makeSymbol(std::u8string name, std::u8string fqn, SymbolKind kind,
                        Access access, uint32_t idx, uint32_t row, uint32_t col);
 
 } // namespace extractor

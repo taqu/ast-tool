@@ -52,12 +52,12 @@ const std::vector<size_t>& ScopeVisibility::visibleIn(uintptr_t scopeId) const
     return entries_[scopeId].visible;
 }
 
-size_t ScopeVisibility::resolve(uintptr_t scopeId, std::string_view name) const
+size_t ScopeVisibility::resolve(uintptr_t scopeId, std::u8string_view name) const
 {
     if(scopeId >= entries_.size()) {
         return InvalidSymbol;
     }
-    auto it = entries_[scopeId].byName.find(std::string(name));
+    auto it = entries_[scopeId].byName.find(std::u8string(name));
     if(it == entries_[scopeId].byName.end()) {
         return InvalidSymbol;
     }

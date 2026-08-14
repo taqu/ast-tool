@@ -4,7 +4,7 @@
 
 namespace ast
 {
-bool parse_dump(Arguments& arguments, int32_t argc, const char** argv)
+bool parse_dump(Arguments& arguments, int32_t argc, const char8_t** argv)
 {
     arguments.sub_ = SubCommand::Dump;
     if(argc <= 2) {

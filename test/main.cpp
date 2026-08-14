@@ -62,7 +62,8 @@ int main(void)
     {
         Arguments arguments;
         const char* argv[] = {"ast-tool", "dump", "data/test00.cpp"};
-        if(!parse(arguments, 3, argv)){
+        std::vector<std::u8string> args = args_to_utf8(3, argv);
+        if(!parse(arguments, args)){
             assert(false);
             return -1;
         }
@@ -76,7 +77,8 @@ int main(void)
     {
         Arguments arguments;
         const char* argv0[] = {"ast-tool", "symbols", "data/test00.cpp"};
-        if(!parse(arguments, 3, argv0)){
+        std::vector<std::u8string> args0 = args_to_utf8(3, argv0);
+        if(!parse(arguments, args0)){
             assert(false);
             return -1;
         }
@@ -86,7 +88,8 @@ int main(void)
         }
 
         const char* argv1[] = {"ast-tool", "symbols", "--json", "data/test00.cpp", "--pretty"};
-        if(!parse(arguments, 5, argv1)){
+        std::vector<std::u8string> args1 = args_to_utf8(5, argv1);
+        if(!parse(arguments, args1)){
             assert(false);
             return -1;
         }
@@ -100,7 +103,8 @@ int main(void)
     {
         Arguments arguments;
         const char* argv[] = {"ast-tool", "outline", "data/test00.cpp"};
-        if(!parse(arguments, 3, argv)){
+        std::vector<std::u8string> args0 = args_to_utf8(3, argv);
+        if(!parse(arguments, args0)){
             assert(false);
             return -1;
         }
@@ -114,7 +118,8 @@ int main(void)
     {
         Arguments arguments;
         const char* argv0[] = {"ast-tool", "find", "--type", "function_definition", "data/test00.cpp"};
-        if(!parse(arguments, 5, argv0)){
+        std::vector<std::u8string> args0 = args_to_utf8(5, argv0);
+        if(!parse(arguments, args0)){
             assert(false);
             return -1;
         }
@@ -124,7 +129,8 @@ int main(void)
         }
 
         const char* argv1[] = {"ast-tool", "find", "--type", "identifier", "--text", "status", "data/test00.cpp"};
-        if(!parse(arguments, 7, argv1)){
+        std::vector<std::u8string> args1 = args_to_utf8(7, argv1);
+        if(!parse(arguments, args1)){
             assert(false);
             return -1;
         }
@@ -134,7 +140,8 @@ int main(void)
         }
 
         const char* argv2[] = {"ast-tool", "find", "--line", "42", "--column", "5", "data/test00.cpp"};
-        if(!parse(arguments, 7, argv2)){
+        std::vector<std::u8string> args2 = args_to_utf8(7, argv2);
+        if(!parse(arguments, args2)){
             assert(false);
             return -1;
         }
@@ -144,7 +151,8 @@ int main(void)
         }
 
         const char* argv3[] = {"ast-tool", "find", "--id", "45961E8F", "data/test00.cpp"};
-        if(!parse(arguments, 5, argv3)){
+        std::vector<std::u8string> args3 = args_to_utf8(5, argv3);
+        if(!parse(arguments, args3)){
             assert(false);
             return -1;
         }
@@ -157,7 +165,8 @@ int main(void)
     {
         Arguments arguments;
         const char* argv0[] = {"ast-tool", "range", "--start-line", "68", "--start-column", "79", "--end-line", "68", "--end-column", "79", "data/test00.cpp"};
-        if(!parse(arguments, 11, argv0)){
+        std::vector<std::u8string> args0 = args_to_utf8(11, argv0);
+        if(!parse(arguments, args0)){
             assert(false);
             return -1;
         }
@@ -170,7 +179,8 @@ int main(void)
     {
         Arguments arguments;
         const char* argv0[] = {"ast-tool", "parent", "--id", "9E52E360", "data/test00.cpp"};
-        if(!parse(arguments, 5, argv0)){
+        std::vector<std::u8string> args0 = args_to_utf8(5, argv0);
+        if(!parse(arguments, args0)){
             assert(false);
             return -1;
         }
@@ -184,7 +194,8 @@ int main(void)
     {
         Arguments arguments;
         const char* argv0[] = {"ast-tool", "children", "--id", "9E52E360", "data/test00.cpp"};
-        if(!parse(arguments, 5, argv0)){
+        std::vector<std::u8string> args0 = args_to_utf8(5, argv0);
+        if(!parse(arguments, args0)){
             assert(false);
             return -1;
         }
@@ -198,7 +209,8 @@ int main(void)
     {
         Arguments arguments;
         const char* argv0[] = {"ast-tool", "search", "--name-regex", "^alpha", "test/ast-workspace/workspace"};
-        if(!parse(arguments, 5, argv0)){
+        std::vector<std::u8string> args0 = args_to_utf8(5, argv0);
+        if(!parse(arguments, args0)){
             assert(false);
             return -1;
         }
@@ -208,7 +220,8 @@ int main(void)
         }
 
         const char* argv1[] = {"ast-tool", "search", "--fqn-regex", "^AlphaNs::", "--json", "test/ast-workspace/workspace"};
-        if(!parse(arguments, 6, argv1)){
+        std::vector<std::u8string> args1 = args_to_utf8(6, argv1);
+        if(!parse(arguments, args1)){
             assert(false);
             return -1;
         }
@@ -218,7 +231,8 @@ int main(void)
         }
 
         const char* argv2[] = {"ast-tool", "search", "--file-regex", "\\.cpp$", "test/ast-workspace/workspace"};
-        if(!parse(arguments, 5, argv2)){
+        std::vector<std::u8string> args2 = args_to_utf8(5, argv2);
+        if(!parse(arguments, args2)){
             assert(false);
             return -1;
         }

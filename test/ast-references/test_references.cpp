@@ -23,7 +23,7 @@ namespace
     }
 
     // Finds the first workspace symbol whose name equals @p name.
-    const WorkspaceSymbol* findByName(const Workspace& ws, std::string_view name)
+    const WorkspaceSymbol* findByName(const Workspace& ws, std::u8string_view name)
     {
         for(const auto& sym : ws.symbols) {
             if(sym.symbol.name == name) return &sym;
@@ -33,11 +33,12 @@ namespace
 
     // Finds the first workspace symbol matching @p name in a file whose path contains @p fileHint.
     const WorkspaceSymbol* findByNameInFile(const Workspace& ws,
-                                             std::string_view name,
-                                             std::string_view fileHint)
+                                             std::u8string_view name,
+                                             std::u8string_view fileHint)
     {
         for(const auto& sym : ws.symbols) {
-            if(sym.symbol.name == name && sym.sourceFile.find(fileHint) != std::string::npos)
+            std::u8string sourceFile = sym.sourceFile.u8string();
+            if(sym.symbol.name == name && sourceFile.find(fileHint) != std::string::npos)
                 return &sym;
         }
         return nullptr;
@@ -49,8 +50,8 @@ namespace
     bool test_reference_result_fields()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kRefRoot);
-        const WorkspaceSymbol* target = findByName(ws, "mrCounter");
+        Workspace ws = analyze_workspace((const char8_t*)kRefRoot);
+        const WorkspaceSymbol* target = findByName(ws, u8"mrCounter");
         ok &= check(target != nullptr, "mrCounter found in workspace");
         if(!target) return false;
 
@@ -61,7 +62,7 @@ namespace
         if(refs.empty()) return ok;
 
         const ReferenceResult& r = refs[0];
-        ok &= check(r.referencedSymbol.symbol.name == "mrCounter",        "referencedSymbol.name set");
+        ok &= check(r.referencedSymbol.symbol.name == u8"mrCounter",        "referencedSymbol.name set");
         ok &= check(r.referencedSymbol.symbol.fqn  == target->symbol.fqn, "referencedSymbol.fqn set");
         ok &= check(r.referencedSymbol.symbol.kind == SymbolKind::Variable, "referencedSymbol.kind set");
         ok &= check(!r.sourceFile.empty(),                                 "sourceFile non-empty");
@@ -75,8 +76,8 @@ namespace
     bool test_global_variable_multiple_refs()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kRefRoot);
-        const WorkspaceSymbol* target = findByName(ws, "mrCounter");
+        Workspace ws = analyze_workspace((const char8_t*)kRefRoot);
+        const WorkspaceSymbol* target = findByName(ws, u8"mrCounter");
         ok &= check(target != nullptr, "mrCounter found in workspace");
         if(!target) return false;
 
@@ -88,7 +89,8 @@ namespace
         // Declaration excluded → expect exactly 4
         ok &= check(refs.size() == 4, "mrCounter has 4 references (declaration excluded)");
         for(const auto& r : refs) {
-            ok &= check(r.sourceFile.find("multi_ref") != std::string::npos,
+            std::u8string sourceFile = r.sourceFile.u8string();
+            ok &= check(sourceFile.find(u8"multi_ref") != std::string::npos,
                         "reference is in multi_ref.cpp");
             // r.line is 0-based; target->symbol.line is 1-based. Use +1 for comparison.
         ok &= check(r.line + 1 != target->symbol.line, "reference is not on declaration line");
@@ -102,8 +104,8 @@ namespace
     bool test_include_declaration()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kRefRoot);
-        const WorkspaceSymbol* target = findByName(ws, "mrCounter");
+        Workspace ws = analyze_workspace((const char8_t*)kRefRoot);
+        const WorkspaceSymbol* target = findByName(ws, u8"mrCounter");
         ok &= check(target != nullptr, "mrCounter found in workspace");
         if(!target) return false;
 
@@ -132,8 +134,8 @@ namespace
     bool test_zero_references()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kRefRoot);
-        const WorkspaceSymbol* target = findByName(ws, "zeroRefVar");
+        Workspace ws = analyze_workspace((const char8_t*)kRefRoot);
+        const WorkspaceSymbol* target = findByName(ws, u8"zeroRefVar");
         ok &= check(target != nullptr, "zeroRefVar found in workspace");
         if(!target) return false;
 
@@ -149,8 +151,8 @@ namespace
     bool test_namespace_member()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kRefRoot);
-        const WorkspaceSymbol* target = findByName(ws, "nsMbrBase");
+        Workspace ws = analyze_workspace((const char8_t*)kRefRoot);
+        const WorkspaceSymbol* target = findByName(ws, u8"nsMbrBase");
         ok &= check(target != nullptr, "nsMbrBase found in workspace");
         if(!target) return false;
 
@@ -174,8 +176,8 @@ namespace
     bool test_class_member()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kRefRoot);
-        const WorkspaceSymbol* target = findByName(ws, "clsX");
+        Workspace ws = analyze_workspace((const char8_t*)kRefRoot);
+        const WorkspaceSymbol* target = findByName(ws, u8"clsX");
         ok &= check(target != nullptr, "clsX found in workspace");
         if(!target) return false;
 
@@ -184,8 +186,9 @@ namespace
 
         // "return clsX + clsY;" — 1 identifier for clsX
         ok &= check(refs.size() == 1, "clsX has 1 reference");
+        std::u8string sourceFile = refs[0].sourceFile.u8string();
         if(!refs.empty()) {
-            ok &= check(refs[0].sourceFile.find("cls_member") != std::string::npos,
+            ok &= check(sourceFile.find(u8"cls_member") != std::string::npos,
                         "clsX reference is in cls_member.cpp");
         }
         return ok;
@@ -199,18 +202,19 @@ namespace
     bool test_shadowing()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kRefRoot);
+        Workspace ws = analyze_workspace((const char8_t*)kRefRoot);
 
         // Find any shadowTarget in shadow.cpp (to confirm workspace has it)
-        const WorkspaceSymbol* target = findByNameInFile(ws, "shadowTarget", "shadow");
+        const WorkspaceSymbol* target = findByNameInFile(ws, u8"shadowTarget", u8"shadow");
         ok &= check(target != nullptr, "global shadowTarget found in workspace");
         if(!target) return false;
 
         // The global is the one with the smallest line number (before shadowFunc).
         const WorkspaceSymbol* globalTarget = nullptr;
         for(const auto& sym : ws.symbols) {
-            if(sym.symbol.name == "shadowTarget"
-               && sym.sourceFile.find("shadow") != std::string::npos) {
+            std::u8string sourceFile = sym.sourceFile.u8string();
+            if(sym.symbol.name == u8"shadowTarget"
+               && sourceFile.find(u8"shadow") != std::string::npos) {
                 if(!globalTarget || sym.symbol.line < globalTarget->symbol.line)
                     globalTarget = &sym;
             }
@@ -238,8 +242,8 @@ namespace
     bool test_cross_file()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kRefRoot);
-        const WorkspaceSymbol* target = findByNameInFile(ws, "xfileVal", "xfile_src");
+        Workspace ws = analyze_workspace((const char8_t*)kRefRoot);
+        const WorkspaceSymbol* target = findByNameInFile(ws, u8"xfileVal", u8"xfile_src");
         ok &= check(target != nullptr, "xfileVal found in workspace (xfile_src.cpp)");
         if(!target) return false;
 
@@ -250,7 +254,8 @@ namespace
         ok &= check(!refs.empty(), "xfileVal has at least one reference");
         bool foundInUse = false;
         for(const auto& r : refs) {
-            if(r.sourceFile.find("xfile_use") != std::string::npos) {
+            std::u8string sourceFile = r.sourceFile.u8string();
+            if(sourceFile.find(u8"xfile_use") != std::string::npos) {
                 foundInUse = true;
                 break;
             }
@@ -265,13 +270,11 @@ namespace
     bool test_no_false_positives_from_unresolved()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kRefRoot);
-
-        // zeroRefVar is declared but never used.
+        Workspace ws = analyze_workspace((const char8_t*)kRefRoot);        // zeroRefVar is declared but never used.
         // xfileVal in xfile_use.cpp refers to an external symbol that the
         // resolver finds via workspace fallback — but it does NOT resolve to
         // zeroRefVar.  Neither should any other identifier.
-        const WorkspaceSymbol* target = findByName(ws, "zeroRefVar");
+        const WorkspaceSymbol* target = findByName(ws, u8"zeroRefVar");
         ok &= check(target != nullptr, "zeroRefVar found");
         if(!target) return false;
 
@@ -295,7 +298,7 @@ namespace
         bool ok = true;
 
         // Test lpTmp (local variable) if the extractor included it.
-        const WorkspaceSymbol* tmpTarget = findByName(ws, "lpTmp");
+        const WorkspaceSymbol* tmpTarget = findByName(ws, u8"lpTmp");
         if(!tmpTarget) {
             std::cout << "    [SKIP] lpTmp not in workspace symbols (extractor omits locals)\n";
         } else {
@@ -306,7 +309,7 @@ namespace
         }
 
         // Test lpN (parameter) if the extractor included it.
-        const WorkspaceSymbol* paramTarget = findByName(ws, "lpN");
+        const WorkspaceSymbol* paramTarget = findByName(ws, u8"lpN");
         if(!paramTarget) {
             std::cout << "    [SKIP] lpN not in workspace symbols (extractor omits parameters)\n";
         } else {
@@ -325,8 +328,8 @@ namespace
     bool test_result_ordering()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kRefRoot);
-        const WorkspaceSymbol* target = findByName(ws, "mrCounter");
+        Workspace ws = analyze_workspace((const char8_t*)kRefRoot);
+        const WorkspaceSymbol* target = findByName(ws, u8"mrCounter");
         ok &= check(target != nullptr, "mrCounter found");
         if(!target) return false;
 
@@ -350,8 +353,8 @@ namespace
     bool test_owning_scope_namespace()
     {
         bool ok = true;
-        Workspace ws = analyze_workspace(kRefRoot);
-        const WorkspaceSymbol* target = findByName(ws, "nsMbrBase");
+        Workspace ws = analyze_workspace((const char8_t*)kRefRoot);
+        const WorkspaceSymbol* target = findByName(ws, u8"nsMbrBase");
         ok &= check(target != nullptr, "nsMbrBase found");
         if(!target) return false;
 

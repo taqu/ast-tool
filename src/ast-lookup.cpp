@@ -6,7 +6,7 @@
 namespace ast
 {
 
-std::vector<size_t> lookup(std::string_view name,
+std::vector<size_t> lookup(std::u8string_view name,
                            uintptr_t scopeId,
                            const ScopeTree& tree,
                            const std::vector<Symbol>& symbols)
@@ -33,14 +33,14 @@ std::vector<size_t> lookup(std::string_view name,
     return result; // empty — name not found in any ancestor scope
 }
 
-bool contains(std::string_view name,
+bool contains(std::u8string_view name,
               uintptr_t scopeId,
               const ScopeVisibility& vis)
 {
     return vis.resolve(scopeId, name) != ScopeVisibility::InvalidSymbol;
 }
 
-bool contains(std::string_view name,
+bool contains(std::u8string_view name,
               uintptr_t scopeId,
               const ScopeTree& tree,
               const std::vector<Symbol>& symbols)

@@ -1,3 +1,4 @@
+#include "ast-tool.h"
 #include "ast-extractor-langs.h"
 #include "ast-extractor-common.h"
 #include "ast-ir.h"
@@ -27,18 +28,18 @@ namespace
     // ── Low-level helpers ─────────────────────────────────────────────────────
 
     // Strip the leading ':' from a Ruby symbol literal (":foo" → "foo").
-    std::string stripSymbolColon(const std::string& s)
+    std::u8string stripSymbolColon(const std::u8string& s)
     {
         if(!s.empty() && s[0] == ':') return s.substr(1);
         return s;
     }
 
     // True for the three attr_* helpers that synthesise accessor methods.
-    bool isAttrMethod(const std::string& name)
+    bool isAttrMethod(const std::u8string& name)
     {
-        return name == "attr_reader"
-            || name == "attr_writer"
-            || name == "attr_accessor";
+        return name == u8"attr_reader"
+            || name == u8"attr_writer"
+            || name == u8"attr_accessor";
     }
 
     // Set the currentAccess of the innermost access-aware scope (i.e. a class
@@ -57,7 +58,7 @@ namespace
     // (Thin wrapper kept local so this file needs no extra #includes.)
     const ast::ASTNode* firstChildOfType(const ast::AST& tree,
                                           const ast::ASTNode& node,
-                                          const char* type)
+                                          const char8_t* type)
     {
         return findChild(tree, node, type);
     }
@@ -78,11 +79,12 @@ namespace
 std::vector<Symbol> extract_symbols_ruby(const ast::AST& tree)
 {
     std::vector<Symbol>             result;
-    std::unordered_set<std::string> seen;   // key = fqn + ":" + kind ordinal
+    std::unordered_set<std::u8string> seen;   // key = fqn + ":" + kind ordinal
     std::vector<ScopeFrame>         scopeStack;
 
     auto emit = [&](Symbol sym) {
-        std::string key = sym.fqn + ":" + std::to_string(static_cast<int>(sym.kind));
+        char8_t buffer[BUFFER_SIZE];
+        std::u8string key = sym.fqn + u8":" + ast::to_string_intermediate(buffer, static_cast<int32_t>(sym.kind));
         if(!sym.fqn.empty() && seen.insert(key).second)
             result.push_back(std::move(sym));
     };
@@ -100,10 +102,10 @@ std::vector<Symbol> extract_symbols_ruby(const ast::AST& tree)
         // Ruby classes default to public access; the isAccessAware flag enables
         // tracking of subsequent private/protected declarations in this scope.
         if(node.typeEquals(k_class)) {
-            const ast::ASTNode* name_node = firstChildOfType(tree, node, k_constant);
+            const ast::ASTNode* name_node = firstChildOfType(tree, node, (const char8_t*)k_constant);
             if(name_node) {
-                std::string name = name_node->getText();
-                std::string fqn  = buildFQN(scopeStack, name, "::");
+                std::u8string name = name_node->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
                 emit(makeSymbol(name, fqn, SymbolKind::Class, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
                 scopeStack.push_back({name, SymbolKind::Class, node.endByte_,
@@ -114,10 +116,10 @@ std::vector<Symbol> extract_symbols_ruby(const ast::AST& tree)
 
         // ── Module definition ─────────────────────────────────────────────────
         if(node.typeEquals(k_module)) {
-            const ast::ASTNode* name_node = firstChildOfType(tree, node, k_constant);
+            const ast::ASTNode* name_node = firstChildOfType(tree, node, (const char8_t*)k_constant);
             if(name_node) {
-                std::string name = name_node->getText();
-                std::string fqn  = buildFQN(scopeStack, name, "::");
+                std::u8string name = name_node->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
                 emit(makeSymbol(name, fqn, SymbolKind::Namespace, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
                 scopeStack.push_back({name, SymbolKind::Namespace, node.endByte_,
@@ -129,11 +131,11 @@ std::vector<Symbol> extract_symbols_ruby(const ast::AST& tree)
         // ── Instance method (def name … end) ─────────────────────────────────
         // `initialize` is the Ruby constructor.
         if(node.typeEquals(k_method)) {
-            const ast::ASTNode* name_node = firstChildOfType(tree, node, k_identifier);
+            const ast::ASTNode* name_node = firstChildOfType(tree, node, (const char8_t*)k_identifier);
             if(name_node) {
-                std::string name = name_node->getText();
-                std::string fqn  = buildFQN(scopeStack, name, "::");
-                SymbolKind  kind = (name == "initialize")
+                std::u8string name = name_node->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
+                SymbolKind  kind = (name == u8"initialize")
                                         ? SymbolKind::Constructor
                                         : SymbolKind::Method;
                 Access acc = topAccess(scopeStack);
@@ -149,10 +151,10 @@ std::vector<Symbol> extract_symbols_ruby(const ast::AST& tree)
         // ── Singleton method (def self.name … end) ────────────────────────────
         // These are class-level methods (analogous to static methods).
         if(node.typeEquals(k_singleton_method)) {
-            const ast::ASTNode* name_node = firstChildOfType(tree, node, k_identifier);
+            const ast::ASTNode* name_node = firstChildOfType(tree, node, (const char8_t*)k_identifier);
             if(name_node) {
-                std::string name = name_node->getText();
-                std::string fqn  = buildFQN(scopeStack, name, "::");
+                std::u8string name = name_node->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
                 Symbol sym = makeSymbol(name, fqn, SymbolKind::Method, Access::Public,
                                        i, node.start_.row_, node.start_.column_);
                 sym.isStatic = true;
@@ -171,18 +173,18 @@ std::vector<Symbol> extract_symbols_ruby(const ast::AST& tree)
             const ast::ASTNode* lhs = assignmentLhs(tree, node);
             if(!lhs) continue;
             if(lhs->typeEquals(k_constant)) {
-                std::string name = lhs->getText();
-                std::string fqn  = buildFQN(scopeStack, name, "::");
+                std::u8string name = lhs->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
                 emit(makeSymbol(name, fqn, SymbolKind::Variable, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
             } else if(lhs->typeEquals(k_global_variable)) {
-                std::string name = lhs->getText(); // includes the '$' sigil
+                std::u8string name = lhs->getText(); // includes the '$' sigil
                 emit(makeSymbol(name, name, SymbolKind::Variable, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
             } else if(lhs->typeEquals(k_class_variable)
                       && inNamedClassScope(scopeStack)) {
-                std::string name = lhs->getText(); // includes the '@@' sigil
-                std::string fqn  = buildFQN(scopeStack, name, "::");
+                std::u8string name = lhs->getText(); // includes the '@@' sigil
+                std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
                 emit(makeSymbol(name, fqn, SymbolKind::Field, Access::Private,
                                i, node.start_.row_, node.start_.column_));
             }
@@ -194,10 +196,10 @@ std::vector<Symbol> extract_symbols_ruby(const ast::AST& tree)
         // appears as an identifier node.  It affects all subsequently defined
         // methods in that class scope.
         if(node.typeEquals(k_identifier)) {
-            std::string text = node.getText();
-            if(text == "private")   { setTopAccess(scopeStack, Access::Private);   continue; }
-            if(text == "protected") { setTopAccess(scopeStack, Access::Protected); continue; }
-            if(text == "public")    { setTopAccess(scopeStack, Access::Public);    continue; }
+            std::u8string text = node.getText();
+            if(text == u8"private")   { setTopAccess(scopeStack, Access::Private);   continue; }
+            if(text == u8"protected") { setTopAccess(scopeStack, Access::Protected); continue; }
+            if(text == u8"public")    { setTopAccess(scopeStack, Access::Public);    continue; }
             // Other identifiers are not symbols we emit.
             continue;
         }
@@ -206,18 +208,18 @@ std::vector<Symbol> extract_symbols_ruby(const ast::AST& tree)
         // These Ruby metaprogramming helpers synthesise getter/setter methods.
         // Emit one Method symbol per named attribute.
         if(node.typeEquals(k_call)) {
-            const ast::ASTNode* callee = firstChildOfType(tree, node, k_identifier);
+            const ast::ASTNode* callee = firstChildOfType(tree, node, (const char8_t*)k_identifier);
             if(!callee || !isAttrMethod(callee->getText())) continue;
-            const ast::ASTNode* args = firstChildOfType(tree, node, k_argument_list);
+            const ast::ASTNode* args = firstChildOfType(tree, node, (const char8_t*)k_argument_list);
             if(!args) continue;
             Access acc = topAccess(scopeStack);
             for(uintptr_t cid : args->children_) {
                 if(cid == ast::InvalidId) continue;
                 const ast::ASTNode& sym_node = tree[static_cast<uint32_t>(cid)];
                 if(!sym_node.typeEquals(k_simple_symbol)) continue;
-                std::string name = stripSymbolColon(sym_node.getText());
+                std::u8string name = stripSymbolColon(sym_node.getText());
                 if(name.empty()) continue;
-                std::string fqn = buildFQN(scopeStack, name, "::");
+                std::u8string fqn = buildFQN(scopeStack, name, u8"::");
                 emit(makeSymbol(name, fqn, SymbolKind::Method, acc,
                                i, node.start_.row_, node.start_.column_));
             }

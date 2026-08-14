@@ -1,3 +1,4 @@
+#include "ast-tool.h"
 #include "ast-extractor-langs.h"
 #include "ast-extractor-common.h"
 #include "ast-ir.h"
@@ -34,13 +35,13 @@ namespace
     // access_modifier is present inside a modifiers child.
     Access getAccess(const ast::AST& tree, const ast::ASTNode& node)
     {
-        const ast::ASTNode* mods = findChild(tree, node, k_modifiers);
+        const ast::ASTNode* mods = findChild(tree, node, (const char8_t*)k_modifiers);
         if(!mods) return Access::Public;
-        const ast::ASTNode* acc = findChild(tree, *mods, k_access_modifier);
+        const ast::ASTNode* acc = findChild(tree, *mods, (const char8_t*)k_access_modifier);
         if(!acc) return Access::Public;
-        std::string text = acc->getText();
-        if(text == "private")   return Access::Private;
-        if(text == "protected") return Access::Protected;
+        std::u8string text = acc->getText();
+        if(text == u8"private")   return Access::Private;
+        if(text == u8"protected") return Access::Protected;
         return Access::Public;
     }
 
@@ -50,8 +51,8 @@ namespace
         for(uintptr_t id : param.children_) {
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
-            std::string t = child.getText();
-            if(t == "val" || t == "var") return true;
+            std::u8string t = child.getText();
+            if(t == u8"val" || t == u8"var") return true;
         }
         return false;
     }
@@ -75,11 +76,12 @@ namespace
 std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
 {
     std::vector<Symbol>             result;
-    std::unordered_set<std::string> seen;   // key = fqn + ":" + kind ordinal
+    std::unordered_set<std::u8string> seen;   // key = fqn + ":" + kind ordinal
     std::vector<ScopeFrame>         scopeStack;
 
     auto emit = [&](Symbol sym) {
-        std::string key = sym.fqn + ":" + std::to_string(static_cast<int>(sym.kind));
+        char8_t buffer[BUFFER_SIZE];
+        std::u8string key = sym.fqn + u8":" + ast::to_string_intermediate(buffer, static_cast<int32_t>(sym.kind));
         if(!sym.fqn.empty() && seen.insert(key).second)
             result.push_back(std::move(sym));
     };
@@ -97,10 +99,10 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
         // Emitted as Namespace. Uses uint32_t(-1) so the scope spans the entire
         // file (the package_clause node itself ends after the package keyword).
         if(node.typeEquals(k_package_clause)) {
-            const ast::ASTNode* pkgId = findChild(tree, node, k_package_identifier);
+            const ast::ASTNode* pkgId = findChild(tree, node, (const char8_t*)k_package_identifier);
             if(pkgId) {
-                std::string name = pkgId->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = pkgId->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Namespace, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
                 scopeStack.push_back({name, SymbolKind::Namespace, uint32_t(-1),
@@ -112,10 +114,10 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
         // ── Package object ────────────────────────────────────────────────────
         // "package object utils { … }" — a namespace-level container.
         if(node.typeEquals(k_package_object)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Namespace, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
                 scopeStack.push_back({name, SymbolKind::Namespace, node.endByte_,
@@ -127,10 +129,10 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
         // ── Object definition (singleton) ─────────────────────────────────────
         // Both plain objects and case objects are emitted as Class (closest kind).
         if(node.typeEquals(k_object_definition)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Class, Access::Public,
                                i, node.start_.row_, node.start_.column_));
                 scopeStack.push_back({name, SymbolKind::Class, node.endByte_,
@@ -142,12 +144,12 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
         // ── Class definition (regular, abstract, case) ────────────────────────
         // isAccessAware repurposed: true → case class (all constructor params are fields).
         if(node.typeEquals(k_class_definition)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name   = id->getText();
-                std::string fqn    = buildFQN(scopeStack, name, ".");
+                std::u8string name   = id->getText();
+                std::u8string fqn    = buildFQN(scopeStack, name, u8".");
                 Access      acc    = getAccess(tree, node);
-                bool        isCase = childHasText(tree, node, "case");
+                bool        isCase = childHasText(tree, node, u8"case");
                 emit(makeSymbol(name, fqn, SymbolKind::Class, acc,
                                i, node.start_.row_, node.start_.column_));
                 scopeStack.push_back({name, SymbolKind::Class, node.endByte_,
@@ -158,10 +160,10 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
 
         // ── Trait definition ──────────────────────────────────────────────────
         if(node.typeEquals(k_trait_definition)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 Access      acc  = getAccess(tree, node);
                 emit(makeSymbol(name, fqn, SymbolKind::Class, acc,
                                i, node.start_.row_, node.start_.column_));
@@ -177,10 +179,10 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
         if(node.typeEquals(k_class_parameter)) {
             bool isCaseClass = !scopeStack.empty() && scopeStack.back().isAccessAware;
             if(!isCaseClass && !paramIsField(tree, node)) continue;
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 Access      acc  = getAccess(tree, node);
                 emit(makeSymbol(name, fqn, SymbolKind::Field, acc,
                                i, node.start_.row_, node.start_.column_));
@@ -191,10 +193,10 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
         // ── Function definition (with body) ───────────────────────────────────
         // Inside a class/object/trait → Method; otherwise → Function.
         if(node.typeEquals(k_function_definition)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 Access      acc  = getAccess(tree, node);
                 SymbolKind  kind = insideClassScope(scopeStack)
                                        ? SymbolKind::Method
@@ -208,10 +210,10 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
 
         // ── Function declaration (abstract method, no body) ───────────────────
         if(node.typeEquals(k_function_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 Access      acc  = getAccess(tree, node);
                 emit(makeSymbol(name, fqn, SymbolKind::Method, acc,
                                i, node.start_.row_, node.start_.column_));
@@ -222,10 +224,10 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
         // ── Val definition (immutable) ────────────────────────────────────────
         // Field inside a class/object; Variable at package/top-level scope.
         if(node.typeEquals(k_val_definition)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 Access      acc  = getAccess(tree, node);
                 SymbolKind  kind = insideClassScope(scopeStack)
                                        ? SymbolKind::Field
@@ -240,10 +242,10 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
 
         // ── Var definition (mutable) ──────────────────────────────────────────
         if(node.typeEquals(k_var_definition)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 Access      acc  = getAccess(tree, node);
                 SymbolKind  kind = insideClassScope(scopeStack)
                                        ? SymbolKind::Field
@@ -256,10 +258,10 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
 
         // ── Type alias ────────────────────────────────────────────────────────
         if(node.typeEquals(k_type_definition)) {
-            const ast::ASTNode* id = findChild(tree, node, k_type_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_type_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 Access      acc  = getAccess(tree, node);
                 emit(makeSymbol(name, fqn, SymbolKind::Typedef, acc,
                                i, node.start_.row_, node.start_.column_));

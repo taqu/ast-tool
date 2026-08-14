@@ -74,13 +74,13 @@ public:
      * @return The winning symbol's index, or InvalidSymbol if @p name is not
      *         visible from @p scopeId.
      */
-    size_t resolve(uintptr_t scopeId, std::string_view name) const;
+    size_t resolve(uintptr_t scopeId, std::u8string_view name) const;
 
 private:
     struct Entry
     {
         std::vector<size_t>                    visible; ///< Winning symbol indices, sorted.
-        std::unordered_map<std::string, size_t> byName; ///< name → winning symbol index.
+        std::unordered_map<std::u8string, size_t> byName; ///< name → winning symbol index.
     };
 
     std::vector<Entry> entries_; ///< One entry per scope, indexed by scope ID.

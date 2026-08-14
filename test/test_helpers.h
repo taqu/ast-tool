@@ -8,7 +8,7 @@
 namespace ast { namespace test {
 
 inline bool hasFQN(const std::vector<ast::Symbol>& syms,
-                   std::string_view fqn, ast::SymbolKind kind)
+                   std::u8string_view fqn, ast::SymbolKind kind)
 {
     for(const auto& s : syms)
         if(s.fqn == fqn && s.kind == kind) return true;
@@ -16,7 +16,7 @@ inline bool hasFQN(const std::vector<ast::Symbol>& syms,
 }
 
 inline const ast::Symbol* findSymbol(const std::vector<ast::Symbol>& syms,
-                                     std::string_view fqn, ast::SymbolKind kind)
+                                     std::u8string_view fqn, ast::SymbolKind kind)
 {
     for(const auto& s : syms)
         if(s.fqn == fqn && s.kind == kind) return &s;

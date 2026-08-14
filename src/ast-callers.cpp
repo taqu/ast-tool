@@ -30,7 +30,7 @@ std::vector<CallSite> Callers::find(const WorkspaceSymbol& target) const
             const ASTNode& calleeNode = tu.ast[calleeIdentIdx];
             if(calleeNode.text_.empty()) continue;
 
-            std::string text    = calleeNode.text_.getText();
+            std::u8string text    = calleeNode.text_.getText();
             uintptr_t   scopeId = tu.scopeTree.getNodeScope(i);
 
             ResolutionResult resolution = resolver.resolve(text, scopeId);

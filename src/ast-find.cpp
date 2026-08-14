@@ -16,13 +16,13 @@ namespace
         return geStart && ltEnd;
     }
 
-    bool matches_text(const ASTNode& node, const char* needle)
+    bool matches_text(const ASTNode& node, const char8_t* needle)
     {
         if(node.text_.empty()) {
             return false;
         }
-        std::string text = node.getText();
-        return std::string::npos != text.find(needle);
+        std::u8string text = node.getText();
+        return std::u8string::npos != text.find(needle);
     }
 } // namespace
 

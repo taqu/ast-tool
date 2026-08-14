@@ -8,17 +8,17 @@
 namespace ast {
 namespace {
 
-bool parseAndCheck(const char* path, std::vector<std::pair<const char*, SymbolKind>> expected)
+bool parseAndCheck(const char8_t* path, std::vector<std::pair<const char8_t*, SymbolKind>> expected)
 {
     AST tree = parse(path);
     if(!tree) {
-        std::cerr << "    FAIL: could not parse " << path << "\n";
+        std::cerr << "    FAIL: could not parse " << (const char*)path << "\n";
         return false;
     }
     auto syms = extract_symbols(tree);
     bool ok = true;
     for(const auto& [fqn, kind] : expected)
-        ok &= test::check(test::hasFQN(syms, fqn, kind), fqn);
+        ok &= test::check(test::hasFQN(syms, fqn, kind), (const char*)fqn);
     return ok;
 }
 
@@ -26,16 +26,16 @@ bool testClasses()
 {
     std::cout << "  testPython_Classes... ";
     bool ok = parseAndCheck(
-        "test/ast-extractor-python/samples/classes.py",
+        u8"test/ast-extractor-python/samples/classes.py",
         {
-            {"Animal",           SymbolKind::Class},
-            {"Animal.species",   SymbolKind::Field},
-            {"Animal.__init__",  SymbolKind::Constructor},
-            {"Animal.speak",     SymbolKind::Method},
-            {"Animal.move",      SymbolKind::Method},
-            {"Dog",              SymbolKind::Class},
-            {"Dog.speak",        SymbolKind::Method},
-            {"Dog.fetch",        SymbolKind::Method},
+            {u8"Animal",           SymbolKind::Class},
+            {u8"Animal.species",   SymbolKind::Field},
+            {u8"Animal.__init__",  SymbolKind::Constructor},
+            {u8"Animal.speak",     SymbolKind::Method},
+            {u8"Animal.move",      SymbolKind::Method},
+            {u8"Dog",              SymbolKind::Class},
+            {u8"Dog.speak",        SymbolKind::Method},
+            {u8"Dog.fetch",        SymbolKind::Method},
         });
     std::cout << (ok ? "PASS" : "FAIL") << "\n";
     return ok;
@@ -45,19 +45,19 @@ bool testFunctions()
 {
     std::cout << "  testPython_Functions... ";
     bool ok = parseAndCheck(
-        "test/ast-extractor-python/samples/functions.py",
+        u8"test/ast-extractor-python/samples/functions.py",
         {
-            {"add",     SymbolKind::Function},
-            {"greet",   SymbolKind::Function},
-            {"_helper", SymbolKind::Function},
-            {"compute", SymbolKind::Function},
+            {u8"add",     SymbolKind::Function},
+            {u8"greet",   SymbolKind::Function},
+            {u8"_helper", SymbolKind::Function},
+            {u8"compute", SymbolKind::Function},
         });
 
     // local variable (assignment) inside compute must NOT be extracted
-    AST tree = parse("test/ast-extractor-python/samples/functions.py");
+    AST tree = parse(u8"test/ast-extractor-python/samples/functions.py");
     if(tree) {
         auto syms = extract_symbols(tree);
-        ok &= test::check(!test::hasFQN(syms, "compute.total", SymbolKind::Variable),
+        ok &= test::check(!test::hasFQN(syms, u8"compute.total", SymbolKind::Variable),
                           "local assignment 'total' inside compute is suppressed");
     }
     std::cout << (ok ? "PASS" : "FAIL") << "\n";
@@ -68,11 +68,11 @@ bool testVariables()
 {
     std::cout << "  testPython_Variables... ";
     bool ok = parseAndCheck(
-        "test/ast-extractor-python/samples/variables.py",
+        u8"test/ast-extractor-python/samples/variables.py",
         {
-            {"MODULE_CONSTANT", SymbolKind::Variable},
-            {"debug_mode",      SymbolKind::Variable},
-            {"_internal",       SymbolKind::Variable},
+            {u8"MODULE_CONSTANT", SymbolKind::Variable},
+            {u8"debug_mode",      SymbolKind::Variable},
+            {u8"_internal",       SymbolKind::Variable},
         });
     std::cout << (ok ? "PASS" : "FAIL") << "\n";
     return ok;
@@ -82,14 +82,14 @@ bool testNestedClasses()
 {
     std::cout << "  testPython_NestedClasses... ";
     bool ok = parseAndCheck(
-        "test/ast-extractor-python/samples/nested.py",
+        u8"test/ast-extractor-python/samples/nested.py",
         {
-            {"Outer",              SymbolKind::Class},
-            {"Outer.x",           SymbolKind::Field},
-            {"Outer.Inner",       SymbolKind::Class},
-            {"Outer.Inner.__init__", SymbolKind::Constructor},
-            {"Outer.Inner.method",  SymbolKind::Method},
-            {"Outer.outer_method",  SymbolKind::Method},
+            {u8"Outer",              SymbolKind::Class},
+            {u8"Outer.x",           SymbolKind::Field},
+            {u8"Outer.Inner",       SymbolKind::Class},
+            {u8"Outer.Inner.__init__", SymbolKind::Constructor},
+            {u8"Outer.Inner.method",  SymbolKind::Method},
+            {u8"Outer.outer_method",  SymbolKind::Method},
         });
     std::cout << (ok ? "PASS" : "FAIL") << "\n";
     return ok;
@@ -98,23 +98,23 @@ bool testNestedClasses()
 bool testEdgeCases()
 {
     std::cout << "  testPython_EdgeCases... ";
-    AST tree = parse("test/ast-extractor-python/samples/edge_cases.py");
+    AST tree = parse(u8"test/ast-extractor-python/samples/edge_cases.py");
     if(!tree) { std::cerr << "    FAIL: could not parse\n"; return false; }
     auto syms = extract_symbols(tree);
     bool ok = true;
-    ok &= test::check(test::hasFQN(syms, "Empty", SymbolKind::Class),
+    ok &= test::check(test::hasFQN(syms, u8"Empty", SymbolKind::Class),
                       "Empty class extracted");
-    ok &= test::check(test::hasFQN(syms, "outer", SymbolKind::Function),
+    ok &= test::check(test::hasFQN(syms, u8"outer", SymbolKind::Function),
                       "outer function extracted");
     // Python extractor extracts nested function definitions (no function-scope guard)
-    ok &= test::check(test::hasFQN(syms, "outer.inner", SymbolKind::Function),
+    ok &= test::check(test::hasFQN(syms, u8"outer.inner", SymbolKind::Function),
                       "nested inner function IS extracted");
     // local variable (assignment) inside function IS suppressed
-    ok &= test::check(!test::hasFQN(syms, "outer.local", SymbolKind::Variable),
+    ok &= test::check(!test::hasFQN(syms, u8"outer.local", SymbolKind::Variable),
                       "local variable assignment suppressed");
-    ok &= test::check(test::hasFQN(syms, "WithStaticMethod", SymbolKind::Class),
+    ok &= test::check(test::hasFQN(syms, u8"WithStaticMethod", SymbolKind::Class),
                       "WithStaticMethod class");
-    ok &= test::check(test::hasFQN(syms, "WithStaticMethod.static_method", SymbolKind::Method),
+    ok &= test::check(test::hasFQN(syms, u8"WithStaticMethod.static_method", SymbolKind::Method),
                       "WithStaticMethod.static_method");
     std::cout << (ok ? "PASS" : "FAIL") << "\n";
     return ok;

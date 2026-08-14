@@ -20,13 +20,14 @@
  * Identifier matching is semantic (resolved-symbol comparison), never textual.
  * The declaration site is excluded from results by default.
  */
+#include "ast-extractor.h"
+#include "ast-scope.h"
+#include "ast-workspace.h"
 #include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
-#include "ast-extractor.h"
-#include "ast-scope.h"
-#include "ast-workspace.h"
+#include <filesystem>
 
 namespace ast
 {
@@ -40,12 +41,12 @@ namespace ast
  */
 struct ReferenceResult
 {
-    WorkspaceSymbol referencedSymbol;             ///< The declaration this reference resolves to.
-    std::string     sourceFile;                   ///< Path of the file containing this reference.
-    uint32_t        line        = 0;              ///< 0-based source line of the reference identifier.
-    uint32_t        column      = 0;              ///< 0-based source column of the reference identifier.
-    ScopeKind       owningScope = ScopeKind::Unknown; ///< Scope enclosing this reference.
-    size_t          nodeIndex   = size_t(-1);     ///< Index of the identifier ASTNode, or size_t(-1).
+    WorkspaceSymbol referencedSymbol;           ///< The declaration this reference resolves to.
+    std::filesystem::path sourceFile;           ///< Path of the file containing this reference.
+    uint32_t line = 0;                          ///< 0-based source line of the reference identifier.
+    uint32_t column = 0;                        ///< 0-based source column of the reference identifier.
+    ScopeKind owningScope = ScopeKind::Unknown; ///< Scope enclosing this reference.
+    size_t nodeIndex = size_t(-1);              ///< Index of the identifier ASTNode, or size_t(-1).
 };
 
 /**

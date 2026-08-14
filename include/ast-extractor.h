@@ -52,19 +52,19 @@ const char* getAccessName(Access access);
 /** A single extracted declaration and its metadata. */
 struct Symbol
 {
-    std::string name; ///< The symbol's unqualified (local) name.
-    std::string fqn;  ///< The symbol's fully qualified name, including enclosing namespace/type scopes.
+    std::u8string name; ///< The symbol's unqualified (local) name.
+    std::u8string fqn;  ///< The symbol's fully qualified name, including enclosing namespace/type scopes.
 
-    SymbolKind kind   = SymbolKind::Function; ///< The declaration category this symbol represents.
-    Access     access = Access::Unknown;      ///< Access specifier in effect at the declaration, if applicable.
+    SymbolKind kind = SymbolKind::Function; ///< The declaration category this symbol represents.
+    Access access = Access::Unknown;        ///< Access specifier in effect at the declaration, if applicable.
 
-    bool isStatic    = false; ///< True if the declaration is marked static.
+    bool isStatic = false;    ///< True if the declaration is marked static.
     bool isConstexpr = false; ///< True if the declaration is marked constexpr.
-    bool isInline    = false; ///< True if the declaration is marked inline.
+    bool isInline = false;    ///< True if the declaration is marked inline.
 
-    size_t   nodeIndex = ast::ExtractorInvalidId; ///< Index of the associated ASTNode within the source AST, or ExtractorInvalidId if none.
-    uint32_t line      = 0;   ///< Source line (0-based) where the symbol is declared.
-    uint32_t column    = 0;   ///< Source column (0-based) where the symbol is declared.
+    size_t nodeIndex = ast::ExtractorInvalidId; ///< Index of the associated ASTNode within the source AST, or ExtractorInvalidId if none.
+    uint32_t line = 0;                          ///< Source line (0-based) where the symbol is declared.
+    uint32_t column = 0;                        ///< Source column (0-based) where the symbol is declared.
 };
 
 /**

@@ -1,3 +1,4 @@
+#include "ast-tool.h"
 #include "ast-extractor-langs.h"
 #include "ast-extractor-common.h"
 #include "ast-ir.h"
@@ -64,7 +65,7 @@ namespace
     // Return the declared name from a field_definition node.
     // Public fields use property_identifier; private fields (#name) use
     // private_property_identifier.
-    std::string getFieldName(const ast::AST& tree, const ast::ASTNode& node)
+    std::u8string getFieldName(const ast::AST& tree, const ast::ASTNode& node)
     {
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
@@ -96,11 +97,12 @@ namespace
 std::vector<Symbol> extract_symbols_javascript(const ast::AST& tree)
 {
     std::vector<Symbol>             result;
-    std::unordered_set<std::string> seen;   // key = fqn + ":" + kind ordinal
+    std::unordered_set<std::u8string> seen;   // key = fqn + ":" + kind ordinal
     std::vector<ScopeFrame>         scopeStack;
 
     auto emit = [&](Symbol sym) {
-        std::string key = sym.fqn + ":" + std::to_string(static_cast<int>(sym.kind));
+        char8_t buffer[BUFFER_SIZE];
+        std::u8string key = sym.fqn + u8":" + ast::to_string_intermediate(buffer, static_cast<int32_t>(sym.kind));
         if(!sym.fqn.empty() && seen.insert(key).second)
             result.push_back(std::move(sym));
     };
@@ -117,10 +119,10 @@ std::vector<Symbol> extract_symbols_javascript(const ast::AST& tree)
         // ── Free function (regular, async, generator) ─────────────────────────
         if(node.typeEquals(k_function_declaration) ||
            node.typeEquals(k_generator_function_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Function, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
                 // Push a function scope so the body is suppressed on the next
@@ -133,10 +135,10 @@ std::vector<Symbol> extract_symbols_javascript(const ast::AST& tree)
 
         // ── Class declaration ─────────────────────────────────────────────────
         if(node.typeEquals(k_class_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(id) {
-                std::string name = id->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
+                std::u8string name = id->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
                 emit(makeSymbol(name, fqn, SymbolKind::Class, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
                 scopeStack.push_back({name, SymbolKind::Class, node.endByte_,
@@ -151,16 +153,16 @@ std::vector<Symbol> extract_symbols_javascript(const ast::AST& tree)
         // first property_identifier child; static/get/set keywords have distinct
         // node types so findChild skips them cleanly.
         if(node.typeEquals(k_method_definition)) {
-            const ast::ASTNode* propId = findChild(tree, node, k_property_identifier);
+            const ast::ASTNode* propId = findChild(tree, node, (const char8_t*)k_property_identifier);
             if(propId) {
-                std::string name = propId->getText();
-                std::string fqn  = buildFQN(scopeStack, name, ".");
-                SymbolKind kind  = (name == "constructor")
+                std::u8string name = propId->getText();
+                std::u8string fqn  = buildFQN(scopeStack, name, u8".");
+                SymbolKind kind  = (name == u8"constructor")
                                         ? SymbolKind::Constructor
                                         : SymbolKind::Method;
                 Symbol sym = makeSymbol(name, fqn, kind, Access::Unknown,
                                        i, node.start_.row_, node.start_.column_);
-                sym.isStatic = childHasText(tree, node, "static");
+                sym.isStatic = childHasText(tree, node, u8"static");
                 emit(std::move(sym));
                 scopeStack.push_back({name, kind, node.endByte_, Access::Unknown, false});
             }
@@ -169,12 +171,12 @@ std::vector<Symbol> extract_symbols_javascript(const ast::AST& tree)
 
         // ── Class field (public and private) ──────────────────────────────────
         if(node.typeEquals(k_field_definition)) {
-            std::string name = getFieldName(tree, node);
+            std::u8string name = getFieldName(tree, node);
             if(!name.empty()) {
-                std::string fqn = buildFQN(scopeStack, name, ".");
+                std::u8string fqn = buildFQN(scopeStack, name, u8".");
                 Symbol sym = makeSymbol(name, fqn, SymbolKind::Field, Access::Unknown,
                                        i, node.start_.row_, node.start_.column_);
-                sym.isStatic = childHasText(tree, node, "static");
+                sym.isStatic = childHasText(tree, node, u8"static");
                 emit(std::move(sym));
             }
             continue;
@@ -190,10 +192,10 @@ std::vector<Symbol> extract_symbols_javascript(const ast::AST& tree)
         //   • anything else (number, string, array, …)
         //     → emit as Variable, no scope push.
         if(node.typeEquals(k_variable_declarator)) {
-            const ast::ASTNode* id = findChild(tree, node, k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
             if(!id) continue;
-            std::string name = id->getText();
-            std::string fqn  = buildFQN(scopeStack, name, ".");
+            std::u8string name = id->getText();
+            std::u8string fqn  = buildFQN(scopeStack, name, u8".");
 
             const ast::ASTNode* val = getDeclValue(tree, node);
             if(val && isFunctionLike(*val)) {
@@ -222,10 +224,10 @@ std::vector<Symbol> extract_symbols_javascript(const ast::AST& tree)
         // (they are observable properties of the module-level object).
         if(node.typeEquals(k_pair)) {
             if(!insideObjectLiteralScope(scopeStack)) continue;
-            const ast::ASTNode* key = findChild(tree, node, k_property_identifier);
+            const ast::ASTNode* key = findChild(tree, node, (const char8_t*)k_property_identifier);
             if(!key) continue;
-            std::string name = key->getText();
-            std::string fqn  = buildFQN(scopeStack, name, ".");
+            std::u8string name = key->getText();
+            std::u8string fqn  = buildFQN(scopeStack, name, u8".");
 
             const ast::ASTNode* val = getPairValue(tree, node);
             if(val && isFunctionLike(*val)) {

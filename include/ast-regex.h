@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <filesystem>
 
 namespace re2 { class RE2; }
 
@@ -28,7 +29,8 @@ public:
     RegexPattern& operator=(const RegexPattern&) = delete;
 
     bool valid() const;
-    bool matches(const std::string& input) const;
+    bool matches(const std::u8string& input) const;
+    bool matches(const std::filesystem::path& input) const;
     const std::string& error() const;
 
 private:

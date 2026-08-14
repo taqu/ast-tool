@@ -21,6 +21,6 @@ constexpr size_t PreviewTextMaxLength = 40;
  * always safe to print on one line; text longer than @p maxLength is truncated with a
  * trailing "...". Returns an empty string if @p node has no associated source text.
  */
-std::string preview_text(const ASTNode& node, size_t maxLength = PreviewTextMaxLength);
+std::u8string preview_text(const ASTNode& node, size_t maxLength = PreviewTextMaxLength);
 } // namespace ast
 #endif // INC_AST_FORMAT_H_

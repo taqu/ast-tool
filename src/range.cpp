@@ -11,20 +11,12 @@ namespace ast
 {
 namespace
 {
-    bool from_chars_10(const char* begin, std::uint32_t& value)
-    {
-        assert(nullptr != begin);
-        const char* end = begin + ::strlen(begin);
-        auto [ptr, ec] = std::from_chars(begin, end, value, 10);
-        return ec == std::errc() && ptr == end;
-    }
-
     void format_match(const ASTNode& node)
     {
         std::print("{:X} {} @{}:{}", node.hash_, node.type_, node.start_.row_ + 1, node.start_.column_ + 1);
-        std::string text = preview_text(node);
+        std::u8string text = preview_text(node);
         if(!text.empty()) {
-            std::print(" \"{}\"", text);
+            std::print(" \"{}\"", (const char*)text.c_str());
         }
         std::print("\n");
     }
@@ -40,9 +32,9 @@ namespace
     }
 } // namespace
 
-bool parse_range(Arguments& arguments, int32_t argc, const char** argv)
+bool parse_range(Arguments& arguments, int32_t argc, const char8_t** argv)
 {
-#define STREQUALS(str, literal) (0 == ::strcmp(str, literal))
+#define STREQUALS(str, literal) (0 == ::strcmp(reinterpret_cast<const char*>(str), literal))
     arguments.sub_ = SubCommand::Range;
     if(argc <= 2) {
         return false;

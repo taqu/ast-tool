@@ -17,13 +17,14 @@
  * Semantic services receive the already-built TranslationUnit objects and
  * never re-parse files.
  */
+#include "ast-extractor.h"
+#include "ast-ir.h"
+#include "ast-scope.h"
 #include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
-#include "ast-ir.h"
-#include "ast-extractor.h"
-#include "ast-scope.h"
+#include <filesystem>
 
 namespace ast
 {
@@ -37,10 +38,10 @@ namespace ast
  */
 struct TranslationUnit
 {
-    AST                 ast;
-    ScopeTree           scopeTree;
+    AST ast;
+    ScopeTree scopeTree;
     std::vector<Symbol> symbols;
-    std::string         path;
+    std::filesystem::path path;
 };
 
 /**
@@ -52,9 +53,9 @@ struct TranslationUnit
  */
 struct WorkspaceSymbol
 {
-    Symbol      symbol;                              ///< Symbol data (name, fqn, kind, etc.).
-    std::string sourceFile;                          ///< Path of the file that declares this symbol.
-    ScopeKind   owningScope = ScopeKind::Unknown;   ///< Kind of the scope that declares this symbol.
+    Symbol symbol;                              ///< Symbol data (name, fqn, kind, etc.).
+    std::filesystem::path sourceFile;           ///< Path of the file that declares this symbol.
+    ScopeKind owningScope = ScopeKind::Unknown; ///< Kind of the scope that declares this symbol.
 };
 
 /**
@@ -65,8 +66,8 @@ struct WorkspaceSymbol
  */
 struct FileDependencies
 {
-    std::string              file;     ///< Path of the file containing the references.
-    std::vector<std::string> includes; ///< Include/import paths, deduplicated, as written.
+    std::filesystem::path file;        ///< Path of the file containing the references.
+    std::vector<std::u8string> includes; ///< Include/import paths, deduplicated, as written.
 };
 
 /**
@@ -81,12 +82,12 @@ struct FileDependencies
  */
 struct Workspace
 {
-    std::vector<std::string>      files;            ///< All discovered source files, sorted.
-    std::vector<WorkspaceSymbol>  symbols;          ///< Flat symbol index (all files).
-    std::vector<FileDependencies> deps;             ///< Per-file direct include/import graph.
-    std::vector<TranslationUnit>  translationUnits; ///< Primary ownership: one TU per parsed file.
-    uint32_t parsedCount = 0; ///< Number of files successfully parsed.
-    uint32_t failedCount = 0; ///< Number of files that failed to parse.
+    std::vector<std::filesystem::path> files;      ///< All discovered source files, sorted.
+    std::vector<WorkspaceSymbol> symbols;          ///< Flat symbol index (all files).
+    std::vector<FileDependencies> deps;            ///< Per-file direct include/import graph.
+    std::vector<TranslationUnit> translationUnits; ///< Primary ownership: one TU per parsed file.
+    uint32_t parsedCount = 0;                      ///< Number of files successfully parsed.
+    uint32_t failedCount = 0;                      ///< Number of files that failed to parse.
 };
 
 /**
@@ -97,7 +98,7 @@ struct Workspace
  * deterministic ordering.  Returns an empty list if @p root is null, does
  * not exist, or is not a directory.
  */
-std::vector<std::string> scan_workspace(const char* root);
+std::vector<std::filesystem::path> scan_workspace(const char8_t* root);
 
 /**
  * @brief Parses and analyzes every source file under @p root.
@@ -110,7 +111,7 @@ std::vector<std::string> scan_workspace(const char* root);
  * @return The aggregated Workspace.  Returns an empty workspace if @p root
  *         is null or no supported files are found.
  */
-Workspace analyze_workspace(const char* root);
+Workspace analyze_workspace(const char8_t* root);
 
 /**
  * @brief Parses and analyzes the given list of source files.
@@ -124,7 +125,7 @@ Workspace analyze_workspace(const char* root);
  *
  * @param files Paths to source files.  Order is preserved in Workspace::files.
  */
-Workspace analyze_files(const std::vector<std::string>& files);
+Workspace analyze_files(const std::vector<std::filesystem::path>& files);
 
 } // namespace ast
 #endif // INC_AST_WORKSPACE_H_

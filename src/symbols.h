@@ -6,7 +6,7 @@ namespace ast
 	{
 	struct Arguments;
 	struct ArgSymbols;
-	bool parse_symbols(Arguments& arguments, int32_t argc, const char** argv);
+	bool parse_symbols(Arguments& arguments, int32_t argc, const char8_t** argv);
 	/**
 	 * @brief 
 	 * @param arguments 

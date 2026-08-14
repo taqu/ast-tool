@@ -17,7 +17,7 @@ namespace
     // -----------------------------------------------------------------------
 
     /** Strips one leading and one trailing character (quotes or angle brackets). */
-    static std::string strip_delimiters(const std::string& s)
+    static std::u8string strip_delimiters(const std::u8string& s)
     {
         if(s.size() >= 2) return s.substr(1, s.size() - 2);
         return s;
@@ -27,12 +27,12 @@ namespace
      * Collects direct include/import paths from @p ast.
      * Paths are returned deduplicated and in source order.
      */
-    std::vector<std::string> collect_includes(const AST& ast)
+    std::vector<std::u8string> collect_includes(const AST& ast)
     {
-        std::vector<std::string> result;
-        std::unordered_set<std::string> seen;
+        std::vector<std::u8string> result;
+        std::unordered_set<std::u8string> seen;
 
-        auto push = [&](std::string path) {
+        auto push = [&](std::u8string path) {
             if(!path.empty() && seen.insert(path).second) {
                 result.push_back(std::move(path));
             }
@@ -119,9 +119,9 @@ namespace
     // Per-file analysis
     // -----------------------------------------------------------------------
 
-    void analyze_one(const std::string& path, Workspace& ws)
+    void analyze_one(const std::filesystem::path& path, Workspace& ws)
     {
-        AST ast = parse(path.c_str());
+        AST ast = parse(path.u8string().c_str());
         if(!ast) {
             ++ws.failedCount;
             return;
@@ -162,20 +162,23 @@ namespace
 // Public API
 // -----------------------------------------------------------------------
 
-std::vector<std::string> scan_workspace(const char* root)
+std::vector<std::filesystem::path> scan_workspace(const char8_t* root)
 {
-    std::vector<std::string> files;
-    if(nullptr == root) return files;
-
+    std::vector<std::filesystem::path> files;
+    if(nullptr == root){
+        return files;
+    }
     std::error_code ec;
     std::filesystem::recursive_directory_iterator it(root, ec);
-    if(ec) return files;
+    if(ec){
+        return files;
+    }
 
     for(const auto& entry : it) {
         if(!entry.is_regular_file()) continue;
-        std::string path = entry.path().generic_string();
-        if(get_language_type(path.c_str()) != ASTLanguage::Unknown) {
-            files.push_back(std::move(path));
+        auto&& extension = entry.path().extension();
+        if(get_language_type_from_extension(extension.c_str()) != ASTLanguage::Unknown) {
+            files.push_back(std::move(entry.path()));
         }
     }
 
@@ -183,12 +186,12 @@ std::vector<std::string> scan_workspace(const char* root)
     return files;
 }
 
-Workspace analyze_workspace(const char* root)
+Workspace analyze_workspace(const char8_t* root)
 {
     return analyze_files(scan_workspace(root));
 }
 
-Workspace analyze_files(const std::vector<std::string>& files)
+Workspace analyze_files(const std::vector<std::filesystem::path>& files)
 {
     Workspace ws;
     ws.files = files;
@@ -196,7 +199,7 @@ Workspace analyze_files(const std::vector<std::string>& files)
     ws.deps.reserve(files.size());
     ws.translationUnits.reserve(files.size());
 
-    for(const std::string& path : files) {
+    for(const std::filesystem::path& path : files) {
         analyze_one(path, ws);
     }
 

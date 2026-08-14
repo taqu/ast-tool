@@ -11,13 +11,77 @@
  * New code that only needs the AST IR (semantic services, extractors, tests)
  * should include ast-ir.h directly and omit this header.
  */
-#include <cstdint>
 #include "ast-ir.h"
+#include <cstdint>
+#include <span>
+#include <string>
+#include <charconv>
+#include <array>
+#include <concepts>
+#include <system_error>
 
 namespace ast
 {
-    /** Initializes global tree-sitter state (installs the mimalloc-backed allocator). Call once before parsing. */
-    void initialize();
+    constexpr size_t BUFFER_SIZE = 128;
+    template<std::integral T>
+    std::u8string to_string(T value, int32_t base = 10)
+    {
+        std::array<char8_t, BUFFER_SIZE> buffer{};
+        char* buffer_ptr = reinterpret_cast<char*>(buffer.data());
+        
+        auto [ptr, ec] = std::to_chars(buffer_ptr, buffer_ptr + buffer.size(), value, base);
+        
+        if (ec == std::errc{}) {
+            const char8_t* end_ptr = reinterpret_cast<const char8_t*>(ptr);
+            return std::u8string(buffer.data(), end_ptr);
+        }
+        return std::u8string();
+    }
+
+    template<std::floating_point T>
+    std::u8string to_string(T value, std::chars_format fmt = std::chars_format::general)
+    {
+        std::array<char8_t, BUFFER_SIZE> buffer{};
+        char* buffer_ptr = reinterpret_cast<char*>(buffer.data());
+        
+        auto [ptr, ec] = std::to_chars(buffer_ptr, buffer_ptr + buffer.size(), value, fmt);
+        
+        if (ec == std::errc{}) {
+            const char8_t* end_ptr = reinterpret_cast<const char8_t*>(ptr);
+            return std::u8string(buffer.data(), end_ptr);
+        }
+        return std::u8string();
+    }
+
+    template<std::integral T>
+    const char8_t* to_string_intermediate(char8_t buffer[BUFFER_SIZE], T value, int32_t base = 10)
+    {
+        char* buffer_ptr = reinterpret_cast<char*>(buffer);
+        
+        auto [ptr, ec] = std::to_chars(buffer_ptr, buffer_ptr + BUFFER_SIZE, value, base);
+        
+        if (ec == std::errc{}) {
+            return buffer;
+        }
+        return u8"";
+    }
+
+    template<std::floating_point T>
+    const char8_t* to_string_intermediate(char8_t buffer[BUFFER_SIZE], T value, std::chars_format fmt = std::chars_format::general)
+    {
+        char* buffer_ptr = reinterpret_cast<char*>(buffer);
+        
+        auto [ptr, ec] = std::to_chars(buffer_ptr, buffer_ptr + BUFFER_SIZE, value, fmt);
+        
+        if (ec == std::errc{}) {
+            return buffer;
+        }
+        return u8"";
+    }
+
+
+/** Initializes global tree-sitter state (installs the mimalloc-backed allocator). Call once before parsing. */
+void initialize();
 
 /** Identifies which command-line subcommand was requested. */
 enum class SubCommand
@@ -37,49 +101,49 @@ enum class SubCommand
 /** Arguments for the "help" subcommand. */
 struct ArgHelp
 {
-    const char* topic_; ///< Command name to show help for, or nullptr for top-level help.
+    const char8_t* topic_; ///< Command name to show help for, or nullptr for top-level help.
 };
 
 /** Arguments for the "dump" subcommand. */
 struct ArgDump
 {
-    const char* input_; ///< Path to the input source file to dump.
+    const char8_t* input_; ///< Path to the input source file to dump.
 };
 
 /** Arguments for the "symbols" subcommand. */
 struct ArgSymbols
 {
-    const char* input_; ///< Path to the input source file to extract symbols from.
-    bool json_;   ///< Output symbols as JSON when true.
-    bool pretty_; ///< Pretty-print the output when true.
+    const char8_t* input_; ///< Path to the input source file to extract symbols from.
+    bool json_;            ///< Output symbols as JSON when true.
+    bool pretty_;          ///< Pretty-print the output when true.
 };
 
 /** Arguments for the "outline" subcommand. */
 struct ArgOutline
 {
-    const char* input_; ///< Path to the input source file to outline.
+    const char8_t* input_; ///< Path to the input source file to outline.
 };
 
 /** Arguments for the "children" subcommand. */
 struct ArgChildren
 {
-    const char* input_; ///< Path to the input source file to search.
-    uint32_t id_;       ///< Node hash to look up (hexadecimal).
+    const char8_t* input_; ///< Path to the input source file to search.
+    uint32_t id_;          ///< Node hash to look up (hexadecimal).
     bool hasId_;
 };
 
 /** Arguments for the "parent" subcommand. */
 struct ArgParent
 {
-    const char* input_; ///< Path to the input source file to search.
-    uint32_t id_;       ///< Node hash to look up (hexadecimal).
+    const char8_t* input_; ///< Path to the input source file to search.
+    uint32_t id_;          ///< Node hash to look up (hexadecimal).
     bool hasId_;
 };
 
 /** Arguments for the "range" subcommand. */
 struct ArgRange
 {
-    const char* input_;    ///< Path to the input source file to search.
+    const char8_t* input_; ///< Path to the input source file to search.
     uint32_t startLine_;   ///< --start-line value (1-based), if #hasStart_.
     uint32_t startColumn_; ///< --start-column value (1-based), if #hasStart_.
     uint32_t endLine_;     ///< --end-line value (1-based), if #hasEnd_.
@@ -91,25 +155,25 @@ struct ArgRange
 /** Arguments for the "search" subcommand. */
 struct ArgSearch
 {
-    const char* root_;       ///< Workspace root directory to scan.
-    const char* name_;       ///< --name filter value, or nullptr if unset.
-    const char* fqn_;        ///< --fqn filter value, or nullptr if unset.
-    const char* kind_;       ///< --kind filter value (e.g. "function"), or nullptr if unset.
-    const char* file_;       ///< --file filter value (substring), or nullptr if unset.
-    const char* name_regex_; ///< --name-regex RE2 pattern, or nullptr if unset.
-    const char* fqn_regex_;  ///< --fqn-regex RE2 pattern, or nullptr if unset.
-    const char* file_regex_; ///< --file-regex RE2 pattern, or nullptr if unset.
-    bool json_;              ///< Output results as JSON when true.
-    bool pretty_;            ///< Pretty-print the JSON output when true.
+    const char8_t* root_;       ///< Workspace root directory to scan.
+    const char8_t* name_;       ///< --name filter value, or nullptr if unset.
+    const char8_t* fqn_;        ///< --fqn filter value, or nullptr if unset.
+    const char8_t* kind_;       ///< --kind filter value (e.g. "function"), or nullptr if unset.
+    const char8_t* file_;       ///< --file filter value (substring), or nullptr if unset.
+    const char8_t* name_regex_; ///< --name-regex RE2 pattern, or nullptr if unset.
+    const char8_t* fqn_regex_;  ///< --fqn-regex RE2 pattern, or nullptr if unset.
+    const char8_t* file_regex_; ///< --file-regex RE2 pattern, or nullptr if unset.
+    bool json_;                 ///< Output results as JSON when true.
+    bool pretty_;               ///< Pretty-print the JSON output when true.
 };
 
 /** Arguments for the "find" subcommand. */
 struct ArgFind
 {
-    const char* input_;   ///< Path to the input source file to search.
-    const char* type_;    ///< --type filter value, or nullptr if unset.
-    const char* grammar_; ///< --grammar filter value, or nullptr if unset.
-    const char* text_;    ///< --text filter value, or nullptr if unset.
+    const char8_t* input_;   ///< Path to the input source file to search.
+    const char8_t* type_;    ///< --type filter value, or nullptr if unset.
+    const char8_t* grammar_; ///< --grammar filter value, or nullptr if unset.
+    const char8_t* text_;    ///< --text filter value, or nullptr if unset.
 
     uint32_t id_; ///< --id filter value, if #hasId_.
     bool hasId_;
@@ -126,29 +190,43 @@ struct Arguments
     SubCommand sub_;
     union
     {
-        ArgHelp     help_;
-        ArgDump     dump_;
-        ArgSymbols  symbols_;
-        ArgOutline  outline_;
-        ArgFind     find_;
-        ArgRange    range_;
-        ArgParent   parent_;
+        ArgHelp help_;
+        ArgDump dump_;
+        ArgSymbols symbols_;
+        ArgOutline outline_;
+        ArgFind find_;
+        ArgRange range_;
+        ArgParent parent_;
         ArgChildren children_;
-        ArgSearch   search_;
+        ArgSearch search_;
     };
 };
 
 /**
  * @brief Parses process command-line arguments into an Arguments structure.
  * @param arguments Output; populated with the parsed subcommand and its options.
- * @param argc Argument count, as passed to main().
- * @param argv Argument vector, as passed to main().
+ * @param argv UTF-8 argument vector produced by the platform entry point.
  * @return true if the arguments were recognized and parsed successfully, false otherwise.
  */
-bool parse(Arguments& arguments, int32_t argc, const char** argv);
+bool parse(Arguments& arguments, std::span<const std::u8string> argv);
+std::vector<std::u8string> args_to_utf8(int32_t argc, const char** argv);
 
-/** Executes the subcommand described by @p arguments (as produced by parse(Arguments&, int32_t, const char**)). Returns true on success. */
+/** Executes the subcommand described by @p arguments (as produced by parse(Arguments&, int32_t, const char8_t**)). Returns true on success. */
 bool dispatch(const Arguments& arguments);
 
+/**
+ * @brief Convert string to uint32_t as decimal
+ * @param begin ... null terminated string
+ * @param[out] value ...
+ * @return
+ */
+bool from_chars_10(const char8_t* begin, std::uint32_t& value);
+/**
+ * @brief Convert string to uint32_t as hexadecimal
+ * @param begin ... null terminated string
+ * @param value ...
+ * @return
+ */
+bool from_chars_16(const char8_t* begin, std::uint32_t& value);
 } // namespace ast
 #endif // INC_AST_AST_TOOL_H_

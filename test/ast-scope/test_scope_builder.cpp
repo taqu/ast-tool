@@ -56,7 +56,7 @@ namespace
     bool test_nested_namespaces()
     {
         bool ok = true;
-        AST ast = parse("test/ast-scope/samples/nested_namespaces.cpp");
+        AST ast = parse(u8"test/ast-scope/samples/nested_namespaces.cpp");
         ok &= check(!!ast, "nested_namespaces.cpp parsed");
         if(!ast) return false;
 
@@ -93,7 +93,7 @@ namespace
     bool test_nested_classes()
     {
         bool ok = true;
-        AST ast = parse("test/ast-scope/samples/nested_classes.cpp");
+        AST ast = parse(u8"test/ast-scope/samples/nested_classes.cpp");
         ok &= check(!!ast, "nested_classes.cpp parsed");
         if(!ast) return false;
 
@@ -122,7 +122,7 @@ namespace
     bool test_sibling_functions()
     {
         bool ok = true;
-        AST ast = parse("test/ast-scope/samples/functions.cpp");
+        AST ast = parse(u8"test/ast-scope/samples/functions.cpp");
         ok &= check(!!ast, "functions.cpp parsed");
         if(!ast) return false;
 
@@ -155,7 +155,7 @@ namespace
     bool test_nested_blocks()
     {
         bool ok = true;
-        AST ast = parse("test/ast-scope/samples/blocks.cpp");
+        AST ast = parse(u8"test/ast-scope/samples/blocks.cpp");
         ok &= check(!!ast, "blocks.cpp parsed");
         if(!ast) return false;
 
@@ -191,7 +191,7 @@ namespace
     bool test_sibling_scopes()
     {
         bool ok = true;
-        AST ast = parse("test/ast-scope/samples/siblings.cpp");
+        AST ast = parse(u8"test/ast-scope/samples/siblings.cpp");
         ok &= check(!!ast, "siblings.cpp parsed");
         if(!ast) return false;
 
@@ -221,7 +221,7 @@ namespace
     bool test_mixed_scopes()
     {
         bool ok = true;
-        AST ast = parse("test/ast-scope/samples/mixed.cpp");
+        AST ast = parse(u8"test/ast-scope/samples/mixed.cpp");
         ok &= check(!!ast, "mixed.cpp parsed");
         if(!ast) return false;
 
@@ -253,7 +253,7 @@ namespace
     bool test_node_scope_mapping()
     {
         bool ok = true;
-        AST ast = parse("test/ast-scope/samples/nested_namespaces.cpp");
+        AST ast = parse(u8"test/ast-scope/samples/nested_namespaces.cpp");
         ok &= check(!!ast, "nested_namespaces.cpp parsed for node mapping");
         if(!ast) return false;
 
@@ -279,7 +279,7 @@ namespace
     bool test_scope_source_ranges()
     {
         bool ok = true;
-        AST ast = parse("test/ast-scope/samples/functions.cpp");
+        AST ast = parse(u8"test/ast-scope/samples/functions.cpp");
         ok &= check(!!ast, "functions.cpp parsed for range check");
         if(!ast) return false;
 

@@ -107,7 +107,7 @@ struct ASTPoint
 struct ASTText
 {
     /** Copies the referenced slice into a new std::string. */
-    std::string getText() const;
+    std::u8string getText() const;
     /** Returns true if the slice has zero length. */
     inline bool empty() const
     {
@@ -127,10 +127,12 @@ struct ASTNode
 {
     /** Compares type_ against @p type using exact string equality. */
     bool typeEquals(const char* type) const;
+    bool typeEquals(const char8_t* type) const;
     /** Compares grammar_type_ against @p type using exact string equality. */
     bool grammarEquals(const char* type) const;
+    bool grammarEquals(const char8_t* type) const;
     /** Copies this node's source text into a new std::string. */
-    std::string getText() const;
+    std::u8string getText() const;
 
     uintptr_t id_;     ///< This node's identifier; InvalidId if unresolved. Before remap_ids() this is the tree-sitter node id, after it is the index into the owning AST.
     uintptr_t parent_; ///< Identifier of the parent node, or InvalidId if this is the root. Same id-vs-index semantics as #id_.
@@ -150,7 +152,9 @@ struct ASTNode
 };
 
 /** Determines the ASTLanguage for @p path based on its file extension. Returns ASTLanguage::Unknown if @p path is null or the extension is unrecognized. */
-ASTLanguage get_language_type(const char* path);
+ASTLanguage get_language_type(const char8_t* path);
+ASTLanguage get_language_type_from_extension(const char8_t* extension);
+ASTLanguage get_language_type_from_extension(const wchar_t* extension);
 /** Returns the tree-sitter TSLanguage for @p language, or nullptr if it has no associated grammar. */
 const struct TSLanguage* get_language(ASTLanguage language);
 
@@ -167,7 +171,7 @@ public:
     /** Constructs an empty, invalid AST. */
     AST();
     /** Loads and reads @p path into memory, determining its language from the file extension. Check operator bool() to see whether loading succeeded. */
-    AST(const char* path);
+    AST(const char8_t* path);
     ~AST();
     AST(AST&& other);
     AST& operator=(AST&& other);
@@ -210,7 +214,7 @@ private:
 };
 
 /** Loads @p path, parses it with tree-sitter according to its detected language, and returns the resulting flattened, id-remapped AST. */
-AST parse(const char* path);
+AST parse(const char8_t* path);
 
 } // namespace ast
 #endif // INC_AST_IR_H_

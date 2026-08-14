@@ -18,9 +18,17 @@ bool RegexPattern::valid() const
     return re_ && re_->ok();
 }
 
-bool RegexPattern::matches(const std::string& input) const
+bool RegexPattern::matches(const std::u8string& input) const
 {
-    return re2::RE2::PartialMatch(input, *re_);
+    std::string_view sv((const char*)input.data(), input.size());
+    return re2::RE2::PartialMatch(sv, *re_);
+}
+
+bool RegexPattern::matches(const std::filesystem::path& input) const
+{
+    std::u8string path = input.u8string();
+    std::string_view sv((const char*)path.data(), path.size());
+    return re2::RE2::PartialMatch(sv, *re_);
 }
 
 const std::string& RegexPattern::error() const

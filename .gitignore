@@ -66,3 +66,6 @@ Testing/
 /build
 /ast-tool.md
 /roadmap.md
+/bench/venv
+/bench/workspace
+/bench/cache

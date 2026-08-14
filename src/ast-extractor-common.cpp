@@ -5,7 +5,7 @@ namespace ast
 {
 namespace extractor
 {
-    const ast::ASTNode* findChild(const ast::AST& tree, const ast::ASTNode& node, const char* type)
+    const ast::ASTNode* findChild(const ast::AST& tree, const ast::ASTNode& node, const char8_t* type)
     {
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
@@ -15,7 +15,7 @@ namespace extractor
         return nullptr;
     }
 
-    bool childHasText(const ast::AST& tree, const ast::ASTNode& node, const char* text)
+    bool childHasText(const ast::AST& tree, const ast::ASTNode& node, const char8_t* text)
     {
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
@@ -24,10 +24,9 @@ namespace extractor
         return false;
     }
 
-    std::string buildFQN(const std::vector<ScopeFrame>& stack, const std::string& symName,
-                          const char* sep)
+    std::u8string buildFQN(const std::vector<ScopeFrame>& stack, const std::u8string& symName, const char8_t* sep)
     {
-        std::string fqn;
+        std::u8string fqn;
         for(const auto& f : stack) {
             if(f.name.empty()) continue;
             if(!fqn.empty()) fqn += sep;
@@ -71,7 +70,7 @@ namespace extractor
         return false;
     }
 
-    Symbol makeSymbol(std::string name, std::string fqn, SymbolKind kind,
+    Symbol makeSymbol(std::u8string name, std::u8string fqn, SymbolKind kind,
                        Access access, uint32_t idx, uint32_t row, uint32_t col)
     {
         Symbol s;

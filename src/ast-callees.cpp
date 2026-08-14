@@ -3,6 +3,7 @@
 #include "ast-resolver.h"
 #include "ast-ir.h"
 #include <vector>
+#include <filesystem>
 
 using namespace ast::call_utils;
 
@@ -65,7 +66,7 @@ std::vector<CallSite> Callees::find(const Workspace&       workspace,
         IdentifierResolver*     resolver;
         const Workspace*        workspace;
         const WorkspaceSymbol*  callerPtr;
-        const std::string*      sourcePath; // tu->path
+        const std::filesystem::path*      sourcePath; // tu->path
         std::vector<CallSite>*  results;
     };
 
@@ -82,7 +83,7 @@ std::vector<CallSite> Callees::find(const Workspace&       workspace,
             const ASTNode& calleeNode = (*c.ast)[calleeIdentIdx];
             if(calleeNode.text_.empty()) return;
 
-            std::string text    = calleeNode.text_.getText();
+            std::u8string text    = calleeNode.text_.getText();
             uintptr_t   scopeId = c.scopeTree->getNodeScope(callIdx);
 
             ResolutionResult res = c.resolver->resolve(text, scopeId);
