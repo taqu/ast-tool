@@ -1,8 +1,11 @@
 #include "ast-workspace.h"
-#include <algorithm>
 #include <cstring>
+#include <algorithm>
 #include <filesystem>
 #include <unordered_set>
+#include <atomic>
+#include <thread>
+#include "ast-tool.h"
 #include "ast-extractor.h"
 #include "ast-scope-builder.h"
 #include "ast-symbol-scope.h"
@@ -119,30 +122,34 @@ namespace
     }
 
     // -----------------------------------------------------------------------
-    // Per-file analysis
+    // Per-file analysis — returns an owned result; safe to call concurrently.
     // -----------------------------------------------------------------------
 
-    void analyze_one(const std::filesystem::path& path, Workspace& ws)
+    struct AnalysisResult
     {
-        AST ast = parse(path.u8string().c_str());
-        if(!ast) {
-            ++ws.failedCount;
-            return;
-        }
-        ++ws.parsedCount;
+        TranslationUnit translationUnit;
+        FileDependencies dependencies;
+        std::vector<WorkspaceSymbol> symbols;
+        bool parsed = false;
+    };
 
-        // Run the parsing pipeline exactly once for this file.
+    AnalysisResult analyze_one(const std::filesystem::path& path)
+    {
+        AnalysisResult result;
+
+        AST ast = parse(path.u8string().c_str());
+        if(!ast) return result;  // parsed remains false
+
+        result.parsed = true;
+
         std::vector<Symbol> syms = extract_symbols(ast);
         ScopeTree tree = build_scope_tree(ast);
         associate_symbols(tree, syms);
 
-        // Collect include/import dependencies (before moving ast).
-        FileDependencies dep;
-        dep.file     = path;
-        dep.includes = collect_includes(ast);
-        ws.deps.push_back(std::move(dep));
+        result.dependencies.file     = path;
+        result.dependencies.includes = collect_includes(ast);
 
-        // Build the flat WorkspaceSymbol index from a copy of the symbols.
+        result.symbols.reserve(syms.size());
         for(size_t i = 0; i < syms.size(); ++i) {
             uintptr_t scopeId = tree.getScopeOfSymbol(i);
             ScopeKind owning  = (scopeId != ScopeTree::InvalidId)
@@ -152,11 +159,11 @@ namespace
             wsym.symbol      = syms[i];
             wsym.sourceFile  = path;
             wsym.owningScope = owning;
-            ws.symbols.push_back(std::move(wsym));
+            result.symbols.push_back(std::move(wsym));
         }
 
-        // Store the TranslationUnit — primary ownership of parsed state.
-        ws.translationUnits.push_back({std::move(ast), std::move(tree), std::move(syms), path});
+        result.translationUnit = {std::move(ast), std::move(tree), std::move(syms), path};
+        return result;
     }
 
     // -----------------------------------------------------------------------
@@ -293,14 +300,63 @@ Workspace analyze_workspace(const char8_t* root)
 
 Workspace analyze_files(const std::vector<std::filesystem::path>& files)
 {
+    const size_t N = files.size();
+
+    // Pre-allocate one result slot per file so workers write to distinct indices.
+    std::vector<AnalysisResult> results(N);
+
+    const uint32_t hwThreads = ast::get_physical_core_count();
+    const size_t nThreads = (hwThreads > 1 && N > 1)
+                          ? std::min(static_cast<size_t>(hwThreads), N)
+                          : 0;
+
+    if(nThreads > 0) {
+        // Atomic counter drives dynamic load balancing: each worker grabs the
+        // next unprocessed file index until the queue is exhausted.
+        std::atomic<size_t> nextIdx{0};
+
+        auto worker = [&]() noexcept {
+            for(;;) {
+                const size_t i = nextIdx.fetch_add(1, std::memory_order_relaxed);
+                if(i >= N) break;
+                try {
+                    results[i] = analyze_one(files[i]);
+                } catch(...) {
+                    // Parse failure recorded via results[i].parsed == false.
+                }
+            }
+        };
+
+        std::vector<std::thread> threads;
+        threads.reserve(nThreads);
+        for(size_t t = 0; t < nThreads; ++t) threads.emplace_back(worker);
+        for(std::thread& t : threads) t.join();
+    } else {
+        for(size_t i = 0; i < N; ++i) {
+            results[i] = analyze_one(files[i]);
+        }
+    }
+
+    // Single-threaded merge: combine per-file results into the shared Workspace.
+    // Processing in file-index order preserves deterministic output ordering.
     Workspace ws;
     ws.files = files;
-    ws.symbols.reserve(files.size() * 8);
-    ws.deps.reserve(files.size());
-    ws.translationUnits.reserve(files.size());
+    ws.symbols.reserve(N * 8);
+    ws.deps.reserve(N);
+    ws.translationUnits.reserve(N);
 
-    for(const std::filesystem::path& path : files) {
-        analyze_one(path, ws);
+    for(size_t i = 0; i < N; ++i) {
+        AnalysisResult& r = results[i];
+        if(!r.parsed) {
+            ++ws.failedCount;
+            continue;
+        }
+        ++ws.parsedCount;
+        ws.deps.push_back(std::move(r.dependencies));
+        ws.symbols.insert(ws.symbols.end(),
+            std::make_move_iterator(r.symbols.begin()),
+            std::make_move_iterator(r.symbols.end()));
+        ws.translationUnits.push_back(std::move(r.translationUnit));
     }
 
     return ws;

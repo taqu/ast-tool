@@ -12,73 +12,74 @@
  * should include ast-ir.h directly and omit this header.
  */
 #include "ast-ir.h"
+#include <array>
+#include <charconv>
+#include <concepts>
 #include <cstdint>
 #include <span>
 #include <string>
-#include <charconv>
-#include <array>
-#include <concepts>
 #include <system_error>
 
 namespace ast
 {
-    constexpr size_t BUFFER_SIZE = 128;
-    template<std::integral T>
-    std::u8string to_string(T value, int32_t base = 10)
-    {
-        std::array<char8_t, BUFFER_SIZE> buffer{};
-        char* buffer_ptr = reinterpret_cast<char*>(buffer.data());
-        
-        auto [ptr, ec] = std::to_chars(buffer_ptr, buffer_ptr + buffer.size(), value, base);
-        
-        if (ec == std::errc{}) {
-            const char8_t* end_ptr = reinterpret_cast<const char8_t*>(ptr);
-            return std::u8string(buffer.data(), end_ptr);
-        }
-        return std::u8string();
-    }
+constexpr size_t BUFFER_SIZE = 128;
+template<std::integral T>
+std::u8string to_string(T value, int32_t base = 10)
+{
+    std::array<char8_t, BUFFER_SIZE> buffer{};
+    char* buffer_ptr = reinterpret_cast<char*>(buffer.data());
 
-    template<std::floating_point T>
-    std::u8string to_string(T value, std::chars_format fmt = std::chars_format::general)
-    {
-        std::array<char8_t, BUFFER_SIZE> buffer{};
-        char* buffer_ptr = reinterpret_cast<char*>(buffer.data());
-        
-        auto [ptr, ec] = std::to_chars(buffer_ptr, buffer_ptr + buffer.size(), value, fmt);
-        
-        if (ec == std::errc{}) {
-            const char8_t* end_ptr = reinterpret_cast<const char8_t*>(ptr);
-            return std::u8string(buffer.data(), end_ptr);
-        }
-        return std::u8string();
-    }
+    auto [ptr, ec] = std::to_chars(buffer_ptr, buffer_ptr + buffer.size(), value, base);
 
-    template<std::integral T>
-    const char8_t* to_string_intermediate(char8_t buffer[BUFFER_SIZE], T value, int32_t base = 10)
-    {
-        char* buffer_ptr = reinterpret_cast<char*>(buffer);
-        
-        auto [ptr, ec] = std::to_chars(buffer_ptr, buffer_ptr + BUFFER_SIZE, value, base);
-        
-        if (ec == std::errc{}) {
-            return buffer;
-        }
-        return u8"";
+    if(ec == std::errc{}) {
+        const char8_t* end_ptr = reinterpret_cast<const char8_t*>(ptr);
+        return std::u8string(buffer.data(), end_ptr);
     }
+    return std::u8string();
+}
 
-    template<std::floating_point T>
-    const char8_t* to_string_intermediate(char8_t buffer[BUFFER_SIZE], T value, std::chars_format fmt = std::chars_format::general)
-    {
-        char* buffer_ptr = reinterpret_cast<char*>(buffer);
-        
-        auto [ptr, ec] = std::to_chars(buffer_ptr, buffer_ptr + BUFFER_SIZE, value, fmt);
-        
-        if (ec == std::errc{}) {
-            return buffer;
-        }
-        return u8"";
+template<std::floating_point T>
+std::u8string to_string(T value, std::chars_format fmt = std::chars_format::general)
+{
+    std::array<char8_t, BUFFER_SIZE> buffer{};
+    char* buffer_ptr = reinterpret_cast<char*>(buffer.data());
+
+    auto [ptr, ec] = std::to_chars(buffer_ptr, buffer_ptr + buffer.size(), value, fmt);
+
+    if(ec == std::errc{}) {
+        const char8_t* end_ptr = reinterpret_cast<const char8_t*>(ptr);
+        return std::u8string(buffer.data(), end_ptr);
     }
+    return std::u8string();
+}
 
+template<std::integral T>
+const char8_t* to_string_intermediate(char8_t buffer[BUFFER_SIZE], T value, int32_t base = 10)
+{
+    char* buffer_ptr = reinterpret_cast<char*>(buffer);
+
+    auto [ptr, ec] = std::to_chars(buffer_ptr, buffer_ptr + BUFFER_SIZE, value, base);
+
+    if(ec == std::errc{}) {
+        return buffer;
+    }
+    return u8"";
+}
+
+template<std::floating_point T>
+const char8_t* to_string_intermediate(char8_t buffer[BUFFER_SIZE], T value, std::chars_format fmt = std::chars_format::general)
+{
+    char* buffer_ptr = reinterpret_cast<char*>(buffer);
+
+    auto [ptr, ec] = std::to_chars(buffer_ptr, buffer_ptr + BUFFER_SIZE, value, fmt);
+
+    if(ec == std::errc{}) {
+        return buffer;
+    }
+    return u8"";
+}
+
+uint32_t get_physical_core_count();
 
 /** Initializes global tree-sitter state (installs the mimalloc-backed allocator). Call once before parsing. */
 void initialize();

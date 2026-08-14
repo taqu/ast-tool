@@ -100,7 +100,8 @@ elseif(UNIX)
     target_link_libraries(${PROJECT_NAME}
     PRIVATE
         $<$<CONFIG:Debug>:TREESITTER ${TREESITTER_LANGS} ${ABSL_DEBUG_LIBS} RE2 GIT2>
-        $<$<NOT:$<CONFIG:Debug>>:TREESITTER ${TREESITTER_LANGS} ${ABSL_RELEASE_LIBS} RE2 GIT2>)
+        $<$<NOT:$<CONFIG:Debug>>:TREESITTER ${TREESITTER_LANGS} ${ABSL_RELEASE_LIBS} RE2 GIT2>
+        Threads::Threads)
 elseif(APPLE)
 endif()
 

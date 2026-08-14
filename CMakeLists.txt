@@ -5,13 +5,15 @@ set(CMAKE_CONFIGURATION_TYPES "Debug" "Release")
 set(PROJECT_NAME ast-tool)
 project(${PROJECT_NAME})
 
+find_package(Threads REQUIRED)
+
 set(PROJECT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(HEADER_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/src")
 include_directories(AFTER ${HEADER_ROOT})
 
 # tree-sitter
-set(TREESITTER_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/tree-sitter")
+set(TREESITTER_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/tree-sitter")
 set(TREESITTER_INCLUDE ${TREESITTER_ROOT}/include)
 set(TREESITTER_LIB ${TREESITTER_ROOT}/lib)
 set(TREESITTER_BIN ${TREESITTER_ROOT}/bin)
@@ -219,7 +221,8 @@ elseif(UNIX)
     target_link_libraries(${PROJECT_NAME}
     PRIVATE
         $<$<CONFIG:Debug>:TREESITTER ${TREESITTER_LANGS} ${ABSL_DEBUG_LIBS} RE2 GIT2>
-        $<$<NOT:$<CONFIG:Debug>>:TREESITTER ${TREESITTER_LANGS} ${ABSL_RELEASE_LIBS} RE2 GIT2>)
+        $<$<NOT:$<CONFIG:Debug>>:TREESITTER ${TREESITTER_LANGS} ${ABSL_RELEASE_LIBS} RE2 GIT2>
+        Threads::Threads)
 elseif(APPLE)
 endif()
 

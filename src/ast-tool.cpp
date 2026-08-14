@@ -5,6 +5,18 @@
 #include <span>
 #include <string>
 #include <vector>
+#include <thread>
+
+#if defined(_WIN32) || defined(_WIN64)
+#define WINDOWS_LPC
+#include <windows.h>
+#elif defined(__linux__)
+#define LINUX_LPC
+#include <fstream>
+#include <string>
+#include <set>
+#endif
+
 #if defined(_WIN32) || defined(_WIN64)
 #    include <sys/stat.h>
 #    include <sys/types.h>
@@ -34,6 +46,56 @@
 
 namespace ast
 {
+uint32_t get_physical_core_count()
+{
+    uint32_t core_count = 0;
+
+#if defined(WINDOWS_LPC)
+    DWORD returnLength = 0;
+    if (!GetLogicalProcessorInformation(nullptr, &returnLength) && GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+        std::vector<SYSTEM_LOGICAL_PROCESSOR_INFORMATION> buffer(returnLength / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION));
+        if (GetLogicalProcessorInformation(buffer.data(), &returnLength)) {
+            for (const SYSTEM_LOGICAL_PROCESSOR_INFORMATION& info : buffer) {
+                if (info.Relationship == RelationProcessorCore) {
+                    ++core_count;
+                }
+            }
+        }
+    }
+
+#elif defined(LINUX_LPC)
+    std::ifstream cpuinfo("/proc/cpuinfo");
+    if (cpuinfo.is_open()) {
+        std::string line;
+        std::string current_phys_id = "";
+        std::string current_core_id = "";
+        std::set<std::pair<std::string, std::string>> cores;
+
+        while (std::getline(cpuinfo, line)) {
+            if (line.rfind("physical id", 0) == 0) {
+                size_t colon = line.find(':');
+                if (colon != std::string::npos) current_phys_id = line.substr(colon + 1);
+            } else if (line.rfind("core id", 0) == 0) {
+                size_t colon = line.find(':');
+                if (colon != std::string::npos) current_core_id = line.substr(colon + 1);
+            }
+            if (!current_phys_id.empty() && !current_core_id.empty()) {
+                cores.insert({current_phys_id, current_core_id});
+                current_phys_id = "";
+                current_core_id = "";
+            }
+        }
+        if (!cores.empty()) {
+            core_count = static_cast<unsigned int>(cores.size());
+        }
+    }
+#endif
+    if(core_count <= 0){
+        core_count = std::thread::hardware_concurrency();
+    }
+    return core_count;
+}
+
 void initialize()
 {
     ts_set_allocator(mi_malloc, mi_calloc, mi_realloc, mi_free);
