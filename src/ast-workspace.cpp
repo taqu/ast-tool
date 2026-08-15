@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <filesystem>
 #include <unordered_set>
-#include <atomic>
+#include <mutex>
+#include <condition_variable>
+#include <deque>
 #include <thread>
 #include "ast-tool.h"
 #include "ast-extractor.h"
@@ -19,20 +21,63 @@ namespace ast
 namespace
 {
     // -----------------------------------------------------------------------
+    // Bounded blocking queue — producer blocks when full, consumer blocks when empty.
+    // -----------------------------------------------------------------------
+
+    template<typename T>
+    class BlockingQueue
+    {
+        std::deque<T>           data_;
+        std::mutex              mu_;
+        std::condition_variable cvNotFull_;
+        std::condition_variable cvNotEmpty_;
+        size_t                  capacity_;
+        bool                    done_ = false;
+
+    public:
+        explicit BlockingQueue(size_t capacity) : capacity_(capacity) {}
+
+        void push(T v)
+        {
+            std::unique_lock lk(mu_);
+            cvNotFull_.wait(lk, [&]{ return data_.size() < capacity_ || done_; });
+            if(done_) return;
+            data_.push_back(std::move(v));
+            cvNotEmpty_.notify_one();
+        }
+
+        void markDone()
+        {
+            {
+                std::lock_guard lk(mu_);
+                done_ = true;
+            }
+            cvNotEmpty_.notify_all();
+            cvNotFull_.notify_all();
+        }
+
+        bool pop(T& v)
+        {
+            std::unique_lock lk(mu_);
+            cvNotEmpty_.wait(lk, [&]{ return !data_.empty() || done_; });
+            if(data_.empty()) return false;
+            v = std::move(data_.front());
+            data_.pop_front();
+            cvNotFull_.notify_one();
+            return true;
+        }
+    };
+
+    // -----------------------------------------------------------------------
     // Include / import collection
     // -----------------------------------------------------------------------
 
-    /** Strips one leading and one trailing character (quotes or angle brackets). */
     static std::u8string strip_delimiters(const std::u8string& s)
     {
         if(s.size() >= 2) return s.substr(1, s.size() - 2);
         return s;
     }
 
-    /**
-     * Collects direct include/import paths from @p ast.
-     * Paths are returned deduplicated and in source order.
-     */
     std::vector<std::u8string> collect_includes(const AST& ast)
     {
         std::vector<std::u8string> result;
@@ -48,7 +93,6 @@ namespace
             const ASTNode& node = ast[i];
             const char* t = node.type_;
 
-            // C / C++: #include "foo.h" or #include <foo.h>
             if(0 == ::strcmp(t, "preproc_include")) {
                 for(uintptr_t childIdx : node.children_) {
                     if(childIdx == InvalidId) continue;
@@ -63,7 +107,6 @@ namespace
                 continue;
             }
 
-            // Python: import numpy  /  from os import path
             if(0 == ::strcmp(t, "import_statement")
             || 0 == ::strcmp(t, "import_from_statement")) {
                 for(uintptr_t childIdx : node.children_) {
@@ -79,7 +122,6 @@ namespace
                 continue;
             }
 
-            // JavaScript / TypeScript: import ... from "module"
             if(0 == ::strcmp(t, "import_statement")) {
                 for(uintptr_t childIdx : node.children_) {
                     if(childIdx == InvalidId) continue;
@@ -92,19 +134,16 @@ namespace
                 continue;
             }
 
-            // Rust: use std::collections::HashMap;
             if(0 == ::strcmp(t, "use_declaration")) {
                 push(node.getText());
                 continue;
             }
 
-            // Java / Go: import java.util.List  /  import "fmt"
             if(0 == ::strcmp(t, "import_declaration")) {
                 push(node.getText());
                 continue;
             }
 
-            // Go: individual path inside import block: import_spec → interpreted_string_literal
             if(0 == ::strcmp(t, "import_spec")) {
                 for(uintptr_t childIdx : node.children_) {
                     if(childIdx == InvalidId) continue;
@@ -138,7 +177,7 @@ namespace
         AnalysisResult result;
 
         AST ast = parse(path.u8string().c_str());
-        if(!ast) return result;  // parsed remains false
+        if(!ast) return result;
 
         result.parsed = true;
 
@@ -167,13 +206,58 @@ namespace
     }
 
     // -----------------------------------------------------------------------
-    // Recursive directory scanner
+    // Merge a single AnalysisResult into the shared Workspace.
+    // Call only while holding the workspace mutex.
     // -----------------------------------------------------------------------
 
+    void merge_result(Workspace& ws, AnalysisResult&& r)
+    {
+        if(!r.parsed) {
+            ++ws.failedCount;
+            return;
+        }
+        ++ws.parsedCount;
+        ws.deps.push_back(std::move(r.dependencies));
+        ws.symbols.insert(ws.symbols.end(),
+            std::make_move_iterator(r.symbols.begin()),
+            std::make_move_iterator(r.symbols.end()));
+        ws.translationUnits.push_back(std::move(r.translationUnit));
+    }
+
+    // -----------------------------------------------------------------------
+    // Sort workspace vectors by file path for deterministic output.
+    // Called once after all workers have finished, with no lock needed.
+    // -----------------------------------------------------------------------
+
+    void sort_workspace(Workspace& ws)
+    {
+        std::sort(ws.translationUnits.begin(), ws.translationUnits.end(),
+            [](const TranslationUnit& a, const TranslationUnit& b) {
+                return a.path < b.path;
+            });
+
+        std::sort(ws.deps.begin(), ws.deps.end(),
+            [](const FileDependencies& a, const FileDependencies& b) {
+                return a.file < b.file;
+            });
+
+        std::sort(ws.symbols.begin(), ws.symbols.end(),
+            [](const WorkspaceSymbol& a, const WorkspaceSymbol& b) {
+                if(a.sourceFile != b.sourceFile) return a.sourceFile < b.sourceFile;
+                if(a.symbol.line != b.symbol.line) return a.symbol.line < b.symbol.line;
+                return a.symbol.column < b.symbol.column;
+            });
+    }
+
+    // -----------------------------------------------------------------------
+    // Recursive directory scanner — emits discovered paths via callback.
+    // -----------------------------------------------------------------------
+
+    template<typename Emit>
     void scan_recursive(
         const std::filesystem::path& dir,
         const IgnoreMatcher& matcher,
-        std::vector<std::filesystem::path>& files)
+        Emit&& emit)
     {
         std::error_code ec;
         for(const auto& entry : std::filesystem::directory_iterator(dir, ec)) {
@@ -187,11 +271,11 @@ namespace
 
             std::error_code typeEc;
             if(entry.is_directory(typeEc)) {
-                scan_recursive(entry.path(), matcher, files);
+                scan_recursive(entry.path(), matcher, emit);
             } else if(entry.is_regular_file(typeEc)) {
                 auto ext = entry.path().extension();
                 if(get_language_type_from_extension(ext.c_str()) != ASTLanguage::Unknown) {
-                    files.push_back(entry.path());
+                    emit(entry.path());
                 }
             }
         }
@@ -217,7 +301,6 @@ IgnoreMatcher::IgnoreMatcher(const std::filesystem::path& searchPath)
             repo_ = repo;
             workdir_ = std::filesystem::path(reinterpret_cast<const char8_t*>(wd));
         } else {
-            // Bare repository — no working directory; treat as non-git.
             git_repository_free(repo);
         }
     }
@@ -288,77 +371,125 @@ std::vector<std::filesystem::path> scan_workspace(const char8_t* root)
     if(!std::filesystem::is_directory(rootPath, ec) || ec) return files;
 
     IgnoreMatcher matcher(rootPath);
-    scan_recursive(rootPath, matcher, files);
+    scan_recursive(rootPath, matcher, [&](std::filesystem::path p) {
+        files.push_back(std::move(p));
+    });
     std::sort(files.begin(), files.end());
     return files;
 }
 
 Workspace analyze_workspace(const char8_t* root)
 {
-    return analyze_files(scan_workspace(root));
+    if(nullptr == root) return {};
+
+    std::filesystem::path rootPath(root);
+    std::error_code ec;
+    if(!std::filesystem::is_directory(rootPath, ec) || ec) return {};
+
+    constexpr size_t kQueueCapacity = 256;
+    BlockingQueue<std::filesystem::path> queue(kQueueCapacity);
+
+    // All discovered paths, collected by the scan thread.
+    // Read by the main thread only after scanThread.join().
+    std::vector<std::filesystem::path> allFiles;
+
+    Workspace ws;
+    std::mutex wsMu;
+
+    // Producer: scan the directory tree and stream paths into the queue.
+    std::thread scanThread([&]() noexcept {
+        try {
+            IgnoreMatcher matcher(rootPath);
+            scan_recursive(rootPath, matcher, [&](std::filesystem::path p) {
+                allFiles.push_back(p);
+                queue.push(std::move(p));
+            });
+        } catch(...) {}
+        queue.markDone();
+    });
+
+    // Workers: consume paths, analyze each file, immediately merge the result.
+    const uint32_t hwThreads = ast::get_physical_core_count();
+    const uint32_t nWorkers  = std::max(1u, hwThreads);
+
+    std::vector<std::thread> workers;
+    workers.reserve(nWorkers);
+    for(uint32_t i = 0; i < nWorkers; ++i) {
+        workers.emplace_back([&]() noexcept {
+            std::filesystem::path path;
+            while(queue.pop(path)) {
+                try {
+                    AnalysisResult r = analyze_one(path);
+                    std::lock_guard lk(wsMu);
+                    merge_result(ws, std::move(r));
+                } catch(...) {
+                    std::lock_guard lk(wsMu);
+                    ++ws.failedCount;
+                }
+            }
+        });
+    }
+
+    scanThread.join();
+    for(std::thread& w : workers) w.join();
+
+    std::sort(allFiles.begin(), allFiles.end());
+    ws.files = std::move(allFiles);
+
+    sort_workspace(ws);
+    return ws;
 }
 
 Workspace analyze_files(const std::vector<std::filesystem::path>& files)
 {
     const size_t N = files.size();
+    if(N == 0) return {};
 
-    // Pre-allocate one result slot per file so workers write to distinct indices.
-    std::vector<AnalysisResult> results(N);
+    constexpr size_t kQueueCapacity = 256;
+    BlockingQueue<std::filesystem::path> queue(std::min(kQueueCapacity, N));
 
-    const uint32_t hwThreads = ast::get_physical_core_count();
-    const size_t nThreads = (hwThreads > 1 && N > 1)
-                          ? std::min(static_cast<size_t>(hwThreads), N)
-                          : 0;
-
-    if(nThreads > 0) {
-        // Atomic counter drives dynamic load balancing: each worker grabs the
-        // next unprocessed file index until the queue is exhausted.
-        std::atomic<size_t> nextIdx{0};
-
-        auto worker = [&]() noexcept {
-            for(;;) {
-                const size_t i = nextIdx.fetch_add(1, std::memory_order_relaxed);
-                if(i >= N) break;
-                try {
-                    results[i] = analyze_one(files[i]);
-                } catch(...) {
-                    // Parse failure recorded via results[i].parsed == false.
-                }
-            }
-        };
-
-        std::vector<std::thread> threads;
-        threads.reserve(nThreads);
-        for(size_t t = 0; t < nThreads; ++t) threads.emplace_back(worker);
-        for(std::thread& t : threads) t.join();
-    } else {
-        for(size_t i = 0; i < N; ++i) {
-            results[i] = analyze_one(files[i]);
-        }
-    }
-
-    // Single-threaded merge: combine per-file results into the shared Workspace.
-    // Processing in file-index order preserves deterministic output ordering.
     Workspace ws;
     ws.files = files;
     ws.symbols.reserve(N * 8);
     ws.deps.reserve(N);
     ws.translationUnits.reserve(N);
+    std::mutex wsMu;
 
-    for(size_t i = 0; i < N; ++i) {
-        AnalysisResult& r = results[i];
-        if(!r.parsed) {
-            ++ws.failedCount;
-            continue;
+    const uint32_t hwThreads = ast::get_physical_core_count();
+    const size_t nWorkers = (hwThreads > 1 && N > 1)
+                          ? std::min(static_cast<size_t>(hwThreads), N)
+                          : 1;
+
+    // Feed the input file list into the bounded queue.
+    std::thread feeder([&]() noexcept {
+        for(const auto& p : files) {
+            queue.push(p);
         }
-        ++ws.parsedCount;
-        ws.deps.push_back(std::move(r.dependencies));
-        ws.symbols.insert(ws.symbols.end(),
-            std::make_move_iterator(r.symbols.begin()),
-            std::make_move_iterator(r.symbols.end()));
-        ws.translationUnits.push_back(std::move(r.translationUnit));
+        queue.markDone();
+    });
+
+    std::vector<std::thread> workers;
+    workers.reserve(nWorkers);
+    for(size_t i = 0; i < nWorkers; ++i) {
+        workers.emplace_back([&]() noexcept {
+            std::filesystem::path path;
+            while(queue.pop(path)) {
+                try {
+                    AnalysisResult r = analyze_one(path);
+                    std::lock_guard lk(wsMu);
+                    merge_result(ws, std::move(r));
+                } catch(...) {
+                    std::lock_guard lk(wsMu);
+                    ++ws.failedCount;
+                }
+            }
+        });
     }
 
+    feeder.join();
+    for(std::thread& w : workers) w.join();
+
+    sort_workspace(ws);
     return ws;
 }
 

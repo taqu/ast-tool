@@ -130,9 +130,7 @@ def main():
 
         # 7. Claude Code を【非対話・自律モード】で実行する
         claude_instruction = (
-            "Read 'SWE_PROBLEM_STATEMENT.md' to understand the issue. "
-            "Locate the bug, modify the source code to fix it, and ensure all relevant tests pass. "
-            "Once the fix is completed and verified, exit automatically without waiting for my input."
+            "Read 'SWE_PROBLEM_STATEMENT.md' to understand the issue. Locate the bug, modify the source code to fix it, and ensure all relevant tests pass. Once the fix is completed and verified, exit automatically without waiting for my input."
         )
         
         print(f"Launching Claude Code in autonomous mode...")
