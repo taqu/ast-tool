@@ -620,7 +620,7 @@ void AST::remap_ids()
 
 uint32_t AST::size() const
 {
-    return nodes_.size();
+    return static_cast<uint32_t>(nodes_.size());
 }
 
 const ASTNode& AST::operator[](size_t index) const
@@ -748,7 +748,7 @@ AST parse(const char8_t* path)
     }
     ts_parser_set_language(parser, language);
 
-    TSTree* tree = ts_parser_parse_string_encoding(parser, nullptr, ast, ast.text_size(), TSInputEncodingUTF8);
+    TSTree* tree = ts_parser_parse_string_encoding(parser, nullptr, ast, static_cast<uint32_t>(ast.text_size()), TSInputEncodingUTF8);
 
     traverse_all_nodes(ast, ts_tree_root_node(tree));
     ast.remap_ids();

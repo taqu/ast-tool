@@ -91,12 +91,13 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 23)
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 
 if(MSVC)
+    set(CMAKE_CXX_FLAGS "${DEFAULT_CXX_FLAGS} -DAST_TOOL_TEST")
     target_link_libraries(${PROJECT_NAME}
     PRIVATE
         $<$<CONFIG:Debug>:TREESITTER ${TREESITTER_LANGS} ${ABSL_DEBUG_LIBS} RE2 GIT2 winhttp.lib rpcrt4.lib crypt32.lib>
         $<$<NOT:$<CONFIG:Debug>>:TREESITTER ${TREESITTER_LANGS} ${ABSL_RELEASE_LIBS} RE2 GIT2 winhttp.lib rpcrt4.lib crypt32.lib>)
 elseif(UNIX)
-    set(CMAKE_CXX_FLAGS "${DEFAULT_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${DEFAULT_CXX_FLAGS} -DAST_TOOL_TEST")
     target_link_libraries(${PROJECT_NAME}
     PRIVATE
         $<$<CONFIG:Debug>:TREESITTER ${TREESITTER_LANGS} ${ABSL_DEBUG_LIBS} RE2 GIT2>

@@ -3,10 +3,6 @@
 #include <algorithm>
 #include <filesystem>
 #include <unordered_set>
-#include <mutex>
-#include <condition_variable>
-#include <deque>
-#include <thread>
 #include "ast-tool.h"
 #include "ast-extractor.h"
 #include "ast-scope-builder.h"
@@ -20,54 +16,6 @@ namespace ast
 {
 namespace
 {
-    // -----------------------------------------------------------------------
-    // Bounded blocking queue — producer blocks when full, consumer blocks when empty.
-    // -----------------------------------------------------------------------
-
-    template<typename T>
-    class BlockingQueue
-    {
-        std::deque<T>           data_;
-        std::mutex              mu_;
-        std::condition_variable cvNotFull_;
-        std::condition_variable cvNotEmpty_;
-        size_t                  capacity_;
-        bool                    done_ = false;
-
-    public:
-        explicit BlockingQueue(size_t capacity) : capacity_(capacity) {}
-
-        void push(T v)
-        {
-            std::unique_lock lk(mu_);
-            cvNotFull_.wait(lk, [&]{ return data_.size() < capacity_ || done_; });
-            if(done_) return;
-            data_.push_back(std::move(v));
-            cvNotEmpty_.notify_one();
-        }
-
-        void markDone()
-        {
-            {
-                std::lock_guard lk(mu_);
-                done_ = true;
-            }
-            cvNotEmpty_.notify_all();
-            cvNotFull_.notify_all();
-        }
-
-        bool pop(T& v)
-        {
-            std::unique_lock lk(mu_);
-            cvNotEmpty_.wait(lk, [&]{ return !data_.empty() || done_; });
-            if(data_.empty()) return false;
-            v = std::move(data_.front());
-            data_.pop_front();
-            cvNotFull_.notify_one();
-            return true;
-        }
-    };
-
     // -----------------------------------------------------------------------
     // Include / import collection
     // -----------------------------------------------------------------------
@@ -163,15 +111,6 @@ namespace
     // -----------------------------------------------------------------------
     // Per-file analysis — returns an owned result; safe to call concurrently.
     // -----------------------------------------------------------------------
-
-    struct AnalysisResult
-    {
-        TranslationUnit translationUnit;
-        FileDependencies dependencies;
-        std::vector<WorkspaceSymbol> symbols;
-        bool parsed = false;
-    };
-
     AnalysisResult analyze_one(const std::filesystem::path& path)
     {
         AnalysisResult result;

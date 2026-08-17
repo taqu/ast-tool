@@ -25,9 +25,70 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <functional>
+#include <mutex>
+#include <condition_variable>
+#include <deque>
+#include <thread>
 
 namespace ast
 {
+// -----------------------------------------------------------------------
+// Bounded blocking queue — producer blocks when full, consumer blocks when empty.
+// -----------------------------------------------------------------------
+
+template<typename T>
+class BlockingQueue
+{
+    std::deque<T> data_;
+    std::mutex mu_;
+    std::condition_variable cvNotFull_;
+    std::condition_variable cvNotEmpty_;
+    size_t capacity_;
+    bool done_ = false;
+
+public:
+    explicit BlockingQueue(size_t capacity)
+        : capacity_(capacity)
+    {
+    }
+
+    void push(T v)
+    {
+        std::unique_lock lk(mu_);
+        cvNotFull_.wait(lk, [&] {
+            return data_.size() < capacity_ || done_;
+        });
+        if(done_)
+            return;
+        data_.push_back(std::move(v));
+        cvNotEmpty_.notify_one();
+    }
+
+    void markDone()
+    {
+        {
+            std::lock_guard lk(mu_);
+            done_ = true;
+        }
+        cvNotEmpty_.notify_all();
+        cvNotFull_.notify_all();
+    }
+
+    bool pop(T& v)
+    {
+        std::unique_lock lk(mu_);
+        cvNotEmpty_.wait(lk, [&] {
+            return !data_.empty() || done_;
+        });
+        if(data_.empty())
+            return false;
+        v = std::move(data_.front());
+        data_.pop_front();
+        cvNotFull_.notify_one();
+        return true;
+    }
+};
 
 /**
  * @brief Encapsulates Git ignore matching for workspace scans.
@@ -115,6 +176,14 @@ struct FileDependencies
     std::vector<std::u8string> includes; ///< Include/import paths, deduplicated, as written.
 };
 
+struct AnalysisResult
+{
+    TranslationUnit translationUnit;
+    FileDependencies dependencies;
+    std::vector<WorkspaceSymbol> symbols;
+    bool parsed = false;
+};
+
 /**
  * @brief In-memory representation of a parsed workspace.
  *
@@ -159,6 +228,67 @@ std::vector<std::filesystem::path> scan_workspace(const char8_t* root);
 Workspace analyze_workspace(const char8_t* root);
 
 /**
+ * @brief Parses and analyzes every source file under root.
+ * @return The aggregated results.  Returns an empty results if root
+ *         is null or no supported files are found.
+ */
+template<class R>
+std::vector<R> analyze_workspace_stream(const char8_t* root, std::function<R(const std::filesystem::path&)> func)
+{
+    std::vector<R> results;
+    if(nullptr == root) {
+        return results;
+    }
+
+    std::filesystem::path rootPath(root);
+    std::error_code ec;
+    if(!std::filesystem::is_directory(rootPath, ec) || ec){
+        return results;
+    }
+
+    constexpr size_t kQueueCapacity = 256;
+    BlockingQueue<std::filesystem::path> queue(kQueueCapacity);
+
+    std::mutex wsMu;
+
+    // Producer: scan the directory tree and stream paths into the queue.
+    std::thread scanThread([&]() noexcept {
+        try {
+            scan_recursive(rootPath, [&](std::filesystem::path p) {
+                queue.push(std::move(p));
+            });
+        } catch(...) {}
+        queue.markDone();
+    });
+
+    // Workers: consume paths, analyze each file, immediately merge the result.
+    const uint32_t hwThreads = std::thread::hardware_concurrency();
+    const uint32_t nWorkers  = std::max(1u, hwThreads);
+
+    std::vector<std::thread> workers;
+    workers.reserve(nWorkers);
+    for(uint32_t i = 0; i < nWorkers; ++i) {
+        workers.emplace_back([&]() noexcept {
+            std::filesystem::path path;
+            while(queue.pop(path)) {
+                try {
+                    R r = func(path);
+                    if(r){
+                        std::lock_guard lk(wsMu);
+                        results.push_back(r);
+                    }
+                } catch(...) {
+                }
+            }
+        });
+    }
+
+    scanThread.join();
+    for(std::thread& w : workers) w.join();
+    return results;
+}
+
+/**
  * @brief Parses and analyzes the given list of source files.
  *
  * For each file the pipeline is:
@@ -171,6 +301,5 @@ Workspace analyze_workspace(const char8_t* root);
  * @param files Paths to source files.  Order is preserved in Workspace::files.
  */
 Workspace analyze_files(const std::vector<std::filesystem::path>& files);
-
 } // namespace ast
 #endif // INC_AST_WORKSPACE_H_
