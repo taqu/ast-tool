@@ -163,6 +163,30 @@ namespace
         ws.translationUnits.push_back(std::move(r.translationUnit));
     }
 
+    void merge_result(Workspace& ws, AnalysisResult&& r, std::function<bool(const WorkspaceSymbol&)> match, std::mutex& mu)
+    {
+        if(!r.parsed) {
+            std::lock_guard lk(mu);
+            ++ws.failedCount;
+            return;
+        }
+        bool found = false;
+        for(WorkspaceSymbol& sym : r.symbols) {
+            if(match(sym)) {
+                std::lock_guard lk(mu);
+                ws.symbols.push_back(std::move(sym));
+                found = true;
+            }
+        }
+
+        if(found){
+            std::lock_guard lk(mu);
+            ++ws.parsedCount;
+            ws.deps.push_back(std::move(r.dependencies));
+            ws.translationUnits.push_back(std::move(r.translationUnit));
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Sort workspace vectors by file path for deterministic output.
     // Called once after all workers have finished, with no lock needed.
@@ -376,6 +400,61 @@ Workspace analyze_workspace(const char8_t* root)
     ws.files = std::move(allFiles);
 
     sort_workspace(ws);
+    return ws;
+}
+
+Workspace analyze_workspace_stream(const char8_t* root, std::function<bool(const WorkspaceSymbol&)> match)
+{
+    if(nullptr == root) {
+        return {};
+    }
+
+    std::filesystem::path rootPath(root);
+    std::error_code ec;
+    if(!std::filesystem::is_directory(rootPath, ec) || ec){
+        return {};
+    }
+
+    constexpr size_t kQueueCapacity = 256;
+    BlockingQueue<std::filesystem::path> queue(kQueueCapacity);
+
+    Workspace ws;
+    std::mutex wsMu;
+
+    // Producer: scan the directory tree and stream paths into the queue.
+    std::thread scanThread([&]() noexcept {
+        try {
+            IgnoreMatcher matcher(rootPath);
+            scan_recursive(rootPath, matcher, [&](std::filesystem::path p) {
+                queue.push(std::move(p));
+            });
+        } catch(...) {}
+        queue.markDone();
+    });
+
+    // Workers: consume paths, analyze each file, immediately merge the result.
+    const uint32_t hwThreads = std::thread::hardware_concurrency();
+    const uint32_t nWorkers  = std::max(1u, hwThreads);
+
+    std::vector<std::thread> workers;
+    workers.reserve(nWorkers);
+    for(uint32_t i = 0; i < nWorkers; ++i) {
+        workers.emplace_back([&]() noexcept {
+            std::filesystem::path path;
+            while(queue.pop(path)) {
+                try {
+                    AnalysisResult r = analyze_one(path);
+                    merge_result(ws, std::move(r), match, wsMu);
+                } catch(...) {
+                    std::lock_guard lk(wsMu);
+                    ++ws.failedCount;
+                }
+            }
+        });
+    }
+
+    scanThread.join();
+    for(std::thread& w : workers) w.join();
     return ws;
 }
 

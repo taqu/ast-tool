@@ -41,57 +41,6 @@ namespace
         }
     }
 
-    std::vector<const WorkspaceSymbol> search(const ArgSearch& arguments)
-    {
-        std::vector<const WorkspaceSymbol> workspaceSimbols;
-        if(nullptr == arguments.root_) {
-            return workspaceSimbols;
-        }
-
-        auto q = build_search_query(
-            arguments.name_,
-            arguments.fqn_,
-            arguments.kind_,
-            arguments.file_,
-            arguments.name_regex_,
-            arguments.fqn_regex_,
-            arguments.file_regex_);
-        if(!q) {
-            std::print(stderr, "error: {}\n", (const char*)q.error().c_str());
-            return false;
-        }
-
-        Workspace ws = analyze_workspace(arguments.root_);
-        SemanticSearchEngine engine(ws);
-        std::vector<const WorkspaceSymbol*> results = engine.search(*q);
-
-        if(arguments.json_) {
-            std::print("[");
-            if(arguments.pretty_) {
-                std::print("\n");
-            }
-            for(size_t i = 0; i < results.size(); ++i) {
-                bool last = (i == results.size() - 1);
-                if(arguments.pretty_) {
-                    print_result_json_pretty(*results[i], last);
-                } else {
-                    print_result_json(*results[i], last);
-                }
-            }
-            std::print("]\n");
-        } else {
-            for(const WorkspaceSymbol* r: results) {
-                std::print("{} {} {}:{}:{}\n",
-                           getSymbolKindName(r->symbol.kind),
-                           (const char*)r->symbol.fqn.c_str(),
-                           (const char*)r->sourceFile.u8string().c_str(),
-                           r->symbol.line + 1,
-                           r->symbol.column + 1);
-            }
-        }
-        return true;
-    }
-
 } // namespace
 
 bool parse_search(Arguments& arguments, int32_t argc, const char8_t** argv)
@@ -179,6 +128,7 @@ bool search(const ArgSearch& arguments)
         return false;
     }
 
+#if defined(AST_TOOL_TEST) || defined(_DEBUG)
     Workspace ws = analyze_workspace(arguments.root_);
     SemanticSearchEngine engine(ws);
     std::vector<const WorkspaceSymbol*> results = engine.search(*q);
@@ -207,6 +157,60 @@ bool search(const ArgSearch& arguments)
                        r->symbol.column + 1);
         }
     }
+
+    {
+        SemanticSearchEngineOneShot engineOneShot(*q);
+        auto match = [&engineOneShot](const WorkspaceSymbol& r) -> bool {
+            return engineOneShot.match(r);
+        };
+        Workspace ws2 = analyze_workspace_stream(arguments.root_, match);
+        if(ws2.symbols.size() != results.size()){
+            std::print("ERROR: {} != {}\n", ws2.symbols.size(), results.size());
+        }else{
+            bool success = true;
+            for(size_t i=0; i<ws2.symbols.size(); ++i){
+                for(size_t j=0; j<results.size(); ++j){
+                    if(!(ws2.symbols[i] == *results[i])){
+                        success = false;
+                    }
+                }
+            }
+            if(!success){
+                return success;
+            }
+        }
+    }
+#else
+    SemanticSearchEngineOneShot engineOneShot(*q);
+    auto match = [&engineOneShot](const WorkspaceSymbol& r) -> bool {
+        return engineOneShot.match(r);
+    };
+    Workspace ws = analyze_workspace_stream(arguments.root_, match);
+    if(arguments.json_) {
+        std::print("[");
+        if(arguments.pretty_) {
+            std::print("\n");
+        }
+        for(size_t i = 0; i < ws.symbols.size(); ++i) {
+            bool last = (i == ws.symbols.size() - 1);
+            if(arguments.pretty_) {
+                print_result_json_pretty(ws.symbols[i], last);
+            } else {
+                print_result_json(ws.symbols[i], last);
+            }
+        }
+        std::print("]\n");
+    } else {
+        for(const WorkspaceSymbol& r: ws.symbols) {
+            std::print("{} {} {}:{}:{}\n",
+                       getSymbolKindName(r.symbol.kind),
+                       (const char*)r.symbol.fqn.c_str(),
+                       (const char*)r.sourceFile.u8string().c_str(),
+                       r.symbol.line + 1,
+                       r.symbol.column + 1);
+        }
+    }
+#endif
     return true;
 }
 } // namespace ast

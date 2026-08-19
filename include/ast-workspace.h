@@ -162,6 +162,13 @@ struct WorkspaceSymbol
     Symbol symbol;                              ///< Symbol data (name, fqn, kind, etc.).
     std::filesystem::path sourceFile;           ///< Path of the file that declares this symbol.
     ScopeKind owningScope = ScopeKind::Unknown; ///< Kind of the scope that declares this symbol.
+
+    bool operator==(const WorkspaceSymbol& other) const
+    {
+        return symbol == other.symbol &&
+               sourceFile == other.sourceFile &&
+               owningScope == other.owningScope;
+    }
 };
 
 /**
@@ -232,61 +239,7 @@ Workspace analyze_workspace(const char8_t* root);
  * @return The aggregated results.  Returns an empty results if root
  *         is null or no supported files are found.
  */
-template<class R>
-std::vector<R> analyze_workspace_stream(const char8_t* root, std::function<R(const std::filesystem::path&)> func)
-{
-    std::vector<R> results;
-    if(nullptr == root) {
-        return results;
-    }
-
-    std::filesystem::path rootPath(root);
-    std::error_code ec;
-    if(!std::filesystem::is_directory(rootPath, ec) || ec){
-        return results;
-    }
-
-    constexpr size_t kQueueCapacity = 256;
-    BlockingQueue<std::filesystem::path> queue(kQueueCapacity);
-
-    std::mutex wsMu;
-
-    // Producer: scan the directory tree and stream paths into the queue.
-    std::thread scanThread([&]() noexcept {
-        try {
-            scan_recursive(rootPath, [&](std::filesystem::path p) {
-                queue.push(std::move(p));
-            });
-        } catch(...) {}
-        queue.markDone();
-    });
-
-    // Workers: consume paths, analyze each file, immediately merge the result.
-    const uint32_t hwThreads = std::thread::hardware_concurrency();
-    const uint32_t nWorkers  = std::max(1u, hwThreads);
-
-    std::vector<std::thread> workers;
-    workers.reserve(nWorkers);
-    for(uint32_t i = 0; i < nWorkers; ++i) {
-        workers.emplace_back([&]() noexcept {
-            std::filesystem::path path;
-            while(queue.pop(path)) {
-                try {
-                    R r = func(path);
-                    if(r){
-                        std::lock_guard lk(wsMu);
-                        results.push_back(r);
-                    }
-                } catch(...) {
-                }
-            }
-        });
-    }
-
-    scanThread.join();
-    for(std::thread& w : workers) w.join();
-    return results;
-}
+Workspace analyze_workspace_stream(const char8_t* root, std::function<bool(const WorkspaceSymbol&)> match);
 
 /**
  * @brief Parses and analyzes the given list of source files.

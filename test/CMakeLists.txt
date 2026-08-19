@@ -112,6 +112,7 @@ set_target_properties(${PROJECT_NAME}
         OUTPUT_NAME_DEBUG "${PROJECT_NAME}" OUTPUT_NAME_RELEASE "${PROJECT_NAME}"
         VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_ROOT}")
 
+if(MSVC)
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -119,3 +120,5 @@ add_custom_command(
         $<TARGET_FILE_DIR:${PROJECT_NAME}>
     COMMENT "Copying external DLLs..."
 )
+endif()
+

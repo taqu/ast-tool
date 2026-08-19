@@ -15,12 +15,16 @@ include_directories(AFTER ${HEADER_ROOT})
 # tree-sitter
 set(TREESITTER_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/tree-sitter")
 set(TREESITTER_INCLUDE ${TREESITTER_ROOT}/include)
-set(TREESITTER_LIB ${TREESITTER_ROOT}/lib)
-set(TREESITTER_BIN ${TREESITTER_ROOT}/bin)
+if(MSVC)
+set(TREESITTER_LIB ${TREESITTER_ROOT}/lib/win)
+set(TREESITTER_BIN ${TREESITTER_ROOT}/bin/win)
+elseif(UNIX)
+set(TREESITTER_LIB ${TREESITTER_ROOT}/lib/linux)
+endif()
 include_directories(AFTER ${TREESITTER_INCLUDE})
 link_directories(AFTER ${TREESITTER_LIB})
 add_library(TREESITTER MODULE IMPORTED)
-set_target_properties(TREESITTER PROPERTIES IMPORTED_LOCATION_DEBUG "tree-sitterd.lib" IMPORTED_LOCATION_RELEASE "tree-sitter.lib")
+set_target_properties(TREESITTER PROPERTIES IMPORTED_LOCATION_DEBUG "tree-sitter.lib" IMPORTED_LOCATION_RELEASE "tree-sitter.lib")
 
 set(TREESITTER_LANGS
     "tree-sitter-bash.lib"
@@ -94,7 +98,9 @@ link_directories(AFTER ${GIT2_LIB})
 add_library(GIT2 MODULE IMPORTED)
 set_target_properties(GIT2 PROPERTIES IMPORTED_LOCATION_DEBUG "git2d.lib" IMPORTED_LOCATION_RELEASE "git2.lib")
 
+if(MSVC)
 file(GLOB DLL_FILES "${TREESITTER_BIN}/*.dll")
+endif()
 
 ########################################################################
 # Sources
@@ -232,6 +238,7 @@ set_target_properties(${PROJECT_NAME}
     PROPERTIES
         OUTPUT_NAME_DEBUG "${PROJECT_NAME}" OUTPUT_NAME_RELEASE "${PROJECT_NAME}"
         VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_ROOT}")
+if(MSVC)
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -239,6 +246,7 @@ add_custom_command(
         $<TARGET_FILE_DIR:${PROJECT_NAME}>
     COMMENT "Copying external DLLs..."
 )
+endif()
 
 add_subdirectory(test)
 

@@ -65,6 +65,11 @@ struct Symbol
     size_t nodeIndex = ast::ExtractorInvalidId; ///< Index of the associated ASTNode within the source AST, or ExtractorInvalidId if none.
     uint32_t line = 0;                          ///< Source line (0-based) where the symbol is declared.
     uint32_t column = 0;                        ///< Source column (0-based) where the symbol is declared.
+
+    bool operator==(const Symbol& other) const
+    {
+        return nodeIndex == other.nodeIndex;
+    }
 };
 
 /**
