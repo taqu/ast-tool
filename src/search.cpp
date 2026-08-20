@@ -167,16 +167,17 @@ bool search(const ArgSearch& arguments)
         if(ws2.symbols.size() != results.size()){
             std::print("ERROR: {} != {}\n", ws2.symbols.size(), results.size());
         }else{
-            bool success = true;
+            size_t count = 0;
             for(size_t i=0; i<ws2.symbols.size(); ++i){
-                for(size_t j=0; j<results.size(); ++j){
-                    if(!(ws2.symbols[i] == *results[i])){
-                        success = false;
+                for(size_t j=i+1; j<results.size(); ++j){
+                    if(ws2.symbols[i] == *results[j]){
+                        ++count;
+                        break;
                     }
                 }
             }
-            if(!success){
-                return success;
+            if(!count == results.size()){
+                return true;
             }
         }
     }
