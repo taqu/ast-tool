@@ -1,0 +1,27 @@
+id: smoke-001
+
+repository: repositories/basic-01
+
+prompt: |
+  This is a C++ project with a greet() function declared in src/greeter.h.
+
+  Your task:
+  1. Find the declaration of greet() using ast-tool:
+       ast-tool find src/greeter.h greet
+  2. Find all call sites of greet() using ast-tool references with the line number from step 1:
+       ast-tool references src/greeter.h <line>
+  3. In src/main.cpp, add the line
+       std::cout << "Calling greet" << std::endl;
+     immediately before EACH call to greet().
+  4. Ensure #include <iostream> is present at the top of src/main.cpp.
+
+  When done, the file src/main.cpp should compile and contain the logging statement
+  before every greet() call.
+
+validation:
+  command: python validate.py
+
+expected_files:
+  - src/main.cpp
+
+timeout: 120

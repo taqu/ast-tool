@@ -1,724 +1,757 @@
-# Reorganize the Agent-Facing Skills
+# Agent Evaluation Runner — Implementation Instructions
 
-## Goal
+## 1. Objective
 
-Reorganize the existing `skills/` directory into a smaller, clearer set of agent-facing skills.
+Implement an MVP Agent Evaluation Runner for `ast-tool`.
 
-Do not delete all existing skills and recreate them blindly.
+The purpose of this runner is to evaluate how effectively Claude Code uses `ast-tool` during realistic coding tasks.
 
-Instead:
+The existing Claude Code log/statistics code should be reused and adapted rather than replaced.
 
-1. Inspect all existing skills.
-2. Identify useful content and workflows.
-3. Classify existing content as:
-   - keep
-   - move
-   - merge
-   - remove
-4. Consolidate the useful content into the new target structure.
-5. Remove obsolete skills only after their useful content has been preserved or intentionally discarded.
-6. Verify that every command referenced by the resulting skills is part of the intended agent-facing CLI surface.
+The first implementation is intentionally **Claude Code-specific**. Do not build a generic multi-agent abstraction at this stage.
 
-The goal is to reduce skill-selection ambiguity for coding agents while preserving useful existing guidance.
+The runner must execute one evaluation task at a time, collect Claude Code usage statistics, validate the resulting repository state, and persist a machine-readable evaluation result.
 
 ---
 
-# Current Structure
+## 2. Evaluation Model
 
-The current structure is approximately:
-
-```text
-skills
-├── api-review
-├── ast-inspection
-├── context-export
-├── semantic-analysis
-└── workspace-analysis
-````
-
-Inspect the actual repository contents rather than assuming that the existing files exactly match this structure.
-
-Each existing `SKILL.md` may contain useful workflows, command guidance, or architectural constraints that should be preserved.
-
----
-
-# Target Structure
-
-The final agent-facing structure should be:
+The basic execution model is:
 
 ```text
-skills
-├── semantic-analysis
-│   └── SKILL.md
-│
-├── ast-inspection
-│   └── SKILL.md
-│
-└── api-review
-    └── SKILL.md
-```
-
-The intended responsibilities are described below.
-
----
-
-# 1. `semantic-analysis`
-
-This skill is the primary entry point for understanding semantic relationships in a workspace.
-
-It should cover:
-
-```text
-ast-tool search
-ast-tool find
-ast-tool references
-ast-tool callers
-ast-tool callees
-```
-
-The skill should help an agent choose the correct command based on intent.
-
-Conceptually:
-
-```text
-Need to discover matching symbols
-        ↓
-      search
-
-Need to identify a symbol
-        ↓
-       find
-
-Need to find usages of a symbol
-        ↓
-    references
-
-Need to know who directly calls a function
-        ↓
-      callers
-
-Need to know what a function directly calls
-        ↓
-      callees
-```
-
-The skill should clearly distinguish these operations.
-
-Do not include commands that are not part of the semantic-analysis workflow unless there is a strong, demonstrated reason.
-
----
-
-# 2. `ast-inspection`
-
-This skill is for structural inspection of source code and AST-derived information.
-
-It should primarily cover:
-
-```text
-ast-tool symbols
-ast-tool outline
-ast-tool parent
-ast-tool children
-```
-
-The intended conceptual roles are:
-
-```text
-symbols
-    → inspect symbols in a source file
-
-outline
-    → inspect the structural outline of a source file
-
-parent
-    → inspect the parent relationship of an AST-derived element
-
-children
-    → inspect child relationships of an AST-derived element
-```
-
-Adapt these descriptions to the actual behavior of the commands.
-
-This skill should not duplicate the semantic-analysis workflow.
-
-Use it when structural or syntactic inspection is needed rather than semantic relationship analysis.
-
----
-
-# 3. `api-review`
-
-This skill should describe a higher-level workflow for reviewing or changing an API.
-
-It does not need to introduce a separate set of commands.
-
-Instead, it should compose the existing semantic-analysis commands.
-
-A typical workflow may be:
-
-```text
-1. Locate the target API
-        ↓
-      find
-
-2. Inspect usages
-        ↓
-   references
-
-3. Inspect incoming dependencies
-        ↓
-      callers
-
-4. Inspect outgoing dependencies
-        ↓
-      callees
-```
-
-Use `search` when the exact symbol is not known.
-
-Use structural inspection commands only when they provide information required for the review.
-
-The purpose of this skill is workflow guidance, not command duplication.
-
-Avoid copying the entire contents of `semantic-analysis/SKILL.md`.
-
-Instead, describe when and why the commands should be combined during an API review.
-
----
-
-# 4. Existing `context-export`
-
-Inspect the current `context-export` skill.
-
-Determine whether it contains useful workflow guidance that should be moved into:
-
-```text
-semantic-analysis
-```
-
-or:
-
-```text
-api-review
-```
-
-The current target CLI surface does not include a dedicated agent-facing `context` command.
-
-Therefore, do not preserve `context-export` as a separate agent-facing skill merely because a corresponding internal Semantic Service exists.
-
-If useful content describes combining:
-
-```text
-references
-callers
-callees
-```
-
-then move that guidance into the appropriate remaining skill.
-
-After useful content has been migrated or intentionally discarded, remove:
-
-```text
-skills/context-export
-```
-
----
-
-# 5. Existing `workspace-analysis`
-
-Inspect the current `workspace-analysis` skill.
-
-Determine whether it contains:
-
-* useful agent workflows
-* command usage guidance
-* architectural background
-* implementation details only
-
-The current target agent-facing CLI does not expose a dedicated workspace-analysis workflow.
-
-Do not preserve `workspace-analysis` as a separate skill if it mainly explains internal infrastructure.
-
-Useful guidance may be moved into:
-
-```text
-semantic-analysis
-```
-
-if it affects how agents should use workspace-wide commands.
-
-Architectural details that do not affect agent behavior should not be copied into the remaining skills.
-
-After useful content has been migrated or intentionally discarded, remove:
-
-```text
-skills/workspace-analysis
-```
-
----
-
-# 6. Command Classification
-
-Use the following intended classification.
-
-## Core semantic commands
-
-```text
-search
-find
-references
-callers
-callees
-```
-
-These should be documented in:
-
-```text
-skills/semantic-analysis/SKILL.md
-```
-
----
-
-## Structural inspection commands
-
-```text
-symbols
-outline
-parent
-children
-```
-
-These should be documented in:
-
-```text
-skills/ast-inspection/SKILL.md
-```
-
----
-
-## Advanced or non-default commands
-
-Commands such as:
-
-```text
-range
-dump
-```
-
-should not appear in the normal agent workflows unless inspection of the existing skills demonstrates a concrete and necessary use case.
-
-Do not delete these CLI commands.
-
-The goal is to remove them from the default agent-facing guidance, not necessarily from the binary.
-
-If they need to be mentioned at all, treat them as advanced or internal functionality.
-
-Do not encourage agents to use them before the higher-level semantic or structural commands.
-
----
-
-# 7. Avoid Skill Duplication
-
-The final skills must have clearly separated responsibilities.
-
-Avoid this:
-
-```text
-semantic-analysis
-    explains references, callers, callees
-
-api-review
-    repeats references, callers, callees in full
-
-ast-inspection
-    also explains find and references
-```
-
-Prefer this:
-
-```text
-semantic-analysis
-    command capabilities and command selection
-
-ast-inspection
-    structural inspection capabilities
-
-api-review
-    workflow combining the appropriate skills and commands
-```
-
-`api-review` should reference or compose semantic-analysis concepts rather than duplicating the entire command documentation.
-
----
-
-# 8. Keep Skills Agent-Oriented
-
-The skills are intended for coding agents.
-
-Each `SKILL.md` should help answer:
-
-```text
-When should I use this skill?
-What information can I obtain?
-Which ast-tool command should I run?
-What should I do with the result?
-```
-
-Avoid unnecessary internal details about:
-
-* Tree-sitter internals
-* AST IR implementation details
-* parser architecture
-* extractor implementation
-* Workspace internal data structures
-
-unless such information directly changes the agent's command-selection behavior.
-
-The agent should interact with `ast-tool` through stable semantic and inspection commands rather than parser internals.
-
----
-
-# 9. Do Not Document Unsupported Commands or Syntax
-
-Before writing or modifying examples:
-
-1. Inspect the actual CLI implementation.
-2. Inspect the current help output where possible.
-3. Verify the supported command syntax.
-4. Use only commands and arguments that actually exist.
-
-Do not invent:
-
-```text
-ast-tool context
-ast-tool definition
-ast-tool dependencies
-ast-tool deps
-JSON output
-file filters
-persistent sessions
-```
-
-unless those features already exist in the repository.
-
-Do not document future ideas as current capabilities.
-
----
-
-# 10. Preserve Useful Existing Content
-
-Before removing any existing skill:
-
-1. Read its `SKILL.md`.
-2. Identify useful guidance.
-3. Decide explicitly whether each important section should be:
-
-   * preserved
-   * moved
-   * merged
-   * discarded
-4. Only then remove the obsolete skill directory.
-
-Do not delete existing skill content before completing this review.
-
-The desired process is:
-
-```text
-Existing skills
+Evaluation Task
       │
       ▼
-Audit contents
-      │
-      ├── Keep
-      ├── Move
-      ├── Merge
-      └── Remove
+Prepare Repository
       │
       ▼
-Rewrite target skills
+Clear Claude Code Logs
       │
       ▼
-Remove obsolete directories
+Run Claude Code
+      │
+      ├── Claude Code session logs
+      │
+      └── Repository modifications
+      │
+      ▼
+Collect Statistics
+      │
+      ├── Token usage
+      ├── Tool usage
+      ├── ast-tool command usage
+      └── Execution time
+      │
+      ▼
+Validate Repository
+      │
+      ├── Tests
+      ├── Expected files
+      └── Other task-specific checks
+      │
+      ▼
+Persist Evaluation Result
 ```
 
-Do not use:
+One task execution must correspond to one independent evaluation record.
+
+---
+
+## 3. Scope
+
+### In scope
+
+Implement:
+
+1. Evaluation task representation
+2. Repository preparation/reset
+3. Claude Code execution
+4. Claude Code log cleanup
+5. Claude Code JSONL parsing
+6. Token usage aggregation
+7. Tool usage aggregation
+8. `ast-tool` command usage detection
+9. Execution time measurement
+10. Git diff collection
+11. Task validation
+12. JSONL result output
+13. A CLI or script entry point for running evaluations
+14. Basic error handling and logging
+
+### Out of scope
+
+Do NOT implement:
+
+* A generic multi-agent framework
+* Codex support
+* Other coding-agent adapters
+* A large task-generation framework
+* Automatic benchmark generation
+* Structured-output redesign for `ast-tool`
+* Changes to `analyze_workspace()`
+* Workspace streaming
+* Changes to Semantic Services
+* Changes to existing `ast-tool` commands
+* A web dashboard
+* Statistical visualization
+* Large-scale parallel evaluation
+
+The goal is a small, reliable MVP.
+
+---
+
+# 4. Existing Claude Code Statistics Code
+
+The existing implementation provides the following functionality:
+
+```python
+CLAUDE_LOG_DIR = Path("~/.claude/projects").expanduser()
+
+def clear_claude_logs():
+    ...
+
+def parse_session_logs():
+    ...
+```
+
+Reuse this logic.
+
+The existing parser already extracts:
 
 ```text
-Delete everything
+tokens:
+  input
+  output
+  cache_read
+  cache_creation
+
+tools:
+  tool name → invocation count
+```
+
+Preserve this behavior unless changes are necessary for reliable evaluation.
+
+Do not rewrite the parser unnecessarily.
+
+---
+
+# 5. Task Definition
+
+Introduce a small task definition format.
+
+YAML is preferred.
+
+Example:
+
+```yaml
+id: references-001
+
+repository: repositories/basic-01
+
+prompt: |
+  Find all usages of User::save() and add logging
+  to the call site in UserService.
+
+validation:
+  command: ./tests/run.sh
+
+expected_files:
+  - src/service/user_service.cpp
+```
+
+The exact schema may be adjusted to fit the existing project conventions.
+
+At minimum, a task must contain:
+
+```text
+id
+repository
+prompt
+validation
+```
+
+Optional fields may include:
+
+```text
+expected_files
+expected_exit_code
+working_directory
+timeout
+```
+
+Keep the schema small.
+
+Do not introduce unnecessary configuration complexity.
+
+---
+
+# 6. Repository Isolation
+
+Each task must start from a clean repository state.
+
+The runner must prevent changes from previous tasks from affecting subsequent tasks.
+
+The preferred approach is:
+
+```text
+clean repository
       ↓
-Recreate from memory
+copy / checkout task repository
+      ↓
+run Claude Code
+      ↓
+collect results
+      ↓
+discard changes
 ```
 
-as the strategy.
+If the existing project already has a suitable repository-reset mechanism, reuse it.
+
+Do not assume that `git reset --hard` alone is sufficient if generated/untracked files can affect the next run.
+
+Repository isolation must be deterministic.
 
 ---
 
-# 11. Recommended Workflow for This Task
+# 7. Claude Code Execution
 
-Perform the work in the following order.
+Implement a function conceptually equivalent to:
 
-## Step 1 — Audit
+```python
+run_claude(task) -> ExecutionResult
+```
 
-Inspect:
+It should:
+
+1. Prepare the environment
+2. Set:
+
+```python
+CI=true
+```
+
+3. Clear the Claude Code logs
+4. Record the start time
+5. Launch Claude Code in headless/non-interactive mode
+6. Provide the task prompt
+7. Wait for completion
+8. Record the end time
+9. Capture the process exit code
+10. Preserve stdout/stderr for debugging
+
+The runner must support a configurable timeout.
+
+A timeout must result in a failed evaluation rather than hanging indefinitely.
+
+---
+
+# 8. Claude Code Log Parsing
+
+After Claude Code exits:
+
+```python
+stats = parse_session_logs()
+```
+
+The parser must collect:
+
+### Token usage
 
 ```text
-skills/api-review
-skills/ast-inspection
-skills/context-export
-skills/semantic-analysis
-skills/workspace-analysis
+input
+output
+cache_read
+cache_creation
 ```
 
-Identify:
+### Tool usage
 
-* purpose
-* referenced commands
-* duplicated guidance
-* obsolete guidance
-* useful workflows
-
-Do not modify files until the audit is complete.
-
----
-
-## Step 2 — Create a Migration Plan
-
-Before making changes, determine:
-
-```text
-Existing content
-        ↓
-Keep / Move / Merge / Remove
-        ↓
-Target SKILL.md
-```
-
-The plan does not need to become a permanent repository document unless the project already uses such planning artifacts.
-
-The important requirement is to perform the classification deliberately rather than deleting files blindly.
-
----
-
-## Step 3 — Rewrite `semantic-analysis`
-
-Make it the canonical command-selection guide for:
-
-```text
-search
-find
-references
-callers
-callees
-```
-
-Avoid duplicating structural inspection details.
-
----
-
-## Step 4 — Rewrite `ast-inspection`
-
-Make it the canonical guide for:
-
-```text
-symbols
-outline
-parent
-children
-```
-
-Keep the focus on structural inspection.
-
-Do not make `dump` or `range` part of the normal workflow unless existing agent usage clearly requires them.
-
----
-
-## Step 5 — Rewrite `api-review`
-
-Make it a workflow-oriented skill.
-
-It should explain how to combine semantic inspection operations when reviewing or modifying APIs.
-
-Do not duplicate all command reference material from `semantic-analysis`.
-
----
-
-## Step 6 — Remove Obsolete Skills
-
-After useful content has been migrated:
-
-```text
-skills/context-export
-skills/workspace-analysis
-```
-
-should be removed if they are no longer needed as independent agent-facing skills.
-
-Do not leave empty compatibility directories.
-
-Do not leave obsolete references to them in indexes, documentation, or skill registries.
-
----
-
-## Step 7 — Verify References
-
-Search the repository for references to:
-
-```text
-context-export
-workspace-analysis
-```
-
-Update or remove stale references.
-
-Also verify that the final skills only reference intended commands.
-
-The expected primary command set is:
-
-```text
-Semantic:
-  search
-  find
-  references
-  callers
-  callees
-
-Structural:
-  symbols
-  outline
-  parent
-  children
-```
-
----
-
-# 12. Examples
-
-Examples should be realistic but concise.
-
-Do not create a long tutorial inside each skill.
-
-Examples should demonstrate command selection.
+Count every `tool_use` entry.
 
 For example:
 
 ```text
-Need to understand a symbol:
-
-1. If the exact symbol is unknown:
-   ast-tool search <query>
-
-2. Locate the target:
-   ast-tool find <symbol>
-
-3. Inspect usages:
-   ast-tool references <symbol>
+Read
+Grep
+Bash
+Edit
+Write
 ```
 
-For call relationships:
+The exact tool names should come from the logs rather than from a hard-coded list.
+
+---
+
+# 9. Detecting ast-tool Usage
+
+The evaluation must distinguish ordinary Claude Code tool usage from `ast-tool` usage.
+
+For example:
 
 ```text
-Who calls this function?
-  ast-tool callers <symbol>
-
-What does this function call?
-  ast-tool callees <symbol>
+Bash
+  ast-tool find ...
+  ast-tool references ...
+  ast-tool callers ...
 ```
 
-Use only syntax confirmed to be supported by the actual CLI.
+should be recorded separately.
+
+The result should expose something conceptually like:
+
+```json
+{
+  "tools": {
+    "Read": 5,
+    "Grep": 2,
+    "Bash": 4
+  },
+  "ast_tool": {
+    "find": 1,
+    "references": 2,
+    "callers": 1,
+    "callees": 0
+  }
+}
+```
+
+The implementation must account for the fact that `ast-tool` may be invoked through a shell command such as `Bash`.
+
+Do not assume that `ast-tool` itself always appears as a Claude Code tool name.
+
+If the existing Claude Code log format contains the shell command as part of the tool input, inspect that input and extract the command.
+
+---
+
+# 10. Preserve the Workflow
+
+The runner should retain enough information to reconstruct the high-level tool workflow.
+
+For example:
+
+```text
+Read
+Grep
+Bash(ast-tool find)
+Bash(ast-tool references)
+Read
+Edit
+```
+
+At minimum, store:
+
+```text
+tool name
+ast-tool command, if detected
+```
+
+in execution order.
+
+Do not attempt sophisticated semantic classification yet.
+
+A simple ordered event list is sufficient.
+
+Example:
+
+```json
+{
+  "workflow": [
+    {"tool": "Read"},
+    {"tool": "Grep"},
+    {"tool": "Bash", "ast_tool_command": "find"},
+    {"tool": "Bash", "ast_tool_command": "references"},
+    {"tool": "Read"},
+    {"tool": "Edit"}
+  ]
+}
+```
+
+This will be useful for later analysis.
+
+---
+
+# 11. Execution Metrics
+
+Record at least:
+
+```text
+elapsed_seconds
+process_exit_code
+timed_out
+```
+
+Also record token statistics and tool statistics.
+
+Do not attempt to derive a monetary cost unless the required pricing information is already available in the project.
+
+---
+
+# 12. Git Diff Collection
+
+After Claude Code finishes, collect the repository changes.
+
+At minimum record:
+
+```text
+changed files
+diff
+```
+
+Prefer obtaining the diff from Git rather than relying only on Claude Code logs.
+
+The evaluation result should make it possible to inspect:
+
+```text
+What did the agent change?
+```
+
+after the run.
+
+Do not automatically discard the diff before it has been persisted.
 
 ---
 
 # 13. Validation
 
-After the reorganization:
+Task correctness must be evaluated independently from Claude Code logs.
 
-Verify that:
+Implement a validator conceptually equivalent to:
 
-```text
-skills/
-├── semantic-analysis/
-│   └── SKILL.md
-├── ast-inspection/
-│   └── SKILL.md
-└── api-review/
-    └── SKILL.md
+```python
+validate_task(task, repository) -> ValidationResult
 ```
 
-is the final agent-facing skill structure.
+The primary MVP validation mechanism is a task-provided command:
 
-Verify that:
-
-```text
-context-export
-workspace-analysis
+```yaml
+validation:
+  command: ./tests/run.sh
 ```
 
-have either been removed or explicitly retained only if the repository structure proves they are still required for another purpose.
+Execute it after Claude Code completes.
 
-Verify that:
+Record:
 
-* no remaining skill references deleted skills
-* no skill documents unsupported commands
-* no skill unnecessarily recommends `dump`
-* `range` is not part of the default workflow unless justified by actual usage
-* command responsibilities are clearly separated
-* `api-review` does not duplicate the full semantic command reference
+```text
+validation exit code
+validation stdout
+validation stderr
+validation success
+```
+
+A task is successful only when its validation succeeds, unless the task explicitly defines another validation rule.
+
+The validator must not inspect Claude Code tool usage when determining correctness.
+
+This separation is important:
+
+```text
+Agent behavior
+    ↓
+Claude Code logs
+
+Task correctness
+    ↓
+Repository validation
+```
 
 ---
 
-# 14. Out of Scope
+# 14. Expected Files
 
-Do not:
+Support optional expected-file validation.
 
-* implement new CLI commands
-* remove existing CLI commands
-* modify Semantic Services
-* modify Workspace Analysis
-* redesign AST IR
-* add a persistent Workspace
-* add a `context` command
-* add dependency commands
-* introduce JSON output
-* redesign CLI output formats
+Example:
 
-This task is limited to reorganizing agent-facing skills and documentation.
+```yaml
+expected_files:
+  - src/service/user_service.cpp
+```
+
+If specified, verify that those files were modified.
+
+This should be an additional validation signal, not a replacement for the task's actual tests.
+
+Do not require expected files for every task.
 
 ---
 
-# Expected Result
+# 15. Evaluation Result
 
-The final skill structure should be:
+Persist one JSON object per task execution.
 
-```text
-skills
-├── semantic-analysis
-│   └── Symbol discovery and semantic relationships
-│
-├── ast-inspection
-│   └── Structural source and AST-derived inspection
-│
-└── api-review
-    └── Workflow for evaluating API changes and impact
+JSONL is preferred.
+
+Example:
+
+```json
+{
+  "task_id": "references-001",
+  "success": true,
+  "elapsed_seconds": 18.2,
+  "process_exit_code": 0,
+  "timed_out": false,
+  "tokens": {
+    "input": 12345,
+    "output": 1832,
+    "cache_read": 5000,
+    "cache_creation": 1000
+  },
+  "tools": {
+    "Read": 5,
+    "Grep": 2,
+    "Bash": 4,
+    "Edit": 1
+  },
+  "ast_tool": {
+    "find": 1,
+    "references": 2,
+    "callers": 0,
+    "callees": 0
+  },
+  "workflow": [
+    {"tool": "Read"},
+    {"tool": "Bash", "ast_tool_command": "find"},
+    {"tool": "Bash", "ast_tool_command": "references"},
+    {"tool": "Edit"}
+  ],
+  "changed_files": [
+    "src/service/user_service.cpp"
+  ],
+  "validation": {
+    "success": true,
+    "exit_code": 0
+  }
+}
 ```
 
-The key design principle is:
+The exact schema may be simplified if necessary, but the information above should be preserved.
 
-> Minimize the number of skills an agent must choose between while keeping each remaining skill responsible for a clearly distinct type of task.
+---
 
-The final structure should make the agent's decision process straightforward:
+# 16. Batch Execution
 
-```text
-Need semantic relationships?
-        ↓
-semantic-analysis
+Support running multiple tasks sequentially.
 
-Need structural inspection?
-        ↓
-ast-inspection
+Conceptually:
 
-Need to review or modify an API and assess impact?
-        ↓
-api-review
+```bash
+python run_eval.py tasks/
 ```
 
-Preserve useful existing guidance, merge overlapping content deliberately, and remove obsolete skills only after the migration is complete.
+should execute:
 
+```text
+task-001
+task-002
+task-003
+...
+```
+
+Each task must run in an isolated repository state.
+
+Do not parallelize task execution in the MVP.
+
+Sequential execution makes debugging and Claude Code log isolation much simpler.
+
+---
+
+# 17. Failure Handling
+
+The runner must distinguish at least:
+
+```text
+agent_process_failure
+agent_timeout
+validation_failure
+runner_failure
+success
+```
+
+For example:
+
+```json
+{
+  "task_id": "callers-001",
+  "status": "validation_failure"
+}
+```
+
+A failed task must still produce an evaluation record whenever possible.
+
+One failed task must not prevent the remaining batch from running.
+
+Exceptions should be captured and reported clearly.
+
+---
+
+# 18. Reproducibility
+
+Each evaluation result should contain enough metadata to identify the execution environment.
+
+Record where practical:
+
+```text
+task_id
+timestamp
+repository revision
+Claude Code command/version if available
+ast-tool revision if available
+```
+
+Do not add fragile environment detection solely for the sake of metadata.
+
+Use information already available from the runner or repository.
+
+---
+
+# 19. Recommended Project Structure
+
+Adapt this to the existing repository rather than forcing an unrelated architecture.
+
+A possible structure is:
+
+```text
+evaluation/
+├── tasks/
+│   ├── references-001.yaml
+│   ├── callers-001.yaml
+│   └── ...
+│
+├── repositories/
+│   ├── basic-01/
+│   └── ...
+│
+├── runner.py
+├── claude.py
+├── logs.py
+├── validator.py
+└── results/
+```
+
+The existing project structure takes precedence.
+
+Do not create unnecessary packages merely to match this example.
+
+---
+
+# 20. Testing the Evaluation Runner
+
+Before creating the full benchmark, create a very small smoke-test evaluation.
+
+For example:
+
+```text
+1 repository
+1 task
+1 Claude Code invocation
+```
+
+Verify:
+
+1. Claude Code starts successfully
+2. Logs are isolated
+3. Tokens are collected
+4. Tool calls are collected
+5. `ast-tool` commands are detected
+6. Git diff is captured
+7. Validation runs
+8. JSONL result is produced
+9. The runner exits cleanly
+
+Only after this works should batch execution be tested.
+
+---
+
+# 21. Do Not Build the Benchmark Yet
+
+This implementation task is about the **evaluation infrastructure**, not the final evaluation dataset.
+
+Do not spend significant effort creating:
+
+```text
+20–30 tasks
+5–8 repositories
+large synthetic repositories
+real-world repositories
+```
+
+Those will be added after the runner works.
+
+The immediate goal is:
+
+```text
+One task
+   ↓
+Claude Code
+   ↓
+Statistics + workflow + diff
+   ↓
+Validation
+   ↓
+JSONL result
+```
+
+Once this pipeline is reliable, the benchmark data can be developed independently.
+
+---
+
+# 22. Design Principle
+
+Keep the architecture simple:
+
+```text
+Task Definition
+      │
+      ▼
+Evaluation Runner
+      │
+      ├── Claude Code
+      ├── Log Parser
+      ├── Git
+      └── Validator
+      │
+      ▼
+Evaluation Result
+```
+
+Do not let evaluation-specific logic leak into `ast-tool`.
+
+The existing `ast-tool` implementation should remain unchanged unless a concrete integration problem is discovered.
+
+---
+
+# 23. Acceptance Criteria
+
+The implementation is complete when all of the following are true:
+
+* [ ] A task can be defined independently of the runner.
+* [ ] A clean repository can be prepared for a task.
+* [ ] Claude Code can be launched automatically in headless mode.
+* [ ] Claude Code logs are isolated per task.
+* [ ] Input/output/cache token usage is collected.
+* [ ] Claude Code tool usage is collected.
+* [ ] `ast-tool` commands invoked through shell tools can be detected.
+* [ ] The ordered tool workflow is preserved.
+* [ ] Execution time and process status are recorded.
+* [ ] Git changes are collected.
+* [ ] Task-specific validation can be executed.
+* [ ] Validation results are recorded separately from agent behavior.
+* [ ] One JSONL record is produced per task.
+* [ ] A failed task does not terminate the entire batch.
+* [ ] A single-task smoke test passes end-to-end.
+* [ ] No changes to Semantic Services or `ast-tool` behavior are required.
+* [ ] No generic multi-agent abstraction is introduced.
+
+## Final Deliverable
+
+Provide:
+
+1. The implemented evaluation runner.
+2. A minimal example task.
+3. A minimal example repository or test fixture.
+4. A command showing how to run the smoke test.
+5. An example JSONL evaluation result.
+6. Brief documentation describing how to add a new evaluation task.
+
+Do not implement the full benchmark dataset in this change.

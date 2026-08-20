@@ -68,3 +68,9 @@ Testing/
 /bench/venv
 /bench/workspace
 /bench/cache
+/.claude
+
+# Evaluation runner — generated at runtime
+/evaluation/repositories/
+/evaluation/results/
+
