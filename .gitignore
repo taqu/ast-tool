@@ -63,8 +63,8 @@ Testing/
 .cache/
 
 /bin
-/ast-tool.md
-/roadmap.md
+#/ast-tool.md
+#/roadmap.md
 /bench/venv
 /bench/workspace
 /bench/cache
