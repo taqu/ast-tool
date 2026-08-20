@@ -61,6 +61,7 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+__pycache__/
 
 /bin
 #/ast-tool.md
