@@ -235,13 +235,6 @@ std::vector<std::filesystem::path> scan_workspace(const char8_t* root);
 Workspace analyze_workspace(const char8_t* root);
 
 /**
- * @brief Parses and analyzes every source file under root.
- * @return The aggregated results.  Returns an empty results if root
- *         is null or no supported files are found.
- */
-Workspace analyze_workspace_stream(const char8_t* root, std::function<bool(const WorkspaceSymbol&)> match);
-
-/**
  * @brief Parses and analyzes the given list of source files.
  *
  * For each file the pipeline is:

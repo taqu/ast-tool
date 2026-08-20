@@ -24,8 +24,9 @@ endif()
 include_directories(AFTER ${TREESITTER_INCLUDE})
 link_directories(AFTER ${TREESITTER_LIB})
 add_library(TREESITTER MODULE IMPORTED)
-set_target_properties(TREESITTER PROPERTIES IMPORTED_LOCATION_DEBUG "tree-sitter.lib" IMPORTED_LOCATION_RELEASE "tree-sitter.lib")
 
+if(MSVC)
+set_target_properties(TREESITTER PROPERTIES IMPORTED_LOCATION_DEBUG "tree-sitter.lib" IMPORTED_LOCATION_RELEASE "tree-sitter.lib")
 set(TREESITTER_LANGS
     "tree-sitter-bash.lib"
     "tree-sitter-c.lib"
@@ -43,6 +44,26 @@ set(TREESITTER_LANGS
     "tree-sitter-tsx.lib"
     "tree-sitter-typescript.lib"
 )
+elseif(UNIX)
+set_target_properties(TREESITTER PROPERTIES IMPORTED_LOCATION "libtree-sitter.a")
+set(TREESITTER_LANGS
+    "libtree-sitter-bash.a"
+    "libtree-sitter-c.a"
+    "libtree-sitter-cpp.a"
+    "libtree-sitter-c-sharp.a"
+    "libtree-sitter-css.a"
+    "libtree-sitter-go.a"
+    "libtree-sitter-html.a"
+    "libtree-sitter-java.a"
+    "libtree-sitter-javascript.a"
+    "libtree-sitter-python.a"
+    "libtree-sitter-ruby.a"
+    "libtree-sitter-rust.a"
+    "libtree-sitter-scala.a"
+    "libtree-sitter-tsx.a"
+    "libtree-sitter-typescript.a"
+)
+endif()
 
 set(MIMALLOC_INCLUDE "${HEADER_ROOT}/mimalloc")
 set(MIMALLOC_SOURCE "${SOURCE_ROOT}/mimalloc")
@@ -85,7 +106,7 @@ add_library(RE2 MODULE IMPORTED)
 if(MSVC)
 set_target_properties(RE2 PROPERTIES IMPORTED_LOCATION_DEBUG "re2d.lib" IMPORTED_LOCATION_RELEASE "re2.lib")
 elseif(UNIX)
-set_target_properties(RE2 PROPERTIES IMPORTED_LOCATION_DEBUG "libre2.a" IMPORTED_LOCATION_RELEASE "libre2.a")
+set_target_properties(RE2 PROPERTIES IMPORTED_LOCATION "libre2.a")
 endif()
 
 # abseil
@@ -116,7 +137,7 @@ add_library(GIT2 MODULE IMPORTED)
 if(MSVC)
 set_target_properties(GIT2 PROPERTIES IMPORTED_LOCATION_DEBUG "git2d.lib" IMPORTED_LOCATION_RELEASE "git2.lib")
 elseif(UNIX)
-set_target_properties(GIT2 PROPERTIES IMPORTED_LOCATION_DEBUG "libgit2.a" IMPORTED_LOCATION_RELEASE "libgit2.a")
+set_target_properties(GIT2 PROPERTIES IMPORTED_LOCATION "libgit2.a")
 endif()
 
 if(MSVC)
@@ -197,6 +218,14 @@ set(SOURCES
     "${SOURCE_ROOT}/ast-context-export.cpp"
     "${SOURCE_ROOT}/search.h"
     "${SOURCE_ROOT}/search.cpp"
+    "${SOURCE_ROOT}/cli-semantic.h"
+    "${SOURCE_ROOT}/cli-semantic.cpp"
+    "${SOURCE_ROOT}/references.h"
+    "${SOURCE_ROOT}/references.cpp"
+    "${SOURCE_ROOT}/callers.h"
+    "${SOURCE_ROOT}/callers.cpp"
+    "${SOURCE_ROOT}/callees.h"
+    "${SOURCE_ROOT}/callees.cpp"
     "${SOURCE_ROOT}/help.h"
     "${SOURCE_ROOT}/help.cpp"
     "${SOURCE_ROOT}/ast-scope.cpp"

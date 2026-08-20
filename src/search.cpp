@@ -128,7 +128,6 @@ bool search(const ArgSearch& arguments)
         return false;
     }
 
-#if defined(AST_TOOL_TEST) || defined(_DEBUG)
     Workspace ws = analyze_workspace(arguments.root_);
     SemanticSearchEngine engine(ws);
     std::vector<const WorkspaceSymbol*> results = engine.search(*q);
@@ -157,61 +156,6 @@ bool search(const ArgSearch& arguments)
                        r->symbol.column + 1);
         }
     }
-
-    {
-        SemanticSearchEngineOneShot engineOneShot(*q);
-        auto match = [&engineOneShot](const WorkspaceSymbol& r) -> bool {
-            return engineOneShot.match(r);
-        };
-        Workspace ws2 = analyze_workspace_stream(arguments.root_, match);
-        if(ws2.symbols.size() != results.size()){
-            std::print("ERROR: {} != {}\n", ws2.symbols.size(), results.size());
-        }else{
-            size_t count = 0;
-            for(size_t i=0; i<ws2.symbols.size(); ++i){
-                for(size_t j=i+1; j<results.size(); ++j){
-                    if(ws2.symbols[i] == *results[j]){
-                        ++count;
-                        break;
-                    }
-                }
-            }
-            if(!count == results.size()){
-                return true;
-            }
-        }
-    }
-#else
-    SemanticSearchEngineOneShot engineOneShot(*q);
-    auto match = [&engineOneShot](const WorkspaceSymbol& r) -> bool {
-        return engineOneShot.match(r);
-    };
-    Workspace ws = analyze_workspace_stream(arguments.root_, match);
-    if(arguments.json_) {
-        std::print("[");
-        if(arguments.pretty_) {
-            std::print("\n");
-        }
-        for(size_t i = 0; i < ws.symbols.size(); ++i) {
-            bool last = (i == ws.symbols.size() - 1);
-            if(arguments.pretty_) {
-                print_result_json_pretty(ws.symbols[i], last);
-            } else {
-                print_result_json(ws.symbols[i], last);
-            }
-        }
-        std::print("]\n");
-    } else {
-        for(const WorkspaceSymbol& r: ws.symbols) {
-            std::print("{} {} {}:{}:{}\n",
-                       getSymbolKindName(r.symbol.kind),
-                       (const char*)r.symbol.fqn.c_str(),
-                       (const char*)r.sourceFile.u8string().c_str(),
-                       r.symbol.line + 1,
-                       r.symbol.column + 1);
-        }
-    }
-#endif
     return true;
 }
 } // namespace ast

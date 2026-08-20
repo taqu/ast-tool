@@ -19,10 +19,11 @@ enum class CommandCategory
 
 struct CommandEntry
 {
-    const char8_t*     name;
-    const char8_t*     summary;
+    const char8_t*  name;
+    const char8_t*  summary;
     CommandCategory category;
-    const char8_t*     detail;
+    const char8_t*  detail;
+    bool            internal;
 };
 
 // ---------------------------------------------------------------------------
@@ -68,7 +69,7 @@ static const char8_t kHelpDump[] =
 
 static const char8_t kHelpSymbols[] =
     u8"NAME\n"
-    u8"    symbols - Extract semantic symbols from a source file.\n"
+    u8"    symbols - List symbols in a source file.\n"
     u8"\n"
     u8"SYNOPSIS\n"
     u8"    ast-tool symbols [--json [--pretty]] <file>\n"
@@ -126,7 +127,7 @@ static const char8_t kHelpSymbols[] =
 
 static const char8_t kHelpOutline[] =
     u8"NAME\n"
-    u8"    outline - Print a hierarchical outline of named AST nodes.\n"
+    u8"    outline - Show the structural outline of a source file.\n"
     u8"\n"
     u8"SYNOPSIS\n"
     u8"    ast-tool outline <file>\n"
@@ -221,7 +222,7 @@ static const char8_t kHelpFind[] =
 
 static const char8_t kHelpRange[] =
     u8"NAME\n"
-    u8"    range - Find AST nodes that intersect a source range.\n"
+    u8"    range - Show AST nodes within a source range.\n"
     u8"\n"
     u8"SYNOPSIS\n"
     u8"    ast-tool range [--start-line <n>] [--start-column <n>]\n"
@@ -276,7 +277,7 @@ static const char8_t kHelpRange[] =
 
 static const char8_t kHelpParent[] =
     u8"NAME\n"
-    u8"    parent - Print the parent of an AST node.\n"
+    u8"    parent - Show the parent AST node.\n"
     u8"\n"
     u8"SYNOPSIS\n"
     u8"    ast-tool parent --id <hex> <file>\n"
@@ -317,7 +318,7 @@ static const char8_t kHelpParent[] =
 
 static const char8_t kHelpChildren[] =
     u8"NAME\n"
-    u8"    children - Print the children of an AST node.\n"
+    u8"    children - Show the child AST nodes.\n"
     u8"\n"
     u8"SYNOPSIS\n"
     u8"    ast-tool children --id <hex> <file>\n"
@@ -359,7 +360,7 @@ static const char8_t kHelpChildren[] =
 
 static const char8_t kHelpSearch[] =
     u8"NAME\n"
-    u8"    search - Search for semantic symbols across a workspace.\n"
+    u8"    search - Search symbols in the workspace.\n"
     u8"\n"
     u8"SYNOPSIS\n"
     u8"    ast-tool search [--name <name>] [--fqn <fqn>] [--kind <kind>]\n"
@@ -436,20 +437,214 @@ static const char8_t kHelpSearch[] =
     u8"\n"
     u8"        ast-tool search --kind function --json --pretty src/\n";
 
+static const char8_t kHelpCallees[] =
+    u8"NAME\n"
+    u8"    callees - Find direct callees of a function.\n"
+    u8"\n"
+    u8"SYNOPSIS\n"
+    u8"    ast-tool callees [--json [--pretty]] <symbol> <root>\n"
+    u8"\n"
+    u8"DESCRIPTION\n"
+    u8"    Analyze the workspace rooted at <root>, resolve the named function\n"
+    u8"    symbol, and print every function directly called from within that\n"
+    u8"    function's body.\n"
+    u8"\n"
+    u8"    Only direct calls resolvable by the semantic resolver are reported.\n"
+    u8"    Indirect calls through function pointers or virtual dispatch are not\n"
+    u8"    included.  Transitive (indirect) callee analysis is not performed.\n"
+    u8"\n"
+    u8"    If <symbol> contains '::' it is matched against fully-qualified names;\n"
+    u8"    otherwise it is matched against unqualified names.  If the query matches\n"
+    u8"    more than one symbol the command fails with a list of candidates;\n"
+    u8"    supply a fully-qualified name to disambiguate.\n"
+    u8"\n"
+    u8"    The target must be a function, method, constructor, or destructor.\n"
+    u8"\n"
+    u8"ARGUMENTS\n"
+    u8"    <symbol>  Symbol name or fully-qualified name to look up.\n"
+    u8"    <root>    Workspace root directory to scan recursively.\n"
+    u8"\n"
+    u8"OPTIONS\n"
+    u8"    --json      Output results as a JSON array.\n"
+    u8"    --pretty    Pretty-print the JSON output. Implies --json.\n"
+    u8"\n"
+    u8"OUTPUT\n"
+    u8"    Default (plain text), one call site per line:\n"
+    u8"\n"
+    u8"        <callee_fqn> <file>:<line>:<col>\n"
+    u8"\n"
+    u8"    <callee_fqn>  Fully-qualified name of the called function.\n"
+    u8"    <file>        Path of the file containing the call.\n"
+    u8"    <line>        1-based source line of the call.\n"
+    u8"    <col>         1-based source column of the call.\n"
+    u8"\n"
+    u8"    JSON fields per call site:\n"
+    u8"\n"
+    u8"        callee_kind   Kind of the called symbol (function, method, ...).\n"
+    u8"        callee_fqn    Fully-qualified name of the called function.\n"
+    u8"        file          Path of the file containing the call.\n"
+    u8"        line          1-based source line of the call.\n"
+    u8"        column        1-based source column of the call.\n"
+    u8"\n"
+    u8"    Output is sorted by file, then by line and column, then by callee FQN.\n"
+    u8"\n"
+    u8"EXAMPLES\n"
+    u8"    Find all functions directly called by 'process':\n"
+    u8"\n"
+    u8"        ast-tool callees process src/\n"
+    u8"\n"
+    u8"    Find callees of a fully-qualified name to disambiguate:\n"
+    u8"\n"
+    u8"        ast-tool callees ast::process src/\n"
+    u8"\n"
+    u8"    Export results as JSON for programmatic consumption:\n"
+    u8"\n"
+    u8"        ast-tool callees --json --pretty foo src/\n";
+
+static const char8_t kHelpCallers[] =
+    u8"NAME\n"
+    u8"    callers - Find direct callers of a function.\n"
+    u8"\n"
+    u8"SYNOPSIS\n"
+    u8"    ast-tool callers [--json [--pretty]] <symbol> <root>\n"
+    u8"\n"
+    u8"DESCRIPTION\n"
+    u8"    Analyze the workspace rooted at <root>, resolve the named function\n"
+    u8"    symbol, and print every call site in the workspace where that function\n"
+    u8"    is directly called.\n"
+    u8"\n"
+    u8"    Only direct calls resolvable by the semantic resolver are reported.\n"
+    u8"    Indirect calls through function pointers or virtual dispatch are not\n"
+    u8"    included.  Transitive (indirect) caller analysis is not performed.\n"
+    u8"\n"
+    u8"    If <symbol> contains '::' it is matched against fully-qualified names;\n"
+    u8"    otherwise it is matched against unqualified names.  If the query matches\n"
+    u8"    more than one symbol the command fails with a list of candidates;\n"
+    u8"    supply a fully-qualified name to disambiguate.\n"
+    u8"\n"
+    u8"    The target must be a function, method, constructor, or destructor.\n"
+    u8"\n"
+    u8"ARGUMENTS\n"
+    u8"    <symbol>  Symbol name or fully-qualified name to look up.\n"
+    u8"    <root>    Workspace root directory to scan recursively.\n"
+    u8"\n"
+    u8"OPTIONS\n"
+    u8"    --json      Output results as a JSON array.\n"
+    u8"    --pretty    Pretty-print the JSON output. Implies --json.\n"
+    u8"\n"
+    u8"OUTPUT\n"
+    u8"    Default (plain text), one call site per line:\n"
+    u8"\n"
+    u8"        <caller_fqn> <file>:<line>:<col>\n"
+    u8"\n"
+    u8"    <caller_fqn>  Fully-qualified name of the calling function,\n"
+    u8"                  or <file_scope> if the call is at file scope.\n"
+    u8"    <file>        Path of the file containing the call.\n"
+    u8"    <line>        1-based source line of the call.\n"
+    u8"    <col>         1-based source column of the call.\n"
+    u8"\n"
+    u8"    JSON fields per call site:\n"
+    u8"\n"
+    u8"        caller_kind   Kind of the calling symbol (function, method, ...).\n"
+    u8"        caller_fqn    Fully-qualified name of the calling function.\n"
+    u8"        file          Path of the file containing the call.\n"
+    u8"        line          1-based source line of the call.\n"
+    u8"        column        1-based source column of the call.\n"
+    u8"\n"
+    u8"    Output is sorted by file, then by caller FQN, then by line and column.\n"
+    u8"\n"
+    u8"EXAMPLES\n"
+    u8"    Find all direct callers of a function named 'parse':\n"
+    u8"\n"
+    u8"        ast-tool callers parse src/\n"
+    u8"\n"
+    u8"    Find callers of a fully-qualified name to disambiguate:\n"
+    u8"\n"
+    u8"        ast-tool callers ast::parse src/\n"
+    u8"\n"
+    u8"    Export results as JSON for programmatic consumption:\n"
+    u8"\n"
+    u8"        ast-tool callers --json --pretty foo src/\n";
+
+static const char8_t kHelpReferences[] =
+    u8"NAME\n"
+    u8"    references - Find references to a symbol.\n"
+    u8"\n"
+    u8"SYNOPSIS\n"
+    u8"    ast-tool references [--json [--pretty]] <symbol> <root>\n"
+    u8"\n"
+    u8"DESCRIPTION\n"
+    u8"    Analyze the workspace rooted at <root>, resolve the named symbol, and\n"
+    u8"    print every location in the workspace where that symbol is referenced.\n"
+    u8"\n"
+    u8"    Resolution is semantic, not textual: identifiers are resolved via the\n"
+    u8"    workspace symbol table, so only genuine uses of the target declaration\n"
+    u8"    are reported.  Textual grep matches are not included.\n"
+    u8"\n"
+    u8"    If <symbol> contains '::' it is matched against fully-qualified names;\n"
+    u8"    otherwise it is matched against unqualified names.  If the query matches\n"
+    u8"    more than one declaration the command fails with a list of candidates;\n"
+    u8"    supply a fully-qualified name to disambiguate.\n"
+    u8"\n"
+    u8"    The declaration site is excluded from results by default.\n"
+    u8"\n"
+    u8"ARGUMENTS\n"
+    u8"    <symbol>  Symbol name or fully-qualified name to look up.\n"
+    u8"    <root>    Workspace root directory to scan recursively.\n"
+    u8"\n"
+    u8"OPTIONS\n"
+    u8"    --json      Output results as a JSON array.\n"
+    u8"    --pretty    Pretty-print the JSON output. Implies --json.\n"
+    u8"\n"
+    u8"OUTPUT\n"
+    u8"    Default (plain text), one reference per line:\n"
+    u8"\n"
+    u8"        <file>:<line>:<col>\n"
+    u8"\n"
+    u8"    <file>    Path of the file containing the reference.\n"
+    u8"    <line>    1-based source line of the reference.\n"
+    u8"    <col>     1-based source column of the reference.\n"
+    u8"\n"
+    u8"    JSON fields per reference:\n"
+    u8"\n"
+    u8"        file            Path of the file containing the reference.\n"
+    u8"        line            1-based source line of the reference.\n"
+    u8"        column          1-based source column of the reference.\n"
+    u8"        owning_scope    Lexical scope kind that encloses the reference.\n"
+    u8"\n"
+    u8"    Output is sorted by file, then by line, then by column.\n"
+    u8"\n"
+    u8"EXAMPLES\n"
+    u8"    Find all references to a function named 'parse':\n"
+    u8"\n"
+    u8"        ast-tool references parse src/\n"
+    u8"\n"
+    u8"    Find references to a fully-qualified name to disambiguate:\n"
+    u8"\n"
+    u8"        ast-tool references ast::parse src/\n"
+    u8"\n"
+    u8"    Export results as JSON for programmatic consumption:\n"
+    u8"\n"
+    u8"        ast-tool references --json --pretty foo src/\n";
+
 // ---------------------------------------------------------------------------
 // Command metadata tables
 
 static const CommandEntry kCommands[] = {
-    // AST Inspection
-    {u8"dump",     u8"Print all AST nodes of a source file.",           CommandCategory::ASTInspection,   kHelpDump},
-    {u8"outline",  u8"Print a hierarchical outline of named AST nodes.", CommandCategory::ASTInspection,  kHelpOutline},
-    {u8"find",     u8"Find AST nodes by type, text, position, or ID.",  CommandCategory::ASTInspection,   kHelpFind},
-    {u8"range",    u8"Find AST nodes that intersect a source range.",   CommandCategory::ASTInspection,   kHelpRange},
-    {u8"parent",   u8"Print the parent of an AST node.",                CommandCategory::ASTInspection,   kHelpParent},
-    {u8"children", u8"Print the children of an AST node.",              CommandCategory::ASTInspection,   kHelpChildren},
+    // AST Inspection (internal)
+    {u8"dump",     u8"Print all AST nodes of a source file.",              CommandCategory::ASTInspection,   kHelpDump,     true},
+    // AST Inspection (public)
+    {u8"outline",  u8"Show the structural outline of a source file.",      CommandCategory::ASTInspection,   kHelpOutline,  false},
+    {u8"find",     u8"Find AST nodes by type, text, position, or ID.",     CommandCategory::ASTInspection,   kHelpFind,     false},
+    {u8"range",    u8"Show AST nodes within a source range.",              CommandCategory::ASTInspection,   kHelpRange,    false},
+    {u8"parent",   u8"Show the parent AST node.",                          CommandCategory::ASTInspection,   kHelpParent,   false},
+    {u8"children", u8"Show the child AST nodes.",                          CommandCategory::ASTInspection,   kHelpChildren, false},
     // Semantic Analysis
-    {u8"symbols",  u8"Extract semantic symbols from a source file.",    CommandCategory::SemanticAnalysis, kHelpSymbols},
-    {u8"search",   u8"Search for semantic symbols across a workspace.", CommandCategory::SemanticAnalysis, kHelpSearch},
+    {u8"symbols",    u8"List symbols in a source file.",                   CommandCategory::SemanticAnalysis, kHelpSymbols,    false},
+    {u8"search",     u8"Search symbols in the workspace.",                 CommandCategory::SemanticAnalysis, kHelpSearch,     false},
+    {u8"references", u8"Find references to a symbol.",                     CommandCategory::SemanticAnalysis, kHelpReferences, false},
+    {u8"callers",    u8"Find direct callers of a function.",               CommandCategory::SemanticAnalysis, kHelpCallers,    false},
+    {u8"callees",    u8"Find direct callees of a function.",               CommandCategory::SemanticAnalysis, kHelpCallees,    false},
 };
 
 static constexpr int kCommandCount = sizeof(kCommands) / sizeof(kCommands[0]);
@@ -474,10 +669,13 @@ static constexpr int kCategoryCount = sizeof(kCategories) / sizeof(kCategories[0
 void print_top_level_help()
 {
     fputs(
-        "AST analysis toolkit\n"
+        "ast-tool — Source code inspection and semantic analysis.\n"
+        "\n"
+        "Inspect AST structure, extract semantic symbols, and trace cross-file\n"
+        "symbol relationships (references, callers, callees) across a workspace.\n"
         "\n"
         "Usage:\n"
-        "    ast-tool [options] <command> [command options]\n"
+        "    ast-tool <command> [options]\n"
         "\n"
         "Options:\n"
         "    -h, --help    Show this help message.\n"
@@ -486,9 +684,14 @@ void print_top_level_help()
         stdout);
 
     for(int ci = 0; ci < kCategoryCount; ++ci) {
-        fprintf(stdout, "\n  %s\n", kCategories[ci].label);
+        bool header_printed = false;
         for(int i = 0; i < kCommandCount; ++i) {
             if(kCommands[i].category != kCategories[ci].id) continue;
+            if(kCommands[i].internal) continue;
+            if(!header_printed) {
+                fprintf(stdout, "\n  %s\n", kCategories[ci].label);
+                header_printed = true;
+            }
             fprintf(stdout, "    %-12s%s\n", kCommands[i].name, kCommands[i].summary);
         }
     }
@@ -498,6 +701,7 @@ void print_top_level_help()
         "Run:\n"
         "\n"
         "    ast-tool help <command>\n"
+        "    ast-tool <command> --help\n"
         "\n"
         "for detailed documentation of a command.\n",
         stdout);

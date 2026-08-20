@@ -205,6 +205,84 @@ int main(void)
         }
     }
 
+    // Smoke-test the references command
+    {
+        Arguments arguments;
+        const char* argv0[] = {"ast-tool", "references", "mrCounter", "test/ast-references/workspace"};
+        std::vector<std::u8string> args0 = args_to_utf8(4, argv0);
+        if(!parse(arguments, args0)){
+            assert(false);
+            return -1;
+        }
+        if(!dispatch(arguments)){
+            assert(false);
+            return -1;
+        }
+
+        const char* argv1[] = {"ast-tool", "references", "--json", "mrCounter", "test/ast-references/workspace"};
+        std::vector<std::u8string> args1 = args_to_utf8(5, argv1);
+        if(!parse(arguments, args1)){
+            assert(false);
+            return -1;
+        }
+        if(!dispatch(arguments)){
+            assert(false);
+            return -1;
+        }
+    }
+
+    // Smoke-test the callees command
+    {
+        Arguments arguments;
+        const char* argv0[] = {"ast-tool", "callees", "scSource", "test/ast-callees/workspace"};
+        std::vector<std::u8string> args0 = args_to_utf8(4, argv0);
+        if(!parse(arguments, args0)){
+            assert(false);
+            return -1;
+        }
+        if(!dispatch(arguments)){
+            assert(false);
+            return -1;
+        }
+
+        const char* argv1[] = {"ast-tool", "callees", "--json", "scSource", "test/ast-callees/workspace"};
+        std::vector<std::u8string> args1 = args_to_utf8(5, argv1);
+        if(!parse(arguments, args1)){
+            assert(false);
+            return -1;
+        }
+        if(!dispatch(arguments)){
+            assert(false);
+            return -1;
+        }
+    }
+
+    // Smoke-test the callers command
+    {
+        Arguments arguments;
+        const char* argv0[] = {"ast-tool", "callers", "calTarget", "test/ast-callers/workspace"};
+        std::vector<std::u8string> args0 = args_to_utf8(4, argv0);
+        if(!parse(arguments, args0)){
+            assert(false);
+            return -1;
+        }
+        if(!dispatch(arguments)){
+            assert(false);
+            return -1;
+        }
+
+        const char* argv1[] = {"ast-tool", "callers", "--json", "calTarget", "test/ast-callers/workspace"};
+        std::vector<std::u8string> args1 = args_to_utf8(5, argv1);
+        if(!parse(arguments, args1)){
+            assert(false);
+            return -1;
+        }
+        if(!dispatch(arguments)){
+            assert(false);
+            return -1;
+        }
+    }
+
     // Smoke-test the search command with regex flags
     {
         Arguments arguments;
@@ -240,6 +318,62 @@ int main(void)
             assert(false);
             return -1;
         }
+    }
+
+    // Smoke-test help output
+    {
+        Arguments arguments;
+
+        // ast-tool --help (top-level help)
+        const char* argv_help[] = {"ast-tool", "--help"};
+        std::vector<std::u8string> args_help = args_to_utf8(2, argv_help);
+        if(!parse(arguments, args_help)) { assert(false); return -1; }
+        if(!dispatch(arguments)) { assert(false); return -1; }
+
+        // ast-tool help (alias)
+        const char* argv_help2[] = {"ast-tool", "help"};
+        std::vector<std::u8string> args_help2 = args_to_utf8(2, argv_help2);
+        if(!parse(arguments, args_help2)) { assert(false); return -1; }
+        if(!dispatch(arguments)) { assert(false); return -1; }
+
+        // ast-tool help references / ast-tool references --help
+        const char* argv_ref1[] = {"ast-tool", "help", "references"};
+        std::vector<std::u8string> args_ref1 = args_to_utf8(3, argv_ref1);
+        if(!parse(arguments, args_ref1)) { assert(false); return -1; }
+        if(!dispatch(arguments)) { assert(false); return -1; }
+
+        const char* argv_ref2[] = {"ast-tool", "references", "--help"};
+        std::vector<std::u8string> args_ref2 = args_to_utf8(3, argv_ref2);
+        if(!parse(arguments, args_ref2)) { assert(false); return -1; }
+        if(!dispatch(arguments)) { assert(false); return -1; }
+
+        // ast-tool help callers / ast-tool callers --help
+        const char* argv_cal1[] = {"ast-tool", "help", "callers"};
+        std::vector<std::u8string> args_cal1 = args_to_utf8(3, argv_cal1);
+        if(!parse(arguments, args_cal1)) { assert(false); return -1; }
+        if(!dispatch(arguments)) { assert(false); return -1; }
+
+        const char* argv_cal2[] = {"ast-tool", "callers", "--help"};
+        std::vector<std::u8string> args_cal2 = args_to_utf8(3, argv_cal2);
+        if(!parse(arguments, args_cal2)) { assert(false); return -1; }
+        if(!dispatch(arguments)) { assert(false); return -1; }
+
+        // ast-tool help callees / ast-tool callees --help
+        const char* argv_cle1[] = {"ast-tool", "help", "callees"};
+        std::vector<std::u8string> args_cle1 = args_to_utf8(3, argv_cle1);
+        if(!parse(arguments, args_cle1)) { assert(false); return -1; }
+        if(!dispatch(arguments)) { assert(false); return -1; }
+
+        const char* argv_cle2[] = {"ast-tool", "callees", "--help"};
+        std::vector<std::u8string> args_cle2 = args_to_utf8(3, argv_cle2);
+        if(!parse(arguments, args_cle2)) { assert(false); return -1; }
+        if(!dispatch(arguments)) { assert(false); return -1; }
+
+        // ast-tool help dump (internal command — hidden from top-level, but help still works)
+        const char* argv_dump_help[] = {"ast-tool", "help", "dump"};
+        std::vector<std::u8string> args_dump_help = args_to_utf8(3, argv_dump_help);
+        if(!parse(arguments, args_dump_help)) { assert(false); return -1; }
+        if(!dispatch(arguments)) { assert(false); return -1; }
     }
 
     return all_passed ? 0 : 1;

@@ -1,4 +1,0 @@
-CompileFlags:
-  Add:
-    - "-std=c++17"
-    - "-ID:/Projects/Cpp/ast-tool/agent-skill-evaluation/include"

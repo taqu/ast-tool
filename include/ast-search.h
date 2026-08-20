@@ -120,39 +120,5 @@ private:
     const Workspace& workspace_;
 };
 
-/**
- * @brief Evaluates SearchQuery objects against a Workspace symbol table.
- *
- * The engine assumes every query passed to search() is already valid.
- * Use build_search_query() to obtain a validated query before calling search().
- *
- * The engine holds a const reference to the Workspace; the Workspace must
- * remain valid for the engine's lifetime. Searching consists only of filtering
- * already-built symbol data — no parsing or semantic extraction is triggered.
- *
- * This class is the shared backend for semantic services such as identifier
- * resolution, find-references, call-graph analysis, and AI semantic queries.
- */
-class SemanticSearchEngineOneShot
-{
-public:
-    explicit SemanticSearchEngineOneShot(const SearchQuery& query);
-
-    /**
-     * @brief Evaluates @p query against all symbols in the workspace.
-     *
-     * Filters are applied in the order documented on SearchQuery: exact
-     * (kind → name → fqn → file) before regex (name_regex → fqn_regex → file_regex).
-     *
-     * @return Pointers to all matching WorkspaceSymbol objects owned by the
-     *         Workspace, in stable order.  The returned pointers are valid as
-     *         long as the Workspace is not modified.  No symbol data is copied.
-     */
-    bool match(const WorkspaceSymbol& symbol) const;
-
-private:
-    const SearchQuery& query_;
-};
-
 } // namespace ast
 #endif // INC_AST_SEARCH_H_

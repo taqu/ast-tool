@@ -128,36 +128,4 @@ std::vector<const WorkspaceSymbol*> SemanticSearchEngine::search(const SearchQue
     return results;
 }
 
-SemanticSearchEngineOneShot::SemanticSearchEngineOneShot(const SearchQuery& query)
-    : query_(query)
-{
-}
-
-bool SemanticSearchEngineOneShot::match(const WorkspaceSymbol& symbol) const
-{
-    // Exact filters first — cheap comparisons reduce the candidate set.
-    if(query_.kind && symbol.symbol.kind != *query_.kind)
-        return false;
-    if(query_.name && symbol.symbol.name != *query_.name)
-        return false;
-    if(query_.fqn && symbol.symbol.fqn != *query_.fqn)
-        return false;
-    // if(query.file && symbol.sourceFile.find(*query.file) == std::string::npos)             return false;
-    if(query_.file) {
-        const std::filesystem::path& sourceFile = symbol.sourceFile;
-        std::u8string file = sourceFile.u8string();
-        if(file.find(*query_.file) == std::u8string::npos) {
-            return false;
-        }
-    }
-    // Regex filters after exact — RE2 evaluation only on surviving candidates.
-    if(query_.name_regex && !query_.name_regex->matches(symbol.symbol.name))
-        return false;
-    if(query_.fqn_regex && !query_.fqn_regex->matches(symbol.symbol.fqn))
-        return false;
-    if(query_.file_regex && !query_.file_regex->matches(symbol.sourceFile))
-        return false;
-    return true;
-}
-
 } // namespace ast

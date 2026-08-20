@@ -1,14 +1,16 @@
 ---
 name: ast-inspection
-description: Inspect and navigate the AST of a single source file using ast-tool commands (dump, outline, find, range, parent, children).
+description: Inspect the declared symbols and structural outline of a source file, and navigate parent/child relationships of AST-derived elements using ast-tool symbols, outline, parent, and children.
 triggers:
-  - "show AST"
-  - "inspect syntax tree"
-  - "find node"
-  - "dump tree"
+  - "list symbols in file"
+  - "what functions are in"
   - "outline file"
+  - "show structure"
   - "parent of node"
   - "children of node"
+  - "symbol table"
+  - "declarations in file"
+  - "structural overview"
 languages: [c, cpp, csharp, python, javascript, typescript, tsx, go, rust, java, bash, ruby, scala, css, html]
 ---
 
@@ -16,86 +18,151 @@ languages: [c, cpp, csharp, python, javascript, typescript, tsx, go, rust, java,
 
 ## Purpose
 
-Inspect the full abstract syntax tree of a single source file, navigate node relationships, and locate specific nodes by type, text, position, or ID.
+Inspect the symbols declared in a source file, understand a file's structural organization, and navigate parent/child relationships of AST-derived elements.
 
-## Commands Covered
+Use this skill when structural or syntactic inspection of a single file is needed. Use the **semantic-analysis** skill when cross-file symbol lookup, usages, callers, or callees are needed.
+
+## Commands
 
 | Command    | Description                                                  |
 |------------|--------------------------------------------------------------|
-| `dump`     | Print every AST node in depth-first order                    |
-| `outline`  | Hierarchical indented tree of named nodes only               |
-| `find`     | Locate nodes by type, text, position, or ID                  |
-| `range`    | Find nodes that intersect a given source range               |
-| `parent`   | Print the parent of a specific node (requires `--id`)        |
-| `children` | Print immediate children of a specific node (requires `--id`)|
+| `symbols`  | List all named symbols declared in a source file             |
+| `outline`  | Show the structural outline of a source file                 |
+| `parent`   | Show the parent AST node of a given node                     |
+| `children` | Show the child AST nodes of a given node                     |
+
+## Command Selection Guide
+
+```text
+Need to see all symbols declared in a file
+        ↓
+      symbols
+
+Need to understand the structural organization of a file
+        ↓
+      outline
+
+Need to navigate up from a known node
+        ↓
+      parent
+
+Need to inspect what a node contains
+        ↓
+     children
+```
+
+---
+
+### `symbols` — List symbols in a file
+
+Extract every named semantic symbol from a source file: functions, methods, classes, structs, enums, variables, namespaces, and other named declarations.
+
+```
+ast-tool symbols [--json [--pretty]] <file>
+```
+
+Output (default): `<fqn> <ID>` — one symbol per line.
+
+Examples:
+```
+ast-tool symbols src/parser.cpp
+ast-tool symbols include/parser.hpp
+ast-tool symbols --json src/main.cpp
+ast-tool symbols --json --pretty include/parser.hpp
+```
+
+Use the **semantic-analysis** skill (`search`) when the declaration file is not yet known.
+
+---
+
+### `outline` — Structural overview
+
+Show a depth-indented tree of named AST nodes in a source file. Anonymous punctuation and keyword tokens are omitted.
+
+```
+ast-tool outline <file>
+```
+
+Output: `<indent><type>[ "<text>"] @<line>:<col>` — one named node per line.
+
+Examples:
+```
+ast-tool outline src/parser.cpp
+ast-tool outline include/parser.hpp
+```
+
+---
+
+### `parent` — Navigate up
+
+Show the parent AST node of a specific node. Requires a node ID obtained from `symbols`, `outline`, or `find` output.
+
+```
+ast-tool parent --id <hex> <file>
+```
+
+The `<hex>` ID appears in the output of `symbols`, `outline`, and `find`. It is a 32-bit hash in uppercase hexadecimal (e.g. `9E52E360`).
+
+Example:
+```
+ast-tool parent --id 9E52E360 src/parser.cpp
+```
+
+---
+
+### `children` — Navigate down
+
+Show all immediate child AST nodes of a specific node. Requires a node ID obtained from `symbols`, `outline`, or `find` output.
+
+```
+ast-tool children --id <hex> <file>
+```
+
+Example:
+```
+ast-tool children --id 9E52E360 src/parser.cpp
+```
+
+---
 
 ## Output Formats
 
-- Plain text (default)
-- JSON (`--json`)
-- Pretty-printed JSON (`--pretty`, implies `--json`)
+- `symbols`: plain text (`<fqn> <ID>`) or JSON (`--json`, `--pretty`)
+- `outline`, `parent`, `children`: plain text only
 
 ## When to Use This Skill
 
-- The user wants to understand the structure of a single file's AST.
-- The user wants to find nodes of a particular type or containing certain text.
-- The user needs to navigate the tree (parent/children) from a known node ID.
-- The user has a cursor position and wants to know what AST node is there.
-
-## Related Skills
-
-- `semantic-analysis` — for named symbol extraction from a file
-- `workspace-analysis` — for searching symbols across a whole project
+- Enumerating all declarations in a source file before reading raw source.
+- Understanding the organizational structure of a header or implementation file.
+- Navigating AST relationships (parent/children) from a known node ID.
 
 ## Tool Selection
 
-### Use `ast-tool` when the task involves
-
-- Inspecting the parse tree structure of a source file
-- Locating nodes by grammar type, text content, or cursor position
-- Navigating parent/child relationships in the AST
-- Identifying what syntactic construct exists at a given location
-
-These tasks require structural information that text search cannot reliably provide.
-
-### Use text search (grep, ripgrep) when the task involves
-
-- Finding TODO or FIXME comments
-- Locating string literals or documentation text
-- Searching configuration files or build scripts
-- Finding arbitrary text in non-source assets
-
-Text search is appropriate when semantic or structural information is not required.
-
-### Decision Guide
-
 | Question | Tool |
 |---|---|
-| "Show the AST of this file" | `dump` or `outline` |
-| "What node is at line 42, column 10?" | `find --line --column` |
+| "What symbols are declared in this file?" | `symbols` |
+| "What is the structure of this file?" | `outline` |
+| "What is the parent of this node?" | `parent --id` |
 | "What are the children of this node?" | `children --id` |
-| "Find all `if_statement` nodes" | `find --type` |
-| "Find this TODO comment" | text search |
-| "Find this string literal" | text search |
+| "Where is X defined across the project?" | `search` (semantic-analysis skill) |
+| "Who calls this function?" | `callers` (semantic-analysis skill) |
+| "Find all usages of a symbol?" | `references` (semantic-analysis skill) |
 
 ## Common Mistakes
 
-**Using grep to locate syntactic constructs.**
-`grep "function_name"` matches any occurrence of that text — in comments, strings, and macro arguments — not just the declaration or definition. Use `find --text` or `find --type` to target the correct grammar node.
+**Using grep to find function declarations.**
+`grep "void parse"` matches occurrences in comments, strings, and call sites — not only declarations. Use `symbols --json` and filter by kind for authoritative declaration information.
 
-**Using regular expressions to infer tree structure.**
-Regex cannot reliably determine nesting depth, scope, or node type. Use `parent`, `children`, or `range` to navigate the tree directly.
+**Using text search to understand file structure.**
+Reading and parsing source lines to produce an outline is fragile. Use `outline` directly.
 
-**Manually parsing source text to reconstruct the AST.**
-Walking raw source text is fragile and language-specific. `dump` and `outline` expose the exact parse tree without reparsing.
-
-**Reading source lines to find a node at a cursor position.**
-Use `find --line N --column N` to retrieve the precise AST node at that position.
+**Invoking `parent` or `children` without a node ID.**
+Both commands require `--id <hex>`. Obtain the ID from `symbols`, `outline`, or `find` output first.
 
 ## Best Practices
 
-- Prefer `outline` over `dump` as a first pass; switch to `dump` only when anonymous or unnamed nodes are needed.
-- Use `find --type` to enumerate all nodes of a grammar type rather than pattern-matching source text.
-- Obtain a node ID from `find` or `outline` output before invoking `parent` or `children`.
-- Use `--json` output when the result will be consumed by another tool or script.
-- Use the highest-level command available: prefer `outline` for structure, `find` for targeted lookup, `dump` only when full detail is required.
+- Use `symbols` as the first step when investigating what a file declares, before reading raw source.
+- Use `outline` to understand structural organization before reading source directly.
+- Use `--json` output when filtering symbols by kind or piping to downstream tools.
+- Obtain node IDs from `symbols` or `outline` output before invoking `parent` or `children`.
+- Use the semantic-analysis skill (`search`) when the target file is not yet identified.

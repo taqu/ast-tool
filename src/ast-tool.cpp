@@ -35,6 +35,9 @@
 #include "outline.h"
 #include "parent.h"
 #include "range.h"
+#include "callees.h"
+#include "callers.h"
+#include "references.h"
 #include "search.h"
 #include "symbols.h"
 #include "xxhash.h"
@@ -154,6 +157,12 @@ namespace
             return parse_children(arguments, argc, argv);
         } else if(arg1_sv == u8"search") {
             return parse_search(arguments, argc, argv);
+        } else if(arg1_sv == u8"references") {
+            return parse_references(arguments, argc, argv);
+        } else if(arg1_sv == u8"callers") {
+            return parse_callers(arguments, argc, argv);
+        } else if(arg1_sv == u8"callees") {
+            return parse_callees(arguments, argc, argv);
         } else {
             return false;
         }
@@ -206,6 +215,12 @@ bool dispatch(const Arguments& arguments)
         return children(arguments.children_);
     case SubCommand::Search:
         return search(arguments.search_);
+    case SubCommand::References:
+        return references(arguments.references_);
+    case SubCommand::Callers:
+        return callers(arguments.callers_);
+    case SubCommand::Callees:
+        return callees(arguments.callees_);
     default:
         return false;
     }

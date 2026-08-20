@@ -97,6 +97,9 @@ enum class SubCommand
     Parent,
     Children,
     Search,
+    References,
+    Callers,
+    Callees,
 };
 
 /** Arguments for the "help" subcommand. */
@@ -168,6 +171,33 @@ struct ArgSearch
     bool pretty_;               ///< Pretty-print the JSON output when true.
 };
 
+/** Arguments for the "callees" subcommand. */
+struct ArgCallees
+{
+    const char8_t* root_;   ///< Workspace root directory to scan.
+    const char8_t* symbol_; ///< Symbol name or FQN to find callees of.
+    bool json_;             ///< Output results as JSON when true.
+    bool pretty_;           ///< Pretty-print the JSON output when true.
+};
+
+/** Arguments for the "callers" subcommand. */
+struct ArgCallers
+{
+    const char8_t* root_;   ///< Workspace root directory to scan.
+    const char8_t* symbol_; ///< Symbol name or FQN to find callers of.
+    bool json_;             ///< Output results as JSON when true.
+    bool pretty_;           ///< Pretty-print the JSON output when true.
+};
+
+/** Arguments for the "references" subcommand. */
+struct ArgReferences
+{
+    const char8_t* root_;   ///< Workspace root directory to scan.
+    const char8_t* symbol_; ///< Symbol name or FQN to find references for.
+    bool json_;             ///< Output results as JSON when true.
+    bool pretty_;           ///< Pretty-print the JSON output when true.
+};
+
 /** Arguments for the "find" subcommand. */
 struct ArgFind
 {
@@ -200,6 +230,9 @@ struct Arguments
         ArgParent parent_;
         ArgChildren children_;
         ArgSearch search_;
+        ArgReferences references_;
+        ArgCallers callers_;
+        ArgCallees callees_;
     };
 };
 
