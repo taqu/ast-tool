@@ -1,0 +1,27 @@
+id: level1-008
+
+repository: repositories/level1-config
+
+prompt: |
+  This is a C++ application that loads configuration on startup. The Application class
+  has an `init` method that calls the configuration manager's `load` operation, but
+  currently ignores its return value — so a failed load is silently swallowed.
+
+  Add error handling: if `load` returns false, log the following line and return false
+  from `init`:
+
+      std::cerr << "[Application] load failed\n";
+
+evaluation:
+  category: mixed
+  relevant_capabilities:
+    - find
+    - references
+
+validation:
+  command: python validate_008.py
+
+expected_files:
+  - src/app/application.cpp
+
+timeout: 120

@@ -1,0 +1,27 @@
+id: level3-007
+
+repository: repositories/level3-order
+
+prompt: |
+  This is a C++ order processing system. The web checkout handler initiates a chain of
+  calls: it calls the checkout service's process method, which calls the order service's
+  submit method.
+
+  Trace this three-method chain by adding the following line at the very start of each
+  method's implementation body:
+
+      std::cerr << "[trace] checkout pipeline\n";
+
+evaluation:
+  category: distributed-workflow
+  relevant_capabilities:
+    - callees
+    - find
+
+validation:
+  command: python validate_007.py
+
+expected_files:
+  - src/web/web_checkout_handler.cpp
+
+timeout: 120

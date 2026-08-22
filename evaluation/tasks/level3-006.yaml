@@ -1,0 +1,26 @@
+id: level3-006
+
+repository: repositories/level3-pipeline
+
+prompt: |
+  This is a C++ data pipeline. The sync job executes several operations: loading data,
+  transforming it, validating it, persisting it to the store, and emitting metrics.
+
+  Among the direct operations that `SyncJob::execute` calls, identify the one responsible
+  for persisting the processed data to storage. Add the following line immediately before
+  that specific call within the execute method:
+
+      std::cerr << "[sync] persisting\n";
+
+evaluation:
+  category: callee-subset
+  relevant_capabilities:
+    - callees
+
+validation:
+  command: python validate_006.py
+
+expected_files:
+  - src/job/sync_job.cpp
+
+timeout: 120

@@ -1,0 +1,30 @@
+id: level3-008
+
+repository: repositories/level3-pipeline
+
+prompt: |
+  This is a C++ data pipeline. The audit logger is invoked by two data store operations:
+  save and purge. Those data store operations are themselves called from different pipeline
+  jobs.
+
+  Find the jobs that trigger data store operations that lead to audit logging. For each
+  such job, add the following line immediately before the data store call that triggers
+  the audit:
+
+      std::cerr << "[job] audit triggered\n";
+
+  The report job reads from the store without triggering audit logging — do not modify it.
+
+evaluation:
+  category: multi-level-callers
+  relevant_capabilities:
+    - callers
+    - references
+
+validation:
+  command: python validate_008.py
+
+expected_files:
+  - src/job/sync_job.cpp
+
+timeout: 120

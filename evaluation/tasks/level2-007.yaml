@@ -1,0 +1,25 @@
+id: level2-007
+
+repository: repositories/level2-gateway
+
+prompt: |
+  This is a C++ API gateway. The Router class has a `route` method that is invoked from
+  multiple handlers when dispatching incoming requests.
+
+  Immediately before every call to Router::route across the codebase, add the following
+  line:
+
+      std::cerr << "[router] route\n";
+
+evaluation:
+  category: references
+  relevant_capabilities:
+    - references
+
+validation:
+  command: python validate_007.py
+
+expected_files:
+  - src/handlers/api_handler.cpp
+
+timeout: 120

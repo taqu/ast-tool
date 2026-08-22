@@ -1,0 +1,27 @@
+id: level1-005
+
+repository: repositories/level1-logger
+
+prompt: |
+  This is a C++ networking project. The Server class creates Connection objects and calls
+  `send` on them to respond to requests. This happens along multiple code paths within the
+  server's implementation.
+
+  Find every call to Connection::send within the server's implementation and add the
+  following line immediately before each call:
+
+      std::cerr << "[server] send\n";
+
+evaluation:
+  category: multiple-call-sites
+  relevant_capabilities:
+    - references
+    - find
+
+validation:
+  command: python validate_005.py
+
+expected_files:
+  - src/net/server.cpp
+
+timeout: 120

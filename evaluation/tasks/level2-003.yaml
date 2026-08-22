@@ -1,0 +1,29 @@
+id: level2-003
+
+repository: repositories/level2-gateway
+
+prompt: |
+  This is a C++ API gateway. The RequestHandler class provides three overloads of
+  `process`: one accepting an integer status code, one accepting a raw string, and one
+  accepting a full Request object.
+
+  The overload that accepts a Request object is the primary entry point for structured
+  API calls. Add the following diagnostic line at the very entry of that specific
+  overload:
+
+      std::cerr << "[handler] process request\n";
+
+  Do not modify the integer or string overloads.
+
+evaluation:
+  category: overload
+  relevant_capabilities:
+    - find
+
+validation:
+  command: python validate_003.py
+
+expected_files:
+  - src/gateway/request_handler.cpp
+
+timeout: 120

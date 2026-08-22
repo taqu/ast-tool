@@ -1,0 +1,29 @@
+id: level3-002
+
+repository: repositories/level3-order
+
+prompt: |
+  This is a C++ order processing system. The payment authorization step is invoked from
+  two different contexts: the standard order submission flow through the order service,
+  and the retry worker, which calls it directly.
+
+  Find the caller of `PaymentService::authorize` that belongs to the order submission
+  flow and add the following line immediately before the authorize call within that
+  function:
+
+      std::cerr << "[order] authorizing payment\n";
+
+  Do not modify the retry worker.
+
+evaluation:
+  category: multi-level-callers
+  relevant_capabilities:
+    - callers
+
+validation:
+  command: python validate_002.py
+
+expected_files:
+  - src/service/order_service.cpp
+
+timeout: 120

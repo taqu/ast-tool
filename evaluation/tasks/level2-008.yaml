@@ -1,0 +1,31 @@
+id: level2-008
+
+repository: repositories/level2-auth
+
+prompt: |
+  This is a C++ authentication system. The AuthToken class has an `expire` method that
+  is called from two different parts of the codebase: once during a token refresh cycle,
+  and once during logout.
+
+  Find both callers of AuthToken::expire. Identify the caller that is part of the logout
+  flow — not the refresh flow — and add the following line immediately before that
+  specific call to expire:
+
+      std::cerr << "[auth] token expired on logout\n";
+
+  Do not add this line in the refresh-related caller.
+
+evaluation:
+  category: mixed
+  relevant_capabilities:
+    - callers
+    - find
+    - references
+
+validation:
+  command: python validate_008.py
+
+expected_files:
+  - src/web/auth_controller.cpp
+
+timeout: 120

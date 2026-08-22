@@ -1,757 +1,891 @@
-# Agent Evaluation Runner — Implementation Instructions
+# Create Agent Evaluation Tasks — Difficulty Level 3
 
-## 1. Objective
+## Objective
 
-Implement an MVP Agent Evaluation Runner for `ast-tool`.
+Create the third batch of Agent Evaluation tasks for `ast-tool`.
 
-The purpose of this runner is to evaluate how effectively Claude Code uses `ast-tool` during realistic coding tasks.
+Create **8 tasks** representing a clear progression from Level 2.
 
-The existing Claude Code log/statistics code should be reused and adapted rather than replaced.
-
-The first implementation is intentionally **Claude Code-specific**. Do not build a generic multi-agent abstraction at this stage.
-
-The runner must execute one evaluation task at a time, collect Claude Code usage statistics, validate the resulting repository state, and persist a machine-readable evaluation result.
-
----
-
-## 2. Evaluation Model
-
-The basic execution model is:
+Level 2 introduced:
 
 ```text
-Evaluation Task
-      │
-      ▼
-Prepare Repository
-      │
-      ▼
-Clear Claude Code Logs
-      │
-      ▼
-Run Claude Code
-      │
-      ├── Claude Code session logs
-      │
-      └── Repository modifications
-      │
-      ▼
-Collect Statistics
-      │
-      ├── Token usage
-      ├── Tool usage
-      ├── ast-tool command usage
-      └── Execution time
-      │
-      ▼
-Validate Repository
-      │
-      ├── Tests
-      ├── Expected files
-      └── Other task-specific checks
-      │
-      ▼
-Persist Evaluation Result
+symbol ambiguity
+references
+basic caller discovery
+basic callee discovery
+mixed semantic relationships
 ```
 
-One task execution must correspond to one independent evaluation record.
-
----
-
-## 3. Scope
-
-### In scope
-
-Implement:
-
-1. Evaluation task representation
-2. Repository preparation/reset
-3. Claude Code execution
-4. Claude Code log cleanup
-5. Claude Code JSONL parsing
-6. Token usage aggregation
-7. Tool usage aggregation
-8. `ast-tool` command usage detection
-9. Execution time measurement
-10. Git diff collection
-11. Task validation
-12. JSONL result output
-13. A CLI or script entry point for running evaluations
-14. Basic error handling and logging
-
-### Out of scope
-
-Do NOT implement:
-
-* A generic multi-agent framework
-* Codex support
-* Other coding-agent adapters
-* A large task-generation framework
-* Automatic benchmark generation
-* Structured-output redesign for `ast-tool`
-* Changes to `analyze_workspace()`
-* Workspace streaming
-* Changes to Semantic Services
-* Changes to existing `ast-tool` commands
-* A web dashboard
-* Statistical visualization
-* Large-scale parallel evaluation
-
-The goal is a small, reliable MVP.
-
----
-
-# 4. Existing Claude Code Statistics Code
-
-The existing implementation provides the following functionality:
-
-```python
-CLAUDE_LOG_DIR = Path("~/.claude/projects").expanduser()
-
-def clear_claude_logs():
-    ...
-
-def parse_session_logs():
-    ...
-```
-
-Reuse this logic.
-
-The existing parser already extracts:
+Level 3 should focus on:
 
 ```text
-tokens:
-  input
-  output
-  cache_read
-  cache_creation
-
-tools:
-  tool name → invocation count
+call graph reasoning
+multi-step caller/callee navigation
+impact analysis
+semantic relationship chains
+distributed code modification
 ```
 
-Preserve this behavior unless changes are necessary for reliable evaluation.
+The purpose is to evaluate whether Claude Code can use `ast-tool` as part of a multi-step investigation rather than only as a replacement for `grep`.
 
-Do not rewrite the parser unnecessarily.
+Do not modify the existing Level 1 or Level 2 tasks.
+
+Do not modify the existing Agent-facing Skills.
 
 ---
 
-# 5. Task Definition
+# 1. Existing Evaluation Evidence
 
-Introduce a small task definition format.
+Level 1 tasks were successfully solved without `ast-tool`.
 
-YAML is preferred.
+Typical workflows were:
+
+```text
+Grep
+Read
+Edit
+```
+
+Level 2 introduced situations where semantic navigation became useful.
+
+At least one Level 2 task demonstrated the following workflow:
+
+```text
+Skill
+  ↓
+ast-tool search
+  ↓
+ast-tool callers
+  ↓
+source inspection
+  ↓
+ast-tool references
+  ↓
+additional semantic navigation
+  ↓
+Edit
+```
+
+For example, the agent used:
+
+```text
+callers: 4
+search: 2
+references: 1
+```
+
+and successfully modified multiple source files.
+
+This indicates that the existing Skills and semantic commands can be discovered and used by Claude Code during realistic coding work.
+
+Level 3 should build on this evidence.
+
+The goal is not merely to increase `ast-tool` usage.
+
+The goal is to test whether the agent can use semantic relationships to reason about a larger portion of the codebase.
+
+---
+
+# 2. Level 3 Goal
+
+Level 3 should introduce tasks where the required modification depends on understanding a chain such as:
+
+```text
+Entry point
+    ↓
+Caller
+    ↓
+Service
+    ↓
+Target function
+```
+
+or:
+
+```text
+Target function
+    ↓
+Callee
+    ↓
+Dependency
+    ↓
+Relevant behavior
+```
+
+or:
+
+```text
+Symbol
+    ↓
+References
+    ↓
+Caller classification
+    ↓
+Selective modification
+```
+
+The agent should need to investigate semantic relationships across multiple files before determining the correct modification set.
+
+The task should be difficult to solve safely using a single text search.
+
+---
+
+# 3. Number of Tasks
+
+Create exactly **8 tasks**:
+
+```text
+level3-001
+level3-002
+level3-003
+level3-004
+level3-005
+level3-006
+level3-007
+level3-008
+```
+
+Store them under:
+
+```text
+evaluation/tasks/
+```
+
+Do not create Level 4 tasks yet.
+
+---
+
+# 4. Level 3 Core Principle
+
+The main distinction between Level 2 and Level 3 is:
+
+```text
+Level 2
+
+Identify the correct semantic entity
+        ↓
+Inspect references or relationships
+        ↓
+Modify
+```
+
+versus:
+
+```text
+Level 3
+
+Identify semantic entity
+        ↓
+Navigate relationship
+        ↓
+Navigate another relationship
+        ↓
+Determine relevant subset
+        ↓
+Modify multiple locations
+        ↓
+Validate
+```
+
+A Level 3 task should usually require at least **two semantic navigation decisions**.
+
+The exact commands must not be prescribed.
+
+---
+
+# 5. Required Task Categories
+
+Create approximately the following distribution.
+
+## A. Multi-level caller chains
+
+Create 2 tasks.
 
 Example:
+
+```text
+main()
+  ↓
+RequestHandler::handle()
+  ↓
+OrderService::submit()
+  ↓
+PaymentService::authorize()
+```
+
+The task should require identifying callers at more than one level.
+
+For example:
+
+> Add logging to every request-processing path that eventually invokes `PaymentService::authorize()`.
+
+The task must define a deterministic interpretation of “request-processing path”.
+
+Do not simply ask the agent to modify every textual occurrence of `authorize`.
+
+The repository should contain other callers that must not be modified.
+
+The intended semantic capability is primarily:
+
+```text
+callers
+```
+
+and possibly:
+
+```text
+references
+```
+
+---
+
+## B. Multi-level callee chains
+
+Create 2 tasks.
+
+Example:
+
+```text
+OrderService::submit()
+  ↓
+validateOrder()
+  ↓
+InventoryService::reserve()
+  ↓
+Database::commit()
+```
+
+The task should require identifying a relevant downstream dependency.
+
+For example:
+
+> Add instrumentation immediately before every call to the inventory reservation operation made by the order submission workflow.
+
+The repository should contain other unrelated calls to the same dependency.
+
+The intended semantic capability is primarily:
+
+```text
+callees
+```
+
+and possibly:
+
+```text
+references
+```
+
+---
+
+## C. Caller subset / selective modification
+
+Create 1 task.
+
+The target function should have multiple callers.
+
+Only a semantically defined subset should be modified.
+
+For example:
+
+```text
+CheckoutService::process()
+  ↑
+  ├── WebCheckoutHandler
+  ├── MobileCheckoutHandler
+  ├── RetryWorker
+  └── TestHelper
+```
+
+The task may require modifying only production request handlers.
+
+The prompt must provide enough semantic criteria to determine the correct subset.
+
+Do not require modifying every caller.
+
+The challenge is:
+
+```text
+find target
+    ↓
+find callers
+    ↓
+classify callers
+    ↓
+modify correct subset
+```
+
+The validator must confirm that excluded callers remain unchanged.
+
+---
+
+## D. Callee subset / dependency classification
+
+Create 1 task.
+
+A target function should invoke multiple dependencies.
+
+Only one category of dependency should be modified.
+
+For example:
+
+```text
+SyncService::run()
+  ↓
+validate()
+authorize()
+loadConfig()
+saveState()
+emitMetrics()
+```
+
+The task may require adding instrumentation only around persistence operations.
+
+The agent must identify the relevant callee(s) through code structure and semantic relationships.
+
+Do not reveal the exact implementation file.
+
+---
+
+## E. References + caller/callee combination
+
+Create 1 task.
+
+The task should require combining reference discovery with call graph navigation.
+
+Example conceptual flow:
+
+```text
+locate target symbol
+        ↓
+find references
+        ↓
+identify which references are calls
+        ↓
+inspect callers
+        ↓
+modify selected callers
+```
+
+The repository should contain declarations, definitions, and non-call references so that naïve text matching is insufficient.
+
+---
+
+## F. Distributed workflow modification
+
+Create 1 task.
+
+The correct solution should require modifying multiple source files.
+
+The files must not be listed in the prompt.
+
+Example:
+
+```text
+Request workflow
+    ↓
+Authentication
+    ↓
+Authorization
+    ↓
+Persistence
+```
+
+The task may require adding markers or logging to a particular semantic transition across all relevant workflows.
+
+The expected result should involve approximately:
+
+```text
+2–5 source files
+```
+
+Avoid excessive patch size.
+
+The challenge is discovering the complete modification set.
+
+---
+
+# 6. Repository Fixtures
+
+Create approximately **2–3 reusable repository fixtures**.
+
+Suggested conceptual structure:
+
+```text
+evaluation/repositories/
+├── level3-request-flow/
+├── level3-order-pipeline/
+└── level3-mixed-callgraph/
+```
+
+Adapt to the existing repository structure.
+
+Prefer repositories with approximately:
+
+```text
+15–35 source/header files
+```
+
+This is only a guideline.
+
+Do not inflate repositories with meaningless files.
+
+Every relevant file should contribute to a plausible call graph or source of ambiguity.
+
+---
+
+# 7. Call Graph Design
+
+The call graphs should be intentional and understandable.
+
+Example:
+
+```text
+WebHandler::handle()
+        │
+        ▼
+OrderService::submit()
+        │
+        ├── validateOrder()
+        │
+        ├── PaymentService::authorize()
+        │         │
+        │         ▼
+        │      Gateway::charge()
+        │
+        └── Repository::save()
+```
+
+Add unrelated paths where necessary:
+
+```text
+RetryWorker::retry()
+        │
+        ▼
+PaymentService::authorize()
+```
+
+This allows tasks to distinguish:
+
+```text
+all callers
+```
+
+from:
+
+```text
+callers belonging to a specific workflow
+```
+
+The graph should support deterministic validation.
+
+---
+
+# 8. Do Not Create Artificial Graph Puzzles
+
+Avoid:
+
+```text
+FunctionA
+ ↓
+FunctionB
+ ↓
+FunctionC
+ ↓
+FunctionD
+ ↓
+FunctionE
+```
+
+when the chain exists only to force multiple tool calls.
+
+The call graph should resemble realistic application structure.
+
+Prefer:
+
+```text
+Handler
+ ↓
+Service
+ ↓
+Repository
+```
+
+or:
+
+```text
+Worker
+ ↓
+Coordinator
+ ↓
+External adapter
+```
+
+The difficulty must come from deciding **which semantic path matters**, not simply traversing arbitrary depth.
+
+---
+
+# 9. Task Prompt Rules
+
+Task prompts must describe:
+
+```text
+What behavior must change?
+Which semantic concept identifies the target?
+What must remain unchanged?
+```
+
+Task prompts must not describe:
+
+```text
+Which files to open
+Which ast-tool command to run
+Which exact workflow to follow
+```
+
+Do not include:
+
+```text
+Use ast-tool callers.
+```
+
+Do not include:
+
+```text
+Run ast-tool callees.
+```
+
+Do not include CLI syntax.
+
+The existing Skills remain the source of usage information.
+
+---
+
+# 10. Make Multiple Semantic Steps Useful
+
+Each task should provide a realistic opportunity for a workflow such as:
+
+```text
+Skill
+ ↓
+search / find
+ ↓
+callers
+ ↓
+callers
+ ↓
+Read
+ ↓
+Edit
+```
+
+or:
+
+```text
+Skill
+ ↓
+search
+ ↓
+callees
+ ↓
+references
+ ↓
+Read
+ ↓
+Edit
+```
+
+However, do not require this exact sequence.
+
+The agent may discover an alternative valid strategy.
+
+The evaluation should measure:
+
+```text
+whether semantic navigation was useful
+```
+
+rather than:
+
+```text
+whether a predetermined command sequence was followed
+```
+
+---
+
+# 11. Validation Requirements
+
+Every task must have deterministic validation.
+
+Validators should check:
+
+* all required semantic targets were modified;
+* unrelated callers or callees were not modified;
+* the correct number of modifications was made;
+* required includes or dependencies were added where necessary;
+* the repository remains buildable if the existing infrastructure supports it.
+
+Do not validate exact file paths unless they are part of the expected repository state.
+
+Do not validate:
+
+```text
+ast-tool callers was executed
+```
+
+or:
+
+```text
+ast-tool callees was executed
+```
+
+Tool usage remains evaluation metadata.
+
+---
+
+# 12. Include Negative Paths
+
+At least 3 of the 8 tasks should contain semantically related paths that must **not** be modified.
+
+Examples:
+
+```text
+Production handler
+        ↓
+authorize()
+
+Test helper
+        ↓
+authorize()
+
+Retry worker
+        ↓
+authorize()
+```
+
+If the task targets production request handling, the retry worker and test helper should remain unchanged.
+
+This is important.
+
+Level 3 should evaluate whether the agent can identify the relevant semantic subset rather than blindly modifying every reference.
+
+---
+
+# 13. Expected Semantic Capabilities
+
+The approximate capability distribution should be:
+
+| Capability        |      Primary in Tasks |
+| ----------------- | --------------------: |
+| `callers`         |                   3–4 |
+| `callees`         |                   3–4 |
+| `references`      |                   2–3 |
+| `search` / `find` | Supporting capability |
+
+These categories may overlap.
+
+Do not force exact usage counts.
+
+---
+
+# 14. Evaluation Metadata
+
+If the existing task schema supports evaluation-only metadata, record information such as:
 
 ```yaml
-id: references-001
-
-repository: repositories/basic-01
-
-prompt: |
-  Find all usages of User::save() and add logging
-  to the call site in UserService.
-
-validation:
-  command: ./tests/run.sh
-
-expected_files:
-  - src/service/user_service.cpp
+evaluation:
+  category: multi-level-callers
+  relevant_capabilities:
+    - callers
+    - references
 ```
 
-The exact schema may be adjusted to fit the existing project conventions.
+or:
 
-At minimum, a task must contain:
-
-```text
-id
-repository
-prompt
-validation
+```yaml
+evaluation:
+  category: selective-callee-analysis
+  relevant_capabilities:
+    - callees
+    - search
 ```
 
-Optional fields may include:
+Do not add metadata that prescribes an exact workflow.
 
-```text
-expected_files
-expected_exit_code
-working_directory
-timeout
-```
-
-Keep the schema small.
-
-Do not introduce unnecessary configuration complexity.
+Do not modify the evaluation runner solely to support new metadata.
 
 ---
 
-# 6. Repository Isolation
+# 15. Keep a Control Case
 
-Each task must start from a clean repository state.
+At least one Level 3 task may still be solvable through careful manual inspection without `ast-tool`.
 
-The runner must prevent changes from previous tasks from affecting subsequent tasks.
+This is intentional.
 
-The preferred approach is:
+The benchmark should evaluate:
 
 ```text
-clean repository
-      ↓
-copy / checkout task repository
-      ↓
-run Claude Code
-      ↓
-collect results
-      ↓
-discard changes
+appropriate tool selection
 ```
 
-If the existing project already has a suitable repository-reset mechanism, reuse it.
+not:
 
-Do not assume that `git reset --hard` alone is sufficient if generated/untracked files can affect the next run.
+```text
+maximum ast-tool usage
+```
 
-Repository isolation must be deterministic.
+However, most Level 3 tasks should make manual exploration significantly more expensive than semantic navigation.
 
 ---
 
-# 7. Claude Code Execution
+# 16. Measure Complete Workflow Quality
 
-Implement a function conceptually equivalent to:
-
-```python
-run_claude(task) -> ExecutionResult
-```
-
-It should:
-
-1. Prepare the environment
-2. Set:
-
-```python
-CI=true
-```
-
-3. Clear the Claude Code logs
-4. Record the start time
-5. Launch Claude Code in headless/non-interactive mode
-6. Provide the task prompt
-7. Wait for completion
-8. Record the end time
-9. Capture the process exit code
-10. Preserve stdout/stderr for debugging
-
-The runner must support a configurable timeout.
-
-A timeout must result in a failed evaluation rather than hanging indefinitely.
-
----
-
-# 8. Claude Code Log Parsing
-
-After Claude Code exits:
-
-```python
-stats = parse_session_logs()
-```
-
-The parser must collect:
-
-### Token usage
+Level 3 should allow later comparison of:
 
 ```text
-input
-output
-cache_read
-cache_creation
+Task success
 ```
 
-### Tool usage
-
-Count every `tool_use` entry.
-
-For example:
+with:
 
 ```text
-Read
-Grep
-Bash
-Edit
-Write
+Semantic tool usage
 ```
 
-The exact tool names should come from the logs rather than from a hard-coded list.
-
----
-
-# 9. Detecting ast-tool Usage
-
-The evaluation must distinguish ordinary Claude Code tool usage from `ast-tool` usage.
-
-For example:
+and:
 
 ```text
-Bash
-  ast-tool find ...
-  ast-tool references ...
-  ast-tool callers ...
+Exploration cost
 ```
 
-should be recorded separately.
-
-The result should expose something conceptually like:
-
-```json
-{
-  "tools": {
-    "Read": 5,
-    "Grep": 2,
-    "Bash": 4
-  },
-  "ast_tool": {
-    "find": 1,
-    "references": 2,
-    "callers": 1,
-    "callees": 0
-  }
-}
-```
-
-The implementation must account for the fact that `ast-tool` may be invoked through a shell command such as `Bash`.
-
-Do not assume that `ast-tool` itself always appears as a Claude Code tool name.
-
-If the existing Claude Code log format contains the shell command as part of the tool input, inspect that input and extract the command.
-
----
-
-# 10. Preserve the Workflow
-
-The runner should retain enough information to reconstruct the high-level tool workflow.
-
-For example:
+Relevant metrics include:
 
 ```text
-Read
-Grep
-Bash(ast-tool find)
-Bash(ast-tool references)
-Read
-Edit
-```
-
-At minimum, store:
-
-```text
-tool name
-ast-tool command, if detected
-```
-
-in execution order.
-
-Do not attempt sophisticated semantic classification yet.
-
-A simple ordered event list is sufficient.
-
-Example:
-
-```json
-{
-  "workflow": [
-    {"tool": "Read"},
-    {"tool": "Grep"},
-    {"tool": "Bash", "ast_tool_command": "find"},
-    {"tool": "Bash", "ast_tool_command": "references"},
-    {"tool": "Read"},
-    {"tool": "Edit"}
-  ]
-}
-```
-
-This will be useful for later analysis.
-
----
-
-# 11. Execution Metrics
-
-Record at least:
-
-```text
-elapsed_seconds
-process_exit_code
-timed_out
-```
-
-Also record token statistics and tool statistics.
-
-Do not attempt to derive a monetary cost unless the required pricing information is already available in the project.
-
----
-
-# 12. Git Diff Collection
-
-After Claude Code finishes, collect the repository changes.
-
-At minimum record:
-
-```text
+elapsed time
+token usage
+Grep calls
+Read calls
+Bash calls
+Skill usage
+ast-tool command counts
 changed files
-diff
-```
-
-Prefer obtaining the diff from Git rather than relying only on Claude Code logs.
-
-The evaluation result should make it possible to inspect:
-
-```text
-What did the agent change?
-```
-
-after the run.
-
-Do not automatically discard the diff before it has been persisted.
-
----
-
-# 13. Validation
-
-Task correctness must be evaluated independently from Claude Code logs.
-
-Implement a validator conceptually equivalent to:
-
-```python
-validate_task(task, repository) -> ValidationResult
-```
-
-The primary MVP validation mechanism is a task-provided command:
-
-```yaml
-validation:
-  command: ./tests/run.sh
-```
-
-Execute it after Claude Code completes.
-
-Record:
-
-```text
-validation exit code
-validation stdout
-validation stderr
 validation success
 ```
 
-A task is successful only when its validation succeeds, unless the task explicitly defines another validation rule.
+Do not add new metrics unless required.
 
-The validator must not inspect Claude Code tool usage when determining correctness.
+Use the existing evaluation infrastructure.
 
-This separation is important:
+---
+
+# 17. Preserve the Evaluation Baseline
+
+Do not modify:
 
 ```text
-Agent behavior
-    ↓
-Claude Code logs
-
-Task correctness
-    ↓
-Repository validation
+ast-tool/.claude/skills/
 ```
 
----
-
-# 14. Expected Files
-
-Support optional expected-file validation.
-
-Example:
-
-```yaml
-expected_files:
-  - src/service/user_service.cpp
-```
-
-If specified, verify that those files were modified.
-
-This should be an additional validation signal, not a replacement for the task's actual tests.
-
-Do not require expected files for every task.
-
----
-
-# 15. Evaluation Result
-
-Persist one JSON object per task execution.
-
-JSONL is preferred.
-
-Example:
-
-```json
-{
-  "task_id": "references-001",
-  "success": true,
-  "elapsed_seconds": 18.2,
-  "process_exit_code": 0,
-  "timed_out": false,
-  "tokens": {
-    "input": 12345,
-    "output": 1832,
-    "cache_read": 5000,
-    "cache_creation": 1000
-  },
-  "tools": {
-    "Read": 5,
-    "Grep": 2,
-    "Bash": 4,
-    "Edit": 1
-  },
-  "ast_tool": {
-    "find": 1,
-    "references": 2,
-    "callers": 0,
-    "callees": 0
-  },
-  "workflow": [
-    {"tool": "Read"},
-    {"tool": "Bash", "ast_tool_command": "find"},
-    {"tool": "Bash", "ast_tool_command": "references"},
-    {"tool": "Edit"}
-  ],
-  "changed_files": [
-    "src/service/user_service.cpp"
-  ],
-  "validation": {
-    "success": true,
-    "exit_code": 0
-  }
-}
-```
-
-The exact schema may be simplified if necessary, but the information above should be preserved.
-
----
-
-# 16. Batch Execution
-
-Support running multiple tasks sequentially.
-
-Conceptually:
-
-```bash
-python run_eval.py tasks/
-```
-
-should execute:
+Do not modify:
 
 ```text
-task-001
-task-002
-task-003
-...
+evaluation/tasks/smoke-001.yaml
 ```
 
-Each task must run in an isolated repository state.
+Do not modify:
 
-Do not parallelize task execution in the MVP.
+```text
+evaluation/tasks/level1-*.yaml
+```
 
-Sequential execution makes debugging and Claude Code log isolation much simpler.
+Do not modify:
+
+```text
+evaluation/tasks/level2-*.yaml
+```
+
+Do not redesign the evaluation runner.
+
+The Level 3 dataset should be evaluated against the same existing Agent-facing environment.
 
 ---
 
-# 17. Failure Handling
+# 18. Inspect Existing Level 2 Design First
 
-The runner must distinguish at least:
+Before creating Level 3:
 
-```text
-agent_process_failure
-agent_timeout
-validation_failure
-runner_failure
-success
-```
+1. Inspect all Level 2 tasks.
+2. Inspect the Level 2 repository fixtures.
+3. Inspect the validators.
+4. Inspect the evaluation runner.
+5. Inspect the existing Skills.
+6. Identify which Level 2 tasks already exercise caller/callee behavior.
+7. Avoid duplicating those scenarios without increasing semantic depth.
 
-For example:
+Level 3 must represent a genuine difficulty progression.
 
-```json
-{
-  "task_id": "callers-001",
-  "status": "validation_failure"
-}
-```
-
-A failed task must still produce an evaluation record whenever possible.
-
-One failed task must not prevent the remaining batch from running.
-
-Exceptions should be captured and reported clearly.
+Do not simply rename a Level 2 scenario.
 
 ---
 
-# 18. Reproducibility
+# 19. Acceptance Criteria
 
-Each evaluation result should contain enough metadata to identify the execution environment.
+The work is complete when:
 
-Record where practical:
-
-```text
-task_id
-timestamp
-repository revision
-Claude Code command/version if available
-ast-tool revision if available
-```
-
-Do not add fragile environment detection solely for the sake of metadata.
-
-Use information already available from the runner or repository.
-
----
-
-# 19. Recommended Project Structure
-
-Adapt this to the existing repository rather than forcing an unrelated architecture.
-
-A possible structure is:
-
-```text
-evaluation/
-├── tasks/
-│   ├── references-001.yaml
-│   ├── callers-001.yaml
-│   └── ...
-│
-├── repositories/
-│   ├── basic-01/
-│   └── ...
-│
-├── runner.py
-├── claude.py
-├── logs.py
-├── validator.py
-└── results/
-```
-
-The existing project structure takes precedence.
-
-Do not create unnecessary packages merely to match this example.
+* [ ] Exactly 8 Level 3 task YAML files exist.
+* [ ] Each task introduces meaningful call graph or multi-step semantic reasoning.
+* [ ] Most tasks require discovering relationships across multiple files.
+* [ ] At least 3 tasks contain semantically related paths that must remain unchanged.
+* [ ] At least one task combines references with caller/callee reasoning.
+* [ ] At least one task requires distributed modification across multiple source files.
+* [ ] No task prescribes an `ast-tool` command.
+* [ ] No task embeds CLI syntax.
+* [ ] Existing Skills remain unchanged.
+* [ ] Existing Level 1 and Level 2 tasks remain unchanged.
+* [ ] Every task has deterministic validation.
+* [ ] The evaluation runner requires no redesign.
 
 ---
 
-# 20. Testing the Evaluation Runner
+# 20. Final Deliverables
 
-Before creating the full benchmark, create a very small smoke-test evaluation.
-
-For example:
+Create:
 
 ```text
-1 repository
-1 task
-1 Claude Code invocation
+evaluation/tasks/level3-001.yaml
+evaluation/tasks/level3-002.yaml
+evaluation/tasks/level3-003.yaml
+evaluation/tasks/level3-004.yaml
+evaluation/tasks/level3-005.yaml
+evaluation/tasks/level3-006.yaml
+evaluation/tasks/level3-007.yaml
+evaluation/tasks/level3-008.yaml
 ```
 
-Verify:
+Create only the additional repository fixtures and validators required to support these tasks.
 
-1. Claude Code starts successfully
-2. Logs are isolated
-3. Tokens are collected
-4. Tool calls are collected
-5. `ast-tool` commands are detected
-6. Git diff is captured
-7. Validation runs
-8. JSONL result is produced
-9. The runner exits cleanly
+After implementation, report:
 
-Only after this works should batch execution be tested.
+1. The task ID.
+2. The repository fixture.
+3. The semantic challenge.
+4. The intended relevant capabilities.
+5. The semantic paths that must be modified.
+6. The semantically related paths that must remain unchanged.
+7. The expected number of modified files.
+8. The validation strategy.
+9. Any task that may overlap too heavily with Level 2.
+10. Any concern about task determinism.
 
----
-
-# 21. Do Not Build the Benchmark Yet
-
-This implementation task is about the **evaluation infrastructure**, not the final evaluation dataset.
-
-Do not spend significant effort creating:
+The main objective is to determine whether Claude Code can use:
 
 ```text
-20–30 tasks
-5–8 repositories
-large synthetic repositories
-real-world repositories
+Skill
+  ↓
+Semantic navigation
+  ↓
+Multi-step relationship analysis
+  ↓
+Selective code modification
 ```
 
-Those will be added after the runner works.
-
-The immediate goal is:
-
-```text
-One task
-   ↓
-Claude Code
-   ↓
-Statistics + workflow + diff
-   ↓
-Validation
-   ↓
-JSONL result
-```
-
-Once this pipeline is reliable, the benchmark data can be developed independently.
-
----
-
-# 22. Design Principle
-
-Keep the architecture simple:
-
-```text
-Task Definition
-      │
-      ▼
-Evaluation Runner
-      │
-      ├── Claude Code
-      ├── Log Parser
-      ├── Git
-      └── Validator
-      │
-      ▼
-Evaluation Result
-```
-
-Do not let evaluation-specific logic leak into `ast-tool`.
-
-The existing `ast-tool` implementation should remain unchanged unless a concrete integration problem is discovered.
-
----
-
-# 23. Acceptance Criteria
-
-The implementation is complete when all of the following are true:
-
-* [ ] A task can be defined independently of the runner.
-* [ ] A clean repository can be prepared for a task.
-* [ ] Claude Code can be launched automatically in headless mode.
-* [ ] Claude Code logs are isolated per task.
-* [ ] Input/output/cache token usage is collected.
-* [ ] Claude Code tool usage is collected.
-* [ ] `ast-tool` commands invoked through shell tools can be detected.
-* [ ] The ordered tool workflow is preserved.
-* [ ] Execution time and process status are recorded.
-* [ ] Git changes are collected.
-* [ ] Task-specific validation can be executed.
-* [ ] Validation results are recorded separately from agent behavior.
-* [ ] One JSONL record is produced per task.
-* [ ] A failed task does not terminate the entire batch.
-* [ ] A single-task smoke test passes end-to-end.
-* [ ] No changes to Semantic Services or `ast-tool` behavior are required.
-* [ ] No generic multi-agent abstraction is introduced.
-
-## Final Deliverable
-
-Provide:
-
-1. The implemented evaluation runner.
-2. A minimal example task.
-3. A minimal example repository or test fixture.
-4. A command showing how to run the smoke test.
-5. An example JSONL evaluation result.
-6. Brief documentation describing how to add a new evaluation task.
-
-Do not implement the full benchmark dataset in this change.
+as a practical workflow for realistic coding tasks.

@@ -1,0 +1,27 @@
+id: level2-004
+
+repository: repositories/level2-auth
+
+prompt: |
+  This is a C++ authentication system. The AuthToken class has a `validate` method that
+  is called from several places across the codebase.
+
+  Every direct caller of AuthToken::validate should emit a debug line immediately before
+  making that call. Find all functions that directly call AuthToken::validate and add
+  the following line immediately before each such call:
+
+      std::cerr << "[auth] validating token\n";
+
+evaluation:
+  category: caller-analysis
+  relevant_capabilities:
+    - callers
+    - references
+
+validation:
+  command: python validate_004.py
+
+expected_files:
+  - src/auth/auth_service.cpp
+
+timeout: 120

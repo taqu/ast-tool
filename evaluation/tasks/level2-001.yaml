@@ -1,0 +1,29 @@
+id: level2-001
+
+repository: repositories/level2-auth
+
+prompt: |
+  This is a C++ authentication system. Multiple classes — AuthService, SessionManager,
+  TokenCache, and UserRepository — each have a method named `update`.
+
+  The auth service's `update` method is specifically responsible for refreshing the stored
+  state of an authenticated user. Find its implementation and add the following diagnostic
+  line at the very start of the method body:
+
+      std::cerr << "[AuthService] update\n";
+
+  Do not modify the `update` method of any other class.
+
+evaluation:
+  category: ambiguity
+  relevant_capabilities:
+    - find
+    - search
+
+validation:
+  command: python validate_001.py
+
+expected_files:
+  - src/auth/auth_service.cpp
+
+timeout: 120

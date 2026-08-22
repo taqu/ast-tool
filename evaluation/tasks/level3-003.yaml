@@ -1,0 +1,29 @@
+id: level3-003
+
+repository: repositories/level3-order
+
+prompt: |
+  This is a C++ order processing system. When an order is submitted, inventory is reserved
+  through a chain: the order service delegates to the inventory service, which in turn
+  delegates to the inventory repository.
+
+  Find the inventory repository's reservation method — the final step in this chain — and
+  add the following line at the very start of its implementation body:
+
+      std::cerr << "[inventory] persisting\n";
+
+  Do not modify the order repository.
+
+evaluation:
+  category: multi-level-callees
+  relevant_capabilities:
+    - callees
+    - find
+
+validation:
+  command: python validate_003.py
+
+expected_files:
+  - src/repository/inventory_repository.cpp
+
+timeout: 120

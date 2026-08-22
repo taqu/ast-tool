@@ -1,0 +1,27 @@
+id: level2-005
+
+repository: repositories/level2-auth
+
+prompt: |
+  This is a C++ authentication system. The auth service's `refresh` method performs
+  several operations as part of token renewal, including updating the persisted user
+  record in the repository.
+
+  Find the user-update operation that `refresh` calls and add the following diagnostic
+  line at the very start of that operation's implementation:
+
+      std::cerr << "[repo] update\n";
+
+evaluation:
+  category: callee-analysis
+  relevant_capabilities:
+    - callees
+    - find
+
+validation:
+  command: python validate_005.py
+
+expected_files:
+  - src/auth/user_repository.cpp
+
+timeout: 120

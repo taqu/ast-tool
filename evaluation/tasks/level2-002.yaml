@@ -1,0 +1,29 @@
+id: level2-002
+
+repository: repositories/level2-auth
+
+prompt: |
+  This is a C++ authentication system. Both AuthToken and AuthService have a method
+  named `validate`.
+
+  The auth token's `validate` method performs the low-level integrity check on a raw
+  token string. Find its implementation — not the auth service's validate — and add
+  the following diagnostic line at the very start of the method body:
+
+      std::cerr << "[AuthToken] validate\n";
+
+  Do not modify AuthService::validate.
+
+evaluation:
+  category: ambiguity
+  relevant_capabilities:
+    - find
+    - search
+
+validation:
+  command: python validate_002.py
+
+expected_files:
+  - src/auth/auth_token.cpp
+
+timeout: 120

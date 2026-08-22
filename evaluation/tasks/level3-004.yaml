@@ -1,0 +1,26 @@
+id: level3-004
+
+repository: repositories/level3-order
+
+prompt: |
+  This is a C++ order processing system. The payment authorization process delegates to
+  an external gateway to perform the actual charge.
+
+  Starting from `PaymentService::authorize`, find the gateway operation it calls and add
+  the following line at the very start of that gateway method's implementation:
+
+      std::cerr << "[gateway] charge\n";
+
+evaluation:
+  category: multi-level-callees
+  relevant_capabilities:
+    - callees
+    - find
+
+validation:
+  command: python validate_004.py
+
+expected_files:
+  - src/gateway/payment_gateway.cpp
+
+timeout: 120

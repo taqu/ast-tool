@@ -74,4 +74,9 @@ __pycache__/
 # Evaluation runner — generated at runtime
 /evaluation/repositories/
 /evaluation/results/
+/evaluation/tests1/
+/evaluation/tests2/
+/evaluation/tests3/
+/evaluation/tests4/
+/evaluation/tests5/
 

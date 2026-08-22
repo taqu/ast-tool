@@ -1,0 +1,26 @@
+id: level3-005
+
+repository: repositories/level3-pipeline
+
+prompt: |
+  This is a C++ data pipeline. The data store performs audit logging within two of its
+  operations: save and purge. Both call `AuditLogger::log`.
+
+  Find every call to `AuditLogger::log` within the data store implementation and add the
+  following line immediately before each such call:
+
+      std::cerr << "[audit] log called\n";
+
+evaluation:
+  category: references-and-callers
+  relevant_capabilities:
+    - references
+    - callers
+
+validation:
+  command: python validate_005.py
+
+expected_files:
+  - src/store/data_store.cpp
+
+timeout: 120

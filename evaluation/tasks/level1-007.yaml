@@ -1,0 +1,29 @@
+id: level1-007
+
+repository: repositories/level1-config
+
+prompt: |
+  This is a C++ configuration management project. The codebase contains two classes with
+  a method named `validate`: ConfigManager and SchemaValidator.
+
+  The ConfigManager class has a `validate` method that checks whether all required
+  configuration keys are present. Find its implementation and add the following diagnostic
+  line at the very start of the method body:
+
+      std::cerr << "[ConfigManager] validate called\n";
+
+  Only modify ConfigManager. Do not change SchemaValidator.
+
+evaluation:
+  category: ambiguity
+  relevant_capabilities:
+    - find
+    - search
+
+validation:
+  command: python validate_007.py
+
+expected_files:
+  - src/config/config_manager.cpp
+
+timeout: 120

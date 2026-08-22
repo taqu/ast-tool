@@ -1,0 +1,27 @@
+id: level2-006
+
+repository: repositories/level2-gateway
+
+prompt: |
+  This is a C++ API gateway. The Token class has a `validate` method that is called from
+  several middleware components and handlers throughout the codebase.
+
+  Immediately before every call to Token::validate — across all source files — add the
+  following line:
+
+      std::cerr << "[token] validate\n";
+
+  Do not modify the Token::validate implementation itself.
+
+evaluation:
+  category: references
+  relevant_capabilities:
+    - references
+
+validation:
+  command: python validate_006.py
+
+expected_files:
+  - src/middleware/auth_middleware.cpp
+
+timeout: 120
