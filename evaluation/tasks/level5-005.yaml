@@ -1,0 +1,23 @@
+id: level5-005
+
+repository: repositories/level5-order-workflow
+
+prompt: |
+  Users are complaining about massive overdrafts on their accounts from monthly subscription charges. It appears that the subscription billing job is charging users 100 times the expected amount.
+  Find the workflow that executes monthly subscription billing, investigate how it interacts with the payment service, and correct the bug.
+  Make sure you do not change the payment service or checkout system signatures, as standard user checkouts are working correctly and must remain completely unaffected.
+
+evaluation:
+  category: caller-bug
+  relevant_capabilities:
+    - search
+    - references
+    - callers
+
+validation:
+  command: python validate_005.py
+
+expected_files:
+  - src/jobs/subscription_billing_job.cpp
+
+timeout: 180

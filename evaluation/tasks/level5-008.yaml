@@ -1,0 +1,24 @@
+id: level5-008
+
+repository: repositories/level5-refactor-regression
+
+prompt: |
+  Users have reported receiving duplicate email notifications whenever they perform a password reset. However, standard password updates from their account profiles send only one notification.
+  Investigate the password reset workflow and the user service to locate the source of duplicate notifications, and fix the reset workflow so that exactly one email is sent.
+  Ensure that profile-based password updates continue to send exactly one email.
+
+evaluation:
+  category: combined-investigation
+  relevant_capabilities:
+    - search
+    - references
+    - callers
+    - callees
+
+validation:
+  command: python validate_008.py
+
+expected_files:
+  - src/workflow/password_reset_workflow.cpp
+
+timeout: 180

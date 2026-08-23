@@ -1,0 +1,23 @@
+id: level5-004
+
+repository: repositories/level5-state-propagation
+
+prompt: |
+  The transaction system provides a "dry run" mode to allow validating transaction parameters without committing changes to the database. However, transactions triggered via standard user channels are being permanently written to the database even when dry run is requested.
+  Investigate the propagation of execution options, find where the dry run flag is being lost, and fix it.
+  Ensure that non-dry run transactions continue to be written to the database.
+
+evaluation:
+  category: incomplete-propagation
+  relevant_capabilities:
+    - search
+    - callers
+    - references
+
+validation:
+  command: python validate_004.py
+
+expected_files:
+  - src/service/user_service.cpp
+
+timeout: 180

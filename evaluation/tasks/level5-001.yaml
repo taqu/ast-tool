@@ -1,0 +1,24 @@
+id: level5-001
+
+repository: repositories/level5-request-bugs
+
+prompt: |
+  We have a message routing system where urgent messages are supposed to be routed to the priority queue. However, critical and high priority messages are currently landing in the standard queue, leading to SLA failures.
+  Investigate the codebase, identify why priority routing is failing, and implement the correct fix to ensure that messages with priority CRITICAL or HIGH are routed to the priority queue.
+  Ensure that other message priorities (LOW, NORMAL) continue to go to the standard queue, and invalid/empty messages go to the dead letter queue.
+
+evaluation:
+  category: wrong-semantic-path
+  relevant_capabilities:
+    - search
+    - references
+    - callers
+    - callees
+
+validation:
+  command: python validate_001.py
+
+expected_files:
+  - src/dispatcher/message_dispatcher.cpp
+
+timeout: 180

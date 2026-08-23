@@ -1,0 +1,23 @@
+id: level5-007
+
+repository: repositories/level5-refactor-regression
+
+prompt: |
+  Security audit logs for failed logins are missing structured metadata (such as IP address and user agent) in our log aggregator, while standard log entries are correct.
+  Migrate the authentication service's logging to use the new structured logging system, ensuring you don't affect standard text-based fallback logging in legacy CLI tools.
+
+evaluation:
+  category: refactor-regression
+  relevant_capabilities:
+    - search
+    - references
+    - callers
+    - callees
+
+validation:
+  command: python validate_007.py
+
+expected_files:
+  - src/service/auth_service.cpp
+
+timeout: 180

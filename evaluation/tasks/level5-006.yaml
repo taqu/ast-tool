@@ -1,0 +1,24 @@
+id: level5-006
+
+repository: repositories/level5-order-workflow
+
+prompt: |
+  A financial audit has revealed that several orders in the system are marked as "PAID" even though their payment authorization failed.
+  Investigate the order processing workflow, identify the incorrect dependency invocation order or state handling, and fix it so that order status updates only reflect success when payment is authorized.
+  Ensure you do not break the inventory reservation or release flow on failure.
+
+evaluation:
+  category: callee-ordering
+  relevant_capabilities:
+    - search
+    - references
+    - callers
+    - callees
+
+validation:
+  command: python validate_006.py
+
+expected_files:
+  - src/workflow/order_processing_workflow.cpp
+
+timeout: 180

@@ -1,0 +1,23 @@
+id: level5-003
+
+repository: repositories/level5-state-propagation
+
+prompt: |
+  We use a request context trace system to link database updates back to incoming API requests. However, we've noticed that while correlation IDs propagate correctly to downstream service providers, database updates are saving with empty correlation IDs.
+  Investigate the workflow, locate where the request context/correlation ID propagation breaks, and fix it so that order saves retain the correct correlation ID in the database client.
+  Make sure this does not break normal inventory check/reservation routing.
+
+evaluation:
+  category: incomplete-propagation
+  relevant_capabilities:
+    - search
+    - callers
+    - references
+
+validation:
+  command: python validate_003.py
+
+expected_files:
+  - src/service/order_service.cpp
+
+timeout: 180

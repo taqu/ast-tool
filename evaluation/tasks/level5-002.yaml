@@ -1,0 +1,25 @@
+id: level5-002
+
+repository: repositories/level5-request-bugs
+
+prompt: |
+  We recently introduced structured audit log tracking, but security aggregation shows that audit logs are being formatted identically to standard system log entries, lacking critical metadata like user ID and IP address.
+  Investigate the logging and serialization classes, find why audit messages are not routed to the specialized audit formatter, and correct it so that audit messages are formatted with their audit-specific properties (user_id and ip).
+  Do not affect standard log formatting for regular log entries.
+
+evaluation:
+  category: wrong-semantic-path
+  relevant_capabilities:
+    - search
+    - references
+    - callers
+    - callees
+
+validation:
+  command: python validate_002.py
+
+expected_files:
+  - src/serializer/base_serializer.h
+  - src/serializer/json_serializer.h
+
+timeout: 180

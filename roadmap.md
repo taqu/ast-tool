@@ -1,6 +1,24 @@
 # AST Tool — Progress & Roadmap
 
-## 1. Architecture
+## 現在地
+
+**AST / Semantic infrastructure、Semantic CLI、Agent-facing Skills、そして Agent Evaluation の評価セットと実行・統計基盤まで整った状態です。**
+
+プロジェクトは現在、
+
+```text
+「Semantic capability を実装する」
+        ↓
+「Coding Agent が実際に使うか評価する」
+        ↓
+「評価結果を基に改善する」
+```
+
+というフェーズに移っています。
+
+---
+
+# 1. Architecture
 
 ```text
 Tree-sitter
@@ -28,10 +46,10 @@ Semantic Services
 AI Agent / CLI / IDE
 ```
 
-### Design principles
+## Design principles
 
 * Tree-sitter は parsing に限定
-* AST IR が安定した中間表現
+* AST IR を安定した中間表現とする
 * Semantic Layer は AST IR のみに依存
 * Workspace が複数ファイルの semantic information を集約
 * Semantic Services は parser-independent
@@ -39,6 +57,8 @@ AI Agent / CLI / IDE
 * 言語固有処理は extractor に閉じ込める
 * Semantic Provider は optional enrichment
 * Agent は parser internals ではなく `ast-tool` を利用する
+
+**Status: 安定 / 基本設計完了 ✅**
 
 ---
 
@@ -65,15 +85,17 @@ children
 Tree-sitter query integration
 ```
 
-ただし、現在の Agent / Semantic workflow に対する優先度は低い。
+ただし現在の Agent / Semantic workflow に対する優先度は低い。
+
+**Priority: B〜低**
 
 ---
 
 # 3. Semantic Extraction
 
-**Status: ほぼ完了 ✅**
+**Status: 完了に近い / 基本機能成立 ✅**
 
-完了：
+実装済み：
 
 * Qualified name
 * Namespace / class hierarchy
@@ -85,15 +107,13 @@ Tree-sitter query integration
 * Lexical scope analysis
 * Lexical name lookup
 
-Semantic Layer の基本機能は成立済み。
+Semantic Layer の基盤は成立済み。
 
 ---
 
 # 4. Workspace Analysis
 
-**Status: Parallelized / Streaming が未完**
-
-### 完了 ✅
+## 完了 ✅
 
 * Recursive workspace scan
 * Multi-file parsing
@@ -105,17 +125,19 @@ Semantic Layer の基本機能は成立済み。
 * `get_physical_core_count()` による worker 数制御
 * `analyze_workspace()` の共通利用
 
-現在、過剰な worker を無制限に生成する構造ではない。
+CLI ごとに Workspace 構築処理を重複しているわけではなく、
 
-### 現在の課題
+```cpp
+Workspace ws = analyze_workspace(arguments.root_);
+```
 
-`analyze_workspace()` 内では、ファイル解析そのものは並列化されているが、**workspace scan 時に全 file path を先に集める構造が残っている**。
+を中心とした共通構造になっている。
 
-概念的には：
+## 現在の性能課題
+
+現状：
 
 ```text
-Current
-
 Scan workspace
       ↓
 Collect all file paths
@@ -125,16 +147,16 @@ Parallel analysis
 Workspace
 ```
 
-これを将来的に：
+ファイル解析は並列化済みだが、workspace scan 時に file path を全件保持する。
+
+将来的な改善案：
 
 ```text
-Target
-
 Scanner
    ↓
 File discovered
    ↓
-Bounded work
+Bounded work queue
    ↓
 Worker pool
    ↓
@@ -143,27 +165,22 @@ Analysis result
 Workspace merge
 ```
 
-へ移行する。
+目的：
 
-### 次の技術テーマ
-
-**Streaming / bounded-memory workspace analysis**
-
-特に、
-
-* file path の全件保持を避ける
-* parallelism を維持する
+* file path 全件保持を避ける
+* parallelism を維持
 * in-flight work を bounded にする
-* peak memory を測定する
-* 大規模 repository で性能を比較する
+* peak memory を削減
+* 大規模 repository で性能比較
 
-がポイント。
+**Status: Streaming 未実装 ☐**
+**Priority: A**
 
 ---
 
 # 5. Semantic Services
 
-**Status: 完了 ✅**
+**Status: Complete ✅**
 
 実装済み：
 
@@ -183,15 +200,22 @@ Context Export
 
 > **存在する Semantic Service をすべて CLI command にする必要はない。**
 
-特に `Context Export` / `Semantic Diff` は現時点では独立 CLI にする必要性は低い。
+現時点では、
+
+```text
+Context Export
+Semantic Diff
+```
+
+を独立した Agent-facing CLI command にする必要性は確認されていない。
 
 ---
 
 # 6. Semantic CLI
 
-**Status: 完了 ✅**
+**Status: Complete ✅**
 
-現在の Agent-facing command set：
+現在の CLI：
 
 ```text
 ast-tool
@@ -204,10 +228,11 @@ ast-tool
  ├── callers
  ├── callees
  ├── parent
- └── children
+ ├── children
+ └── dump
 ```
 
-### Semantic commands
+## Semantic commands
 
 ```text
 search
@@ -217,7 +242,7 @@ callers
 callees
 ```
 
-### Structural inspection
+## Structural inspection
 
 ```text
 symbols
@@ -226,89 +251,78 @@ parent
 children
 ```
 
-### Advanced / low-level
+## Advanced / low-level
 
 ```text
 range
 dump
 ```
 
-`dump` は CLI には存在するが、Agent-facing Skill の通常 workflow からは外す方針。
+`dump` は存在するが、通常の Agent workflow からは外す。
 
-`range` も通常 workflow の中心にはしない。
-
----
-
-# 7. CLI Common Handling
-
-**Status: 完了 ✅**
-
-`references` / `callers` / `callees` などで、
-
-```cpp
-Workspace ws = analyze_workspace(arguments.root_);
-```
-
-を個別に実装するのではなく、共通の処理として利用している。
-
-したがって、
-
-> CLIごとの Workspace construction の重複
-
-は現在の課題ではない。
-
-残っている問題は **共通化ではなく `analyze_workspace()` 自体の streaming / memory characteristics**。
+`range` も Agent workflow の中心にはしない。
 
 ---
 
-# 8. CLI Help
+# 7. CLI Help / Usability
 
-**Status: 実装済み / 今後レビュー**
+**Status: 基本実装済み、Evaluation で検証可能 ✅**
 
-command-specific help は既に存在する。
-
-例えば：
+例えば、
 
 ```text
 ast-tool references --help
 ```
 
-も利用可能。
+は利用可能。
 
-したがって、次に必要なのは Help 機能そのものの実装ではなく、
+実際の Level 2 evaluation では、
 
-> **Agent が help だけで適切な command を選択できるか**
-
-という usability review。
-
-特に、
-
-```text
-search
-find
-references
-callers
-callees
+```json
+"ast_tool": {
+    "search": 4,
+    "callers": 8,
+    "help": 2,
+    "references": 1,
+    "symbols": 1
+}
 ```
 
-の責務が明確かを確認する。
+のように Agent が `help` を利用するケースも確認されている。
+
+今後の焦点は、
+
+> Help が存在するか
+
+ではなく、
+
+> Agent が Help を読んで正しい command を選択できるか
+
+である。
+
+**Status: Evaluation data を基に今後レビュー**
 
 ---
 
-# 9. Agent-facing Skills
+# 8. Agent-facing Skills
 
-**Status: 整理完了 ✅**
+**Status: 整理完了 / 実際の評価対象として使用中 ✅**
 
 現在：
 
 ```text
-skills
-├── semantic-analysis
-├── ast-inspection
-└── api-review
+ast-tool/.claude/skills/
+├── semantic-analysis/
+│   └── SKILL.md
+├── ast-inspection/
+│   └── SKILL.md
+└── api-review/
+    └── SKILL.md
 ```
 
-### semantic-analysis
+## semantic-analysis
+
+対象：
 
 ```text
 search
@@ -320,7 +334,9 @@ callees
 
 Semantic relationship / symbol navigation を担当。
 
-### ast-inspection
+## ast-inspection
+
+対象：
 
 ```text
 symbols
@@ -331,76 +347,466 @@ children
 
 Structural inspection を担当。
 
-### api-review
+## api-review
 
 Semantic commands を組み合わせた高レベル workflow。
 
 ```text
-Find
-  ↓
+Find symbol
+      ↓
 References
-  ↓
+      ↓
 Callers
-  ↓
+      ↓
 Callees
-  ↓
+      ↓
 Impact assessment
 ```
 
-以前存在した、
+重要なのは、
 
-```text
-context-export
-workspace-analysis
-```
+> Skills は Agent に正しい semantic workflow を提示するための interface
 
-は独立 Skill として整理済み。
+として評価対象になっていること。
 
 ---
 
-# 10. Agent Evaluation
+# 9. Agent Evaluation Infrastructure
 
-**Status: 次の段階**
+**Status: 構築完了 ✅**
 
-ここから重要になるのが、実際の coding agent に使わせること。
+Agent Evaluation は `Claude Code` を対象として進めている。
 
-評価対象：
+基本フロー：
 
 ```text
+Evaluation Task
+      ↓
+Claude Code
+      ↓
+Skills
+      ↓
+Tool selection
+      ├── Grep
+      ├── Read
+      ├── Bash
+      └── ast-tool
+              ├── search
+              ├── references
+              ├── callers
+              ├── callees
+              └── help
+      ↓
+Code modification
+      ↓
+Validation
+      ↓
+JSONL result
+      ↓
+Statistics
+```
+
+取得している情報：
+
+```json
+{
+  "task_id": "...",
+  "success": true,
+  "elapsed_seconds": 181.52,
+  "tokens": {},
+  "tools": {},
+  "ast_tool": {},
+  "workflow": [],
+  "changed_files": [],
+  "validation": {}
+}
+```
+
+---
+
+# 10. Evaluation Tasks
+
+**Status: Level-based evaluation set 作成済み ✅**
+
+現在、
+
+```text
+smoke
+level1
+level2
+level3
+level4
+level5
+```
+
+という段階的な評価セットを構築済み。
+
+概念的には、
+
+```text
+Smoke
+  ↓
+Basic symbol/file navigation
+
+Level 1
+  ↓
+Simple local modification
+
+Level 2
+  ↓
+Cross-file semantic navigation
+  ↓
+ast-tool が有利になり始める
+
+Level 3
+  ↓
+Multiple files / relationships
+  ↓
+references / callers / search 等の利用価値
+
+Level 4
+  ↓
+More complex impact analysis
+  ↓
+Semantic workflow が重要
+
+Level 5
+  ↓
+High-complexity repository navigation
+  ↓
+Tool selection / semantic reasoning の評価
+```
+
+Level 1 の結果では主に、
+
+```text
+Grep
+Read
+Edit
+```
+
+で成功していた。
+
+これは重要なベースラインである。
+
+一方、Level 2 では、
+
+```json
+"ast_tool": {
+    "callers": 4,
+    "search": 2,
+    "references": 1
+}
+```
+
+あるいは、
+
+```json
+"ast_tool": {
+    "search": 4,
+    "callers": 8,
+    "help": 2,
+    "references": 1,
+    "symbols": 1
+}
+```
+
+のように、Agent が実際に `ast-tool` と Skills を利用するケースが確認された。
+
+---
+
+# 11. Evaluation Runner / Logging
+
+**Status: 完了 / 再生成済みの評価スクリプトを含め基盤整備済み ✅**
+
+既存の Claude Code の local JSONL log を利用して、
+
+```text
+~/.claude/projects
+```
+
+から、
+
+* input tokens
+* output tokens
+* cache read tokens
+* cache creation tokens
+* tool usage
+
+を集計する方式を利用。
+
+ノイズ除去のため、
+
+```python
+clear_claude_logs()
+```
+
+でログを初期化し、
+
+テストごとの実行結果を独立して取得できる構造。
+
+さらに workflow から、
+
+```text
+Skill
+Bash
+Read
+Edit
+Grep
+Glob
 Agent
-  ↓
-Skill selection
-  ↓
-ast-tool command selection
-  ↓
-Command execution
-  ↓
-Result interpretation
-  ↓
-Code change
 ```
 
-確認したいこと：
+等の tool sequence を保存。
 
-* Agent は適切な Skill を選べるか
-* `search` と `find` を区別できるか
-* `references` / `callers` / `callees` を区別できるか
-* 構造確認と semantic analysis を使い分けられるか
-* Help を適切に利用できるか
-* 不要な `dump` / grep 等に逃げないか
-* Semantic information を実際の変更判断に利用できるか
+Bash 内で `ast-tool` が実行された場合は、
 
-ここから得られる実測結果を、CLI / Skills の改善材料にする。
+```json
+"ast_tool": {
+    "search": 4,
+    "callers": 8,
+    "references": 1
+}
+```
+
+のように command 単位で抽出する。
 
 ---
 
-# 11. Structured Output
+# 12. Statistics / Result Analysis
 
-**Status: 後回し**
+**Status: 作成済み ✅**
 
-現時点では大規模な output redesign はしない。
+テストランナーとは分離した統計スクリプトを作成。
+
+基本構造：
+
+```text
+evaluation run
+      ↓
+results.jsonl
+      ↓
+statistics / analysis
+      ↓
+summary
+CSV
+```
+
+取得対象：
+
+## Global
+
+```text
+total tasks
+success / failure
+timeout
+elapsed time
+token usage
+tool usage
+ast-tool usage
+```
+
+## Per Level
+
+```text
+tasks
+success rate
+average time
+median time
+average token usage
+```
+
+## ast-tool
+
+```text
+command usage
+search
+find
+references
+callers
+callees
+symbols
+help
+...
+```
+
+さらに今後重要になる指標：
+
+```text
+ast-tool adoption rate
+```
+
+つまり、
+
+```text
+Tasks using ast-tool
+/
+Total tasks
+```
+
+である。
+
+---
+
+# 13. 次に見るべき Evaluation Metrics
+
+評価セット自体はできたため、次は**実データの分析フェーズ**。
+
+特に見るべきなのは以下。
+
+## A. Success Rate by Level
+
+```text
+Level
+  ↓
+Success rate
+```
+
+例：
+
+```text
+Smoke   100%
+Level 1 100%
+Level 2  90%
+Level 3  85%
+Level 4  70%
+Level 5  50%
+```
+
+難易度設計が適切なら、ある程度の難易度上昇に伴う成功率変化が見える。
+
+---
+
+## B. ast-tool Adoption by Level
+
+```text
+Level
+  ↓
+Tasks that used ast-tool
+```
+
+例：
+
+```text
+Smoke    0%
+Level 1  0%
+Level 2 60%
+Level 3 80%
+Level 4 90%
+Level 5 95%
+```
+
+これは、
+
+> Task difficulty が上がるほど semantic tooling が自然に使われるか
+
+を見る重要な指標。
+
+---
+
+## C. Command Usage
+
+```text
+search
+find
+references
+callers
+callees
+symbols
+help
+```
+
+について、
+
+```text
+どの command が実際に使われたか
+```
+
+を見る。
 
 例えば、
+
+```text
+callers     32
+search      24
+references  18
+callees      3
+find         0
+```
+
+となった場合、
+
+```text
+callees
+find
+```
+
+の discoverability や Skill 上の説明を疑うことができる。
+
+---
+
+## D. Workflow Analysis
+
+単なる回数ではなく、
+
+```text
+Skill
+  ↓
+ast-tool search
+  ↓
+ast-tool callers
+  ↓
+Read
+  ↓
+Edit
+```
+
+のような workflow が成立しているかを見る。
+
+理想的には、
+
+```text
+Skill selection
+      ↓
+Semantic discovery
+      ↓
+Target narrowing
+      ↓
+Read
+      ↓
+Edit
+```
+
+という流れ。
+
+逆に、
+
+```text
+Grep
+Grep
+Read
+Read
+Read
+Read
+...
+```
+
+だけで完結している場合、
+
+* Task が簡単すぎる
+* ast-tool の優位性がない
+* Skill が選ばれていない
+* Command UX が弱い
+
+などを疑う。
+
+---
+
+# 14. Structured Output
+
+**Status: 後回し ☐**
+
+現時点では、
 
 ```text
 JSON
@@ -409,95 +815,102 @@ machine-readable schema
 output versioning
 ```
 
-などはまだ不要。
+などの大規模 redesign は行わない。
 
-まず Agent evaluation を行い、
+理由：
 
-> 出力形式の違いが実際に Agent の判断を妨げる
+> まず Agent Evaluation の実測で、本当に output format が問題になるか確認する。
 
-という問題が確認されてから検討する。
+ただし、
 
-ただし、明らかな不整合は通常の CLI polish の範囲で修正してよい。
+```text
+明らかな CLI output inconsistency
+```
+
+が見つかった場合は通常の polish として修正してよい。
+
+**Priority: B**
 
 ---
 
-# 12. Performance / Memory Benchmark
+# 15. Workspace Streaming / Performance
 
-**Status: 次の技術テーマ**
+**Status: 次の独立した技術テーマ ☐**
 
-Streaming 化の前後で、
+Evaluation と並行して進められる。
+
+現在：
 
 ```text
-Repository
-    ↓
-analyze_workspace()
-    ↓
-metrics
+parallel analysis       ✅
+bounded worker count    ✅
+streaming               ☐
+benchmark               ☐
+memory optimization     ☐
 ```
 
-を比較できるようにする。
+Streaming 化前後で比較したい指標：
 
-測定候補：
+```text
+file count
+total analysis time
+peak memory
+CPU utilization
+worker count
+queue depth
+in-flight work
+throughput
+```
 
-* file count
-* total analysis time
-* peak memory
-* CPU utilization
-* worker count
-* queue / in-flight work
-* throughput
-
-特に重要なのは、
+比較対象：
 
 ```text
 Before
-all paths retained
+all file paths retained
 
 vs.
 
 After
-streamed / bounded
+streamed / bounded pipeline
 ```
-
-の peak memory 比較。
 
 ---
 
-# 13. Future Workspace Features
+# 16. Future Workspace Features
 
-Streaming / benchmark が固まった後に検討。
+Streaming / benchmark の結果を見てから検討。
 
-### Incremental Analysis
+## Incremental Analysis
 
 ```text
 File changed
-    ↓
+      ↓
 Re-analyze file
-    ↓
+      ↓
 Update Workspace
 ```
 
-### Filesystem Watch
+## Filesystem Watch
 
 ```text
 Filesystem
-    ↓
+      ↓
 Watcher
-    ↓
+      ↓
 Workspace update
 ```
 
-### Persistent Cache
+## Persistent Cache
 
-必要性が確認できた場合のみ。
+必要性が確認された場合のみ導入。
 
 現時点では必須ではない。
 
 ---
 
-# 14. Future Semantic Extensions
+# 17. Future Semantic Extensions
 
-Core architecture が安定した後に検討。
+Core architecture と Agent Evaluation が安定してから検討。
 
 候補：
 
@@ -512,9 +925,21 @@ Diagnostics
 Documentation
 ```
 
-ただし、**今は追加しない**。
+ただし現時点では、
 
-まず既存 Semantic Services を Agent が実際に使えることを確認する。
+> **追加しない。**
+
+まず既存の、
+
+```text
+search
+find
+references
+callers
+callees
+```
+
+が Agent にとって十分有効か確認する。
 
 ---
 
@@ -529,40 +954,68 @@ Semantic Extraction
       ▼
 Workspace Analysis
       │
-      ├── Parallelization ──────── ✅
-      ├── Worker limit ─────────── ✅
-      └── Streaming ────────────── → Next
+      ├── Parallelization ──────────── ✅
+      ├── Worker limit ─────────────── ✅
+      └── Streaming ────────────────── ☐
       │
       ▼
 Semantic Services
       │
-      └─────────────────────────── ✅
+      └─────────────────────────────── ✅
       │
       ▼
 Semantic CLI
       │
-      └─────────────────────────── ✅
+      └─────────────────────────────── ✅
       │
       ▼
 Agent-facing Skills
       │
-      └─────────────────────────── ✅
+      └─────────────────────────────── ✅
       │
       ▼
-Agent Evaluation
+Evaluation Infrastructure
       │
-      ├── Command selection
-      ├── Result interpretation
-      └── Real coding tasks
+      ├── Claude Code runner ───────── ✅
+      ├── Task validation ──────────── ✅
+      ├── Tool / token logging ─────── ✅
+      └── JSONL results ────────────── ✅
       │
       ▼
-CLI / Skill refinement
+Evaluation Dataset
+      │
+      ├── Smoke ────────────────────── ✅
+      ├── Level 1 ──────────────────── ✅
+      ├── Level 2 ──────────────────── ✅
+      ├── Level 3 ──────────────────── ✅
+      ├── Level 4 ──────────────────── ✅
+      └── Level 5 ──────────────────── ✅
+      │
+      ▼
+Statistics / Analysis
+      │
+      └─────────────────────────────── ✅
+      │
+      ▼
+▶ Evaluation Run & Result Analysis ◀
+      │
+      ├── Success rate
+      ├── Level difficulty validation
+      ├── ast-tool adoption
+      ├── Command usage
+      ├── Workflow analysis
+      └── Failure analysis
+      │
+      ▼
+CLI / Skill Refinement
       │
       ├── Help / examples
-      └── Structured output
+      ├── Skill wording
+      ├── Command discoverability
+      └── Output consistency
       │
       ▼
-Workspace optimization
+Workspace Optimization
       │
       ├── Streaming
       ├── Benchmark
@@ -580,46 +1033,63 @@ Future
 
 # 現在の優先順位
 
-| Priority | Item                                     | Status               |
-| -------- | ---------------------------------------- | -------------------- |
-| **S**    | Semantic Services                        | ✅ Complete           |
-| **S**    | `references` / `callers` / `callees` CLI | ✅ Complete           |
-| **S**    | Common Workspace handling                | ✅ Complete           |
-| **S**    | Workspace parallel analysis              | ✅ Complete           |
-| **S**    | Worker count control                     | ✅ Complete           |
-| **A**    | Agent evaluation                         | **Next**             |
-| **A**    | Help / examples usability review         | Next                 |
-| **A**    | Workspace streaming                      | Next technical topic |
-| **A**    | Memory / performance benchmark           | Streamingと併行/後       |
-| **B**    | Structured output consistency            | Evaluation後          |
-| **B**    | Tree-sitter Query                        | 未完だが優先度低             |
-| **C**    | Incremental analysis                     | Future               |
-| **C**    | Filesystem watch                         | Future               |
-| **C**    | Persistent cache                         | Future               |
-| **C**    | External semantic providers              | Future               |
+| Priority | Item                                     | Status                   |
+| -------- | ---------------------------------------- | ------------------------ |
+| **S**    | AST / Semantic infrastructure            | ✅ Complete               |
+| **S**    | Semantic Services                        | ✅ Complete               |
+| **S**    | Semantic CLI                             | ✅ Complete               |
+| **S**    | Agent-facing Skills                      | ✅ Complete               |
+| **S**    | Evaluation runner / logging              | ✅ Complete               |
+| **S**    | Evaluation dataset (Smoke–Level 5)       | ✅ Complete               |
+| **S**    | Statistics / result analysis             | ✅ Complete               |
+| **A**    | **Full evaluation run**                  | **Next**                 |
+| **A**    | Level difficulty validation              | Next                     |
+| **A**    | ast-tool adoption analysis               | Next                     |
+| **A**    | Command / workflow analysis              | Next                     |
+| **A**    | Failure analysis                         | Next                     |
+| **A**    | CLI / Skill refinement based on evidence | After analysis           |
+| **A**    | Workspace streaming                      | Parallel technical topic |
+| **A**    | Memory / performance benchmark           | Streamingと併行 / 後         |
+| **B**    | Structured output consistency            | Evaluation後              |
+| **B**    | Tree-sitter Query                        | 未完だが低優先                  |
+| **C**    | Incremental analysis                     | Future                   |
+| **C**    | Filesystem watch                         | Future                   |
+| **C**    | Persistent cache                         | Future                   |
+| **C**    | External semantic providers              | Future                   |
+| **C**    | Additional semantic services             | Future                   |
 
-## 現在地を一言でいうと
+---
 
-**AST / Semantic infrastructure はほぼ完成し、Semantic CLI と Agent-facing Skills まで整った。**
+# 現在地を一言でいうと
 
-現在は、
+**「ast-tool を作るフェーズ」はほぼ終わり、現在は「ast-tool が Coding Agent の実作業で本当に使われ、役に立つことを測定するフェーズ」に入っています。**
+
+次の中心テーマは明確です。
 
 ```text
-「機能を増やす」
+Evaluation Dataset
         ↓
-「Agentに実際に使わせて評価する」
+Full Evaluation Run
+        ↓
+Statistics
+        ↓
+Failure / Workflow Analysis
+        ↓
+CLI / Skill Improvement
 ```
 
-への切り替え地点です。
-
-その一方で Workspace 側には、
+そして並行する技術テーマとして、
 
 ```text
-parallel analysis       ✅
-bounded worker count    ✅
-streaming               ☐
+analyze_workspace()
+        ↓
+Streaming / bounded-memory design
+        ↓
+Benchmark
+        ↓
+Memory optimization
 ```
 
-という明確な性能改善テーマが残っています。
+があります。
 
-したがって次の議論では、**「Agent Evaluation を先に進めるか」「`analyze_workspace()` の streaming を先に詰めるか」**の2本を軸に考えるのがよい状態です。
+したがって次の議論では、まず **Smoke〜Level 5 を実行した結果をどう評価するか、特に「ast-tool を使ったか」ではなく「どの難易度・どの種類の問題で、どの Semantic command が Agent の成功に寄与したか」を分析すること**が、最も自然な次のステップです。
