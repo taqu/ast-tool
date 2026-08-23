@@ -1,0 +1,35 @@
+id: level4-008
+
+repository: repositories/level4-commerce
+
+prompt: |
+  Add a coordinated multi-file inventory pre-check during standard customer order submissions.
+  Specifically:
+  1. In `InventoryService` (`src/service/inventory_service.h` and `src/service/inventory_service.cpp`), expose a new method `checkAvailability` with the signature:
+     
+         int checkAvailability(const std::string& item_id);
+     
+     This method must call the underlying `InventoryRepository::available(item_id)` method to retrieve the available stock.
+  2. In `OrderService::submit` (`src/service/order_service.cpp`), before performing any other checks or reserving stock, verify that the available inventory is sufficient for the requested quantity. If the available quantity returned by `checkAvailability` is strictly less than the requested `quantity`, write the following log to std::cerr:
+     
+         std::cerr << "[inventory] insufficient stock for " << item_id << "\n";
+     
+     and return `false` immediately.
+  3. Ensure that this availability check is ONLY performed for standard customer orders. The administrative order submission flow (`AdminOrderService::submit`) must remain completely unchanged and bypass this pre-check.
+
+evaluation:
+  category: coordinated-change
+  relevant_capabilities:
+    - search
+    - references
+    - callers
+
+validation:
+  command: python validate_008.py
+
+expected_files:
+  - src/service/inventory_service.h
+  - src/service/inventory_service.cpp
+  - src/service/order_service.cpp
+
+timeout: 180

@@ -1,0 +1,33 @@
+id: level4-004
+
+repository: repositories/level4-commerce
+
+prompt: |
+  Propagate a `trace_id` string parameter through the production user-facing checkout path down to the persistence boundary.
+  Specifically:
+  1. Update `CheckoutService::checkout` to accept `const std::string& trace_id` as a fourth parameter.
+  2. Update `OrderService::submit` to accept `const std::string& trace_id` as a fourth parameter.
+  3. Update `OrderRepository::save` to accept `const std::string& trace_id` as a fourth parameter, and modify its output print statement to include `" trace=" + trace_id`.
+
+  Ensure the parameters are propagated from `CheckoutService::checkout` down to `OrderRepository::save`.
+  The administrative order service (`AdminOrderService::submit`) and administrative repositories/operations (`AdminRepository`) are completely out of scope and must remain unchanged. No changes should be made to order cancel or admin cancel operations.
+
+evaluation:
+  category: cross-layer-change
+  relevant_capabilities:
+    - search
+    - references
+    - callers
+
+validation:
+  command: python validate_004.py
+
+expected_files:
+  - src/service/checkout_service.h
+  - src/service/checkout_service.cpp
+  - src/service/order_service.h
+  - src/service/order_service.cpp
+  - src/repository/order_repository.h
+  - src/repository/order_repository.cpp
+
+timeout: 180

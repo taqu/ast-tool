@@ -1,0 +1,27 @@
+id: level4-006
+
+repository: repositories/level4-api
+
+prompt: |
+  Refactor the validation service within the API request processing system.
+  Specifically, rename the method `validate` in `service::ValidationService` to `validatePayload` in both its declaration and definition.
+  Update all of its semantic callers in the codebase to use `validatePayload` instead of `validate`.
+
+  Be careful: other classes in the system, such as `store::DatabaseStore` and `jobs::CronJob`, also expose methods named `validate`. These classes and their `validate` methods are completely unrelated and must NOT be modified or renamed.
+
+evaluation:
+  category: selective-refactor
+  relevant_capabilities:
+    - search
+    - references
+    - callers
+
+validation:
+  command: python validate_006.py
+
+expected_files:
+  - src/service/validation_service.h
+  - src/service/validation_service.cpp
+  - src/processor/request_processor.cpp
+
+timeout: 180

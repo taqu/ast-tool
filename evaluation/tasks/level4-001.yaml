@@ -1,0 +1,26 @@
+id: level4-001
+
+repository: repositories/level4-commerce
+
+prompt: |
+  In the order processing system, add audit logging to the standard user order submission path.
+  Specifically, in the function that handles user order submissions, immediately after saving the order to the repository, write the following log to std::cerr:
+
+      std::cerr << "[audit] order submitted for " << user_id << "\n";
+
+  This audit log must ONLY be written during standard customer checkouts. The administrative batch order submission path must remain completely unaffected. Do not add any logging to the administrative path or to administrative repositories/services.
+
+evaluation:
+  category: semantic-impact
+  relevant_capabilities:
+    - search
+    - callers
+    - references
+
+validation:
+  command: python validate_001.py
+
+expected_files:
+  - src/service/order_service.cpp
+
+timeout: 180

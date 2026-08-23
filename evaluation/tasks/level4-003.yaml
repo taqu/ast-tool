@@ -1,0 +1,36 @@
+id: level4-003
+
+repository: repositories/level4-commerce
+
+prompt: |
+  Evolve the `PaymentGateway::charge` function to accept a transaction descriptor string parameter.
+  Specifically, change the signature of `PaymentGateway::charge` (and the corresponding delegator `PaymentService::authorize`) to:
+
+      bool charge(const std::string& user_id, double amount, const std::string& descriptor);
+      bool authorize(const std::string& user_id, double amount, const std::string& descriptor);
+
+  Ensure that all definitions are updated. Update the call sites of `authorize` within the checkout/order system to pass appropriate descriptors:
+  - Inside `OrderService::submit`, pass `"user_checkout"`.
+  - Inside `AdminOrderService::submit`, pass `"admin_bulk"`.
+
+  Be careful: the class `BillingGateway` also exposes a `charge` method. This class is unrelated to the payment gateway and its signature must remain completely unchanged. Other gateway/service methods like `refund` must also remain unchanged.
+
+evaluation:
+  category: api-evolution
+  relevant_capabilities:
+    - search
+    - references
+    - callers
+
+validation:
+  command: python validate_003.py
+
+expected_files:
+  - src/gateway/payment_gateway.h
+  - src/gateway/payment_gateway.cpp
+  - src/service/payment_service.h
+  - src/service/payment_service.cpp
+  - src/service/order_service.cpp
+  - src/service/admin_order_service.cpp
+
+timeout: 180

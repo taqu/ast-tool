@@ -1,0 +1,32 @@
+id: level4-007
+
+repository: repositories/level4-api
+
+prompt: |
+  Evolve the request handler callback system to return execution status.
+  Specifically:
+  1. In `src/api/callback_registry.h`, modify the `RequestHandlerCallback` type alias definition so that the callback function returns a `bool` instead of `void`.
+  2. In `src/api/callback_registry.cpp`, update `CallbackRegistry::trigger` to execute the callbacks and check their return value. If a callback returns `false`, write the following log to std::cerr:
+
+         std::cerr << "[callback] failure reported for " << request_id << "\n";
+
+  3. In `src/main.cpp`, update the callback registration (which registers a lambda callback) so that the callback returns `true`.
+
+  Unrelated std::function templates or callback systems elsewhere in the codebase must remain unchanged.
+
+evaluation:
+  category: references-and-callers
+  relevant_capabilities:
+    - search
+    - references
+    - callers
+
+validation:
+  command: python validate_007.py
+
+expected_files:
+  - src/api/callback_registry.h
+  - src/api/callback_registry.cpp
+  - src/main.cpp
+
+timeout: 180

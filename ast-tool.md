@@ -1,148 +1,86 @@
-# Create Agent Evaluation Tasks — Difficulty Level 3
+# Create Agent Evaluation Tasks — Difficulty Level 5
 
 ## Objective
 
-Create the third batch of Agent Evaluation tasks for `ast-tool`.
+Create the fifth batch of Agent Evaluation tasks for `ast-tool`.
 
-Create **8 tasks** representing a clear progression from Level 2.
+Create exactly **8 Level 5 tasks**.
 
-Level 2 introduced:
+Level 5 should represent a progression from semantic change-surface analysis toward realistic software maintenance and bug-fixing work.
 
-```text
-symbol ambiguity
-references
-basic caller discovery
-basic callee discovery
-mixed semantic relationships
-```
+The agent should not always be given the exact symbol that must be changed.
 
-Level 3 should focus on:
+Instead, the task may begin with:
 
 ```text
-call graph reasoning
-multi-step caller/callee navigation
-impact analysis
-semantic relationship chains
-distributed code modification
+a failing behavior
+a bug symptom
+an incorrect result
+an architectural requirement
+an incomplete refactoring
+a behavioral regression
 ```
 
-The purpose is to evaluate whether Claude Code can use `ast-tool` as part of a multi-step investigation rather than only as a replacement for `grep`.
+The agent must investigate the repository, identify the relevant semantic entities and relationships, determine the root cause or correct change surface, and implement a correct fix.
 
-Do not modify the existing Level 1 or Level 2 tasks.
+The purpose is to evaluate whether the agent can use `ast-tool` as part of a realistic investigation workflow.
+
+Do not modify existing Level 1 through Level 4 tasks.
 
 Do not modify the existing Agent-facing Skills.
 
 ---
 
-# 1. Existing Evaluation Evidence
+# 1. Difficulty Progression
 
-Level 1 tasks were successfully solved without `ast-tool`.
-
-Typical workflows were:
+The evaluation progression is:
 
 ```text
-Grep
-Read
-Edit
+Level 1
+Direct local modification
+        ↓
+Level 2
+Semantic identity and ambiguity
+        ↓
+Level 3
+Multi-step relationship navigation
+        ↓
+Level 4
+Semantic impact analysis and coordinated change
+        ↓
+Level 5
+Problem investigation
+        ↓
+Root-cause discovery
+        ↓
+Semantic impact analysis
+        ↓
+Design / fix decision
+        ↓
+Implementation
+        ↓
+Regression avoidance
 ```
 
-Level 2 introduced situations where semantic navigation became useful.
+The defining characteristic of Level 5 is:
 
-At least one Level 2 task demonstrated the following workflow:
-
-```text
-Skill
-  ↓
-ast-tool search
-  ↓
-ast-tool callers
-  ↓
-source inspection
-  ↓
-ast-tool references
-  ↓
-additional semantic navigation
-  ↓
-Edit
-```
-
-For example, the agent used:
-
-```text
-callers: 4
-search: 2
-references: 1
-```
-
-and successfully modified multiple source files.
-
-This indicates that the existing Skills and semantic commands can be discovered and used by Claude Code during realistic coding work.
-
-Level 3 should build on this evidence.
-
-The goal is not merely to increase `ast-tool` usage.
-
-The goal is to test whether the agent can use semantic relationships to reason about a larger portion of the codebase.
+> The task describes a problem or required behavior, not necessarily the symbol or source location that must be changed.
 
 ---
 
-# 2. Level 3 Goal
+# 2. Number of Tasks
 
-Level 3 should introduce tasks where the required modification depends on understanding a chain such as:
-
-```text
-Entry point
-    ↓
-Caller
-    ↓
-Service
-    ↓
-Target function
-```
-
-or:
+Create exactly:
 
 ```text
-Target function
-    ↓
-Callee
-    ↓
-Dependency
-    ↓
-Relevant behavior
-```
-
-or:
-
-```text
-Symbol
-    ↓
-References
-    ↓
-Caller classification
-    ↓
-Selective modification
-```
-
-The agent should need to investigate semantic relationships across multiple files before determining the correct modification set.
-
-The task should be difficult to solve safely using a single text search.
-
----
-
-# 3. Number of Tasks
-
-Create exactly **8 tasks**:
-
-```text
-level3-001
-level3-002
-level3-003
-level3-004
-level3-005
-level3-006
-level3-007
-level3-008
+level5-001
+level5-002
+level5-003
+level5-004
+level5-005
+level5-006
+level5-007
+level5-008
 ```
 
 Store them under:
@@ -151,633 +89,692 @@ Store them under:
 evaluation/tasks/
 ```
 
-Do not create Level 4 tasks yet.
+Do not create Level 6 tasks.
 
 ---
 
-# 4. Level 3 Core Principle
+# 3. Core Level 5 Principle
 
-The main distinction between Level 2 and Level 3 is:
-
-```text
-Level 2
-
-Identify the correct semantic entity
-        ↓
-Inspect references or relationships
-        ↓
-Modify
-```
-
-versus:
+A Level 5 task should require the agent to answer:
 
 ```text
-Level 3
-
-Identify semantic entity
-        ↓
-Navigate relationship
-        ↓
-Navigate another relationship
-        ↓
-Determine relevant subset
-        ↓
-Modify multiple locations
-        ↓
-Validate
+What is actually wrong?
 ```
 
-A Level 3 task should usually require at least **two semantic navigation decisions**.
+before it can reliably answer:
 
-The exact commands must not be prescribed.
+```text
+What should be changed?
+```
+
+The intended reasoning shape is:
+
+```text
+Observed symptom
+      ↓
+Locate relevant behavior
+      ↓
+Identify candidate symbols
+      ↓
+Navigate semantic relationships
+      ↓
+Find root cause
+      ↓
+Determine change surface
+      ↓
+Implement fix
+      ↓
+Verify required behavior
+      ↓
+Ensure related behavior did not regress
+```
+
+The task must remain deterministic.
+
+Do not create open-ended debugging puzzles with multiple equally valid fixes.
 
 ---
 
-# 5. Required Task Categories
+# 4. Required Task Categories
 
 Create approximately the following distribution.
 
-## A. Multi-level caller chains
+## A. Wrong Semantic Path
 
 Create 2 tasks.
+
+The observed behavior occurs because the wrong implementation, overload, dependency, or semantic path is being used.
 
 Example:
 
 ```text
-main()
-  ↓
-RequestHandler::handle()
-  ↓
-OrderService::submit()
-  ↓
-PaymentService::authorize()
+Request
+   ↓
+Service
+   ↓
+incorrect overload selected
 ```
 
-The task should require identifying callers at more than one level.
-
-For example:
-
-> Add logging to every request-processing path that eventually invokes `PaymentService::authorize()`.
-
-The task must define a deterministic interpretation of “request-processing path”.
-
-Do not simply ask the agent to modify every textual occurrence of `authorize`.
-
-The repository should contain other callers that must not be modified.
-
-The intended semantic capability is primarily:
+or:
 
 ```text
-callers
+Production workflow
+   ↓
+incorrect repository method
 ```
 
-and possibly:
+The repository should contain multiple plausible symbols with similar names.
+
+The task prompt describes the incorrect behavior.
+
+The agent must determine which semantic path is responsible.
+
+The fix should not be discoverable merely by searching for the exact error message.
+
+Useful semantic capabilities may include:
 
 ```text
+search
+find
 references
-```
-
----
-
-## B. Multi-level callee chains
-
-Create 2 tasks.
-
-Example:
-
-```text
-OrderService::submit()
-  ↓
-validateOrder()
-  ↓
-InventoryService::reserve()
-  ↓
-Database::commit()
-```
-
-The task should require identifying a relevant downstream dependency.
-
-For example:
-
-> Add instrumentation immediately before every call to the inventory reservation operation made by the order submission workflow.
-
-The repository should contain other unrelated calls to the same dependency.
-
-The intended semantic capability is primarily:
-
-```text
+callers
 callees
 ```
 
-and possibly:
-
-```text
-references
-```
-
 ---
 
-## C. Caller subset / selective modification
+## B. Incomplete Propagation Bug
 
-Create 1 task.
+Create 2 tasks.
 
-The target function should have multiple callers.
-
-Only a semantically defined subset should be modified.
-
-For example:
-
-```text
-CheckoutService::process()
-  ↑
-  ├── WebCheckoutHandler
-  ├── MobileCheckoutHandler
-  ├── RetryWorker
-  └── TestHelper
-```
-
-The task may require modifying only production request handlers.
-
-The prompt must provide enough semantic criteria to determine the correct subset.
-
-Do not require modifying every caller.
-
-The challenge is:
-
-```text
-find target
-    ↓
-find callers
-    ↓
-classify callers
-    ↓
-modify correct subset
-```
-
-The validator must confirm that excluded callers remain unchanged.
-
----
-
-## D. Callee subset / dependency classification
-
-Create 1 task.
-
-A target function should invoke multiple dependencies.
-
-Only one category of dependency should be modified.
-
-For example:
-
-```text
-SyncService::run()
-  ↓
-validate()
-authorize()
-loadConfig()
-saveState()
-emitMetrics()
-```
-
-The task may require adding instrumentation only around persistence operations.
-
-The agent must identify the relevant callee(s) through code structure and semantic relationships.
-
-Do not reveal the exact implementation file.
-
----
-
-## E. References + caller/callee combination
-
-Create 1 task.
-
-The task should require combining reference discovery with call graph navigation.
-
-Example conceptual flow:
-
-```text
-locate target symbol
-        ↓
-find references
-        ↓
-identify which references are calls
-        ↓
-inspect callers
-        ↓
-modify selected callers
-```
-
-The repository should contain declarations, definitions, and non-call references so that naïve text matching is insufficient.
-
----
-
-## F. Distributed workflow modification
-
-Create 1 task.
-
-The correct solution should require modifying multiple source files.
-
-The files must not be listed in the prompt.
+A value, context, option, or state is intended to propagate through a workflow but disappears or is replaced at one layer.
 
 Example:
 
 ```text
-Request workflow
-    ↓
-Authentication
-    ↓
-Authorization
-    ↓
-Persistence
+Handler
+  ↓ request_id
+Service
+  ↓ request_id
+Repository
+  ✗ lost
+Adapter
 ```
 
-The task may require adding markers or logging to a particular semantic transition across all relevant workflows.
+The task prompt should describe the observable failure.
 
-The expected result should involve approximately:
+For example:
+
+> The request identifier is available at the API boundary but persistence records do not contain it.
+
+The agent must determine where propagation breaks.
+
+The correct solution may require modifying:
 
 ```text
-2–5 source files
+declaration
+definition
+callers
+intermediate layer
 ```
 
-Avoid excessive patch size.
-
-The challenge is discovering the complete modification set.
+The task should include similar workflows where propagation must not change.
 
 ---
 
-# 6. Repository Fixtures
+## C. Incorrect Caller / Workflow Behavior
 
-Create approximately **2–3 reusable repository fixtures**.
+Create 1 task.
+
+A function behaves correctly in isolation.
+
+The bug is caused by one or more callers using it incorrectly.
+
+Example:
+
+```text
+PaymentService::authorize()
+```
+
+is correct, but:
+
+```text
+RetryWorker
+```
+
+passes an incorrect mode or skips a required step.
+
+The prompt should describe the symptom.
+
+The agent must trace:
+
+```text
+symptom
+↓
+target behavior
+↓
+callers
+↓
+incorrect caller
+```
+
+The task should contain multiple callers so that changing the target function itself would be an incorrect or overly broad fix.
+
+---
+
+## D. Incorrect Callee / Dependency Behavior
+
+Create 1 task.
+
+A higher-level workflow produces an incorrect result because it calls the wrong dependency or uses a dependency in the wrong order.
+
+Example:
+
+```text
+OrderService::submit()
+   ↓
+validate()
+   ↓
+save()
+   ↓
+authorize()
+```
+
+when the correct sequence should be:
+
+```text
+validate()
+   ↓
+authorize()
+   ↓
+save()
+```
+
+Do not make the task merely about reordering obvious adjacent lines.
+
+The repository should require identifying the relevant workflow and understanding its callees.
+
+The task prompt should describe the externally visible behavior.
+
+---
+
+## E. Regression After Partial Refactoring
+
+Create 1 task.
+
+The repository should contain a partially completed refactoring.
+
+For example:
+
+```text
+Old API
+↓ partially migrated
+New API
+```
+
+Some declarations and definitions may already use the new abstraction, while one semantic path still uses the old one.
+
+The task prompt should describe the regression.
+
+The agent must determine:
+
+```text
+which migration is incomplete
+which callers are affected
+which old paths must remain for compatibility
+```
+
+The fix should be selective.
+
+Do not require a large mechanical rename.
+
+---
+
+## F. Bug Requiring Combined Semantic Investigation
+
+Create 1 task.
+
+This should be the most complex Level 5 task.
+
+The agent should plausibly need to combine:
+
+```text
+symbol discovery
++
+references
++
+callers
++
+callees
+```
+
+The exact sequence must not be prescribed.
+
+Example conceptual shape:
+
+```text
+Observed duplicate side effect
+        ↓
+Locate operation
+        ↓
+Find callers
+        ↓
+Trace one caller's workflow
+        ↓
+Find indirect callee
+        ↓
+Identify duplicated semantic path
+        ↓
+Fix only the duplicate path
+```
+
+The repository should contain plausible but incorrect alternative hypotheses.
+
+The validator must clearly distinguish the intended fix from incomplete or overly broad fixes.
+
+---
+
+# 5. Repository Fixtures
+
+Create approximately **2–4 reusable Level 5 repository fixtures**.
 
 Suggested conceptual structure:
 
 ```text
 evaluation/repositories/
-├── level3-request-flow/
-├── level3-order-pipeline/
-└── level3-mixed-callgraph/
+├── level5-request-bugs/
+├── level5-order-workflow/
+├── level5-refactor-regression/
+└── level5-state-propagation/
 ```
 
-Adapt to the existing repository structure.
+Adapt to the existing repository layout where appropriate.
 
-Prefer repositories with approximately:
+Aim for approximately:
 
 ```text
-15–35 source/header files
+25–60 source/header files
 ```
 
-This is only a guideline.
+as a guideline.
 
-Do not inflate repositories with meaningless files.
+Do not add meaningless files.
 
-Every relevant file should contribute to a plausible call graph or source of ambiguity.
+Repository complexity should come from:
+
+```text
+multiple semantic paths
+layered architecture
+similar workflows
+realistic abstractions
+partial migrations
+semantic exclusions
+```
+
+rather than file count alone.
 
 ---
 
-# 7. Call Graph Design
+# 6. Problem-First Prompt Design
 
-The call graphs should be intentional and understandable.
-
-Example:
+Level 5 prompts should primarily describe:
 
 ```text
-WebHandler::handle()
-        │
-        ▼
-OrderService::submit()
-        │
-        ├── validateOrder()
-        │
-        ├── PaymentService::authorize()
-        │         │
-        │         ▼
-        │      Gateway::charge()
-        │
-        └── Repository::save()
+symptom
+expected behavior
+scope
+constraints
+regression boundaries
 ```
 
-Add unrelated paths where necessary:
+Do not immediately identify the exact function to modify.
+
+Good:
 
 ```text
-RetryWorker::retry()
-        │
-        ▼
-PaymentService::authorize()
+Orders submitted through the web checkout path are being persisted
+without the request identifier, while direct internal imports work
+correctly. Fix the propagation so that checkout-originated orders
+retain the request identifier through persistence.
 ```
 
-This allows tasks to distinguish:
+Poor:
 
 ```text
-all callers
+Add RequestContext to OrderRepository::save().
 ```
 
-from:
+The first requires investigation.
 
-```text
-callers belonging to a specific workflow
-```
-
-The graph should support deterministic validation.
+The second already identifies the solution.
 
 ---
 
-# 8. Do Not Create Artificial Graph Puzzles
+# 7. Do Not Reveal the Root Cause
+
+Do not write the root cause in the prompt.
 
 Avoid:
 
 ```text
-FunctionA
- ↓
-FunctionB
- ↓
-FunctionC
- ↓
-FunctionD
- ↓
-FunctionE
+The bug is caused by OrderService::submit() calling save()
+without the context.
 ```
 
-when the chain exists only to force multiple tool calls.
-
-The call graph should resemble realistic application structure.
-
-Prefer:
+Instead:
 
 ```text
-Handler
- ↓
-Service
- ↓
-Repository
+Orders submitted through checkout lose their request identifier
+before persistence.
 ```
 
-or:
-
-```text
-Worker
- ↓
-Coordinator
- ↓
-External adapter
-```
-
-The difficulty must come from deciding **which semantic path matters**, not simply traversing arbitrary depth.
+The agent should discover the responsible semantic path.
 
 ---
 
-# 9. Task Prompt Rules
+# 8. Root Cause Must Be Deterministic
 
-Task prompts must describe:
+Although Level 5 begins from a symptom, the intended root cause must be unambiguous.
 
-```text
-What behavior must change?
-Which semantic concept identifies the target?
-What must remain unchanged?
-```
-
-Task prompts must not describe:
+Before finalizing a task, verify:
 
 ```text
-Which files to open
-Which ast-tool command to run
-Which exact workflow to follow
+Observed symptom
+      ↓
+Specific semantic path
+      ↓
+Specific defect
+      ↓
+Deterministic correct fix
 ```
 
-Do not include:
+Avoid tasks where several unrelated fixes could satisfy the validator.
 
-```text
-Use ast-tool callers.
-```
-
-Do not include:
-
-```text
-Run ast-tool callees.
-```
-
-Do not include CLI syntax.
-
-The existing Skills remain the source of usage information.
+Do not create tasks requiring subjective architectural preferences.
 
 ---
 
-# 10. Make Multiple Semantic Steps Useful
+# 9. Semantic Investigation Requirements
 
-Each task should provide a realistic opportunity for a workflow such as:
+Each task should make at least **three** semantic capabilities plausibly useful.
 
-```text
-Skill
- ↓
-search / find
- ↓
-callers
- ↓
-callers
- ↓
-Read
- ↓
-Edit
-```
-
-or:
+Possible combinations:
 
 ```text
-Skill
- ↓
 search
- ↓
-callees
- ↓
++
 references
- ↓
-Read
- ↓
-Edit
++
+callers
 ```
-
-However, do not require this exact sequence.
-
-The agent may discover an alternative valid strategy.
-
-The evaluation should measure:
 
 ```text
-whether semantic navigation was useful
+find
++
+callers
++
+callees
 ```
-
-rather than:
 
 ```text
-whether a predetermined command sequence was followed
+search
++
+references
++
+callers
++
+callees
 ```
+
+Not every capability must actually be used by the agent.
+
+Do not prescribe commands.
+
+The benchmark measures whether the agent can select useful investigation tools.
 
 ---
 
-# 11. Validation Requirements
+# 10. Multiple Plausible Candidates
 
-Every task must have deterministic validation.
-
-Validators should check:
-
-* all required semantic targets were modified;
-* unrelated callers or callees were not modified;
-* the correct number of modifications was made;
-* required includes or dependencies were added where necessary;
-* the repository remains buildable if the existing infrastructure supports it.
-
-Do not validate exact file paths unless they are part of the expected repository state.
-
-Do not validate:
-
-```text
-ast-tool callers was executed
-```
-
-or:
-
-```text
-ast-tool callees was executed
-```
-
-Tool usage remains evaluation metadata.
-
----
-
-# 12. Include Negative Paths
-
-At least 3 of the 8 tasks should contain semantically related paths that must **not** be modified.
+Most Level 5 tasks should contain more than one plausible location for the bug.
 
 Examples:
 
 ```text
-Production handler
-        ↓
-authorize()
-
-Test helper
-        ↓
-authorize()
-
-Retry worker
-        ↓
-authorize()
-```
-
-If the task targets production request handling, the retry worker and test helper should remain unchanged.
-
-This is important.
-
-Level 3 should evaluate whether the agent can identify the relevant semantic subset rather than blindly modifying every reference.
-
----
-
-# 13. Expected Semantic Capabilities
-
-The approximate capability distribution should be:
-
-| Capability        |      Primary in Tasks |
-| ----------------- | --------------------: |
-| `callers`         |                   3–4 |
-| `callees`         |                   3–4 |
-| `references`      |                   2–3 |
-| `search` / `find` | Supporting capability |
-
-These categories may overlap.
-
-Do not force exact usage counts.
-
----
-
-# 14. Evaluation Metadata
-
-If the existing task schema supports evaluation-only metadata, record information such as:
-
-```yaml
-evaluation:
-  category: multi-level-callers
-  relevant_capabilities:
-    - callers
-    - references
+OrderService::submit()
+CheckoutService::submit()
+MigrationService::submit()
 ```
 
 or:
 
-```yaml
-evaluation:
-  category: selective-callee-analysis
-  relevant_capabilities:
-    - callees
-    - search
+```text
+Repository::save()
+CacheRepository::save()
+AuditRepository::save()
 ```
 
-Do not add metadata that prescribes an exact workflow.
+The correct path must be identifiable through semantic relationships.
 
-Do not modify the evaluation runner solely to support new metadata.
+Avoid trivial filename-based clues.
 
 ---
 
-# 15. Keep a Control Case
+# 11. Semantic Exclusion and Regression Boundaries
 
-At least one Level 3 task may still be solvable through careful manual inspection without `ast-tool`.
+Every Level 5 task must define behavior that should remain unchanged.
 
-This is intentional.
-
-The benchmark should evaluate:
+Examples:
 
 ```text
-appropriate tool selection
+Web checkout
+    → fix required
+
+Internal import
+    → already correct
+    → must remain unchanged
 ```
 
-not:
+or:
 
 ```text
-maximum ast-tool usage
+Production retry workflow
+    → fix required
+
+Migration compatibility path
+    → must remain unchanged
 ```
 
-However, most Level 3 tasks should make manual exploration significantly more expensive than semantic navigation.
+The validator must explicitly check these boundaries.
+
+A solution that fixes the symptom by modifying all similar paths should fail if it violates the intended scope.
 
 ---
 
-# 16. Measure Complete Workflow Quality
+# 12. Root Cause vs Symptom Fix
 
-Level 3 should allow later comparison of:
+Validators should reject superficial fixes.
 
-```text
-Task success
-```
-
-with:
+For example, if the task is:
 
 ```text
-Semantic tool usage
+Duplicate authorization occurs during retry.
 ```
 
-and:
+the validator should reject solutions that merely suppress visible logging if authorization is still performed twice.
+
+The task should test the underlying behavioral requirement.
+
+Prefer validation of:
 
 ```text
-Exploration cost
+correct call count
+correct propagated value
+correct selected overload
+correct dependency ordering
+correct caller behavior
 ```
 
-Relevant metrics include:
-
-```text
-elapsed time
-token usage
-Grep calls
-Read calls
-Bash calls
-Skill usage
-ast-tool command counts
-changed files
-validation success
-```
-
-Do not add new metrics unless required.
-
-Use the existing evaluation infrastructure.
+over checking for a particular text insertion.
 
 ---
 
-# 17. Preserve the Evaluation Baseline
+# 13. Validation Requirements
+
+Every Level 5 task must have deterministic validation.
+
+The validator should test:
+
+### Symptom resolved
+
+```text
+the observed incorrect behavior no longer occurs
+```
+
+### Root behavior corrected
+
+```text
+the relevant semantic path now behaves correctly
+```
+
+### Completeness
+
+```text
+all required declarations / definitions / callers are consistent
+```
+
+when applicable.
+
+### Regression boundaries
+
+```text
+excluded workflows remain unchanged
+```
+
+### Partial fixes
+
+Detect common incomplete solutions.
+
+Examples:
+
+```text
+fixed one caller but missed another affected caller
+```
+
+```text
+updated declaration but not implementation
+```
+
+```text
+fixed production path but broke compatibility path
+```
+
+```text
+changed target function globally instead of fixing incorrect caller
+```
+
+---
+
+# 14. Validation Should Prefer Behavioral Tests
+
+Where practical, validators should execute code or inspect structured behavior rather than only searching source text.
+
+Examples:
+
+```text
+compile and run a small test program
+```
+
+or:
+
+```text
+execute repository-provided Python test harness
+```
+
+or:
+
+```text
+verify call counters or recorded state
+```
+
+Do not introduce a heavyweight build system.
+
+Keep validation:
+
+```text
+fast
+deterministic
+self-contained
+```
+
+Source inspection may supplement behavioral validation.
+
+---
+
+# 15. Avoid Artificial Debugging Tricks
+
+Do not create bugs based on:
+
+```text
+undefined behavior
+race conditions
+timing
+filesystem order
+randomness
+compiler-specific quirks
+hidden environment variables
+network access
+```
+
+Do not require external services.
+
+The task must be reproducible.
+
+The difficulty should come from semantic investigation.
+
+---
+
+# 16. Distinguish Level 5 From Level 4
+
+Level 4:
+
+```text
+Requirement
+↓
+Determine affected semantic surface
+↓
+Implement coordinated change
+```
+
+Level 5:
+
+```text
+Symptom
+↓
+Investigate
+↓
+Find root cause
+↓
+Determine affected semantic surface
+↓
+Choose correct fix
+↓
+Implement
+↓
+Prevent regression
+```
+
+When designing a task, ask:
+
+> Could the agent reasonably begin editing immediately after reading the prompt?
+
+If the answer is yes, the task is probably Level 4 or below.
+
+A Level 5 task should require investigation before the correct edit location is known.
+
+---
+
+# 17. Preserve Evaluation Environment
 
 Do not modify:
 
@@ -785,107 +782,157 @@ Do not modify:
 ast-tool/.claude/skills/
 ```
 
-Do not modify:
+Do not modify existing:
 
 ```text
 evaluation/tasks/smoke-001.yaml
-```
-
-Do not modify:
-
-```text
 evaluation/tasks/level1-*.yaml
+evaluation/tasks/level2-*.yaml
+evaluation/tasks/level3-*.yaml
+evaluation/tasks/level4-*.yaml
 ```
 
-Do not modify:
+Do not redesign:
 
 ```text
-evaluation/tasks/level2-*.yaml
+evaluation runner
+statistics collection
+Claude Code invocation
+task schema
 ```
 
-Do not redesign the evaluation runner.
-
-The Level 3 dataset should be evaluated against the same existing Agent-facing environment.
+Only create the new Level 5 tasks and the repository fixtures and validators required by them.
 
 ---
 
-# 18. Inspect Existing Level 2 Design First
+# 18. Inspect Existing Tasks Before Creation
 
-Before creating Level 3:
+Before creating Level 5:
 
-1. Inspect all Level 2 tasks.
-2. Inspect the Level 2 repository fixtures.
-3. Inspect the validators.
+1. Inspect all existing Level 1–4 tasks.
+2. Inspect repository fixtures.
+3. Inspect validators.
 4. Inspect the evaluation runner.
-5. Inspect the existing Skills.
-6. Identify which Level 2 tasks already exercise caller/callee behavior.
-7. Avoid duplicating those scenarios without increasing semantic depth.
+5. Inspect current Agent-facing Skills.
+6. Identify existing bug-fix scenarios.
+7. Avoid duplicating existing semantic patterns.
+8. Ensure every Level 5 task represents genuine progression.
 
-Level 3 must represent a genuine difficulty progression.
+Do not assume prior task designs.
 
-Do not simply rename a Level 2 scenario.
+Use the actual current repository state.
 
 ---
 
-# 19. Acceptance Criteria
+# 19. Evaluation Metadata
+
+If the current task schema supports evaluation-only metadata, add information such as:
+
+```yaml
+evaluation:
+  category: root-cause-investigation
+  relevant_capabilities:
+    - search
+    - references
+    - callers
+    - callees
+  expected_reasoning_depth: very_high
+```
+
+Other possible categories:
+
+```text
+wrong-semantic-path
+incomplete-propagation
+caller-bug
+callee-ordering
+refactor-regression
+combined-investigation
+```
+
+Do not modify the evaluation framework merely to add metadata.
+
+Do not specify an exact workflow.
+
+---
+
+# 20. Acceptance Criteria
 
 The work is complete when:
 
-* [ ] Exactly 8 Level 3 task YAML files exist.
-* [ ] Each task introduces meaningful call graph or multi-step semantic reasoning.
-* [ ] Most tasks require discovering relationships across multiple files.
-* [ ] At least 3 tasks contain semantically related paths that must remain unchanged.
-* [ ] At least one task combines references with caller/callee reasoning.
-* [ ] At least one task requires distributed modification across multiple source files.
-* [ ] No task prescribes an `ast-tool` command.
-* [ ] No task embeds CLI syntax.
+* [ ] Exactly 8 Level 5 task YAML files exist.
+* [ ] Every task begins from a symptom, regression, or behavioral requirement.
+* [ ] The prompt does not reveal the exact root-cause location.
+* [ ] Every task has a deterministic root cause.
+* [ ] Every task contains at least one plausible but incorrect candidate path.
+* [ ] Every task requires investigation before the correct edit location is known.
+* [ ] Every task defines regression or exclusion boundaries.
+* [ ] Most tasks make at least three semantic capabilities potentially useful.
+* [ ] At least 2 tasks involve incomplete propagation.
+* [ ] At least 1 task involves an incorrect caller.
+* [ ] At least 1 task involves an incorrect callee or dependency sequence.
+* [ ] At least 1 task involves a partial refactoring regression.
+* [ ] At least 1 task combines references, callers, and callees.
+* [ ] Validators detect superficial or partial fixes.
+* [ ] Validators test behavioral correctness where practical.
+* [ ] Existing Levels 1–4 remain unchanged.
 * [ ] Existing Skills remain unchanged.
-* [ ] Existing Level 1 and Level 2 tasks remain unchanged.
-* [ ] Every task has deterministic validation.
-* [ ] The evaluation runner requires no redesign.
+* [ ] The existing evaluation runner can execute all Level 5 tasks.
 
 ---
 
-# 20. Final Deliverables
+# 21. Final Deliverables
 
 Create:
 
 ```text
-evaluation/tasks/level3-001.yaml
-evaluation/tasks/level3-002.yaml
-evaluation/tasks/level3-003.yaml
-evaluation/tasks/level3-004.yaml
-evaluation/tasks/level3-005.yaml
-evaluation/tasks/level3-006.yaml
-evaluation/tasks/level3-007.yaml
-evaluation/tasks/level3-008.yaml
+evaluation/tasks/level5-001.yaml
+evaluation/tasks/level5-002.yaml
+evaluation/tasks/level5-003.yaml
+evaluation/tasks/level5-004.yaml
+evaluation/tasks/level5-005.yaml
+evaluation/tasks/level5-006.yaml
+evaluation/tasks/level5-007.yaml
+evaluation/tasks/level5-008.yaml
 ```
 
-Create only the additional repository fixtures and validators required to support these tasks.
+Create only the repository fixtures and validation scripts necessary to support these tasks.
 
-After implementation, report:
+After implementation, provide a summary table:
 
-1. The task ID.
-2. The repository fixture.
-3. The semantic challenge.
-4. The intended relevant capabilities.
-5. The semantic paths that must be modified.
-6. The semantically related paths that must remain unchanged.
-7. The expected number of modified files.
-8. The validation strategy.
-9. Any task that may overlap too heavily with Level 2.
-10. Any concern about task determinism.
+| Task | Repository | Category | Symptom | Root Cause Type | Relevant Capabilities |
+| ---- | ---------- | -------- | ------- | --------------- | --------------------- |
 
-The main objective is to determine whether Claude Code can use:
+For every task, report:
+
+1. The observable symptom.
+2. The expected behavior.
+3. The hidden root-cause location.
+4. The plausible incorrect candidate locations.
+5. The expected semantic investigation surface.
+6. The likely useful `ast-tool` capabilities.
+7. The files expected to be modified.
+8. The semantic paths that must remain unchanged.
+9. The validation strategy.
+10. The partial or superficial fixes that the validator rejects.
+11. Any possible overlap with Levels 1–4.
+
+The central question for Level 5 is:
 
 ```text
-Skill
-  ↓
-Semantic navigation
-  ↓
-Multi-step relationship analysis
-  ↓
-Selective code modification
-```
+Can the coding agent use ast-tool as part of a real debugging workflow?
 
-as a practical workflow for realistic coding tasks.
+Symptom
+   ↓
+Investigation
+   ↓
+Semantic navigation
+   ↓
+Root-cause identification
+   ↓
+Impact analysis
+   ↓
+Correct fix
+   ↓
+Regression-safe result
+```

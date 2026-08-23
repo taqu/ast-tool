@@ -1,0 +1,28 @@
+id: level4-002
+
+repository: repositories/level4-api
+
+prompt: |
+  In the API request processing system, add a security check to the incoming production request processing path.
+  Specifically, inside the `process` method of the main request processor, check if the payload contains the word "restricted". If it does, write the following log to std::cerr:
+
+      std::cerr << "[security] restricted payload blocked for request " << request_id << "\n";
+
+  and immediately return `false` to abort processing.
+
+  Ensure this security check is ONLY added to the production API request processor. The background data synchronization job or sync processor paths must not perform this check.
+
+evaluation:
+  category: semantic-impact
+  relevant_capabilities:
+    - search
+    - callers
+    - references
+
+validation:
+  command: python validate_002.py
+
+expected_files:
+  - src/processor/request_processor.cpp
+
+timeout: 180

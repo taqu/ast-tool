@@ -1,0 +1,34 @@
+id: level4-005
+
+repository: repositories/level4-api
+
+prompt: |
+  Propagate a `client_ip` string parameter from `ApiHandler::handleRequest` down through `RequestProcessor::process` to `DatabaseStore::save`.
+  Specifically:
+  1. Update `ApiHandler::handleRequest` to accept `const std::string& client_ip` as a second parameter.
+  2. Update `RequestProcessor::process` to accept `const std::string& client_ip` as a third parameter.
+  3. Overload or update `DatabaseStore::save` to accept `const std::string& client_ip` as a third parameter, and modify its implementation to output `" ip=" + client_ip` inside its print statement.
+  4. Update the call site in `src/main.cpp` to pass a mock IP like `"127.0.0.1"` when invoking `handleRequest`.
+
+  The background synchronization path (`SyncProcessor::process` and `CronJob::runJob`) is out of scope and must remain completely unchanged. No IP logging or parameters should be added to background synchronization flows.
+
+evaluation:
+  category: cross-layer-change
+  relevant_capabilities:
+    - search
+    - references
+    - callers
+
+validation:
+  command: python validate_005.py
+
+expected_files:
+  - src/api/api_handler.h
+  - src/api/api_handler.cpp
+  - src/processor/request_processor.h
+  - src/processor/request_processor.cpp
+  - src/store/database_store.h
+  - src/store/database_store.cpp
+  - src/main.cpp
+
+timeout: 180

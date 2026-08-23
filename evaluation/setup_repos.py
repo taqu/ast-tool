@@ -28,7 +28,11 @@ def setup_repo(fixture_name: str) -> None:
         return
 
     if dst.exists():
-        shutil.rmtree(dst)
+        def remove_readonly(func, path, excinfo):
+            import stat
+            os.chmod(path, stat.S_IWRITE)
+            func(path)
+        shutil.rmtree(dst, onexc=remove_readonly)
 
     shutil.copytree(src, dst)
 
