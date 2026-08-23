@@ -8,9 +8,10 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from claude import ExecutionResult, run_claude
-from logs import clear_claude_logs, parse_session_logs
 from validator import ValidationResult, validate_task
+from agents.base import AgentRunResult
+from agents.claude_code import ClaudeCodeRunner
+from agents.antigravity import AntigravityRunner
 
 
 def load_task(yaml_path: Path) -> dict:
@@ -51,7 +52,7 @@ def _git_revision(repo_path: Path) -> str:
     return r.stdout.strip()
 
 
-def _determine_status(exec_result: ExecutionResult, val_result: ValidationResult) -> str:
+def _determine_status(exec_result: AgentRunResult, val_result: ValidationResult) -> str:
     if exec_result.exit_code == -2:
         return "runner_failure"
     if exec_result.timed_out:
@@ -71,17 +72,18 @@ def _write_result(record: dict, results_dir: Path) -> None:
     print(f"[runner] Result appended to {out_path}")
 
 
-def run_task(task_yaml: Path, base_dir: Path, results_dir: Path) -> dict:
+def run_task(task_yaml: Path, base_dir: Path, results_dir: Path, agent_name: str = "claude") -> dict:
     task = load_task(task_yaml)
     task_id = task["id"]
     repo_path = (base_dir / task["repository"]).resolve()
     timeout = task.get("timeout", 300)
 
-    print(f"\n[runner] ── Task: {task_id} ──")
+    print(f"\n[runner] ── Task: {task_id} ({agent_name}) ──")
     print(f"[runner] Repository: {repo_path}")
 
     if not repo_path.exists():
         record = {
+            "agent": agent_name,
             "task_id": task_id,
             "status": "runner_failure",
             "success": False,
@@ -95,6 +97,7 @@ def run_task(task_yaml: Path, base_dir: Path, results_dir: Path) -> dict:
         reset_repository(repo_path)
     except Exception as e:
         record = {
+            "agent": agent_name,
             "task_id": task_id,
             "status": "runner_failure",
             "success": False,
@@ -105,16 +108,19 @@ def run_task(task_yaml: Path, base_dir: Path, results_dir: Path) -> dict:
         return record
 
     repo_rev = _git_revision(repo_path)
-    clear_claude_logs()
 
-    print(f"[runner] Launching Claude Code (timeout={timeout}s) ...")
-    exec_result = run_claude(task["prompt"], repo_path, timeout=timeout)
+    print(f"[runner] Launching agent '{agent_name}' (timeout={timeout}s) ...")
+    if agent_name == "antigravity":
+        runner = AntigravityRunner()
+    else:
+        runner = ClaudeCodeRunner()
+
+    exec_result = runner.run(task["prompt"], repo_path, timeout=timeout)
     print(
-        f"[runner] Claude exited: code={exec_result.exit_code}, "
+        f"[runner] Agent exited: code={exec_result.exit_code}, "
         f"elapsed={exec_result.elapsed_seconds}s, timed_out={exec_result.timed_out}"
     )
 
-    stats = parse_session_logs()
     diff_info = collect_git_diff(repo_path)
 
     print(f"[runner] Running validation ...")
@@ -124,6 +130,7 @@ def run_task(task_yaml: Path, base_dir: Path, results_dir: Path) -> dict:
     status = _determine_status(exec_result, val_result)
 
     record: dict = {
+        "agent": agent_name,
         "task_id": task_id,
         "status": status,
         "success": status == "success",
@@ -132,10 +139,10 @@ def run_task(task_yaml: Path, base_dir: Path, results_dir: Path) -> dict:
         "elapsed_seconds": exec_result.elapsed_seconds,
         "process_exit_code": exec_result.exit_code,
         "timed_out": exec_result.timed_out,
-        "tokens": stats["tokens"],
-        "tools": stats["tools"],
-        "ast_tool": stats["ast_tool"],
-        "workflow": stats["workflow"],
+        "tokens": exec_result.tokens,
+        "tools": exec_result.tools,
+        "ast_tool": exec_result.ast_tool,
+        "workflow": exec_result.workflow,
         "changed_files": diff_info["changed_files"],
         "validation": {
             "success": val_result.success,

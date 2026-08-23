@@ -11,13 +11,19 @@ from runner import run_task
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Agent Evaluation Runner — measures ast-tool usage by Claude Code"
+        description="Agent Evaluation Runner — measures ast-tool usage by coding agents"
     )
     parser.add_argument(
         "tasks",
         nargs="+",
         metavar="TASK",
         help="Path to a task YAML file or a directory containing task YAML files",
+    )
+    parser.add_argument(
+        "--agent",
+        default="claude",
+        metavar="AGENT",
+        help="Agent to run ('claude', 'antigravity', or comma-separated list like 'claude,antigravity')",
     )
     parser.add_argument(
         "--base-dir",
@@ -51,21 +57,26 @@ def main() -> None:
         print("[run_eval] No task files found.")
         sys.exit(1)
 
-    print(f"[run_eval] Running {len(task_files)} task(s) sequentially ...")
-    failures = 0
-    for task_file in task_files:
-        try:
-            record = run_task(task_file, base_dir, results_dir)
-            status = record.get("status", "unknown")
-            print(f"[run_eval] {record.get('task_id', task_file.stem)}: {status}")
-            if status != "success":
-                failures += 1
-        except Exception as e:
-            print(f"[run_eval] Unexpected error processing '{task_file}': {e}")
-            failures += 1
+    agents = [a.strip() for a in args.agent.split(",") if a.strip()]
+    if not agents:
+        agents = ["claude"]
 
-    total = len(task_files)
-    print(f"\n[run_eval] {total - failures}/{total} tasks succeeded.")
+    total_runs = len(task_files) * len(agents)
+    print(f"[run_eval] Running {len(task_files)} task(s) for agent(s) {agents} sequentially ...")
+    failures = 0
+    for agent in agents:
+        for task_file in task_files:
+            try:
+                record = run_task(task_file, base_dir, results_dir, agent_name=agent)
+                status = record.get("status", "unknown")
+                print(f"[run_eval] {record.get('task_id', task_file.stem)} ({agent}): {status}")
+                if status != "success":
+                    failures += 1
+            except Exception as e:
+                print(f"[run_eval] Unexpected error processing '{task_file}' with agent '{agent}': {e}")
+                failures += 1
+
+    print(f"\n[run_eval] {total_runs - failures}/{total_runs} runs succeeded.")
     sys.exit(0 if failures == 0 else 1)
 
 

@@ -1,177 +1,354 @@
-# Create Agent Evaluation Tasks — Difficulty Level 5
+# Add Antigravity CLI Support to the Agent Evaluation Framework
 
-## Objective
+## Goal
 
-Create the fifth batch of Agent Evaluation tasks for `ast-tool`.
+Extend the existing agent evaluation framework so that it supports **Antigravity CLI** in addition to the current **Claude Code** runner.
 
-Create exactly **8 Level 5 tasks**.
+The goal is **not** to create a separate evaluation system for Antigravity.
 
-Level 5 should represent a progression from semantic change-surface analysis toward realistic software maintenance and bug-fixing work.
+Instead, refactor the evaluation framework so that multiple coding agents can run the **same evaluation tasks**, use the **same repositories**, execute the **same validation commands**, and produce results in a common format.
 
-The agent should not always be given the exact symbol that must be changed.
-
-Instead, the task may begin with:
+The initial supported agents should be:
 
 ```text
-a failing behavior
-a bug symptom
-an incorrect result
-an architectural requirement
-an incomplete refactoring
-a behavioral regression
+Claude Code
+Antigravity CLI
 ```
 
-The agent must investigate the repository, identify the relevant semantic entities and relationships, determine the root cause or correct change surface, and implement a correct fix.
-
-The purpose is to evaluate whether the agent can use `ast-tool` as part of a realistic investigation workflow.
-
-Do not modify existing Level 1 through Level 4 tasks.
-
-Do not modify the existing Agent-facing Skills.
+The architecture should make it easy to add more coding agents later.
 
 ---
 
-# 1. Difficulty Progression
+# 1. Current Situation
 
-The evaluation progression is:
+The current evaluation infrastructure was originally built around Claude Code.
+
+The existing flow is conceptually:
 
 ```text
-Level 1
-Direct local modification
-        ↓
-Level 2
-Semantic identity and ambiguity
-        ↓
-Level 3
-Multi-step relationship navigation
-        ↓
-Level 4
-Semantic impact analysis and coordinated change
-        ↓
-Level 5
-Problem investigation
-        ↓
-Root-cause discovery
-        ↓
-Semantic impact analysis
-        ↓
-Design / fix decision
-        ↓
-Implementation
-        ↓
-Regression avoidance
+Evaluation Task
+      ↓
+Claude Code
+      ↓
+Skills / Tools / ast-tool
+      ↓
+Code Modification
+      ↓
+Validation
+      ↓
+JSONL Result
+      ↓
+Statistics / Analysis
 ```
 
-The defining characteristic of Level 5 is:
+The framework already collects information such as:
 
-> The task describes a problem or required behavior, not necessarily the symbol or source location that must be changed.
+```json
+{
+  "task_id": "...",
+  "success": true,
+  "elapsed_seconds": 181.52,
+  "tokens": {},
+  "tools": {},
+  "ast_tool": {},
+  "workflow": [],
+  "changed_files": [],
+  "validation": {}
+}
+```
+
+The framework also analyzes agent-specific logs, especially Claude Code JSONL logs.
+
+The new design must preserve the existing Claude Code functionality while adding Antigravity CLI support.
 
 ---
 
-# 2. Number of Tasks
+# 2. Primary Design Goal
 
-Create exactly:
-
-```text
-level5-001
-level5-002
-level5-003
-level5-004
-level5-005
-level5-006
-level5-007
-level5-008
-```
-
-Store them under:
+Separate the evaluation framework into two layers:
 
 ```text
-evaluation/tasks/
+                Evaluation Core
+                      │
+                      ▼
+            Common Task / Result Model
+                      │
+          ┌───────────┴───────────┐
+          ▼                       ▼
+    Claude Code Runner      Antigravity Runner
+          │                       │
+          ▼                       ▼
+    Claude-specific logs    Antigravity-specific logs
+          │                       │
+          └───────────┬───────────┘
+                      ▼
+              Normalized Result
+                      │
+                      ▼
+            Common Statistics
 ```
 
-Do not create Level 6 tasks.
+The evaluation core must not depend directly on Claude Code.
+
+Agent-specific behavior should be isolated behind a small adapter or runner interface.
 
 ---
 
-# 3. Core Level 5 Principle
+# 3. Do Not Break Existing Behavior
 
-A Level 5 task should require the agent to answer:
+This is a compatibility-sensitive refactor.
 
-```text
-What is actually wrong?
-```
-
-before it can reliably answer:
+The following existing functionality must continue to work:
 
 ```text
-What should be changed?
+Claude Code evaluation execution
+Task loading
+Repository preparation
+Validation
+Timeout handling
+Changed file detection
+Claude Code log parsing
+Token statistics
+Tool statistics
+ast-tool command extraction
+Workflow extraction
+JSONL result generation
+Existing statistics scripts
 ```
 
-The intended reasoning shape is:
+Do not rewrite the entire evaluation framework unless necessary.
 
-```text
-Observed symptom
-      ↓
-Locate relevant behavior
-      ↓
-Identify candidate symbols
-      ↓
-Navigate semantic relationships
-      ↓
-Find root cause
-      ↓
-Determine change surface
-      ↓
-Implement fix
-      ↓
-Verify required behavior
-      ↓
-Ensure related behavior did not regress
-```
-
-The task must remain deterministic.
-
-Do not create open-ended debugging puzzles with multiple equally valid fixes.
+Prefer incremental refactoring.
 
 ---
 
-# 4. Required Task Categories
+# 4. Introduce an Agent Runner Abstraction
 
-Create approximately the following distribution.
+Create a common abstraction for running a coding agent.
 
-## A. Wrong Semantic Path
+For example:
 
-Create 2 tasks.
-
-The observed behavior occurs because the wrong implementation, overload, dependency, or semantic path is being used.
-
-Example:
-
-```text
-Request
-   ↓
-Service
-   ↓
-incorrect overload selected
+```python
+class AgentRunner:
+    def run(
+        self,
+        task,
+        workspace,
+        timeout,
+    ) -> AgentRunResult:
+        ...
 ```
 
-or:
+The exact API may differ depending on the existing codebase.
 
-```text
-Production workflow
-   ↓
-incorrect repository method
+The important requirement is that the evaluation core should be able to do something conceptually similar to:
+
+```python
+runner = create_runner(agent_name)
+
+result = runner.run(
+    task=task,
+    workspace=workspace,
+    timeout=task.timeout,
+)
 ```
 
-The repository should contain multiple plausible symbols with similar names.
+The evaluation core should not need to know:
 
-The task prompt describes the incorrect behavior.
+```text
+How Claude Code is invoked
+How Antigravity CLI is invoked
+How agent logs are located
+How agent-specific output is parsed
+```
 
-The agent must determine which semantic path is responsible.
+Those details belong inside the corresponding runner or adapter.
 
-The fix should not be discoverable merely by searching for the exact error message.
+---
 
-Useful semantic capabilities may include:
+# 5. Suggested Runner Structure
+
+A structure similar to the following is recommended:
+
+```text
+evaluation/
+├── core/
+│   ├── task.py
+│   ├── result.py
+│   ├── validation.py
+│   └── runner.py
+│
+├── agents/
+│   ├── base.py
+│   ├── claude_code.py
+│   └── antigravity.py
+│
+├── logging/
+│   ├── claude_logs.py
+│   └── antigravity_logs.py
+│
+└── run_evaluation.py
+```
+
+Do not force this exact directory layout if the current repository structure already has a better organization.
+
+The important architectural boundary is:
+
+```text
+Evaluation Core
+        ↓
+Agent Runner Interface
+        ↓
+Agent-specific implementation
+```
+
+---
+
+# 6. Add Agent Selection
+
+The evaluation runner should support explicit agent selection.
+
+For example:
+
+```bash
+python run_evaluation.py --agent claude
+```
+
+and:
+
+```bash
+python run_evaluation.py --agent antigravity
+```
+
+It should also be possible to run multiple agents in the future.
+
+For example, the architecture should not prevent something like:
+
+```bash
+python run_evaluation.py --agent claude,antigravity
+```
+
+This multi-agent mode does not need to be implemented unless it is simple and fits naturally into the current codebase.
+
+The initial requirement is:
+
+```text
+One evaluation task set
++
+Selectable coding agent
+```
+
+---
+
+# 7. Antigravity CLI Integration
+
+Implement a dedicated runner for Antigravity CLI.
+
+The runner should be responsible for:
+
+```text
+Preparing the working directory
+Constructing the prompt
+Invoking Antigravity CLI
+Passing the task instructions
+Handling timeout
+Capturing stdout
+Capturing stderr
+Recording exit status
+Returning normalized execution information
+```
+
+Before implementing the integration, inspect how Antigravity CLI is expected to be invoked in the local environment.
+
+Do not hard-code assumptions about undocumented command-line syntax.
+
+Use the actual installed CLI behavior and its help output where available.
+
+The implementation should clearly isolate the command construction, for example:
+
+```python
+class AntigravityRunner(AgentRunner):
+    def build_command(self, ...):
+        ...
+```
+
+This will make future CLI changes easier to handle.
+
+---
+
+# 8. Normalize Agent Results
+
+Different coding agents may expose different metadata.
+
+For example:
+
+Claude Code may provide:
+
+```text
+Input tokens
+Output tokens
+Cache read tokens
+Cache creation tokens
+Tool usage
+Tool sequence
+```
+
+Antigravity CLI may provide a different set of information.
+
+Do not force fake or estimated values.
+
+Instead, use a normalized result structure where unavailable information can remain empty or null.
+
+For example:
+
+```json
+{
+  "agent": "antigravity",
+  "task_id": "level2-004",
+
+  "success": true,
+  "elapsed_seconds": 123.45,
+
+  "tokens": {
+    "input": null,
+    "output": null,
+    "cache_read": null,
+    "cache_creation": null
+  },
+
+  "tools": {},
+
+  "ast_tool": {},
+
+  "workflow": [],
+
+  "changed_files": [],
+
+  "validation": {}
+}
+```
+
+If Antigravity exposes additional useful metadata, it may be stored in an agent-specific section.
+
+For example:
+
+```json
+{
+  "agent": "antigravity",
+
+  "agent_metadata": {
+    "..."
+  }
+}
+```
+
+However, the common fields used by the statistics system should remain consistent.
+
+---
+
+# 9. ast-tool Usage Detection
+
+The evaluation framework already tracks commands such as:
 
 ```text
 search
@@ -179,760 +356,577 @@ find
 references
 callers
 callees
+symbols
+help
+```
+
+This behavior should continue for Claude Code.
+
+For Antigravity, detect `ast-tool` usage from whatever execution logs or captured command information are actually available.
+
+The desired normalized output is:
+
+```json
+"ast_tool": {
+  "search": 4,
+  "callers": 2,
+  "references": 1
+}
+```
+
+The implementation should not assume that Antigravity logs have the same structure as Claude Code logs.
+
+Create a separate extraction path if necessary.
+
+Conceptually:
+
+```text
+Claude logs
+    ↓
+Claude ast-tool parser
+    ↓
+Normalized ast_tool counts
+
+Antigravity logs
+    ↓
+Antigravity ast-tool parser
+    ↓
+Normalized ast_tool counts
 ```
 
 ---
 
-## B. Incomplete Propagation Bug
+# 10. Workflow Collection
 
-Create 2 tasks.
-
-A value, context, option, or state is intended to propagate through a workflow but disappears or is replaced at one layer.
-
-Example:
-
-```text
-Handler
-  ↓ request_id
-Service
-  ↓ request_id
-Repository
-  ✗ lost
-Adapter
-```
-
-The task prompt should describe the observable failure.
-
-For example:
-
-> The request identifier is available at the API boundary but persistence records do not contain it.
-
-The agent must determine where propagation breaks.
-
-The correct solution may require modifying:
-
-```text
-declaration
-definition
-callers
-intermediate layer
-```
-
-The task should include similar workflows where propagation must not change.
-
----
-
-## C. Incorrect Caller / Workflow Behavior
-
-Create 1 task.
-
-A function behaves correctly in isolation.
-
-The bug is caused by one or more callers using it incorrectly.
-
-Example:
-
-```text
-PaymentService::authorize()
-```
-
-is correct, but:
-
-```text
-RetryWorker
-```
-
-passes an incorrect mode or skips a required step.
-
-The prompt should describe the symptom.
-
-The agent must trace:
-
-```text
-symptom
-↓
-target behavior
-↓
-callers
-↓
-incorrect caller
-```
-
-The task should contain multiple callers so that changing the target function itself would be an incorrect or overly broad fix.
-
----
-
-## D. Incorrect Callee / Dependency Behavior
-
-Create 1 task.
-
-A higher-level workflow produces an incorrect result because it calls the wrong dependency or uses a dependency in the wrong order.
-
-Example:
-
-```text
-OrderService::submit()
-   ↓
-validate()
-   ↓
-save()
-   ↓
-authorize()
-```
-
-when the correct sequence should be:
-
-```text
-validate()
-   ↓
-authorize()
-   ↓
-save()
-```
-
-Do not make the task merely about reordering obvious adjacent lines.
-
-The repository should require identifying the relevant workflow and understanding its callees.
-
-The task prompt should describe the externally visible behavior.
-
----
-
-## E. Regression After Partial Refactoring
-
-Create 1 task.
-
-The repository should contain a partially completed refactoring.
+The existing evaluation framework records tool or workflow sequences.
 
 For example:
 
 ```text
-Old API
-↓ partially migrated
-New API
+Skill
+↓
+ast-tool search
+↓
+ast-tool callers
+↓
+Read
+↓
+Edit
 ```
 
-Some declarations and definitions may already use the new abstraction, while one semantic path still uses the old one.
+Preserve this capability for Claude Code.
 
-The task prompt should describe the regression.
+For Antigravity, collect workflow information only if reliable data is available.
 
-The agent must determine:
+Possible normalized entries could look like:
 
-```text
-which migration is incomplete
-which callers are affected
-which old paths must remain for compatibility
+```json
+[
+  "Bash",
+  "ast-tool search",
+  "Read",
+  "Edit"
+]
 ```
 
-The fix should be selective.
+If Antigravity does not expose reliable tool-level information, do not fabricate a workflow.
 
-Do not require a large mechanical rename.
+In that case:
+
+```json
+"workflow": []
+```
+
+is acceptable.
 
 ---
 
-## F. Bug Requiring Combined Semantic Investigation
+# 11. Statistics Compatibility
 
-Create 1 task.
+The existing statistics scripts should continue to work.
 
-This should be the most complex Level 5 task.
+Update them so that results can be grouped by agent.
 
-The agent should plausibly need to combine:
+For example:
 
 ```text
-symbol discovery
-+
-references
-+
-callers
-+
-callees
+Claude Code
+├── success rate
+├── average time
+├── token usage
+├── ast-tool adoption
+└── command usage
+
+Antigravity
+├── success rate
+├── average time
+├── token usage, if available
+├── ast-tool adoption
+└── command usage
 ```
 
-The exact sequence must not be prescribed.
-
-Example conceptual shape:
+Support analysis such as:
 
 ```text
-Observed duplicate side effect
+Success rate by agent
+Success rate by level and agent
+Average execution time by agent
+ast-tool adoption by agent
+ast-tool command usage by agent
+Failure rate by agent
+```
+
+The existing global statistics should remain available.
+
+For example:
+
+```text
+Overall
+  ↓
+By Agent
+  ↓
+By Level
+  ↓
+By Agent × Level
+```
+
+---
+
+# 12. Result Schema Evolution
+
+Add an explicit agent identifier to every new result.
+
+For example:
+
+```json
+{
+  "agent": "claude",
+  "task_id": "level2-004",
+  ...
+}
+```
+
+and:
+
+```json
+{
+  "agent": "antigravity",
+  "task_id": "level2-004",
+  ...
+}
+```
+
+Maintain backward compatibility with existing result files if practical.
+
+For old results that do not contain an `agent` field, treat them as:
+
+```text
+claude
+```
+
+if they were generated by the existing Claude Code runner.
+
+Avoid unnecessary schema redesign.
+
+This task is about multi-agent support, not a complete result format redesign.
+
+---
+
+# 13. Agent-Specific Log Isolation
+
+Do not assume that all agents store logs in:
+
+```text
+~/.claude/projects
+```
+
+Claude Code log handling should remain where it is.
+
+Antigravity-specific log discovery and cleanup must be isolated.
+
+For example:
+
+```python
+class AgentRunner:
+    def clear_logs(self):
+        ...
+
+    def collect_logs(self):
+        ...
+```
+
+Or equivalent functionality.
+
+The evaluation runner should conceptually perform:
+
+```text
+Prepare agent environment
         ↓
-Locate operation
+Clear relevant logs
         ↓
-Find callers
+Run agent
         ↓
-Trace one caller's workflow
+Collect execution metadata
         ↓
-Find indirect callee
+Normalize result
+```
+
+Only clear logs that are known to belong to the evaluation session.
+
+Do not delete unrelated user data.
+
+This is especially important when introducing support for additional coding agents.
+
+---
+
+# 14. Preserve Evaluation Fairness
+
+Claude Code and Antigravity should receive equivalent task conditions.
+
+For the same task:
+
+```text
+Same repository
+Same initial repository state
+Same task prompt
+Same timeout
+Same validation command
+Same success criteria
+```
+
+Do not create agent-specific task variants unless explicitly required later.
+
+The purpose is comparative evaluation.
+
+---
+
+# 15. Failure Handling
+
+The runner should distinguish between:
+
+```text
+Agent execution failure
+Timeout
+Validation failure
+Runner error
+```
+
+For example:
+
+```json
+{
+  "success": false,
+
+  "failure_type": "validation_failure",
+
+  "validation": {
+    "success": false,
+    "exit_code": 1
+  }
+}
+```
+
+Or:
+
+```json
+{
+  "success": false,
+
+  "failure_type": "timeout"
+}
+```
+
+Use the existing result conventions where possible.
+
+Do not introduce a completely separate failure model unless required.
+
+---
+
+# 16. Testing
+
+Add tests or manual verification for at least the following.
+
+## Claude Code regression
+
+Verify that:
+
+```text
+Existing Claude Code evaluation still runs
+Existing result generation still works
+Existing log parsing still works
+Existing statistics still work
+```
+
+## Antigravity smoke test
+
+Create or run a minimal evaluation task and verify:
+
+```text
+Antigravity CLI is invoked successfully
+The task prompt is delivered
+Repository changes are detected
+Validation runs
+A normalized JSON result is produced
+The result contains:
+    agent = antigravity
+```
+
+## Statistics
+
+Verify that mixed results such as:
+
+```text
+claude
+claude
+antigravity
+antigravity
+```
+
+can be analyzed without errors.
+
+Verify grouping by:
+
+```text
+agent
+level
+agent × level
+```
+
+---
+
+# 17. Recommended Implementation Order
+
+Implement in this order.
+
+### Step 1
+
+Inspect the existing evaluation runner.
+
+Identify:
+
+```text
+Task loading
+Agent invocation
+Repository setup
+Timeout handling
+Validation
+Result generation
+Claude log parsing
+Statistics dependencies
+```
+
+Do not start by rewriting the framework.
+
+---
+
+### Step 2
+
+Extract the existing Claude Code-specific execution logic behind an agent runner abstraction.
+
+The behavior should remain unchanged.
+
+At this point:
+
+```text
+Old architecture
         ↓
-Identify duplicated semantic path
+Claude-specific evaluation code
+
+New architecture
         ↓
-Fix only the duplicate path
+Evaluation Core
+        ↓
+ClaudeCodeRunner
 ```
 
-The repository should contain plausible but incorrect alternative hypotheses.
-
-The validator must clearly distinguish the intended fix from incomplete or overly broad fixes.
+Both should produce equivalent results.
 
 ---
 
-# 5. Repository Fixtures
+### Step 3
 
-Create approximately **2–4 reusable Level 5 repository fixtures**.
-
-Suggested conceptual structure:
+Add:
 
 ```text
-evaluation/repositories/
-├── level5-request-bugs/
-├── level5-order-workflow/
-├── level5-refactor-regression/
-└── level5-state-propagation/
+AntigravityRunner
 ```
 
-Adapt to the existing repository layout where appropriate.
-
-Aim for approximately:
+Implement only the minimum functionality required to:
 
 ```text
-25–60 source/header files
-```
-
-as a guideline.
-
-Do not add meaningless files.
-
-Repository complexity should come from:
-
-```text
-multiple semantic paths
-layered architecture
-similar workflows
-realistic abstractions
-partial migrations
-semantic exclusions
-```
-
-rather than file count alone.
-
----
-
-# 6. Problem-First Prompt Design
-
-Level 5 prompts should primarily describe:
-
-```text
-symptom
-expected behavior
-scope
-constraints
-regression boundaries
-```
-
-Do not immediately identify the exact function to modify.
-
-Good:
-
-```text
-Orders submitted through the web checkout path are being persisted
-without the request identifier, while direct internal imports work
-correctly. Fix the propagation so that checkout-originated orders
-retain the request identifier through persistence.
-```
-
-Poor:
-
-```text
-Add RequestContext to OrderRepository::save().
-```
-
-The first requires investigation.
-
-The second already identifies the solution.
-
----
-
-# 7. Do Not Reveal the Root Cause
-
-Do not write the root cause in the prompt.
-
-Avoid:
-
-```text
-The bug is caused by OrderService::submit() calling save()
-without the context.
-```
-
-Instead:
-
-```text
-Orders submitted through checkout lose their request identifier
-before persistence.
-```
-
-The agent should discover the responsible semantic path.
-
----
-
-# 8. Root Cause Must Be Deterministic
-
-Although Level 5 begins from a symptom, the intended root cause must be unambiguous.
-
-Before finalizing a task, verify:
-
-```text
-Observed symptom
-      ↓
-Specific semantic path
-      ↓
-Specific defect
-      ↓
-Deterministic correct fix
-```
-
-Avoid tasks where several unrelated fixes could satisfy the validator.
-
-Do not create tasks requiring subjective architectural preferences.
-
----
-
-# 9. Semantic Investigation Requirements
-
-Each task should make at least **three** semantic capabilities plausibly useful.
-
-Possible combinations:
-
-```text
-search
-+
-references
-+
-callers
-```
-
-```text
-find
-+
-callers
-+
-callees
-```
-
-```text
-search
-+
-references
-+
-callers
-+
-callees
-```
-
-Not every capability must actually be used by the agent.
-
-Do not prescribe commands.
-
-The benchmark measures whether the agent can select useful investigation tools.
-
----
-
-# 10. Multiple Plausible Candidates
-
-Most Level 5 tasks should contain more than one plausible location for the bug.
-
-Examples:
-
-```text
-OrderService::submit()
-CheckoutService::submit()
-MigrationService::submit()
-```
-
-or:
-
-```text
-Repository::save()
-CacheRepository::save()
-AuditRepository::save()
-```
-
-The correct path must be identifiable through semantic relationships.
-
-Avoid trivial filename-based clues.
-
----
-
-# 11. Semantic Exclusion and Regression Boundaries
-
-Every Level 5 task must define behavior that should remain unchanged.
-
-Examples:
-
-```text
-Web checkout
-    → fix required
-
-Internal import
-    → already correct
-    → must remain unchanged
-```
-
-or:
-
-```text
-Production retry workflow
-    → fix required
-
-Migration compatibility path
-    → must remain unchanged
-```
-
-The validator must explicitly check these boundaries.
-
-A solution that fixes the symptom by modifying all similar paths should fail if it violates the intended scope.
-
----
-
-# 12. Root Cause vs Symptom Fix
-
-Validators should reject superficial fixes.
-
-For example, if the task is:
-
-```text
-Duplicate authorization occurs during retry.
-```
-
-the validator should reject solutions that merely suppress visible logging if authorization is still performed twice.
-
-The task should test the underlying behavioral requirement.
-
-Prefer validation of:
-
-```text
-correct call count
-correct propagated value
-correct selected overload
-correct dependency ordering
-correct caller behavior
-```
-
-over checking for a particular text insertion.
-
----
-
-# 13. Validation Requirements
-
-Every Level 5 task must have deterministic validation.
-
-The validator should test:
-
-### Symptom resolved
-
-```text
-the observed incorrect behavior no longer occurs
-```
-
-### Root behavior corrected
-
-```text
-the relevant semantic path now behaves correctly
-```
-
-### Completeness
-
-```text
-all required declarations / definitions / callers are consistent
-```
-
-when applicable.
-
-### Regression boundaries
-
-```text
-excluded workflows remain unchanged
-```
-
-### Partial fixes
-
-Detect common incomplete solutions.
-
-Examples:
-
-```text
-fixed one caller but missed another affected caller
-```
-
-```text
-updated declaration but not implementation
-```
-
-```text
-fixed production path but broke compatibility path
-```
-
-```text
-changed target function globally instead of fixing incorrect caller
+Run task
+Capture execution
+Detect timeout
+Run validation
+Generate normalized result
 ```
 
 ---
 
-# 14. Validation Should Prefer Behavioral Tests
+### Step 4
 
-Where practical, validators should execute code or inspect structured behavior rather than only searching source text.
+Investigate Antigravity logging and metadata.
 
-Examples:
-
-```text
-compile and run a small test program
-```
-
-or:
+Add support for:
 
 ```text
-execute repository-provided Python test harness
+ast-tool usage detection
+workflow extraction
+token statistics
+tool statistics
 ```
 
-or:
-
-```text
-verify call counters or recorded state
-```
-
-Do not introduce a heavyweight build system.
-
-Keep validation:
-
-```text
-fast
-deterministic
-self-contained
-```
-
-Source inspection may supplement behavioral validation.
+only where reliable information is actually available.
 
 ---
 
-# 15. Avoid Artificial Debugging Tricks
+### Step 5
 
-Do not create bugs based on:
+Update the statistics layer.
+
+Add:
 
 ```text
-undefined behavior
-race conditions
-timing
-filesystem order
-randomness
-compiler-specific quirks
-hidden environment variables
-network access
+agent
+agent × level
 ```
 
-Do not require external services.
+grouping.
 
-The task must be reproducible.
-
-The difficulty should come from semantic investigation.
+Do not remove existing reports.
 
 ---
 
-# 16. Distinguish Level 5 From Level 4
+### Step 6
 
-Level 4:
+Run regression tests.
 
-```text
-Requirement
-↓
-Determine affected semantic surface
-↓
-Implement coordinated change
-```
-
-Level 5:
+Compare:
 
 ```text
-Symptom
-↓
-Investigate
-↓
-Find root cause
-↓
-Determine affected semantic surface
-↓
-Choose correct fix
-↓
-Implement
-↓
-Prevent regression
+Existing Claude result
+vs
+Refactored Claude result
 ```
 
-When designing a task, ask:
+Ensure that the refactor did not silently lose metrics.
 
-> Could the agent reasonably begin editing immediately after reading the prompt?
-
-If the answer is yes, the task is probably Level 4 or below.
-
-A Level 5 task should require investigation before the correct edit location is known.
+Then run Antigravity on the same smoke and Level 1 or Level 2 tasks.
 
 ---
 
-# 17. Preserve Evaluation Environment
+# 18. Acceptance Criteria
 
-Do not modify:
+The implementation is complete when all of the following are true.
 
-```text
-ast-tool/.claude/skills/
-```
+### Core
 
-Do not modify existing:
+* [ ] Evaluation core no longer directly depends on Claude Code execution logic.
+* [ ] Claude Code execution is implemented through an agent-specific runner or adapter.
+* [ ] Antigravity CLI execution is implemented through a separate runner or adapter.
+* [ ] Agent selection is supported.
 
-```text
-evaluation/tasks/smoke-001.yaml
-evaluation/tasks/level1-*.yaml
-evaluation/tasks/level2-*.yaml
-evaluation/tasks/level3-*.yaml
-evaluation/tasks/level4-*.yaml
-```
+### Claude Compatibility
 
-Do not redesign:
+* [ ] Existing Claude Code evaluations still run.
+* [ ] Existing Claude log parsing still works.
+* [ ] Existing token statistics remain available.
+* [ ] Existing tool statistics remain available.
+* [ ] Existing ast-tool usage detection remains available.
+* [ ] Existing workflow collection remains available.
 
-```text
-evaluation runner
-statistics collection
-Claude Code invocation
-task schema
-```
+### Antigravity
 
-Only create the new Level 5 tasks and the repository fixtures and validators required by them.
+* [ ] Antigravity CLI can execute evaluation tasks.
+* [ ] Task prompts are passed correctly.
+* [ ] Timeout handling works.
+* [ ] Validation runs after execution.
+* [ ] Changed files are detected.
+* [ ] Results contain `agent: "antigravity"`.
+* [ ] Available Antigravity metadata is normalized into the common result format.
+* [ ] ast-tool usage is collected when reliable command information is available.
 
----
+### Statistics
 
-# 18. Inspect Existing Tasks Before Creation
+* [ ] Existing statistics continue to work.
+* [ ] Results can be grouped by agent.
+* [ ] Success rate by agent is available.
+* [ ] Success rate by agent and level is available.
+* [ ] ast-tool adoption by agent is available.
+* [ ] ast-tool command usage by agent is available.
 
-Before creating Level 5:
+### Safety
 
-1. Inspect all existing Level 1–4 tasks.
-2. Inspect repository fixtures.
-3. Inspect validators.
-4. Inspect the evaluation runner.
-5. Inspect current Agent-facing Skills.
-6. Identify existing bug-fix scenarios.
-7. Avoid duplicating existing semantic patterns.
-8. Ensure every Level 5 task represents genuine progression.
-
-Do not assume prior task designs.
-
-Use the actual current repository state.
+* [ ] Agent-specific log cleanup does not delete unrelated user data.
+* [ ] Missing agent-specific metrics are represented as unavailable rather than fabricated.
 
 ---
 
-# 19. Evaluation Metadata
+# 19. Non-Goals
 
-If the current task schema supports evaluation-only metadata, add information such as:
-
-```yaml
-evaluation:
-  category: root-cause-investigation
-  relevant_capabilities:
-    - search
-    - references
-    - callers
-    - callees
-  expected_reasoning_depth: very_high
-```
-
-Other possible categories:
+Do not implement the following unless they are necessary for the Antigravity integration:
 
 ```text
-wrong-semantic-path
-incomplete-propagation
-caller-bug
-callee-ordering
-refactor-regression
-combined-investigation
+Complete redesign of the evaluation framework
+New evaluation task format
+New validation system
+Structured output redesign
+Streaming workspace analysis
+New ast-tool semantic commands
+Incremental workspace analysis
+Filesystem watching
+Persistent caching
+New semantic services
 ```
 
-Do not modify the evaluation framework merely to add metadata.
+The scope of this task is:
 
-Do not specify an exact workflow.
+```text
+Existing Evaluation Framework
+        +
+Agent Runner Abstraction
+        +
+Antigravity CLI Support
+        +
+Common Result Format
+        +
+Agent-aware Statistics
+```
+
+Keep the implementation focused.
 
 ---
 
-# 20. Acceptance Criteria
+# Final Principle
 
-The work is complete when:
-
-* [ ] Exactly 8 Level 5 task YAML files exist.
-* [ ] Every task begins from a symptom, regression, or behavioral requirement.
-* [ ] The prompt does not reveal the exact root-cause location.
-* [ ] Every task has a deterministic root cause.
-* [ ] Every task contains at least one plausible but incorrect candidate path.
-* [ ] Every task requires investigation before the correct edit location is known.
-* [ ] Every task defines regression or exclusion boundaries.
-* [ ] Most tasks make at least three semantic capabilities potentially useful.
-* [ ] At least 2 tasks involve incomplete propagation.
-* [ ] At least 1 task involves an incorrect caller.
-* [ ] At least 1 task involves an incorrect callee or dependency sequence.
-* [ ] At least 1 task involves a partial refactoring regression.
-* [ ] At least 1 task combines references, callers, and callees.
-* [ ] Validators detect superficial or partial fixes.
-* [ ] Validators test behavioral correctness where practical.
-* [ ] Existing Levels 1–4 remain unchanged.
-* [ ] Existing Skills remain unchanged.
-* [ ] The existing evaluation runner can execute all Level 5 tasks.
-
----
-
-# 21. Final Deliverables
-
-Create:
+The final architecture should allow the evaluation system to answer:
 
 ```text
-evaluation/tasks/level5-001.yaml
-evaluation/tasks/level5-002.yaml
-evaluation/tasks/level5-003.yaml
-evaluation/tasks/level5-004.yaml
-evaluation/tasks/level5-005.yaml
-evaluation/tasks/level5-006.yaml
-evaluation/tasks/level5-007.yaml
-evaluation/tasks/level5-008.yaml
+For the same task set,
+under the same repository and validation conditions,
+
+how do different coding agents perform,
+and when do they actually benefit from ast-tool?
 ```
 
-Create only the repository fixtures and validation scripts necessary to support these tasks.
-
-After implementation, provide a summary table:
-
-| Task | Repository | Category | Symptom | Root Cause Type | Relevant Capabilities |
-| ---- | ---------- | -------- | ------- | --------------- | --------------------- |
-
-For every task, report:
-
-1. The observable symptom.
-2. The expected behavior.
-3. The hidden root-cause location.
-4. The plausible incorrect candidate locations.
-5. The expected semantic investigation surface.
-6. The likely useful `ast-tool` capabilities.
-7. The files expected to be modified.
-8. The semantic paths that must remain unchanged.
-9. The validation strategy.
-10. The partial or superficial fixes that the validator rejects.
-11. Any possible overlap with Levels 1–4.
-
-The central question for Level 5 is:
+The evaluation framework should therefore separate:
 
 ```text
-Can the coding agent use ast-tool as part of a real debugging workflow?
-
-Symptom
-   ↓
-Investigation
-   ↓
-Semantic navigation
-   ↓
-Root-cause identification
-   ↓
-Impact analysis
-   ↓
-Correct fix
-   ↓
-Regression-safe result
+Task Definition
+        ↓
+Evaluation Core
+        ↓
+Agent Adapter
+        ↓
+Agent Execution
+        ↓
+Normalized Result
+        ↓
+Common Analysis
 ```
+
+Claude Code is the first implementation.
+
+Antigravity CLI is the second.
+
+Future coding agents should be addable without modifying the core evaluation logic.
