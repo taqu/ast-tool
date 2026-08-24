@@ -1,5 +1,6 @@
 #include "range.h"
 #include <cassert>
+#include <cstring>
 #include <charconv>
 #include <print>
 #include <string>

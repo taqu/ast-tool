@@ -1,5 +1,6 @@
 #include "children.h"
 #include <cassert>
+#include <cstring>
 #include <charconv>
 #include <cstdio>
 #include <print>

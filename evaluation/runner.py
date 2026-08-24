@@ -72,11 +72,11 @@ def _write_result(record: dict, results_dir: Path) -> None:
     print(f"[runner] Result appended to {out_path}")
 
 
-def run_task(task_yaml: Path, base_dir: Path, results_dir: Path, agent_name: str = "claude") -> dict:
+def run_task(task_yaml: Path, base_dir: Path, results_dir: Path, agent_name: str = "claude", overwrite_timeout: int = -1) -> dict:
     task = load_task(task_yaml)
     task_id = task["id"]
     repo_path = (base_dir / task["repository"]).resolve()
-    timeout = task.get("timeout", 300)
+    timeout = task.get("timeout", 300) if overwrite_timeout < 0 else overwrite_timeout
 
     print(f"\n[runner] ── Task: {task_id} ({agent_name}) ──")
     print(f"[runner] Repository: {repo_path}")
@@ -164,3 +164,54 @@ def run_task(task_yaml: Path, base_dir: Path, results_dir: Path, agent_name: str
         print(f"[runner] Warning: post-task reset failed: {e}")
 
     return record
+
+
+def load_latest_results(results_path: Path) -> dict:
+    """
+    Load results.jsonl and return the latest result
+    for each (agent, task_id) pair.
+    """
+    latest = {}
+    if not results_path.exists():
+        return latest
+
+    with results_path.open("r", encoding="utf-8") as f:
+        for line_number, line in enumerate(f, start=1):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                result = json.loads(line)
+            except json.JSONDecodeError:
+                print(
+                    f"Warning: invalid JSON in {results_path}:{line_number}"
+                )
+                continue
+
+            task_id = result.get("task_id")
+            if not task_id:
+                continue
+
+            agent = result.get("agent", "claude")
+            latest[(agent, task_id)] = result
+
+    return latest
+
+
+def should_run_task(
+    task_id: str,
+    agent: str,
+    latest_results: dict,
+    mode: str,
+) -> bool:
+    """
+    Decide if a task should be run based on previous results and the execution mode.
+    """
+    previous = latest_results.get((agent, task_id))
+    if mode == "force":
+        return True
+    if mode == "retry-failed":
+        return previous is not None and not previous.get("success", False)
+    if previous is None:
+        return True
+    return not previous.get("success", False)

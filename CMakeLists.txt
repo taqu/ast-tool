@@ -23,7 +23,7 @@ set(TREESITTER_LIB ${TREESITTER_ROOT}/lib/linux)
 endif()
 include_directories(AFTER ${TREESITTER_INCLUDE})
 link_directories(AFTER ${TREESITTER_LIB})
-add_library(TREESITTER MODULE IMPORTED)
+add_library(TREESITTER STATIC IMPORTED)
 
 if(MSVC)
 set_target_properties(TREESITTER PROPERTIES IMPORTED_LOCATION_DEBUG "tree-sitter.lib" IMPORTED_LOCATION_RELEASE "tree-sitter.lib")
@@ -45,7 +45,7 @@ set(TREESITTER_LANGS
     "tree-sitter-typescript.lib"
 )
 elseif(UNIX)
-set_target_properties(TREESITTER PROPERTIES IMPORTED_LOCATION "libtree-sitter.a")
+set_target_properties(TREESITTER PROPERTIES IMPORTED_LOCATION "${TREESITTER_LIB}/libtree-sitter.a")
 set(TREESITTER_LANGS
     "libtree-sitter-bash.a"
     "libtree-sitter-c.a"
@@ -106,22 +106,41 @@ add_library(RE2 MODULE IMPORTED)
 if(MSVC)
 set_target_properties(RE2 PROPERTIES IMPORTED_LOCATION_DEBUG "re2d.lib" IMPORTED_LOCATION_RELEASE "re2.lib")
 elseif(UNIX)
-set_target_properties(RE2 PROPERTIES IMPORTED_LOCATION "libre2.a")
+set_target_properties(RE2 PROPERTIES IMPORTED_LOCATION "${RE2_LIB}/libre2.a")
 endif()
 
 # abseil
 set(ABSL_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/absl")
-set(ABSL_INCLUDE ${ABSL_ROOT}/include)
 if(MSVC)
-set(ABSL_LIB "${ABSL_ROOT}/lib/win")
+set(ABSL_INCLUDE ${ABSL_ROOT}/win/include)
+set(ABSL_LIB "${ABSL_ROOT}/win/lib")
+include("${ABSL_LIB}/absl_libs.cmake")
 elseif(UNIX)
-set(ABSL_LIB "${ABSL_ROOT}/lib/linux")
+set(ABSL_INCLUDE ${ABSL_ROOT}/linux/include)
+set(ABSL_LIB "${ABSL_ROOT}/linux/lib")
+set(absl_DIR "${ABSL_LIB}/cmake/absl")
+find_package(absl REQUIRED)
+set(ABSL_DEPS
+    absl_absl_check
+    absl_absl_log
+    absl_base
+    absl_core_headers
+    absl_fixed_array
+    absl_flags
+    absl_flat_hash_map
+    absl_flat_hash_set
+    absl_hash
+    absl_inlined_vector
+    absl_optional
+    absl_span
+    absl_str_format
+    absl_strings
+    absl_synchronization
+    )
 endif()
 
 include_directories(AFTER ${ABSL_INCLUDE})
 link_directories(AFTER ${ABSL_LIB})
-add_library(ABSL MODULE IMPORTED)
-include("${ABSL_LIB}/absl_libs.cmake")
 
 # libgit2
 set(GIT2_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/libgit2")
@@ -130,6 +149,7 @@ if(MSVC)
 set(GIT2_LIB "${GIT2_ROOT}/lib/win")
 elseif(UNIX)
 set(GIT2_LIB "${GIT2_ROOT}/lib/linux")
+find_package(ZLIB REQUIRED)
 endif()
 include_directories(AFTER ${GIT2_INCLUDE})
 link_directories(AFTER ${GIT2_LIB})
@@ -137,7 +157,7 @@ add_library(GIT2 MODULE IMPORTED)
 if(MSVC)
 set_target_properties(GIT2 PROPERTIES IMPORTED_LOCATION_DEBUG "git2d.lib" IMPORTED_LOCATION_RELEASE "git2.lib")
 elseif(UNIX)
-set_target_properties(GIT2 PROPERTIES IMPORTED_LOCATION "libgit2.a")
+set_target_properties(GIT2 PROPERTIES IMPORTED_LOCATION "${GIT2_LIB}/libgit2.a")
 endif()
 
 if(MSVC)
@@ -272,13 +292,16 @@ if(MSVC)
         $<$<CONFIG:Debug>:TREESITTER ${TREESITTER_LANGS} ${ABSL_DEBUG_LIBS} RE2 GIT2 winhttp.lib rpcrt4.lib crypt32.lib>
         $<$<NOT:$<CONFIG:Debug>>:TREESITTER ${TREESITTER_LANGS} ${ABSL_RELEASE_LIBS} RE2 GIT2 winhttp.lib rpcrt4.lib crypt32.lib>)
 elseif(UNIX)
-    set(DEFAULT_CXX_FLAGS "-Wall -O0 -g -march=x86-64-v3")
-    set(CMAKE_CXX_FLAGS "${DEFAULT_CXX_FLAGS}")
+    target_compile_options(${PROJECT_NAME} PRIVATE "-Wall;-O3;-g;-march=x86-64-v3")
     target_link_libraries(${PROJECT_NAME}
-    PRIVATE
-        $<$<CONFIG:Debug>:TREESITTER ${TREESITTER_LANGS} ${ABSL_DEBUG_LIBS} RE2 GIT2>
-        $<$<NOT:$<CONFIG:Debug>>:TREESITTER ${TREESITTER_LANGS} ${ABSL_RELEASE_LIBS} RE2 GIT2>
-        Threads::Threads)
+        PRIVATE
+            TREESITTER ${TREESITTER_LANGS} RE2 GIT2 ZLIB::ZLIB
+            Threads::Threads)
+    #foreach(dep ${ABSL_DEPS})
+    #    string(PREPEND dep "^")
+    #    string(REGEX REPLACE "\\^absl_" "absl::" dep ${dep})
+    #    target_link_libraries(${PROJECT_NAME} PUBLIC ${dep})
+    #endforeach()
 elseif(APPLE)
 endif()
 

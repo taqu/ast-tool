@@ -154,6 +154,11 @@ struct ASTNode
 /** Determines the ASTLanguage for @p path based on its file extension. Returns ASTLanguage::Unknown if @p path is null or the extension is unrecognized. */
 ASTLanguage get_language_type(const char8_t* path);
 ASTLanguage get_language_type_from_extension(const char8_t* extension);
+inline ASTLanguage get_language_type_from_extension(const char* extension)
+{
+    return get_language_type_from_extension((const char8_t*)extension);
+}
+
 ASTLanguage get_language_type_from_extension(const wchar_t* extension);
 /** Returns the tree-sitter TSLanguage for @p language, or nullptr if it has no associated grammar. */
 const struct TSLanguage* get_language(ASTLanguage language);

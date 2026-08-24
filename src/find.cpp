@@ -1,5 +1,6 @@
 #include "find.h"
 #include <cassert>
+#include <cstring>
 #include <print>
 #include <string>
 #include <vector>
