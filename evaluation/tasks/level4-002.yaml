@@ -25,4 +25,4 @@ validation:
 expected_files:
   - src/processor/request_processor.cpp
 
-timeout: 180
+timeout: 300

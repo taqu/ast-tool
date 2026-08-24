@@ -26,4 +26,4 @@ validation:
 expected_files:
   - src/gateway/request_handler.cpp
 
-timeout: 120
+timeout: 300

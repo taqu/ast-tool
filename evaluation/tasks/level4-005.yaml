@@ -31,4 +31,4 @@ expected_files:
   - src/store/database_store.cpp
   - src/main.cpp
 
-timeout: 180
+timeout: 300

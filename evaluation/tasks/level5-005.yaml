@@ -20,4 +20,4 @@ validation:
 expected_files:
   - src/jobs/subscription_billing_job.cpp
 
-timeout: 180
+timeout: 300

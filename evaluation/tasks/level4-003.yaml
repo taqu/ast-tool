@@ -33,4 +33,4 @@ expected_files:
   - src/service/order_service.cpp
   - src/service/admin_order_service.cpp
 
-timeout: 180
+timeout: 300

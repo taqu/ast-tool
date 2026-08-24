@@ -26,4 +26,4 @@ validation:
 expected_files:
   - src/service/order_service.cpp
 
-timeout: 120
+timeout: 300

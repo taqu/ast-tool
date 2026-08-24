@@ -1,508 +1,291 @@
-# Add Antigravity CLI Support to the Agent Evaluation Framework
+# Add Resume and Retry-Failed Support to `run_eval.py`
 
 ## Goal
 
-Extend the existing agent evaluation framework so that it supports **Antigravity CLI** in addition to the current **Claude Code** runner.
+Improve `run_eval.py` so that an interrupted or partially completed evaluation does not need to rerun every task.
 
-The goal is **not** to create a separate evaluation system for Antigravity.
+The runner should inspect the existing `results.jsonl` file and decide which tasks still need to be executed.
 
-Instead, refactor the evaluation framework so that multiple coding agents can run the **same evaluation tasks**, use the **same repositories**, execute the **same validation commands**, and produce results in a common format.
-
-The initial supported agents should be:
+The primary desired behavior is:
 
 ```text
-Claude Code
-Antigravity CLI
+Task has no result in results.jsonl
+    → Run
+
+Task exists and latest result is success: false
+    → Run again
+
+Task exists and latest result is success: true
+    → Skip
 ```
 
-The architecture should make it easy to add more coding agents later.
+This should allow the evaluation to resume automatically after:
+
+```text
+Interrupted evaluation
+Timeouts
+Failed tasks
+Agent crashes
+Validation failures
+Partial evaluation runs
+```
 
 ---
 
-# 1. Current Situation
+# 1. Default Resume Behavior
 
-The current evaluation infrastructure was originally built around Claude Code.
+When `run_eval.py` is executed, it should load the existing `results.jsonl` if it exists.
 
-The existing flow is conceptually:
-
-```text
-Evaluation Task
-      ↓
-Claude Code
-      ↓
-Skills / Tools / ast-tool
-      ↓
-Code Modification
-      ↓
-Validation
-      ↓
-JSONL Result
-      ↓
-Statistics / Analysis
-```
-
-The framework already collects information such as:
-
-```json
-{
-  "task_id": "...",
-  "success": true,
-  "elapsed_seconds": 181.52,
-  "tokens": {},
-  "tools": {},
-  "ast_tool": {},
-  "workflow": [],
-  "changed_files": [],
-  "validation": {}
-}
-```
-
-The framework also analyzes agent-specific logs, especially Claude Code JSONL logs.
-
-The new design must preserve the existing Claude Code functionality while adding Antigravity CLI support.
-
----
-
-# 2. Primary Design Goal
-
-Separate the evaluation framework into two layers:
+For each evaluation task:
 
 ```text
-                Evaluation Core
-                      │
-                      ▼
-            Common Task / Result Model
-                      │
-          ┌───────────┴───────────┐
-          ▼                       ▼
-    Claude Code Runner      Antigravity Runner
-          │                       │
-          ▼                       ▼
-    Claude-specific logs    Antigravity-specific logs
-          │                       │
-          └───────────┬───────────┘
-                      ▼
-              Normalized Result
-                      │
-                      ▼
-            Common Statistics
-```
-
-The evaluation core must not depend directly on Claude Code.
-
-Agent-specific behavior should be isolated behind a small adapter or runner interface.
-
----
-
-# 3. Do Not Break Existing Behavior
-
-This is a compatibility-sensitive refactor.
-
-The following existing functionality must continue to work:
-
-```text
-Claude Code evaluation execution
-Task loading
-Repository preparation
-Validation
-Timeout handling
-Changed file detection
-Claude Code log parsing
-Token statistics
-Tool statistics
-ast-tool command extraction
-Workflow extraction
-JSONL result generation
-Existing statistics scripts
-```
-
-Do not rewrite the entire evaluation framework unless necessary.
-
-Prefer incremental refactoring.
-
----
-
-# 4. Introduce an Agent Runner Abstraction
-
-Create a common abstraction for running a coding agent.
-
-For example:
-
-```python
-class AgentRunner:
-    def run(
-        self,
-        task,
-        workspace,
-        timeout,
-    ) -> AgentRunResult:
-        ...
-```
-
-The exact API may differ depending on the existing codebase.
-
-The important requirement is that the evaluation core should be able to do something conceptually similar to:
-
-```python
-runner = create_runner(agent_name)
-
-result = runner.run(
-    task=task,
-    workspace=workspace,
-    timeout=task.timeout,
-)
-```
-
-The evaluation core should not need to know:
-
-```text
-How Claude Code is invoked
-How Antigravity CLI is invoked
-How agent logs are located
-How agent-specific output is parsed
-```
-
-Those details belong inside the corresponding runner or adapter.
-
----
-
-# 5. Suggested Runner Structure
-
-A structure similar to the following is recommended:
-
-```text
-evaluation/
-├── core/
-│   ├── task.py
-│   ├── result.py
-│   ├── validation.py
-│   └── runner.py
-│
-├── agents/
-│   ├── base.py
-│   ├── claude_code.py
-│   └── antigravity.py
-│
-├── logging/
-│   ├── claude_logs.py
-│   └── antigravity_logs.py
-│
-└── run_evaluation.py
-```
-
-Do not force this exact directory layout if the current repository structure already has a better organization.
-
-The important architectural boundary is:
-
-```text
-Evaluation Core
+results.jsonl
         ↓
-Agent Runner Interface
+Find previous result for task
         ↓
-Agent-specific implementation
+┌───────────────────────────────┐
+│ No previous result            │
+│        → RUN                  │
+├───────────────────────────────┤
+│ Latest result success = false │
+│        → RUN                  │
+├───────────────────────────────┤
+│ Latest result success = true  │
+│        → SKIP                 │
+└───────────────────────────────┘
 ```
 
----
-
-# 6. Add Agent Selection
-
-The evaluation runner should support explicit agent selection.
+The goal is that rerunning the same command naturally resumes unfinished work.
 
 For example:
 
 ```bash
-python run_evaluation.py --agent claude
+python run_eval.py
 ```
 
-and:
-
-```bash
-python run_evaluation.py --agent antigravity
-```
-
-It should also be possible to run multiple agents in the future.
-
-For example, the architecture should not prevent something like:
-
-```bash
-python run_evaluation.py --agent claude,antigravity
-```
-
-This multi-agent mode does not need to be implemented unless it is simple and fits naturally into the current codebase.
-
-The initial requirement is:
+If 100 tasks exist and:
 
 ```text
-One evaluation task set
+80 succeeded
+10 failed
+10 were never executed
+```
+
+the next execution should run:
+
+```text
+10 failed
 +
-Selectable coding agent
+10 missing
+=
+20 tasks
 ```
+
+The 80 successful tasks should be skipped.
 
 ---
 
-# 7. Antigravity CLI Integration
+# 2. Use the Latest Result Per Task
 
-Implement a dedicated runner for Antigravity CLI.
-
-The runner should be responsible for:
-
-```text
-Preparing the working directory
-Constructing the prompt
-Invoking Antigravity CLI
-Passing the task instructions
-Handling timeout
-Capturing stdout
-Capturing stderr
-Recording exit status
-Returning normalized execution information
-```
-
-Before implementing the integration, inspect how Antigravity CLI is expected to be invoked in the local environment.
-
-Do not hard-code assumptions about undocumented command-line syntax.
-
-Use the actual installed CLI behavior and its help output where available.
-
-The implementation should clearly isolate the command construction, for example:
-
-```python
-class AntigravityRunner(AgentRunner):
-    def build_command(self, ...):
-        ...
-```
-
-This will make future CLI changes easier to handle.
-
----
-
-# 8. Normalize Agent Results
-
-Different coding agents may expose different metadata.
-
-For example:
-
-Claude Code may provide:
-
-```text
-Input tokens
-Output tokens
-Cache read tokens
-Cache creation tokens
-Tool usage
-Tool sequence
-```
-
-Antigravity CLI may provide a different set of information.
-
-Do not force fake or estimated values.
-
-Instead, use a normalized result structure where unavailable information can remain empty or null.
+`results.jsonl` may contain multiple entries for the same task because failed tasks can be retried.
 
 For example:
 
 ```json
-{
-  "agent": "antigravity",
-  "task_id": "level2-004",
-
-  "success": true,
-  "elapsed_seconds": 123.45,
-
-  "tokens": {
-    "input": null,
-    "output": null,
-    "cache_read": null,
-    "cache_creation": null
-  },
-
-  "tools": {},
-
-  "ast_tool": {},
-
-  "workflow": [],
-
-  "changed_files": [],
-
-  "validation": {}
-}
+{"task_id": "level2-001", "success": false}
+{"task_id": "level2-001", "success": true}
 ```
 
-If Antigravity exposes additional useful metadata, it may be stored in an agent-specific section.
-
-For example:
-
-```json
-{
-  "agent": "antigravity",
-
-  "agent_metadata": {
-    "..."
-  }
-}
-```
-
-However, the common fields used by the statistics system should remain consistent.
-
----
-
-# 9. ast-tool Usage Detection
-
-The evaluation framework already tracks commands such as:
-
-```text
-search
-find
-references
-callers
-callees
-symbols
-help
-```
-
-This behavior should continue for Claude Code.
-
-For Antigravity, detect `ast-tool` usage from whatever execution logs or captured command information are actually available.
-
-The desired normalized output is:
-
-```json
-"ast_tool": {
-  "search": 4,
-  "callers": 2,
-  "references": 1
-}
-```
-
-The implementation should not assume that Antigravity logs have the same structure as Claude Code logs.
-
-Create a separate extraction path if necessary.
+The runner must use the **latest result** for each task.
 
 Conceptually:
 
-```text
-Claude logs
-    ↓
-Claude ast-tool parser
-    ↓
-Normalized ast_tool counts
+```python
+latest_results = {}
 
-Antigravity logs
-    ↓
-Antigravity ast-tool parser
-    ↓
-Normalized ast_tool counts
+for result in results_jsonl:
+    latest_results[result["task_id"]] = result
 ```
+
+Then:
+
+```python
+previous = latest_results.get(task.id)
+
+if previous is None:
+    run_task(task)
+
+elif previous["success"] is True:
+    skip_task(task)
+
+else:
+    run_task(task)
+```
+
+Do not use the first result found.
+
+The last entry in `results.jsonl` should determine the current state of the task.
 
 ---
 
-# 10. Workflow Collection
+# 3. Preserve Existing Results
 
-The existing evaluation framework records tool or workflow sequences.
+Do not rewrite or delete existing successful results.
+
+New evaluation results should continue to be appended to:
+
+```text
+results.jsonl
+```
 
 For example:
 
+Initial file:
+
 ```text
-Skill
-↓
-ast-tool search
-↓
-ast-tool callers
-↓
-Read
-↓
-Edit
+task-001 → success
+task-002 → failure
+task-003 → success
 ```
 
-Preserve this capability for Claude Code.
+After rerunning:
 
-For Antigravity, collect workflow information only if reliable data is available.
-
-Possible normalized entries could look like:
-
-```json
-[
-  "Bash",
-  "ast-tool search",
-  "Read",
-  "Edit"
-]
+```text
+task-001 → success
+task-002 → failure
+task-003 → success
+task-002 → success
 ```
 
-If Antigravity does not expose reliable tool-level information, do not fabricate a workflow.
+The latest result becomes authoritative.
 
-In that case:
-
-```json
-"workflow": []
-```
-
-is acceptable.
+This preserves evaluation history and makes retries observable.
 
 ---
 
-# 11. Statistics Compatibility
+# 4. Add an Explicit Resume Mode
 
-The existing statistics scripts should continue to work.
-
-Update them so that results can be grouped by agent.
+If the current behavior always runs all tasks, add an explicit command-line option.
 
 For example:
 
-```text
-Claude Code
-├── success rate
-├── average time
-├── token usage
-├── ast-tool adoption
-└── command usage
-
-Antigravity
-├── success rate
-├── average time
-├── token usage, if available
-├── ast-tool adoption
-└── command usage
+```bash
+python run_eval.py --resume
 ```
 
-Support analysis such as:
+Behavior:
 
 ```text
-Success rate by agent
-Success rate by level and agent
-Average execution time by agent
-ast-tool adoption by agent
-ast-tool command usage by agent
-Failure rate by agent
+Missing result
+    → Run
+
+Previous failure
+    → Run
+
+Previous success
+    → Skip
 ```
 
-The existing global statistics should remain available.
+If this is implemented as the default behavior, `--resume` may still be provided as an explicit alias for clarity.
 
-For example:
+Recommended options:
 
-```text
-Overall
-  ↓
-By Agent
-  ↓
-By Level
-  ↓
-By Agent × Level
+```bash
+python run_eval.py
 ```
+
+Run according to the default behavior.
+
+```bash
+python run_eval.py --resume
+```
+
+Explicitly resume incomplete evaluation.
+
+```bash
+python run_eval.py --force
+```
+
+Run all selected tasks regardless of previous results.
+
+The exact CLI naming can follow the existing style of the project.
 
 ---
 
-# 12. Result Schema Evolution
+# 5. Add `--retry-failed`
 
-Add an explicit agent identifier to every new result.
+Support a mode that runs only previously failed tasks.
+
+For example:
+
+```bash
+python run_eval.py --retry-failed
+```
+
+Behavior:
+
+```text
+Previous result missing
+    → Skip
+
+Previous result success = true
+    → Skip
+
+Previous result success = false
+    → Run
+```
+
+This is useful when the evaluation has already completed and only failed tasks should be retried.
+
+---
+
+# 6. Recommended Execution Modes
+
+The desired modes are:
+
+| Mode                | Missing | Failed | Successful |
+| ------------------- | ------: | -----: | ---------: |
+| Normal / `--resume` |     Run |    Run |       Skip |
+| `--retry-failed`    |    Skip |    Run |       Skip |
+| `--force`           |     Run |    Run |        Run |
+
+Keep the behavior simple and predictable.
+
+If multiple mode flags are mutually exclusive, argparse should reject invalid combinations.
+
+For example:
+
+```bash
+python run_eval.py --retry-failed --force
+```
+
+should either be rejected or clearly documented.
+
+Prefer a mutually exclusive argument group.
+
+---
+
+# 7. Agent-Aware Results
+
+The evaluation framework is being extended to support multiple coding agents.
+
+Therefore, task completion state should not be determined by `task_id` alone.
+
+A result should be associated with both:
+
+```text
+agent
++
+task_id
+```
 
 For example:
 
 ```json
 {
   "agent": "claude",
-  "task_id": "level2-004",
-  ...
+  "task_id": "level2-001",
+  "success": true
 }
 ```
 
@@ -511,422 +294,498 @@ and:
 ```json
 {
   "agent": "antigravity",
-  "task_id": "level2-004",
-  ...
+  "task_id": "level2-001",
+  "success": false
 }
 ```
 
-Maintain backward compatibility with existing result files if practical.
+These must be treated independently.
 
-For old results that do not contain an `agent` field, treat them as:
+Conceptually:
 
-```text
-claude
+```python
+latest_results[(agent_name, task_id)] = result
 ```
 
-if they were generated by the existing Claude Code runner.
+Then:
 
-Avoid unnecessary schema redesign.
+```text
+Claude + level2-001
+    success
+        → skip Claude execution
 
-This task is about multi-agent support, not a complete result format redesign.
+Antigravity + level2-001
+    failure
+        → rerun Antigravity execution
+```
+
+Do not allow results from one agent to cause another agent's task to be skipped.
 
 ---
 
-# 13. Agent-Specific Log Isolation
+# 8. Backward Compatibility
 
-Do not assume that all agents store logs in:
+Existing result files may not contain an `agent` field.
 
-```text
-~/.claude/projects
-```
-
-Claude Code log handling should remain where it is.
-
-Antigravity-specific log discovery and cleanup must be isolated.
+For backward compatibility, treat old results as belonging to the existing default agent.
 
 For example:
 
 ```python
-class AgentRunner:
-    def clear_logs(self):
-        ...
-
-    def collect_logs(self):
-        ...
+agent = result.get("agent", "claude")
 ```
 
-Or equivalent functionality.
+Use the actual canonical agent identifier used by the evaluation framework.
 
-The evaluation runner should conceptually perform:
-
-```text
-Prepare agent environment
-        ↓
-Clear relevant logs
-        ↓
-Run agent
-        ↓
-Collect execution metadata
-        ↓
-Normalize result
-```
-
-Only clear logs that are known to belong to the evaluation session.
-
-Do not delete unrelated user data.
-
-This is especially important when introducing support for additional coding agents.
+Do not require users to regenerate all existing evaluation results.
 
 ---
 
-# 14. Preserve Evaluation Fairness
+# 9. Missing or Corrupt Results
 
-Claude Code and Antigravity should receive equivalent task conditions.
+The runner should handle an empty or missing `results.jsonl`.
 
-For the same task:
+Behavior:
 
 ```text
-Same repository
-Same initial repository state
-Same task prompt
-Same timeout
-Same validation command
-Same success criteria
+results.jsonl does not exist
+    → Run all selected tasks
+
+results.jsonl is empty
+    → Run all selected tasks
 ```
 
-Do not create agent-specific task variants unless explicitly required later.
+If an individual JSONL line is malformed:
 
-The purpose is comparative evaluation.
+```text
+Malformed line
+    → Warn
+    → Skip that line
+    → Continue loading other valid results
+```
+
+Do not cause the entire evaluation to fail because one historical result line is corrupted.
+
+However, malformed input should be visible to the user through a warning.
 
 ---
 
-# 15. Failure Handling
+# 10. Result Loading Helper
 
-The runner should distinguish between:
-
-```text
-Agent execution failure
-Timeout
-Validation failure
-Runner error
-```
+Extract result loading into a dedicated helper.
 
 For example:
 
+```python
+def load_latest_results(results_path):
+    """
+    Load results.jsonl and return the latest result
+    for each (agent, task_id) pair.
+    """
+```
+
+Conceptually:
+
+```python
+def load_latest_results(results_path):
+    latest = {}
+
+    if not results_path.exists():
+        return latest
+
+    with results_path.open() as f:
+        for line_number, line in enumerate(f, start=1):
+            line = line.strip()
+
+            if not line:
+                continue
+
+            try:
+                result = json.loads(line)
+            except json.JSONDecodeError:
+                print(
+                    f"Warning: invalid JSON "
+                    f"in {results_path}:{line_number}"
+                )
+                continue
+
+            task_id = result.get("task_id")
+
+            if not task_id:
+                continue
+
+            agent = result.get("agent", DEFAULT_AGENT)
+
+            latest[(agent, task_id)] = result
+
+    return latest
+```
+
+Adapt this to the existing project style.
+
+Avoid duplicating JSONL parsing logic.
+
+---
+
+# 11. Task Selection Helper
+
+Keep the execution decision separate from the actual task execution.
+
+For example:
+
+```python
+def should_run_task(
+    task,
+    agent,
+    latest_results,
+    mode,
+):
+    ...
+```
+
+Possible behavior:
+
+```python
+previous = latest_results.get((agent, task.id))
+
+if mode == "force":
+    return True
+
+if mode == "retry_failed":
+    return previous is not None and not previous["success"]
+
+if previous is None:
+    return True
+
+return not previous["success"]
+```
+
+Do not scatter resume logic throughout the main evaluation loop.
+
+The main loop should remain easy to understand.
+
+Ideally:
+
+```python
+latest_results = load_latest_results(results_path)
+
+for task in tasks:
+    if not should_run_task(
+        task,
+        agent,
+        latest_results,
+        mode,
+    ):
+        print(f"SKIP {task.id}")
+        continue
+
+    result = run_task(...)
+    append_result(result)
+```
+
+---
+
+# 12. Output Summary
+
+Before running tasks, print a selection summary.
+
+For example:
+
+```text
+Evaluation selection
+
+Agent: claude
+Mode: resume
+
+Total tasks:     100
+Already passed:   80
+Failed / retry:   10
+Missing result:   10
+Selected to run:  20
+Skipped:          80
+```
+
+For `--retry-failed`:
+
+```text
+Evaluation selection
+
+Agent: antigravity
+Mode: retry-failed
+
+Total tasks:      100
+Previously failed: 12
+Selected to run:   12
+Skipped:           88
+```
+
+This makes the runner behavior easy to verify.
+
+---
+
+# 13. Important Edge Case: Interrupted Runs
+
+Consider this sequence:
+
+```text
+Task 001 → success
+Task 002 → success
+Task 003 → currently running
+Process interrupted
+```
+
+If Task 003 never wrote a result:
+
+```text
+Task 003
+    → Missing
+    → Run on next invocation
+```
+
+If Task 003 wrote:
+
 ```json
 {
+  "task_id": "task-003",
   "success": false,
-
-  "failure_type": "validation_failure",
-
-  "validation": {
-    "success": false,
-    "exit_code": 1
-  }
+  "failure_type": "interrupted"
 }
 ```
 
-Or:
+Then:
+
+```text
+Task 003
+    → Failed
+    → Run on next resume
+```
+
+Both cases should naturally work with the resume logic.
+
+---
+
+# 14. Important Edge Case: Task Definitions Change
+
+Do not attempt to solve full task versioning in this change.
+
+However, structure the code so that future support for task fingerprints or revisions would be possible.
+
+For now, completion is determined by:
+
+```text
+agent
++
+task_id
++
+latest result success
+```
+
+Do not introduce task hashing or schema redesign unless it is trivial and clearly useful.
+
+---
+
+# 15. Tests
+
+Add tests for the selection logic.
+
+At minimum:
+
+### No results
+
+```text
+results.jsonl missing
+```
+
+Expected:
+
+```text
+All tasks run
+```
+
+---
+
+### Successful task
 
 ```json
-{
-  "success": false,
-
-  "failure_type": "timeout"
-}
+{"task_id": "task-001", "success": true}
 ```
 
-Use the existing result conventions where possible.
-
-Do not introduce a completely separate failure model unless required.
-
----
-
-# 16. Testing
-
-Add tests or manual verification for at least the following.
-
-## Claude Code regression
-
-Verify that:
+Expected:
 
 ```text
-Existing Claude Code evaluation still runs
-Existing result generation still works
-Existing log parsing still works
-Existing statistics still work
-```
-
-## Antigravity smoke test
-
-Create or run a minimal evaluation task and verify:
-
-```text
-Antigravity CLI is invoked successfully
-The task prompt is delivered
-Repository changes are detected
-Validation runs
-A normalized JSON result is produced
-The result contains:
-    agent = antigravity
-```
-
-## Statistics
-
-Verify that mixed results such as:
-
-```text
-claude
-claude
-antigravity
-antigravity
-```
-
-can be analyzed without errors.
-
-Verify grouping by:
-
-```text
-agent
-level
-agent × level
+task-001 skipped in resume mode
 ```
 
 ---
 
-# 17. Recommended Implementation Order
+### Failed task
 
-Implement in this order.
-
-### Step 1
-
-Inspect the existing evaluation runner.
-
-Identify:
-
-```text
-Task loading
-Agent invocation
-Repository setup
-Timeout handling
-Validation
-Result generation
-Claude log parsing
-Statistics dependencies
+```json
+{"task_id": "task-001", "success": false}
 ```
 
-Do not start by rewriting the framework.
-
----
-
-### Step 2
-
-Extract the existing Claude Code-specific execution logic behind an agent runner abstraction.
-
-The behavior should remain unchanged.
-
-At this point:
+Expected:
 
 ```text
-Old architecture
-        ↓
-Claude-specific evaluation code
-
-New architecture
-        ↓
-Evaluation Core
-        ↓
-ClaudeCodeRunner
-```
-
-Both should produce equivalent results.
-
----
-
-### Step 3
-
-Add:
-
-```text
-AntigravityRunner
-```
-
-Implement only the minimum functionality required to:
-
-```text
-Run task
-Capture execution
-Detect timeout
-Run validation
-Generate normalized result
+task-001 runs in resume mode
 ```
 
 ---
 
-### Step 4
+### Multiple results
 
-Investigate Antigravity logging and metadata.
-
-Add support for:
-
-```text
-ast-tool usage detection
-workflow extraction
-token statistics
-tool statistics
+```json
+{"task_id": "task-001", "success": false}
+{"task_id": "task-001", "success": true}
 ```
 
-only where reliable information is actually available.
+Expected:
+
+```text
+task-001 skipped
+```
+
+The latest result must win.
 
 ---
 
-### Step 5
+### Agent separation
 
-Update the statistics layer.
-
-Add:
-
-```text
-agent
-agent × level
+```json
+{"agent": "claude", "task_id": "task-001", "success": true}
+{"agent": "antigravity", "task_id": "task-001", "success": false}
 ```
 
-grouping.
+Expected:
 
-Do not remove existing reports.
+```text
+Claude:
+    task-001 skipped
+
+Antigravity:
+    task-001 runs
+```
 
 ---
 
-### Step 6
+### Retry failed
 
-Run regression tests.
-
-Compare:
+Results:
 
 ```text
-Existing Claude result
-vs
-Refactored Claude result
+task-001 → success
+task-002 → failure
+task-003 → missing
 ```
 
-Ensure that the refactor did not silently lose metrics.
+Command:
 
-Then run Antigravity on the same smoke and Level 1 or Level 2 tasks.
+```bash
+python run_eval.py --retry-failed
+```
+
+Expected:
+
+```text
+task-001 → skip
+task-002 → run
+task-003 → skip
+```
 
 ---
 
-# 18. Acceptance Criteria
+### Force
 
-The implementation is complete when all of the following are true.
+Results:
 
-### Core
+```text
+task-001 → success
+task-002 → failure
+task-003 → missing
+```
 
-* [ ] Evaluation core no longer directly depends on Claude Code execution logic.
-* [ ] Claude Code execution is implemented through an agent-specific runner or adapter.
-* [ ] Antigravity CLI execution is implemented through a separate runner or adapter.
-* [ ] Agent selection is supported.
+Command:
 
-### Claude Compatibility
+```bash
+python run_eval.py --force
+```
 
-* [ ] Existing Claude Code evaluations still run.
-* [ ] Existing Claude log parsing still works.
-* [ ] Existing token statistics remain available.
-* [ ] Existing tool statistics remain available.
-* [ ] Existing ast-tool usage detection remains available.
-* [ ] Existing workflow collection remains available.
+Expected:
 
-### Antigravity
-
-* [ ] Antigravity CLI can execute evaluation tasks.
-* [ ] Task prompts are passed correctly.
-* [ ] Timeout handling works.
-* [ ] Validation runs after execution.
-* [ ] Changed files are detected.
-* [ ] Results contain `agent: "antigravity"`.
-* [ ] Available Antigravity metadata is normalized into the common result format.
-* [ ] ast-tool usage is collected when reliable command information is available.
-
-### Statistics
-
-* [ ] Existing statistics continue to work.
-* [ ] Results can be grouped by agent.
-* [ ] Success rate by agent is available.
-* [ ] Success rate by agent and level is available.
-* [ ] ast-tool adoption by agent is available.
-* [ ] ast-tool command usage by agent is available.
-
-### Safety
-
-* [ ] Agent-specific log cleanup does not delete unrelated user data.
-* [ ] Missing agent-specific metrics are represented as unavailable rather than fabricated.
+```text
+All tasks run
+```
 
 ---
 
-# 19. Non-Goals
+### Malformed JSONL
 
-Do not implement the following unless they are necessary for the Antigravity integration:
+A malformed line should produce a warning but should not stop evaluation.
 
-```text
-Complete redesign of the evaluation framework
-New evaluation task format
-New validation system
-Structured output redesign
-Streaming workspace analysis
-New ast-tool semantic commands
-Incremental workspace analysis
-Filesystem watching
-Persistent caching
-New semantic services
-```
+---
 
-The scope of this task is:
+# 16. Acceptance Criteria
 
-```text
-Existing Evaluation Framework
-        +
-Agent Runner Abstraction
-        +
-Antigravity CLI Support
-        +
-Common Result Format
-        +
-Agent-aware Statistics
-```
+The implementation is complete when:
 
-Keep the implementation focused.
+* [ ] `run_eval.py` can inspect an existing `results.jsonl`.
+* [ ] Tasks with no previous result can be selected for execution.
+* [ ] Previously failed tasks can be selected for execution.
+* [ ] Previously successful tasks can be skipped.
+* [ ] The latest result for a task is authoritative.
+* [ ] Results are tracked independently per agent.
+* [ ] Existing results without an `agent` field remain usable.
+* [ ] New results continue to append to `results.jsonl`.
+* [ ] Interrupted evaluations can be resumed without rerunning successful tasks.
+* [ ] `--retry-failed` runs only failed tasks.
+* [ ] `--force` runs all tasks.
+* [ ] A clear task selection summary is printed.
+* [ ] Malformed historical JSONL lines do not crash the evaluation.
+* [ ] Selection logic is covered by tests.
+* [ ] Existing evaluation behavior is not broken.
 
 ---
 
 # Final Principle
 
-The final architecture should allow the evaluation system to answer:
+The evaluation runner should become safely restartable.
 
-```text
-For the same task set,
-under the same repository and validation conditions,
+The normal workflow should be:
 
-how do different coding agents perform,
-and when do they actually benefit from ast-tool?
+```bash
+python run_eval.py
 ```
 
-The evaluation framework should therefore separate:
+Then, if execution stops for any reason:
 
-```text
-Task Definition
-        ↓
-Evaluation Core
-        ↓
-Agent Adapter
-        ↓
-Agent Execution
-        ↓
-Normalized Result
-        ↓
-Common Analysis
+```bash
+python run_eval.py
 ```
 
-Claude Code is the first implementation.
+should continue from the remaining work:
 
-Antigravity CLI is the second.
+```text
+Successful tasks
+    → Skip
 
-Future coding agents should be addable without modifying the core evaluation logic.
+Failed tasks
+    → Retry
+
+Tasks without results
+    → Run
+```
+
+The implementation should remain simple.
+
+The core idea is:
+
+```text
+results.jsonl
+        ↓
+Latest result per (agent, task)
+        ↓
+Decide:
+    success → skip
+    failure → run
+    missing → run
+```

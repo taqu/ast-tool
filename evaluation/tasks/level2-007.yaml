@@ -22,4 +22,4 @@ validation:
 expected_files:
   - src/handlers/api_handler.cpp
 
-timeout: 120
+timeout: 300

@@ -23,4 +23,4 @@ validation:
 expected_files:
   - src/gateway/payment_gateway.cpp
 
-timeout: 120
+timeout: 300

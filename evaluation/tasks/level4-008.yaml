@@ -32,4 +32,4 @@ expected_files:
   - src/service/inventory_service.cpp
   - src/service/order_service.cpp
 
-timeout: 180
+timeout: 300

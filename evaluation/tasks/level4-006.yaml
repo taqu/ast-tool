@@ -24,4 +24,4 @@ expected_files:
   - src/service/validation_service.cpp
   - src/processor/request_processor.cpp
 
-timeout: 180
+timeout: 300

@@ -30,4 +30,4 @@ expected_files:
   - src/repository/order_repository.h
   - src/repository/order_repository.cpp
 
-timeout: 180
+timeout: 300

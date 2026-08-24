@@ -23,4 +23,4 @@ validation:
 expected_files:
   - src/job/sync_job.cpp
 
-timeout: 120
+timeout: 300

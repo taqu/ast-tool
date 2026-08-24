@@ -21,4 +21,4 @@ validation:
 expected_files:
   - src/dispatcher/message_dispatcher.cpp
 
-timeout: 180
+timeout: 300

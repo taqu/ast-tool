@@ -21,4 +21,4 @@ validation:
 expected_files:
   - src/workflow/order_processing_workflow.cpp
 
-timeout: 180
+timeout: 300

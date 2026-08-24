@@ -28,4 +28,4 @@ validation:
 expected_files:
   - src/web/auth_controller.cpp
 
-timeout: 120
+timeout: 300

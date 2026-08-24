@@ -26,4 +26,4 @@ validation:
 expected_files:
   - src/repository/inventory_repository.cpp
 
-timeout: 120
+timeout: 300

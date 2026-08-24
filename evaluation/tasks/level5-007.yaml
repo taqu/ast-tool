@@ -20,4 +20,4 @@ validation:
 expected_files:
   - src/service/auth_service.cpp
 
-timeout: 180
+timeout: 300

@@ -29,4 +29,4 @@ expected_files:
   - src/api/callback_registry.cpp
   - src/main.cpp
 
-timeout: 180
+timeout: 300

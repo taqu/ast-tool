@@ -23,4 +23,4 @@ validation:
 expected_files:
   - src/store/data_store.cpp
 
-timeout: 120
+timeout: 300

@@ -22,4 +22,4 @@ expected_files:
   - src/serializer/base_serializer.h
   - src/serializer/json_serializer.h
 
-timeout: 180
+timeout: 300
