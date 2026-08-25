@@ -22,7 +22,7 @@
 *.dylib
 *.dll
 *.so.*
-
+!thirdparty/tree-sitter/bin/win/*dll
 
 # Fortran module files
 *.mod
