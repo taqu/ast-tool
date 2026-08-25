@@ -96,3 +96,11 @@ python run_eval.py tasks/
 ```
 
 Tasks execute sequentially. A failed task does not abort the batch.
+
+###
+```bash
+ Usage:
+  python run_eval.py tasks/ --task level2-004 --trace-tools
+  python run_eval.py tasks/ --task level2-004 --task level2-008 --trace-tools
+  --max-trace-output-bytes 50000
+```

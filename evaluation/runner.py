@@ -3,6 +3,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -72,7 +73,69 @@ def _write_result(record: dict, results_dir: Path) -> None:
     print(f"[runner] Result appended to {out_path}")
 
 
-def run_task(task_yaml: Path, base_dir: Path, results_dir: Path, agent_name: str = "claude", overwrite_timeout: int = -1) -> dict:
+def _write_trace(
+    task_id: str,
+    task: dict,
+    repo_path: Path,
+    agent_name: str,
+    record: dict,
+    trace_dir: Path,
+    max_output_bytes: int | None,
+) -> None:
+    try:
+        from tracer import parse_trace_events, write_task_trace, append_trace_index
+        from logs import CLAUDE_LOG_DIR
+
+        events = parse_trace_events(CLAUDE_LOG_DIR)
+
+        task_meta: dict[str, Any] = {
+            "repository": str(task.get("repository", "")),
+            "agent": agent_name,
+            "started_at": record.get("timestamp"),
+        }
+
+        result_meta: dict[str, Any] = {
+            "success": record.get("success", False),
+            "elapsed_seconds": record.get("elapsed_seconds"),
+            "validation_success": (
+                record.get("validation", {}).get("success")
+            ),
+        }
+
+        trace_path = write_task_trace(
+            task_id=task_id,
+            events=events,
+            trace_dir=trace_dir,
+            task_meta=task_meta,
+            result_meta=result_meta,
+            max_output_bytes=max_output_bytes,
+        )
+        print(f"[runner] Trace written to {trace_path}")
+
+        index_entry: dict[str, Any] = {
+            "task_id": task_id,
+            "trace_file": f"{task_id}.jsonl",
+            "success": record.get("success", False),
+            "tool_calls": len(events),
+            "ast_tool_calls": sum(
+                1 for e in events if e.get("ast_tool")
+            ),
+        }
+        append_trace_index(index_entry, trace_dir)
+
+    except Exception as e:
+        print(f"[runner] Warning: trace write failed for {task_id}: {e}")
+
+
+def run_task(
+    task_yaml: Path,
+    base_dir: Path,
+    results_dir: Path,
+    agent_name: str = "claude",
+    overwrite_timeout: int = -1,
+    trace_dir: Path | None = None,
+    max_trace_output_bytes: int | None = None,
+) -> dict:
     task = load_task(task_yaml)
     task_id = task["id"]
     repo_path = (base_dir / task["repository"]).resolve()
@@ -157,6 +220,17 @@ def run_task(task_yaml: Path, base_dir: Path, results_dir: Path, agent_name: str
         record["agent_stderr"] = exec_result.stderr[:2000]
 
     _write_result(record, results_dir)
+
+    if trace_dir is not None:
+        _write_trace(
+            task_id=task_id,
+            task=task,
+            repo_path=repo_path,
+            agent_name=agent_name,
+            record=record,
+            trace_dir=trace_dir,
+            max_output_bytes=max_trace_output_bytes,
+        )
 
     try:
         reset_repository(repo_path)

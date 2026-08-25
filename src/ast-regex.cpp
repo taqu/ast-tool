@@ -5,7 +5,11 @@ namespace ast
 {
 
 RegexPattern::RegexPattern(std::string_view pattern)
+#ifdef _WIN32
     : re_(std::make_unique<re2::RE2>(pattern))
+#else
+    : re_(std::make_unique<re2::RE2>(re2::StringPiece(pattern.data(), pattern.size())))
+#endif
 {
 }
 
@@ -20,14 +24,14 @@ bool RegexPattern::valid() const
 
 bool RegexPattern::matches(const std::u8string& input) const
 {
-    std::string_view sv((const char*)input.data(), input.size());
+    re2::StringPiece sv((const char*)input.data(), input.size());
     return re2::RE2::PartialMatch(sv, *re_);
 }
 
 bool RegexPattern::matches(const std::filesystem::path& input) const
 {
     std::u8string path = input.u8string();
-    std::string_view sv((const char*)path.data(), path.size());
+    re2::StringPiece sv((const char*)path.data(), path.size());
     return re2::RE2::PartialMatch(sv, *re_);
 }
 

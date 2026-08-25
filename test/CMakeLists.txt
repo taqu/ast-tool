@@ -96,13 +96,13 @@ if(MSVC)
     PRIVATE
         $<$<CONFIG:Debug>:TREESITTER ${TREESITTER_LANGS} ${ABSL_DEBUG_LIBS} RE2 GIT2 winhttp.lib rpcrt4.lib crypt32.lib>
         $<$<NOT:$<CONFIG:Debug>>:TREESITTER ${TREESITTER_LANGS} ${ABSL_RELEASE_LIBS} RE2 GIT2 winhttp.lib rpcrt4.lib crypt32.lib>)
+
 elseif(UNIX)
-    set(CMAKE_CXX_FLAGS "${DEFAULT_CXX_FLAGS} -DAST_TOOL_TEST")
+    target_compile_options(${PROJECT_NAME} PRIVATE "-Wall;-O3;-g;-march=x86-64-v3;-DAST_TOOL_TEST")
     target_link_libraries(${PROJECT_NAME}
-    PRIVATE
-        $<$<CONFIG:Debug>:TREESITTER ${TREESITTER_LANGS} ${ABSL_DEBUG_LIBS} RE2 GIT2>
-        $<$<NOT:$<CONFIG:Debug>>:TREESITTER ${TREESITTER_LANGS} ${ABSL_RELEASE_LIBS} RE2 GIT2>
-        Threads::Threads)
+        PRIVATE
+            TREESITTER ${TREESITTER_LANGS} ${RE2_LIBRARIES} PkgConfig::pkg_cfg_libgit2 absl::log_initialize
+            Threads::Threads)
 elseif(APPLE)
 endif()
 

@@ -1,791 +1,964 @@
-# Add Resume and Retry-Failed Support to `run_eval.py`
+# Add Detailed Tool Use Logging to the Evaluation Runner
 
 ## Goal
 
-Improve `run_eval.py` so that an interrupted or partially completed evaluation does not need to rerun every task.
+Add detailed tool-use tracing to the evaluation framework.
 
-The runner should inspect the existing `results.jsonl` file and decide which tasks still need to be executed.
-
-The primary desired behavior is:
+The current evaluation results contain aggregate information such as:
 
 ```text
-Task has no result in results.jsonl
-    → Run
-
-Task exists and latest result is success: false
-    → Run again
-
-Task exists and latest result is success: true
-    → Skip
+tool usage counts
+ast-tool command counts
+workflow
+token usage
+elapsed time
+validation result
 ```
 
-This should allow the evaluation to resume automatically after:
+This is useful for high-level comparison, but it is not sufficient to understand *why* a tool was called repeatedly.
+
+For example, the current data may show:
 
 ```text
-Interrupted evaluation
-Timeouts
-Failed tasks
-Agent crashes
-Validation failures
-Partial evaluation runs
+callers: 42 calls
 ```
+
+but does not reveal:
+
+```text
+Which symbol was passed to callers?
+
+What arguments were used?
+
+What result was returned?
+
+Did the agent call callers again with the same input?
+
+Did the agent switch to another tool after seeing the result?
+
+Was the output empty, unexpected, or ambiguous?
+```
+
+The goal of this change is to record individual tool invocations including:
+
+```text
+tool name
+tool input
+tool output
+timestamp or sequence number
+```
+
+This logging should make it possible to analyze tool-call behavior for individual evaluation tasks.
+
+The implementation does not need to enable detailed tracing for every evaluation run.
+
+It should support running and tracing one or a small number of specified tests.
 
 ---
 
-# 1. Default Resume Behavior
+# 1. Keep `results.jsonl` as the Summary Result
 
-When `run_eval.py` is executed, it should load the existing `results.jsonl` if it exists.
+Do not replace the existing `results.jsonl` format.
 
-For each evaluation task:
-
-```text
-results.jsonl
-        ↓
-Find previous result for task
-        ↓
-┌───────────────────────────────┐
-│ No previous result            │
-│        → RUN                  │
-├───────────────────────────────┤
-│ Latest result success = false │
-│        → RUN                  │
-├───────────────────────────────┤
-│ Latest result success = true  │
-│        → SKIP                 │
-└───────────────────────────────┘
-```
-
-The goal is that rerunning the same command naturally resumes unfinished work.
-
-For example:
-
-```bash
-python run_eval.py
-```
-
-If 100 tasks exist and:
-
-```text
-80 succeeded
-10 failed
-10 were never executed
-```
-
-the next execution should run:
-
-```text
-10 failed
-+
-10 missing
-=
-20 tasks
-```
-
-The 80 successful tasks should be skipped.
-
----
-
-# 2. Use the Latest Result Per Task
-
-`results.jsonl` may contain multiple entries for the same task because failed tasks can be retried.
-
-For example:
-
-```json
-{"task_id": "level2-001", "success": false}
-{"task_id": "level2-001", "success": true}
-```
-
-The runner must use the **latest result** for each task.
-
-Conceptually:
-
-```python
-latest_results = {}
-
-for result in results_jsonl:
-    latest_results[result["task_id"]] = result
-```
-
-Then:
-
-```python
-previous = latest_results.get(task.id)
-
-if previous is None:
-    run_task(task)
-
-elif previous["success"] is True:
-    skip_task(task)
-
-else:
-    run_task(task)
-```
-
-Do not use the first result found.
-
-The last entry in `results.jsonl` should determine the current state of the task.
-
----
-
-# 3. Preserve Existing Results
-
-Do not rewrite or delete existing successful results.
-
-New evaluation results should continue to be appended to:
-
-```text
-results.jsonl
-```
-
-For example:
-
-Initial file:
-
-```text
-task-001 → success
-task-002 → failure
-task-003 → success
-```
-
-After rerunning:
-
-```text
-task-001 → success
-task-002 → failure
-task-003 → success
-task-002 → success
-```
-
-The latest result becomes authoritative.
-
-This preserves evaluation history and makes retries observable.
-
----
-
-# 4. Add an Explicit Resume Mode
-
-If the current behavior always runs all tasks, add an explicit command-line option.
-
-For example:
-
-```bash
-python run_eval.py --resume
-```
-
-Behavior:
-
-```text
-Missing result
-    → Run
-
-Previous failure
-    → Run
-
-Previous success
-    → Skip
-```
-
-If this is implemented as the default behavior, `--resume` may still be provided as an explicit alias for clarity.
-
-Recommended options:
-
-```bash
-python run_eval.py
-```
-
-Run according to the default behavior.
-
-```bash
-python run_eval.py --resume
-```
-
-Explicitly resume incomplete evaluation.
-
-```bash
-python run_eval.py --force
-```
-
-Run all selected tasks regardless of previous results.
-
-The exact CLI naming can follow the existing style of the project.
-
----
-
-# 5. Add `--retry-failed`
-
-Support a mode that runs only previously failed tasks.
-
-For example:
-
-```bash
-python run_eval.py --retry-failed
-```
-
-Behavior:
-
-```text
-Previous result missing
-    → Skip
-
-Previous result success = true
-    → Skip
-
-Previous result success = false
-    → Run
-```
-
-This is useful when the evaluation has already completed and only failed tasks should be retried.
-
----
-
-# 6. Recommended Execution Modes
-
-The desired modes are:
-
-| Mode                | Missing | Failed | Successful |
-| ------------------- | ------: | -----: | ---------: |
-| Normal / `--resume` |     Run |    Run |       Skip |
-| `--retry-failed`    |    Skip |    Run |       Skip |
-| `--force`           |     Run |    Run |        Run |
-
-Keep the behavior simple and predictable.
-
-If multiple mode flags are mutually exclusive, argparse should reject invalid combinations.
-
-For example:
-
-```bash
-python run_eval.py --retry-failed --force
-```
-
-should either be rejected or clearly documented.
-
-Prefer a mutually exclusive argument group.
-
----
-
-# 7. Agent-Aware Results
-
-The evaluation framework is being extended to support multiple coding agents.
-
-Therefore, task completion state should not be determined by `task_id` alone.
-
-A result should be associated with both:
-
-```text
-agent
-+
-task_id
-```
+It should continue to contain the high-level evaluation result for each task.
 
 For example:
 
 ```json
 {
-  "agent": "claude",
-  "task_id": "level2-001",
+  "task_id": "level2-004",
+  "success": true,
+  "elapsed_seconds": 181.52,
+  "tools": {
+    "Bash": 17,
+    "Read": 5,
+    "Edit": 6
+  },
+  "ast_tool": {
+    "search": 4,
+    "callers": 8,
+    "references": 1
+  }
+}
+```
+
+Detailed tool traces should be stored separately.
+
+Do not embed all tool outputs into `results.jsonl`, because this could make the summary file unnecessarily large.
+
+---
+
+# 2. Add Per-Task Trace Files
+
+For a traced task, create a separate file.
+
+Recommended directory structure:
+
+```text
+results/
+├── results.jsonl
+│
+└── traces/
+    ├── level2-004.jsonl
+    ├── level2-008.jsonl
+    └── ...
+```
+
+Each line in the trace file should represent one event.
+
+The primary event type is:
+
+```text
+tool_use
+```
+
+Example:
+
+```json
+{
+  "event": "tool_use",
+  "sequence": 12,
+  "timestamp": "2026-08-26T12:34:56.123Z",
+
+  "tool": "Bash",
+
+  "input": {
+    "command": "ast-tool callers greet"
+  },
+
+  "output": "...",
+
   "success": true
 }
 ```
 
-and:
+For an ast-tool invocation, the trace should preserve both the outer tool call and the semantic command if possible.
+
+For example:
 
 ```json
 {
-  "agent": "antigravity",
-  "task_id": "level2-001",
+  "event": "tool_use",
+  "sequence": 7,
+
+  "tool": "Bash",
+
+  "ast_tool": {
+    "command": "callers",
+    "arguments": {
+      "symbol": "greet"
+    }
+  },
+
+  "input": {
+    "command": "ast-tool callers greet"
+  },
+
+  "output": {
+    "..."
+  },
+
+  "success": true
+}
+```
+
+Adapt the exact schema to the actual runner and agent output.
+
+The important requirement is that the original input and output remain available.
+
+---
+
+# 3. Prefer Structured JSONL Trace Data
+
+Use JSONL rather than a human-formatted text log.
+
+For example:
+
+```text
+level2-004.jsonl
+```
+
+```json
+{"event":"task_start","task_id":"level2-004"}
+
+{"event":"tool_use","sequence":1,"tool":"Read","input":{...},"output":{...}}
+
+{"event":"tool_use","sequence":2,"tool":"Bash","input":{...},"output":{...}}
+
+{"event":"tool_use","sequence":3,"tool":"Bash","input":{...},"output":{...}}
+
+{"event":"task_end","success":true}
+```
+
+Reasons:
+
+```text
+Easy to parse later
+Supports large outputs
+Allows event-by-event analysis
+Can be converted to CSV later
+Allows repeated tool-call detection
+```
+
+Do not store the trace only as formatted terminal text.
+
+---
+
+# 4. Capture Tool Input Exactly
+
+The trace must preserve the actual tool input as closely as possible.
+
+Examples:
+
+### Grep
+
+```json
+{
+  "tool": "Grep",
+  "input": {
+    "pattern": "greet",
+    "path": "src"
+  }
+}
+```
+
+### Read
+
+```json
+{
+  "tool": "Read",
+  "input": {
+    "file_path": "src/main.cpp"
+  }
+}
+```
+
+### Bash
+
+```json
+{
+  "tool": "Bash",
+  "input": {
+    "command": "ast-tool callers greet"
+  }
+}
+```
+
+Do not reduce the input to only a summary such as:
+
+```text
+tool = Bash
+```
+
+The arguments are required for later analysis.
+
+---
+
+# 5. Capture Tool Output
+
+Capture the tool output associated with each tool invocation.
+
+For example:
+
+```json
+{
+  "tool": "Bash",
+  "input": {
+    "command": "ast-tool callers greet"
+  },
+  "output": {
+    "stdout": "...",
+    "stderr": "...",
+    "exit_code": 0
+  }
+}
+```
+
+If the actual agent runtime provides the output as a string or another structure, preserve the original structure where practical.
+
+Do not aggressively normalize away information that may be useful later.
+
+The trace is intended for debugging and behavioral analysis.
+
+---
+
+# 6. Avoid Truncating Outputs by Default
+
+Do not truncate tool outputs silently.
+
+For the initial implementation, prefer preserving the complete output.
+
+If output size is a concern, support an explicit option such as:
+
+```text
+--max-trace-output-bytes
+```
+
+For example:
+
+```bash
+python run_eval.py \
+    --task level2-004 \
+    --trace-tools \
+    --max-trace-output-bytes 50000
+```
+
+If truncation occurs, record it explicitly:
+
+```json
+{
+  "output_truncated": true,
+  "original_output_bytes": 183421
+}
+```
+
+Do not make a truncated output look complete.
+
+---
+
+# 7. Record a Sequence Number
+
+Every event within a task trace should have a monotonically increasing sequence number.
+
+For example:
+
+```text
+1  task_start
+2  Skill
+3  Bash
+4  Read
+5  Bash
+6  Bash
+7  Edit
+8  validation
+9  task_end
+```
+
+The sequence number is important because it allows later analysis of patterns such as:
+
+```text
+callers
+→ callers
+```
+
+or:
+
+```text
+callers
+→ Bash
+→ callers
+```
+
+Do not rely only on timestamps for ordering.
+
+---
+
+# 8. Record Timing Where Available
+
+If practical, record:
+
+```text
+start timestamp
+end timestamp
+duration
+```
+
+for each tool call.
+
+For example:
+
+```json
+{
+  "event": "tool_use",
+  "sequence": 12,
+
+  "started_at": "2026-08-26T12:34:56.100Z",
+  "ended_at": "2026-08-26T12:34:57.420Z",
+
+  "duration_seconds": 1.32
+}
+```
+
+This is useful for determining whether ast-tool improves navigation latency or adds expensive investigation steps.
+
+Timing is optional if the underlying agent stream does not provide enough information.
+
+Do not block the implementation on precise timing support.
+
+---
+
+# 9. Add Task-Level Trace Selection
+
+The evaluation runner should support tracing only selected tasks.
+
+Recommended examples:
+
+```bash
+python run_eval.py \
+    --task level2-004 \
+    --trace-tools
+```
+
+Support specifying multiple tasks if convenient:
+
+```bash
+python run_eval.py \
+    --task level2-004 \
+    --task level2-008 \
+    --trace-tools
+```
+
+Alternatively, support:
+
+```bash
+--tasks level2-004,level2-008
+```
+
+Follow the existing CLI style.
+
+The important requirement is that it must be easy to trace one task without rerunning the entire evaluation suite.
+
+---
+
+# 10. Optional: Separate Trace Script
+
+If modifying `run_eval.py` significantly would make it complicated, it is acceptable to implement a separate script.
+
+For example:
+
+```text
+trace_eval.py
+```
+
+Usage:
+
+```bash
+python trace_eval.py \
+    --task level2-004 \
+    --output results/traces/level2-004.jsonl
+```
+
+The trace script should reuse as much of the existing evaluation execution logic as possible.
+
+Do not duplicate the entire evaluation runner if shared functions can be extracted.
+
+A possible structure is:
+
+```text
+eval_runner.py
+    load_task()
+    run_task()
+    validate_task()
+
+run_eval.py
+    normal evaluation mode
+
+trace_eval.py
+    detailed tool tracing mode
+```
+
+This separation is acceptable and may be cleaner.
+
+---
+
+# 11. Capture Raw Agent Events When Possible
+
+If the coding agent runtime already exposes a stream of structured events, prefer recording those events before converting them into aggregate statistics.
+
+For example, if the runtime produces:
+
+```text
+assistant_message
+tool_use
+tool_result
+assistant_message
+```
+
+record enough information to reconstruct the sequence.
+
+For example:
+
+```json
+{
+  "event": "tool_use",
+  "sequence": 4,
+  "tool_use_id": "toolu_123",
+  "tool": "Bash",
+  "input": {
+    "command": "ast-tool callers greet"
+  }
+}
+```
+
+followed by:
+
+```json
+{
+  "event": "tool_result",
+  "sequence": 5,
+  "tool_use_id": "toolu_123",
+  "output": {
+    "stdout": "...",
+    "stderr": ""
+  }
+}
+```
+
+It is also acceptable to combine them into a single event if that better matches the existing runtime.
+
+The key requirement is that the input can be associated with the correct output.
+
+---
+
+# 12. Record ast-tool Metadata When Detectable
+
+The trace system should detect ast-tool commands when possible.
+
+For example:
+
+```text
+ast-tool callers greet
+```
+
+should ideally be represented as:
+
+```json
+{
+  "tool": "Bash",
+
+  "ast_tool": {
+    "detected": true,
+    "command": "callers",
+    "raw_command": "ast-tool callers greet"
+  }
+}
+```
+
+If parsing the arguments is reliable:
+
+```json
+{
+  "ast_tool": {
+    "detected": true,
+    "command": "callers",
+    "arguments": {
+      "symbol": "greet"
+    }
+  }
+}
+```
+
+Do not attempt fragile parsing that could corrupt the original command.
+
+Always preserve:
+
+```text
+raw_command
+```
+
+even if structured argument extraction is implemented.
+
+---
+
+# 13. Add a Trace Index
+
+When detailed tracing is enabled, optionally create an index file.
+
+For example:
+
+```text
+results/traces/index.jsonl
+```
+
+Example:
+
+```json
+{
+  "task_id": "level2-004",
+  "trace_file": "level2-004.jsonl",
+  "success": true,
+  "tool_calls": 27,
+  "ast_tool_calls": 8
+}
+```
+
+This is optional but useful when many traces exist.
+
+---
+
+# 14. Include Task Start and End Metadata
+
+Each trace should include task-level metadata.
+
+Example:
+
+```json
+{
+  "event": "task_start",
+  "task_id": "level2-004",
+  "repository": "repositories/basic-01",
+  "agent": "claude",
+  "started_at": "..."
+}
+```
+
+At the end:
+
+```json
+{
+  "event": "task_end",
+  "task_id": "level2-004",
+  "success": true,
+  "elapsed_seconds": 181.52,
+  "validation_success": true
+}
+```
+
+This allows a trace file to be analyzed independently without needing to join against `results.jsonl`.
+
+---
+
+# 15. Desired Future Analysis
+
+The trace format should support future analysis such as:
+
+## Repeated identical calls
+
+```text
+callers(foo)
+→ callers(foo)
+```
+
+Count:
+
+```text
+same tool
++
+same normalized input
+```
+
+---
+
+## Command transitions
+
+Build transitions such as:
+
+```text
+search
+→ callers
+
+callers
+→ callers
+
+callers
+→ Bash
+
+callers
+→ Read
+
+callers
+→ references
+```
+
+---
+
+## Output-driven retries
+
+Detect patterns such as:
+
+```text
+callers(foo)
+→ output empty
+
+callers(foo)
+→ output empty
+```
+
+or:
+
+```text
+callers(foo)
+→ error
+
+callers(foo)
+→ modified argument
+
+callers(foo)
+```
+
+---
+
+## Investigation loops
+
+For example:
+
+```text
+callers
+→ Read
+→ callers
+→ Bash
+→ callers
+```
+
+---
+
+## Same-target repetition
+
+For example:
+
+```text
+callers(foo) × 5
+```
+
+versus:
+
+```text
+callers(foo)
+callers(bar)
+callers(baz)
+```
+
+These represent different behaviors and should be distinguishable.
+
+---
+
+# 16. Suggested Trace Schema
+
+Use a schema conceptually similar to:
+
+```json
+{
+  "event": "tool_call",
+
+  "sequence": 7,
+
+  "tool": {
+    "name": "Bash"
+  },
+
+  "input": {
+    "command": "ast-tool callers greet"
+  },
+
+  "output": {
+    "stdout": "...",
+    "stderr": "",
+    "exit_code": 0
+  },
+
+  "ast_tool": {
+    "detected": true,
+    "command": "callers",
+    "raw_command": "ast-tool callers greet"
+  },
+
+  "success": true,
+
+  "duration_seconds": 0.42
+}
+```
+
+Do not require every field to exist.
+
+For example, some tools may not have:
+
+```text
+stdout
+stderr
+exit_code
+```
+
+The schema should support heterogeneous tools.
+
+---
+
+# 17. Error Handling
+
+Tool failures must also be logged.
+
+For example:
+
+```json
+{
+  "event": "tool_call",
+  "sequence": 14,
+
+  "tool": {
+    "name": "Bash"
+  },
+
+  "input": {
+    "command": "ast-tool callers unknown_symbol"
+  },
+
+  "output": {
+    "stdout": "",
+    "stderr": "symbol not found",
+    "exit_code": 1
+  },
+
   "success": false
 }
 ```
 
-These must be treated independently.
+Do not omit failed tool calls.
 
-Conceptually:
-
-```python
-latest_results[(agent_name, task_id)] = result
-```
-
-Then:
-
-```text
-Claude + level2-001
-    success
-        → skip Claude execution
-
-Antigravity + level2-001
-    failure
-        → rerun Antigravity execution
-```
-
-Do not allow results from one agent to cause another agent's task to be skipped.
+They may be particularly important when analyzing repeated invocations.
 
 ---
 
-# 8. Backward Compatibility
+# 18. Do Not Change Evaluation Behavior
 
-Existing result files may not contain an `agent` field.
+Detailed logging must be observational.
 
-For backward compatibility, treat old results as belonging to the existing default agent.
+It should not:
 
-For example:
-
-```python
-agent = result.get("agent", "claude")
+```text
+change the prompt
+change agent instructions
+change timeout behavior
+change tool availability
+change validation behavior
 ```
 
-Use the actual canonical agent identifier used by the evaluation framework.
-
-Do not require users to regenerate all existing evaluation results.
+The same task with and without tracing should execute under the same evaluation conditions, except for the additional logging overhead.
 
 ---
 
-# 9. Missing or Corrupt Results
+# 19. Tests
 
-The runner should handle an empty or missing `results.jsonl`.
+Add tests for at least:
 
-Behavior:
+### Tool input/output recording
 
-```text
-results.jsonl does not exist
-    → Run all selected tasks
-
-results.jsonl is empty
-    → Run all selected tasks
-```
-
-If an individual JSONL line is malformed:
+Verify:
 
 ```text
-Malformed line
-    → Warn
-    → Skip that line
-    → Continue loading other valid results
-```
-
-Do not cause the entire evaluation to fail because one historical result line is corrupted.
-
-However, malformed input should be visible to the user through a warning.
-
----
-
-# 10. Result Loading Helper
-
-Extract result loading into a dedicated helper.
-
-For example:
-
-```python
-def load_latest_results(results_path):
-    """
-    Load results.jsonl and return the latest result
-    for each (agent, task_id) pair.
-    """
-```
-
-Conceptually:
-
-```python
-def load_latest_results(results_path):
-    latest = {}
-
-    if not results_path.exists():
-        return latest
-
-    with results_path.open() as f:
-        for line_number, line in enumerate(f, start=1):
-            line = line.strip()
-
-            if not line:
-                continue
-
-            try:
-                result = json.loads(line)
-            except json.JSONDecodeError:
-                print(
-                    f"Warning: invalid JSON "
-                    f"in {results_path}:{line_number}"
-                )
-                continue
-
-            task_id = result.get("task_id")
-
-            if not task_id:
-                continue
-
-            agent = result.get("agent", DEFAULT_AGENT)
-
-            latest[(agent, task_id)] = result
-
-    return latest
-```
-
-Adapt this to the existing project style.
-
-Avoid duplicating JSONL parsing logic.
-
----
-
-# 11. Task Selection Helper
-
-Keep the execution decision separate from the actual task execution.
-
-For example:
-
-```python
-def should_run_task(
-    task,
-    agent,
-    latest_results,
-    mode,
-):
-    ...
-```
-
-Possible behavior:
-
-```python
-previous = latest_results.get((agent, task.id))
-
-if mode == "force":
-    return True
-
-if mode == "retry_failed":
-    return previous is not None and not previous["success"]
-
-if previous is None:
-    return True
-
-return not previous["success"]
-```
-
-Do not scatter resume logic throughout the main evaluation loop.
-
-The main loop should remain easy to understand.
-
-Ideally:
-
-```python
-latest_results = load_latest_results(results_path)
-
-for task in tasks:
-    if not should_run_task(
-        task,
-        agent,
-        latest_results,
-        mode,
-    ):
-        print(f"SKIP {task.id}")
-        continue
-
-    result = run_task(...)
-    append_result(result)
-```
-
----
-
-# 12. Output Summary
-
-Before running tasks, print a selection summary.
-
-For example:
-
-```text
-Evaluation selection
-
-Agent: claude
-Mode: resume
-
-Total tasks:     100
-Already passed:   80
-Failed / retry:   10
-Missing result:   10
-Selected to run:  20
-Skipped:          80
-```
-
-For `--retry-failed`:
-
-```text
-Evaluation selection
-
-Agent: antigravity
-Mode: retry-failed
-
-Total tasks:      100
-Previously failed: 12
-Selected to run:   12
-Skipped:           88
-```
-
-This makes the runner behavior easy to verify.
-
----
-
-# 13. Important Edge Case: Interrupted Runs
-
-Consider this sequence:
-
-```text
-Task 001 → success
-Task 002 → success
-Task 003 → currently running
-Process interrupted
-```
-
-If Task 003 never wrote a result:
-
-```text
-Task 003
-    → Missing
-    → Run on next invocation
-```
-
-If Task 003 wrote:
-
-```json
-{
-  "task_id": "task-003",
-  "success": false,
-  "failure_type": "interrupted"
-}
-```
-
-Then:
-
-```text
-Task 003
-    → Failed
-    → Run on next resume
-```
-
-Both cases should naturally work with the resume logic.
-
----
-
-# 14. Important Edge Case: Task Definitions Change
-
-Do not attempt to solve full task versioning in this change.
-
-However, structure the code so that future support for task fingerprints or revisions would be possible.
-
-For now, completion is determined by:
-
-```text
-agent
+tool input
 +
-task_id
-+
-latest result success
+tool output
 ```
 
-Do not introduce task hashing or schema redesign unless it is trivial and clearly useful.
+are both written.
 
----
+### Sequence ordering
 
-# 15. Tests
-
-Add tests for the selection logic.
-
-At minimum:
-
-### No results
+Verify:
 
 ```text
-results.jsonl missing
+sequence 1
+sequence 2
+sequence 3
 ```
 
-Expected:
+is preserved.
+
+### Failed tool call
+
+Verify failed calls are logged.
+
+### ast-tool detection
+
+Verify:
 
 ```text
-All tasks run
+ast-tool callers greet
 ```
 
----
-
-### Successful task
-
-```json
-{"task_id": "task-001", "success": true}
-```
-
-Expected:
+is detected as:
 
 ```text
-task-001 skipped in resume mode
+command = callers
 ```
 
----
+while preserving the raw command.
 
-### Failed task
+### Trace disabled
 
-```json
-{"task_id": "task-001", "success": false}
-```
+Verify normal evaluation does not generate detailed trace files unless tracing is requested.
 
-Expected:
+### Single task selection
 
-```text
-task-001 runs in resume mode
-```
-
----
-
-### Multiple results
-
-```json
-{"task_id": "task-001", "success": false}
-{"task_id": "task-001", "success": true}
-```
-
-Expected:
-
-```text
-task-001 skipped
-```
-
-The latest result must win.
-
----
-
-### Agent separation
-
-```json
-{"agent": "claude", "task_id": "task-001", "success": true}
-{"agent": "antigravity", "task_id": "task-001", "success": false}
-```
-
-Expected:
-
-```text
-Claude:
-    task-001 skipped
-
-Antigravity:
-    task-001 runs
-```
-
----
-
-### Retry failed
-
-Results:
-
-```text
-task-001 → success
-task-002 → failure
-task-003 → missing
-```
-
-Command:
+Verify:
 
 ```bash
-python run_eval.py --retry-failed
+--task level2-004
 ```
 
-Expected:
-
-```text
-task-001 → skip
-task-002 → run
-task-003 → skip
-```
+does not run unrelated tasks.
 
 ---
 
-### Force
-
-Results:
-
-```text
-task-001 → success
-task-002 → failure
-task-003 → missing
-```
-
-Command:
-
-```bash
-python run_eval.py --force
-```
-
-Expected:
-
-```text
-All tasks run
-```
-
----
-
-### Malformed JSONL
-
-A malformed line should produce a warning but should not stop evaluation.
-
----
-
-# 16. Acceptance Criteria
+# 20. Acceptance Criteria
 
 The implementation is complete when:
 
-* [ ] `run_eval.py` can inspect an existing `results.jsonl`.
-* [ ] Tasks with no previous result can be selected for execution.
-* [ ] Previously failed tasks can be selected for execution.
-* [ ] Previously successful tasks can be skipped.
-* [ ] The latest result for a task is authoritative.
-* [ ] Results are tracked independently per agent.
-* [ ] Existing results without an `agent` field remain usable.
-* [ ] New results continue to append to `results.jsonl`.
-* [ ] Interrupted evaluations can be resumed without rerunning successful tasks.
-* [ ] `--retry-failed` runs only failed tasks.
-* [ ] `--force` runs all tasks.
-* [ ] A clear task selection summary is printed.
-* [ ] Malformed historical JSONL lines do not crash the evaluation.
-* [ ] Selection logic is covered by tests.
-* [ ] Existing evaluation behavior is not broken.
+* [ ] A single evaluation task can be selected and executed.
+* [ ] Detailed tracing can be enabled explicitly.
+* [ ] Each tool invocation records its tool name.
+* [ ] Tool input is recorded.
+* [ ] Tool output is recorded.
+* [ ] Failed tool calls are recorded.
+* [ ] Events have deterministic sequence numbers.
+* [ ] ast-tool commands are detected when possible.
+* [ ] The original raw command/input is always preserved.
+* [ ] `results.jsonl` remains a compact summary file.
+* [ ] Detailed traces are stored separately per task.
+* [ ] Normal evaluation behavior remains unchanged when tracing is disabled.
+* [ ] The trace format can support repeated-call and command-transition analysis later.
+* [ ] Unit tests cover the core trace functionality.
 
 ---
 
-# Final Principle
+# Final Design Principle
 
-The evaluation runner should become safely restartable.
+The purpose is not simply to produce more logs.
 
-The normal workflow should be:
-
-```bash
-python run_eval.py
-```
-
-Then, if execution stops for any reason:
-
-```bash
-python run_eval.py
-```
-
-should continue from the remaining work:
+The trace should allow us to reconstruct this kind of sequence:
 
 ```text
-Successful tasks
-    → Skip
+1. search("greet")
+   → found declaration and references
 
-Failed tasks
-    → Retry
+2. callers("greet")
+   → unexpected result
 
-Tasks without results
-    → Run
+3. Bash(...)
+   → inspect files manually
+
+4. callers("greet")
+   → same query again
+
+5. references("greet")
+   → different result
+
+6. Read(src/main.cpp)
+
+7. Edit(src/main.cpp)
 ```
 
-The implementation should remain simple.
-
-The core idea is:
+The resulting data should make it possible to distinguish:
 
 ```text
-results.jsonl
-        ↓
-Latest result per (agent, task)
-        ↓
-Decide:
-    success → skip
-    failure → run
-    missing → run
+Normal semantic traversal
 ```
+
+from:
+
+```text
+Repeated identical queries
+```
+
+from:
+
+```text
+Manual verification after an unexpected result
+```
+
+from:
+
+```text
+Tool errors or symbol resolution failures
+```
+
+This is the primary objective of detailed tool-use tracing.

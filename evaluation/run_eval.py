@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """CLI entry point: python run_eval.py tasks/smoke-001.yaml  (or a directory of YAML files)."""
+from __future__ import annotations
+
 import argparse
 import sys
 from pathlib import Path
@@ -59,12 +61,49 @@ def main() -> None:
         type=int,
         help="Overwrite the timeout for each task (in seconds)",
     )
+    parser.add_argument(
+        "--task",
+        action="append",
+        dest="task_ids",
+        metavar="TASK_ID",
+        help="Run only this task ID (can be repeated). e.g. --task level2-004",
+    )
+    parser.add_argument(
+        "--trace-tools",
+        action="store_true",
+        help="Write detailed per-tool-call trace files alongside results",
+    )
+    parser.add_argument(
+        "--trace-dir",
+        default=None,
+        metavar="DIR",
+        help="Directory for trace files (default: <results-dir>/traces/)",
+    )
+    parser.add_argument(
+        "--max-trace-output-bytes",
+        default=None,
+        type=int,
+        metavar="N",
+        help="Truncate tool outputs in traces to at most N bytes",
+    )
     args = parser.parse_args()
 
     eval_dir = Path(__file__).parent
     base_dir = Path(args.base_dir) if args.base_dir else eval_dir
     results_dir = Path(args.results_dir) if args.results_dir else eval_dir / "results"
     timeout = args.timeout
+
+    trace_dir: Path | None = None
+    if args.trace_tools:
+        trace_dir = (
+            Path(args.trace_dir)
+            if args.trace_dir
+            else results_dir / "traces"
+        )
+
+    task_id_filter: set[str] | None = (
+        set(args.task_ids) if args.task_ids else None
+    )
 
     if args.retry_failed:
         mode = "retry-failed"
@@ -91,12 +130,17 @@ def main() -> None:
     for task_file in task_files:
         try:
             task = load_task(task_file)
-            tasks_with_ids.append((task_file, task["id"]))
+            task_id = task["id"]
+            if task_id_filter is not None and task_id not in task_id_filter:
+                continue
+            tasks_with_ids.append((task_file, task_id))
         except Exception as e:
             print(f"[run_eval] Error loading task {task_file}: {e}")
 
     if not tasks_with_ids:
         print("[run_eval] No valid task files found.")
+        if task_id_filter:
+            print(f"[run_eval] Task ID filter was: {sorted(task_id_filter)}")
         sys.exit(1)
 
     agents = [a.strip() for a in args.agent.split(",") if a.strip()]
@@ -173,7 +217,13 @@ def main() -> None:
                 continue
 
             try:
-                record = run_task(task_file, base_dir, results_dir, agent_name=agent, overwrite_timeout=timeout)
+                record = run_task(
+                    task_file, base_dir, results_dir,
+                    agent_name=agent,
+                    overwrite_timeout=timeout,
+                    trace_dir=trace_dir,
+                    max_trace_output_bytes=args.max_trace_output_bytes,
+                )
                 status = record.get("status", "unknown")
                 print(f"[run_eval] {record.get('task_id', task_file.stem)} ({agent}): {status}")
                 if status != "success":

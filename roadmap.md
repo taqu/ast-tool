@@ -1,434 +1,74 @@
-# AST Tool — Progress & Roadmap
+## 次回議論用：AST Tool Evaluation ロードマップと進捗まとめ
 
-## 現在地
+### 現在地
 
-**AST / Semantic infrastructure、Semantic CLI、Agent-facing Skills、そして Agent Evaluation の評価セットと実行・統計基盤まで整った状態です。**
+AST Tool の Agent Evaluation は、単なる「ast-tool を使ったかどうか」の確認から一歩進み、
 
-プロジェクトは現在、
+> **ast-tool が Coding Agent の探索行動・成功率・トークン・実行時間にどのような影響を与えるか**
 
-```text
-「Semantic capability を実装する」
-        ↓
-「Coding Agent が実際に使うか評価する」
-        ↓
-「評価結果を基に改善する」
-```
+を比較・分析する段階に入っています。
 
-というフェーズに移っています。
+現時点で特に重要なのは、
+
+* `search` は既存の `Grep` をある程度代替している可能性
+* `callers` / `callees` / semantic navigation は追加の探索を発生させている可能性
+* 成功率の明確な改善はまだ確認できていない
+* ast-tool 使用時に **実行時間が大幅に増加している**
+* そのため、次は **高速化を優先して再開する**
+
+という状態です。
 
 ---
 
-# 1. Architecture
+# 1. これまでの進捗
+
+## AST Tool の基本アーキテクチャ
+
+設計方針は概ね固まっています。
 
 ```text
 Tree-sitter
-     │
-     ▼
-   AST IR
-     │
-     ▼
+    ↓
+AST IR
+    ↓
 Semantic Layer
-     │
-     ▼
+    ↓
 Workspace Analysis
-     │
-     ▼
+    ↓
 Semantic Services
-     │
-     ├── Search
-     ├── Resolution
-     ├── References
-     ├── Callers / Callees
-     ├── Semantic Diff
-     └── Context Export
-     │
-     ▼
+    ↓
 AI Agent / CLI / IDE
 ```
 
-## Design principles
+主要な設計原則：
 
 * Tree-sitter は parsing に限定
-* AST IR を安定した中間表現とする
+* AST IR を安定した中間表現にする
 * Semantic Layer は AST IR のみに依存
 * Workspace が複数ファイルの semantic information を集約
 * Semantic Services は parser-independent
-* 上位層から Tree-sitter を直接利用しない
-* 言語固有処理は extractor に閉じ込める
+* 上位層は Tree-sitter を直接利用しない
+* language-specific な処理は extractor に閉じ込める
 * Semantic Provider は optional enrichment
 * Agent は parser internals ではなく `ast-tool` を利用する
 
-**Status: 安定 / 基本設計完了 ✅**
-
----
-
-# 2. AST Foundation
-
-**Status: ほぼ完了 ✅**
-
-完了：
-
-```text
-Parser integration
-AST IR
-dump
-symbols
-outline
-range
-parent
-children
-```
-
-残り：
-
-```text
-Tree-sitter query integration
-```
-
-ただし現在の Agent / Semantic workflow に対する優先度は低い。
-
-**Priority: B〜低**
-
----
-
-# 3. Semantic Extraction
-
-**Status: 完了に近い / 基本機能成立 ✅**
-
-実装済み：
-
-* Qualified name
-* Namespace / class hierarchy
-* Symbol extraction
-* Symbol index
-* Scope model
-* Scope builder
-* Symbol → Scope association
-* Lexical scope analysis
-* Lexical name lookup
-
-Semantic Layer の基盤は成立済み。
-
----
-
-# 4. Workspace Analysis
-
-## 完了 ✅
-
-* Recursive workspace scan
-* Multi-file parsing
-* Workspace symbol table
-* Include/import discovery
-* Dependency graph
-* Git ignore support
-* File-level parallel analysis
-* `get_physical_core_count()` による worker 数制御
-* `analyze_workspace()` の共通利用
-
-CLI ごとに Workspace 構築処理を重複しているわけではなく、
-
-```cpp
-Workspace ws = analyze_workspace(arguments.root_);
-```
-
-を中心とした共通構造になっている。
-
-## 現在の性能課題
-
-現状：
-
-```text
-Scan workspace
-      ↓
-Collect all file paths
-      ↓
-Parallel analysis
-      ↓
-Workspace
-```
-
-ファイル解析は並列化済みだが、workspace scan 時に file path を全件保持する。
-
-将来的な改善案：
-
-```text
-Scanner
-   ↓
-File discovered
-   ↓
-Bounded work queue
-   ↓
-Worker pool
-   ↓
-Analysis result
-   ↓
-Workspace merge
-```
-
-目的：
-
-* file path 全件保持を避ける
-* parallelism を維持
-* in-flight work を bounded にする
-* peak memory を削減
-* 大規模 repository で性能比較
-
-**Status: Streaming 未実装 ☐**
-**Priority: A**
-
----
-
-# 5. Semantic Services
-
-**Status: Complete ✅**
-
-実装済み：
-
-```text
-Search
-Resolution
-References
-Callers
-Callees
-Semantic Diff
-Context Export
-```
-
-`SemanticContext` や `SemanticDiff` は内部 Service / API として存在する。
-
-重要な判断：
-
-> **存在する Semantic Service をすべて CLI command にする必要はない。**
-
-現時点では、
-
-```text
-Context Export
-Semantic Diff
-```
-
-を独立した Agent-facing CLI command にする必要性は確認されていない。
-
----
-
-# 6. Semantic CLI
-
-**Status: Complete ✅**
-
-現在の CLI：
-
-```text
-ast-tool
- ├── symbols
- ├── outline
- ├── range
- ├── search
- ├── find
- ├── references
- ├── callers
- ├── callees
- ├── parent
- ├── children
- └── dump
-```
-
-## Semantic commands
+提供する Semantic Services の中心は：
 
 ```text
 search
-find
+resolution
 references
 callers
 callees
-```
-
-## Structural inspection
-
-```text
-symbols
-outline
-parent
-children
-```
-
-## Advanced / low-level
-
-```text
-range
-dump
-```
-
-`dump` は存在するが、通常の Agent workflow からは外す。
-
-`range` も Agent workflow の中心にはしない。
-
----
-
-# 7. CLI Help / Usability
-
-**Status: 基本実装済み、Evaluation で検証可能 ✅**
-
-例えば、
-
-```text
-ast-tool references --help
-```
-
-は利用可能。
-
-実際の Level 2 evaluation では、
-
-```json
-"ast_tool": {
-    "search": 4,
-    "callers": 8,
-    "help": 2,
-    "references": 1,
-    "symbols": 1
-}
-```
-
-のように Agent が `help` を利用するケースも確認されている。
-
-今後の焦点は、
-
-> Help が存在するか
-
-ではなく、
-
-> Agent が Help を読んで正しい command を選択できるか
-
-である。
-
-**Status: Evaluation data を基に今後レビュー**
-
----
-
-# 8. Agent-facing Skills
-
-**Status: 整理完了 / 実際の評価対象として使用中 ✅**
-
-現在：
-
-```text
-ast-tool/.claude/skills/
-├── semantic-analysis/
-│   └── SKILL.md
-├── ast-inspection/
-│   └── SKILL.md
-└── api-review/
-    └── SKILL.md
-```
-
-## semantic-analysis
-
-対象：
-
-```text
-search
-find
-references
-callers
-callees
-```
-
-Semantic relationship / symbol navigation を担当。
-
-## ast-inspection
-
-対象：
-
-```text
-symbols
-outline
-parent
-children
-```
-
-Structural inspection を担当。
-
-## api-review
-
-Semantic commands を組み合わせた高レベル workflow。
-
-```text
-Find symbol
-      ↓
-References
-      ↓
-Callers
-      ↓
-Callees
-      ↓
-Impact assessment
-```
-
-重要なのは、
-
-> Skills は Agent に正しい semantic workflow を提示するための interface
-
-として評価対象になっていること。
-
----
-
-# 9. Agent Evaluation Infrastructure
-
-**Status: 構築完了 ✅**
-
-Agent Evaluation は `Claude Code` を対象として進めている。
-
-基本フロー：
-
-```text
-Evaluation Task
-      ↓
-Claude Code
-      ↓
-Skills
-      ↓
-Tool selection
-      ├── Grep
-      ├── Read
-      ├── Bash
-      └── ast-tool
-              ├── search
-              ├── references
-              ├── callers
-              ├── callees
-              └── help
-      ↓
-Code modification
-      ↓
-Validation
-      ↓
-JSONL result
-      ↓
-Statistics
-```
-
-取得している情報：
-
-```json
-{
-  "task_id": "...",
-  "success": true,
-  "elapsed_seconds": 181.52,
-  "tokens": {},
-  "tools": {},
-  "ast_tool": {},
-  "workflow": [],
-  "changed_files": [],
-  "validation": {}
-}
+semantic diff
+context export
 ```
 
 ---
 
-# 10. Evaluation Tasks
+# 2. Agent Evaluation
 
-**Status: Level-based evaluation set 作成済み ✅**
-
-現在、
+Evaluation framework を作成し、複数レベルのテストを実行しています。
 
 ```text
 smoke
@@ -439,272 +79,559 @@ level4
 level5
 ```
 
-という段階的な評価セットを構築済み。
+各タスクでは repository modification と validation を行い、結果を `results.jsonl` に保存する形です。
 
-概念的には、
+Evaluation runner については、
 
-```text
-Smoke
-  ↓
-Basic symbol/file navigation
+* task ごとの実行
+* validation
+* tool usage 集計
+* ast-tool command usage 集計
+* workflow 情報
+* token usage
+* elapsed time
 
-Level 1
-  ↓
-Simple local modification
+などを記録する方向で進めています。
 
-Level 2
-  ↓
-Cross-file semantic navigation
-  ↓
-ast-tool が有利になり始める
-
-Level 3
-  ↓
-Multiple files / relationships
-  ↓
-references / callers / search 等の利用価値
-
-Level 4
-  ↓
-More complex impact analysis
-  ↓
-Semantic workflow が重要
-
-Level 5
-  ↓
-High-complexity repository navigation
-  ↓
-Tool selection / semantic reasoning の評価
-```
-
-Level 1 の結果では主に、
+また、`results.jsonl` を利用して、
 
 ```text
-Grep
-Read
-Edit
+成功済み
+    → skip
+
+失敗
+    → retry
+
+結果なし
+    → run
 ```
 
-で成功していた。
+とする resume / retry の改善も検討済みです。
 
-これは重要なベースラインである。
+さらに将来的な複数 Agent 比較を考慮し、
 
-一方、Level 2 では、
-
-```json
-"ast_tool": {
-    "callers": 4,
-    "search": 2,
-    "references": 1
-}
+```text
+(agent, task_id)
 ```
 
-あるいは、
-
-```json
-"ast_tool": {
-    "search": 4,
-    "callers": 8,
-    "help": 2,
-    "references": 1,
-    "symbols": 1
-}
-```
-
-のように、Agent が実際に `ast-tool` と Skills を利用するケースが確認された。
+単位で結果を扱う設計を想定しています。
 
 ---
 
-# 11. Evaluation Runner / Logging
+# 3. ast-tool の Command Usage
 
-**Status: 完了 / 再生成済みの評価スクリプトを含め基盤整備済み ✅**
-
-既存の Claude Code の local JSONL log を利用して、
+現時点の使用回数は次の通りです。
 
 ```text
-~/.claude/projects
+command      total
+
+callers       42
+search        39
+references    17
+find          17
+callees        9
+symbols        2
+outline        2
 ```
 
-から、
-
-* input tokens
-* output tokens
-* cache read tokens
-* cache creation tokens
-* tool usage
-
-を集計する方式を利用。
-
-ノイズ除去のため、
-
-```python
-clear_claude_logs()
-```
-
-でログを初期化し、
-
-テストごとの実行結果を独立して取得できる構造。
-
-さらに workflow から、
+Level 別では特に、
 
 ```text
-Skill
-Bash
-Read
-Edit
-Grep
-Glob
-Agent
-```
-
-等の tool sequence を保存。
-
-Bash 内で `ast-tool` が実行された場合は、
-
-```json
-"ast_tool": {
-    "search": 4,
-    "callers": 8,
-    "references": 1
-}
-```
-
-のように command 単位で抽出する。
-
----
-
-# 12. Statistics / Result Analysis
-
-**Status: 作成済み ✅**
-
-テストランナーとは分離した統計スクリプトを作成。
-
-基本構造：
-
-```text
-evaluation run
-      ↓
-results.jsonl
-      ↓
-statistics / analysis
-      ↓
-summary
-CSV
-```
-
-取得対象：
-
-## Global
-
-```text
-total tasks
-success / failure
-timeout
-elapsed time
-token usage
-tool usage
-ast-tool usage
-```
-
-## Per Level
-
-```text
-tasks
-success rate
-average time
-median time
-average token usage
-```
-
-## ast-tool
-
-```text
-command usage
-search
-find
-references
 callers
-callees
-symbols
-help
-...
+    Level 2: 20
+    Level 3: 10
+    Level 1: 8
+    Level 4: 4
+
+search
+    Level 2: 16
+    Level 3: 14
 ```
 
-さらに今後重要になる指標：
+が多く使われています。
+
+---
+
+# 4. ast-tool あり / なし比較の結果
+
+## 成功率
+
+Level 4 では、
 
 ```text
-ast-tool adoption rate
+with ast-tool     4 validation failures
+without ast-tool  4 validation failures
 ```
+
+となりました。
+
+現時点では、
+
+> **ast-tool による明確な validation success の改善は確認できていない**
+
+という結果です。
+
+ただし、Agent が ast-tool を全く使っていないわけではなく、積極的に利用しています。
+
+したがって問題は、
+
+```text
+ast-tool is not used
+```
+
+ではなく、
+
+```text
+ast-tool is used,
+but the additional information is not yet converted
+into better task execution.
+```
+
+という可能性があります。
+
+---
+
+# 5. `search` は Grep を代替している可能性
+
+これは比較結果からかなり強く示唆されています。
+
+全体：
+
+```text
+Grep
+
+with ast-tool      16
+without ast-tool   49
+
+delta             -33
+```
+
+特に：
+
+```text
+Level 3
+
+with ast-tool       0
+without ast-tool   10
+```
+
+```text
+Level 4
+
+with ast-tool       1
+without ast-tool   12
+```
+
+したがって、
+
+```text
+ast-tool search
+    ↓
+Grep の一部を代替
+```
+
+している可能性が高いです。
+
+以前の、
+
+> ast-tool は既存の探索に追加されるだけで置換していない
+
+という仮説は修正する必要があります。
+
+より正確には：
+
+```text
+search
+    → existing text search を代替する傾向
+
+callers / callees / references
+    → additional semantic exploration を増やしている可能性
+```
+
+です。
+
+---
+
+# 6. Read / Edit はほぼ変化していない
+
+全体では：
+
+```text
+Read
+
+with ast-tool      294
+without ast-tool   295
+```
+
+```text
+Edit
+
+with ast-tool       86
+without ast-tool    84
+```
+
+ほぼ同じです。
 
 つまり、
 
 ```text
-Tasks using ast-tool
-/
-Total tasks
+探索方法は変化
 ```
 
-である。
+している一方、
+
+```text
+最終的なコード確認
+コード修正
+```
+
+の量は大きく減っていません。
+
+これは自然な結果でもあります。
+
+ast-tool があっても Agent は最終的にファイルを読んで修正する必要があります。
 
 ---
 
-# 13. 次に見るべき Evaluation Metrics
+# 7. Bash が大幅に増加
 
-評価セット自体はできたため、次は**実データの分析フェーズ**。
-
-特に見るべきなのは以下。
-
-## A. Success Rate by Level
+ここは非常に重要です。
 
 ```text
-Level
-  ↓
-Success rate
+Bash
+
+with ast-tool      162
+without ast-tool    57
+
+delta             +105
 ```
 
-例：
+特に：
 
 ```text
-Smoke   100%
-Level 1 100%
-Level 2  90%
-Level 3  85%
-Level 4  70%
-Level 5  50%
+Level 1   +19
+Level 2   +53
+Level 3   +31
+Level 4   +10
+Level 5    -7
 ```
 
-難易度設計が適切なら、ある程度の難易度上昇に伴う成功率変化が見える。
+です。
 
----
-
-## B. ast-tool Adoption by Level
+Level 2 は特に顕著です。
 
 ```text
-Level
-  ↓
-Tasks that used ast-tool
-```
+Bash average per task
 
-例：
-
-```text
-Smoke    0%
-Level 1  0%
-Level 2 60%
-Level 3 80%
-Level 4 90%
-Level 5 95%
+with ast-tool      6.75
+without ast-tool   0.12
 ```
 
 これは、
 
-> Task difficulty が上がるほど semantic tooling が自然に使われるか
+```text
+ast-tool
+    ↓
+semantic result
+    ↓
+additional verification / investigation
+    ↓
+Bash
+```
 
-を見る重要な指標。
+のような行動が発生している可能性があります。
+
+ただし現時点では、Bash が何のために増えているかはまだ確定していません。
+
+そのため、詳細な tool-use trace を取る方針になっています。
 
 ---
 
-## C. Command Usage
+# 8. Glob も増加
+
+```text
+Glob
+
+with ast-tool      34
+without ast-tool   12
+
+delta             +22
+```
+
+特に Level 4 / Level 5 で増えています。
+
+```text
+Level 4   +7
+Level 5   +9
+```
+
+これも、
+
+```text
+semantic navigation
+    ↓
+related file discovery
+    ↓
+Glob
+```
+
+のような追加探索が発生している可能性があります。
+
+---
+
+# 9. Workflow Length
+
+workflow length は全体的に ast-tool 使用時の方が長くなっています。
+
+```text
+level     with_ast    without_ast    delta
+
+overall      15.24       12.59       +2.66
+smoke        16.00       14.00       +2.00
+level1        7.62        4.38       +3.25
+level2       12.50        5.88       +6.62
+level3        9.38        8.25       +1.12
+level4       21.38       19.25       +2.12
+level5       25.25       25.00       +0.25
+```
+
+特に Level 2：
+
+```text
++6.62 tool / workflow steps per task
+```
+
+です。
+
+しかも Level 2 の Bash 増加も：
+
+```text
++6.62 per task
+```
+
+となっています。
+
+この一致は非常に興味深く、
+
+> **Level 2 では ast-tool 使用後に追加 Bash investigation がほぼそのまま workflow 増加につながっている**
+
+可能性があります。
+
+これは次の trace analysis で確認する価値があります。
+
+---
+
+# 10. 現在の重要な仮説
+
+現時点では ast-tool の各 command を同じものとして扱わない方がよさそうです。
+
+現在の仮説：
+
+```text
+ast-tool
+│
+├── search
+│     └── Grep を代替する傾向
+│
+├── find / references
+│     └── navigation を補助
+│
+└── callers / callees
+      └── semantic exploration を追加
+            ↓
+          workflow ↑
+          Bash ↑
+          Glob ↑
+          token ↑
+          elapsed time ↑
+```
+
+特に `callers` は最多使用 command です。
+
+```text
+callers: 42
+search:  39
+```
+
+ここで新しい仮説が出ています。
+
+> **`callers` が Agent の想定と異なる結果を返し、Agent が何度も呼び直したり、別の方法で検証しているのではないか？**
+
+ただし、現在の aggregate data だけでは、
+
+```text
+callers(foo)
+→ callers(foo)
+```
+
+なのか、
+
+```text
+callers(foo)
+→ callers(bar)
+→ callers(baz)
+```
+
+なのか区別できません。
+
+そのため詳細 trace が必要です。
+
+---
+
+# 11. Tool Use Trace の次の作業
+
+`run_eval.py` または専用スクリプトに、詳細な tool use logging を追加する予定です。
+
+推奨方針：
+
+```text
+results.jsonl
+    → compact summary
+
+traces/
+    level2-004.jsonl
+    level2-008.jsonl
+    ...
+```
+
+各 tool invocation について：
+
+```text
+sequence
+tool name
+input
+output
+success / failure
+timestamp / duration
+```
+
+を保存します。
+
+ast-tool が Bash 経由で実行される場合は、可能なら：
+
+```text
+raw command
+ast-tool command
+arguments
+```
+
+も記録します。
+
+例えば：
+
+```text
+sequence: 7
+
+tool:
+    Bash
+
+input:
+    ast-tool callers greet
+
+output:
+    ...
+
+ast_tool:
+    command: callers
+    arguments: ...
+```
+
+---
+
+# 12. Trace で調べること
+
+最初に少数のテストを指定して実行します。
+
+例えば：
+
+```text
+level2-004
+level2-008
+```
+
+など。
+
+分析したいパターン：
+
+### 同一 query の繰り返し
+
+```text
+callers(foo)
+→ callers(foo)
+→ callers(foo)
+```
+
+### Command transition
+
+```text
+callers
+→ callers
+```
+
+```text
+callers
+→ Bash
+```
+
+```text
+callers
+→ Read
+```
+
+```text
+callers
+→ references
+```
+
+### Empty / unexpected result の再試行
+
+```text
+callers(foo)
+→ unexpected result
+
+callers(foo)
+→ same query
+```
+
+### 正常な semantic traversal
+
+```text
+callers(foo)
+→ callers(bar)
+→ callers(baz)
+```
+
+これらを区別することが目的です。
+
+---
+
+# 13. 次回の最優先事項：高速化
+
+## ここから再開する
+
+Tool-use trace の仕組みは並行して進めますが、次回の主題は **高速化**です。
+
+理由：
+
+> **ast-tool を使うと実行時間が倍近くになっている。**
+
+したがって、次のフェーズではまず、
+
+```text
+Why is ast-tool slow?
+```
+
+を調べる必要があります。
+
+分析の優先順位は次の通り。
+
+---
+
+## Phase 1 — Performance Baseline
+
+まず各 ast-tool command の性能を測定する。
+
+対象：
 
 ```text
 search
@@ -713,383 +640,405 @@ references
 callers
 callees
 symbols
-help
+outline
 ```
 
-について、
+各 command について：
 
 ```text
-どの command が実際に使われたか
+wall-clock time
+number of files
+repository size
+number of results
 ```
 
-を見る。
+を取得する。
 
-例えば、
+最初に知りたいのは：
 
 ```text
-callers     32
-search      24
-references  18
-callees      3
-find         0
+Agent execution time increase
 ```
 
-となった場合、
+が、
 
 ```text
-callees
-find
+A. ast-tool command 自体が遅い
 ```
 
-の discoverability や Skill 上の説明を疑うことができる。
+のか、
+
+```text
+B. ast-tool は速いが、Agent が追加探索するため全体が遅い
+```
+
+のかです。
+
+これは最優先で切り分ける。
 
 ---
 
-## D. Workflow Analysis
+# 14. Phase 2 — Command-Level Profiling
 
-単なる回数ではなく、
+特に最多使用の：
 
 ```text
-Skill
-  ↓
-ast-tool search
-  ↓
-ast-tool callers
-  ↓
-Read
-  ↓
-Edit
+callers
+search
+references
 ```
 
-のような workflow が成立しているかを見る。
+を重点的に調査する。
 
-理想的には、
+例えば `callers` について：
 
 ```text
-Skill selection
-      ↓
-Semantic discovery
-      ↓
-Target narrowing
-      ↓
-Read
-      ↓
-Edit
+callers
+    ↓
+symbol lookup
+    ↓
+workspace / file traversal
+    ↓
+reference search
+    ↓
+semantic resolution
+    ↓
+result formatting
 ```
 
-という流れ。
+のどこに時間が使われているかを測定する。
 
-逆に、
+可能なら内部 timing を追加する。
 
-```text
-Grep
-Grep
-Read
-Read
-Read
-Read
-...
-```
-
-だけで完結している場合、
-
-* Task が簡単すぎる
-* ast-tool の優位性がない
-* Skill が選ばれていない
-* Command UX が弱い
-
-などを疑う。
-
----
-
-# 14. Structured Output
-
-**Status: 後回し ☐**
-
-現時点では、
+例：
 
 ```text
-JSON
---format json
-machine-readable schema
-output versioning
-```
+total:                820 ms
 
-などの大規模 redesign は行わない。
-
-理由：
-
-> まず Agent Evaluation の実測で、本当に output format が問題になるか確認する。
-
-ただし、
-
-```text
-明らかな CLI output inconsistency
-```
-
-が見つかった場合は通常の polish として修正してよい。
-
-**Priority: B**
-
----
-
-# 15. Workspace Streaming / Performance
-
-**Status: 次の独立した技術テーマ ☐**
-
-Evaluation と並行して進められる。
-
-現在：
-
-```text
-parallel analysis       ✅
-bounded worker count    ✅
-streaming               ☐
-benchmark               ☐
-memory optimization     ☐
-```
-
-Streaming 化前後で比較したい指標：
-
-```text
-file count
-total analysis time
-peak memory
-CPU utilization
-worker count
-queue depth
-in-flight work
-throughput
-```
-
-比較対象：
-
-```text
-Before
-all file paths retained
-
-vs.
-
-After
-streamed / bounded pipeline
+symbol lookup:         20 ms
+workspace loading:    400 ms
+reference collection: 300 ms
+resolution:            50 ms
+formatting:            10 ms
 ```
 
 ---
 
-# 16. Future Workspace Features
+# 15. 高速化の優先仮説
 
-Streaming / benchmark の結果を見てから検討。
+次回は以下を順番に確認する。
 
-## Incremental Analysis
+## Hypothesis A — Workspace / Index の再構築
 
-```text
-File changed
-      ↓
-Re-analyze file
-      ↓
-Update Workspace
-```
+最も疑わしい候補。
 
-## Filesystem Watch
+もし command ごとに：
 
 ```text
-Filesystem
-      ↓
-Watcher
-      ↓
-Workspace update
+workspace load
+parse
+semantic extraction
 ```
 
-## Persistent Cache
+を繰り返しているなら、
 
-必要性が確認された場合のみ導入。
+```text
+callers
+search
+references
+```
 
-現時点では必須ではない。
+を連続して実行すると非常に遅くなります。
+
+改善候補：
+
+```text
+long-lived workspace
+persistent index
+in-memory cache
+incremental analysis
+```
 
 ---
 
-# 17. Future Semantic Extensions
+## Hypothesis B — 同じ symbol / file の再解析
 
-Core architecture と Agent Evaluation が安定してから検討。
+例えば：
+
+```text
+callers(foo)
+references(foo)
+callees(foo)
+```
+
+で同じ symbol resolution や file parsing を繰り返している可能性。
+
+改善候補：
+
+```text
+symbol cache
+resolution cache
+reference cache
+parsed AST cache
+```
+
+---
+
+## Hypothesis C — `callers` / `callees` の実装コスト
+
+`callers` が最多利用されているため、個別最適化の価値が高い可能性があります。
+
+特に：
+
+```text
+callers
+```
+
+が毎回 workspace 全体を scan しているなら優先的に改善する。
 
 候補：
 
 ```text
-Definition
-Dependencies
-Dependents
-Inheritance
-Overrides
-Type hierarchy
-Diagnostics
-Documentation
+reverse reference index
+symbol → references index
+caller cache
+workspace-level dependency graph
 ```
 
-ただし現時点では、
+---
 
-> **追加しない。**
+## Hypothesis D — CLI startup overhead
 
-まず既存の、
+Agent が毎回：
+
+```bash
+ast-tool callers ...
+```
+
+のように CLI process を起動している場合、
+
+```text
+process startup
+workspace initialization
+configuration loading
+index loading
+```
+
+が毎回発生している可能性があります。
+
+改善候補：
+
+```text
+persistent daemon
+server mode
+JSON-RPC
+long-lived process
+```
+
+ただし、まず profiling で startup cost が支配的か確認する。
+
+---
+
+# 16. 次回の推奨作業順序
+
+### Step 1
+
+代表的な repository と query を使い、
 
 ```text
 search
-find
 references
 callers
 callees
 ```
 
-が Agent にとって十分有効か確認する。
+の単体実行時間を測定。
 
----
+### Step 2
 
-# 現在のロードマップ
+同じ process / workspace 内で連続実行した場合と、
 
 ```text
-AST Foundation
-      │
-      ▼
-Semantic Extraction
-      │
-      ▼
-Workspace Analysis
-      │
-      ├── Parallelization ──────────── ✅
-      ├── Worker limit ─────────────── ✅
-      └── Streaming ────────────────── ☐
-      │
-      ▼
-Semantic Services
-      │
-      └─────────────────────────────── ✅
-      │
-      ▼
-Semantic CLI
-      │
-      └─────────────────────────────── ✅
-      │
-      ▼
-Agent-facing Skills
-      │
-      └─────────────────────────────── ✅
-      │
-      ▼
-Evaluation Infrastructure
-      │
-      ├── Claude Code runner ───────── ✅
-      ├── Task validation ──────────── ✅
-      ├── Tool / token logging ─────── ✅
-      └── JSONL results ────────────── ✅
-      │
-      ▼
-Evaluation Dataset
-      │
-      ├── Smoke ────────────────────── ✅
-      ├── Level 1 ──────────────────── ✅
-      ├── Level 2 ──────────────────── ✅
-      ├── Level 3 ──────────────────── ✅
-      ├── Level 4 ──────────────────── ✅
-      └── Level 5 ──────────────────── ✅
-      │
-      ▼
-Statistics / Analysis
-      │
-      └─────────────────────────────── ✅
-      │
-      ▼
-▶ Evaluation Run & Result Analysis ◀
-      │
-      ├── Success rate
-      ├── Level difficulty validation
-      ├── ast-tool adoption
-      ├── Command usage
-      ├── Workflow analysis
-      └── Failure analysis
-      │
-      ▼
-CLI / Skill Refinement
-      │
-      ├── Help / examples
-      ├── Skill wording
-      ├── Command discoverability
-      └── Output consistency
-      │
-      ▼
-Workspace Optimization
-      │
-      ├── Streaming
-      ├── Benchmark
-      └── Memory optimization
-      │
-      ▼
-Future
-      ├── Incremental analysis
-      ├── Filesystem watch
-      ├── Persistent cache
-      └── Semantic extensions
+ast-tool callers ...
+ast-tool references ...
+ast-tool search ...
+```
+
+のような個別 CLI invocation を比較。
+
+### Step 3
+
+内部 profiling を追加し、時間の内訳を取得。
+
+### Step 4
+
+最大の bottleneck を一つ選ぶ。
+
+### Step 5
+
+その bottleneck だけを最初に最適化。
+
+### Step 6
+
+再度 Agent Evaluation を実行。
+
+比較：
+
+```text
+success rate
+elapsed time
+tokens
+workflow length
+Grep usage
+Bash usage
+ast-tool usage
 ```
 
 ---
 
-# 現在の優先順位
+# 17. 高速化後に再評価するポイント
 
-| Priority | Item                                     | Status                   |
-| -------- | ---------------------------------------- | ------------------------ |
-| **S**    | AST / Semantic infrastructure            | ✅ Complete               |
-| **S**    | Semantic Services                        | ✅ Complete               |
-| **S**    | Semantic CLI                             | ✅ Complete               |
-| **S**    | Agent-facing Skills                      | ✅ Complete               |
-| **S**    | Evaluation runner / logging              | ✅ Complete               |
-| **S**    | Evaluation dataset (Smoke–Level 5)       | ✅ Complete               |
-| **S**    | Statistics / result analysis             | ✅ Complete               |
-| **A**    | **Full evaluation run**                  | **Next**                 |
-| **A**    | Level difficulty validation              | Next                     |
-| **A**    | ast-tool adoption analysis               | Next                     |
-| **A**    | Command / workflow analysis              | Next                     |
-| **A**    | Failure analysis                         | Next                     |
-| **A**    | CLI / Skill refinement based on evidence | After analysis           |
-| **A**    | Workspace streaming                      | Parallel technical topic |
-| **A**    | Memory / performance benchmark           | Streamingと併行 / 後         |
-| **B**    | Structured output consistency            | Evaluation後              |
-| **B**    | Tree-sitter Query                        | 未完だが低優先                  |
-| **C**    | Incremental analysis                     | Future                   |
-| **C**    | Filesystem watch                         | Future                   |
-| **C**    | Persistent cache                         | Future                   |
-| **C**    | External semantic providers              | Future                   |
-| **C**    | Additional semantic services             | Future                   |
+高速化後も単に、
+
+```text
+ast-tool command time
+```
+
+だけを見るのではなく、
+
+```text
+End-to-end evaluation time
+```
+
+を見る。
+
+最終的に重要なのは：
+
+```text
+ast-tool is fast
+```
+
+ではなく、
+
+```text
+Agent completes the task faster
+```
+
+です。
+
+成功パターンの理想形は：
+
+```text
+Without ast-tool
+
+Grep
+→ Read
+→ Grep
+→ Read
+→ Edit
+```
+
+が、
+
+```text
+With optimized ast-tool
+
+search
+→ callers / references
+→ Read
+→ Edit
+```
+
+となり、
+
+```text
+Grep ↓
+Bash ↓
+Workflow ↓
+Elapsed time ↓
+Token usage ↓ or neutral
+Success ↑ or unchanged
+```
+
+に近づくことです。
 
 ---
 
-# 現在地を一言でいうと
+# 18. 次回議論のスタート地点
 
-**「ast-tool を作るフェーズ」はほぼ終わり、現在は「ast-tool が Coding Agent の実作業で本当に使われ、役に立つことを測定するフェーズ」に入っています。**
+次回はこの状態から開始する。
 
-次の中心テーマは明確です。
-
-```text
-Evaluation Dataset
-        ↓
-Full Evaluation Run
-        ↓
-Statistics
-        ↓
-Failure / Workflow Analysis
-        ↓
-CLI / Skill Improvement
-```
-
-そして並行する技術テーマとして、
+## Current priority
 
 ```text
-analyze_workspace()
-        ↓
-Streaming / bounded-memory design
-        ↓
-Benchmark
-        ↓
-Memory optimization
+Tool-use analysis
+    → continue in parallel
+
+Performance
+    → highest priority
 ```
 
-があります。
+最初の問いは：
 
-したがって次の議論では、まず **Smoke〜Level 5 を実行した結果をどう評価するか、特に「ast-tool を使ったか」ではなく「どの難易度・どの種類の問題で、どの Semantic command が Agent の成功に寄与したか」を分析すること**が、最も自然な次のステップです。
+> **ast-tool 使用時に実行時間が倍近くになる原因は、ast-tool 自体の処理速度なのか、それとも Agent の追加 exploration behavior なのか？**
+
+この切り分けから始める。
+
+その後：
+
+```text
+1. Baseline benchmark
+
+2. Command-level profiling
+
+3. Identify bottleneck
+
+4. Optimize
+
+5. Re-run selected evaluations
+
+6. Compare end-to-end results
+
+7. Use detailed tool traces to understand
+   whether callers / callees cause repeated or unnecessary exploration
+```
+
+という順序で進める。
+
+---
+
+## 一言でいうと現在地
+
+```text
+Phase 1
+Architecture
+    ✓
+
+Phase 2
+Evaluation framework
+    ✓
+
+Phase 3
+Task generation / Level evaluation
+    ✓
+
+Phase 4
+With vs Without ast-tool comparison
+    ✓
+
+Phase 5
+Behavior analysis
+    → in progress
+    → detailed tool traces next
+
+Phase 6
+Performance optimization
+    → NEXT / highest priority
+
+Phase 7
+Re-evaluation after optimization
+    → pending
+```
+
+**次回は「なぜ遅いのか」を定量的に分解して、最大のボトルネックから高速化するところから再開。**
+その間、詳細な tool-use trace を使って、特に `callers` が「有益な semantic traversal」なのか「期待と違う結果による再試行・検証ループ」なのかを確認する、という進め方がよさそうです。

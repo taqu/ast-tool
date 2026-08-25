@@ -93,71 +93,46 @@ set(MIMALLOC_SOURCES
     "${MIMALLOC_SOURCE}/prim/prim.c")
 
 # re2
+if(MSVC)
 set(RE2_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/re2")
 set(RE2_INCLUDE ${RE2_ROOT}/include)
-if(MSVC)
 set(RE2_LIB ${RE2_ROOT}/lib/win)
-elseif(UNIX)
-set(RE2_LIB ${RE2_ROOT}/lib/linux)
-endif()
 include_directories(AFTER ${RE2_INCLUDE})
 link_directories(AFTER ${RE2_LIB})
 add_library(RE2 MODULE IMPORTED)
-if(MSVC)
 set_target_properties(RE2 PROPERTIES IMPORTED_LOCATION_DEBUG "re2d.lib" IMPORTED_LOCATION_RELEASE "re2.lib")
+
 elseif(UNIX)
-set_target_properties(RE2 PROPERTIES IMPORTED_LOCATION "${RE2_LIB}/libre2.a")
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(RE2 REQUIRED re2)
+include_directories(AFTER ${RE2_INCLUDE_DIRS})
 endif()
 
 # abseil
-set(ABSL_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/absl")
 if(MSVC)
+set(ABSL_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/absl")
 set(ABSL_INCLUDE ${ABSL_ROOT}/win/include)
 set(ABSL_LIB "${ABSL_ROOT}/win/lib")
 include("${ABSL_LIB}/absl_libs.cmake")
-elseif(UNIX)
-set(ABSL_INCLUDE ${ABSL_ROOT}/linux/include)
-set(ABSL_LIB "${ABSL_ROOT}/linux/lib")
-set(absl_DIR "${ABSL_LIB}/cmake/absl")
-find_package(absl REQUIRED)
-set(ABSL_DEPS
-    absl_absl_check
-    absl_absl_log
-    absl_base
-    absl_core_headers
-    absl_fixed_array
-    absl_flags
-    absl_flat_hash_map
-    absl_flat_hash_set
-    absl_hash
-    absl_inlined_vector
-    absl_optional
-    absl_span
-    absl_str_format
-    absl_strings
-    absl_synchronization
-    )
-endif()
-
 include_directories(AFTER ${ABSL_INCLUDE})
 link_directories(AFTER ${ABSL_LIB})
 
+elseif(UNIX)
+find_package(absl REQUIRED)
+endif()
+
 # libgit2
+if(MSVC)
 set(GIT2_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/libgit2")
 set(GIT2_INCLUDE ${GIT2_ROOT}/include)
-if(MSVC)
 set(GIT2_LIB "${GIT2_ROOT}/lib/win")
-elseif(UNIX)
-set(GIT2_LIB "${GIT2_ROOT}/lib/linux")
-find_package(ZLIB REQUIRED)
-endif()
 include_directories(AFTER ${GIT2_INCLUDE})
 link_directories(AFTER ${GIT2_LIB})
 add_library(GIT2 MODULE IMPORTED)
-if(MSVC)
 set_target_properties(GIT2 PROPERTIES IMPORTED_LOCATION_DEBUG "git2d.lib" IMPORTED_LOCATION_RELEASE "git2.lib")
+
 elseif(UNIX)
-set_target_properties(GIT2 PROPERTIES IMPORTED_LOCATION "${GIT2_LIB}/libgit2.a")
+pkg_check_modules(pkg_cfg_libgit2 REQUIRED IMPORTED_TARGET libgit2)
 endif()
 
 if(MSVC)
@@ -295,13 +270,8 @@ elseif(UNIX)
     target_compile_options(${PROJECT_NAME} PRIVATE "-Wall;-O3;-g;-march=x86-64-v3")
     target_link_libraries(${PROJECT_NAME}
         PRIVATE
-            TREESITTER ${TREESITTER_LANGS} RE2 GIT2 ZLIB::ZLIB
+            TREESITTER ${TREESITTER_LANGS} ${RE2_LIBRARIES} PkgConfig::pkg_cfg_libgit2 absl::log_initialize
             Threads::Threads)
-    #foreach(dep ${ABSL_DEPS})
-    #    string(PREPEND dep "^")
-    #    string(REGEX REPLACE "\\^absl_" "absl::" dep ${dep})
-    #    target_link_libraries(${PROJECT_NAME} PUBLIC ${dep})
-    #endforeach()
 elseif(APPLE)
 endif()
 
