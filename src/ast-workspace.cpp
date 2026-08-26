@@ -1,28 +1,28 @@
 #include "ast-workspace.h"
 #include "ast-cache-db.h"
 #include "ast-cache.h"
+#include "ast-extractor.h"
+#include "ast-ir.h"
+#include "ast-scope-builder.h"
+#include "ast-symbol-scope.h"
+#include "ast-tool.h"
 #include "xxhash.h"
 #include <algorithm>
 #include <filesystem>
-#include <unordered_set>
-#include "ast-tool.h"
-#include "ast-extractor.h"
-#include "ast-scope-builder.h"
-#include "ast-symbol-scope.h"
-#include "ast-ir.h"
 #include <git2/global.h>
-#include <git2/repository.h>
 #include <git2/ignore.h>
+#include <git2/repository.h>
+#include <unordered_set>
 #if defined(_WIN32) || defined(_WIN64)
-#  include <sys/stat.h>
-#  include <sys/types.h>
-#  define WS_STAT_STRUCT struct _stat64
-#  define WS_STAT_FUNC(path, buf) _stat64(path, buf)
+#    include <sys/stat.h>
+#    include <sys/types.h>
+#    define WS_STAT_STRUCT struct _stat64
+#    define WS_STAT_FUNC(path, buf) _stat64(path, buf)
 #else
-#  include <sys/stat.h>
-#  include <sys/types.h>
-#  define WS_STAT_STRUCT struct stat
-#  define WS_STAT_FUNC(path, buf) stat(path, buf)
+#    include <sys/stat.h>
+#    include <sys/types.h>
+#    define WS_STAT_STRUCT struct stat
+#    define WS_STAT_FUNC(path, buf) stat(path, buf)
 #endif
 
 namespace ast
@@ -59,19 +59,19 @@ Workspace& Workspace::operator=(Workspace&& other) noexcept
 {
     if(this != &other) {
         delete persistentCache_;
-        files                 = std::move(other.files);
-        symbols               = std::move(other.symbols);
-        deps                  = std::move(other.deps);
-        translationUnits      = std::move(other.translationUnits);
-        parsedCount           = other.parsedCount;
-        failedCount           = other.failedCount;
-        tuIndex_              = std::move(other.tuIndex_);
-        cacheHits_            = other.cacheHits_;
-        cacheMisses_          = other.cacheMisses_;
-        persistentCacheHits_  = other.persistentCacheHits_;
-        persistentCacheMisses_= other.persistentCacheMisses_;
-        workspaceRoot_        = std::move(other.workspaceRoot_);
-        persistentCache_      = other.persistentCache_;
+        files = std::move(other.files);
+        symbols = std::move(other.symbols);
+        deps = std::move(other.deps);
+        translationUnits = std::move(other.translationUnits);
+        parsedCount = other.parsedCount;
+        failedCount = other.failedCount;
+        tuIndex_ = std::move(other.tuIndex_);
+        cacheHits_ = other.cacheHits_;
+        cacheMisses_ = other.cacheMisses_;
+        persistentCacheHits_ = other.persistentCacheHits_;
+        persistentCacheMisses_ = other.persistentCacheMisses_;
+        workspaceRoot_ = std::move(other.workspaceRoot_);
+        persistentCache_ = other.persistentCache_;
         other.persistentCache_ = nullptr;
     }
     return *this;
@@ -85,7 +85,9 @@ namespace
 
     static std::u8string strip_delimiters(const std::u8string& s)
     {
-        if(s.size() >= 2) return s.substr(1, s.size() - 2);
+        if(s.size() >= 2) {
+            return s.substr(1, s.size() - 2);
+        }
         return s;
     }
 
@@ -105,12 +107,14 @@ namespace
             ASTNodeType t = node.type_;
 
             if(t == ASTNodeType::PreprocInclude) {
-                for(uintptr_t childIdx : node.children_) {
-                    if(childIdx == InvalidId) continue;
+                for(uintptr_t childIdx: node.children_) {
+                    if(childIdx == InvalidId) {
+                        continue;
+                    }
                     const ASTNode& child = ast[childIdx];
                     ASTNodeType ct = child.type_;
                     if(ct == ASTNodeType::StringLiteral
-                    || ct == ASTNodeType::SystemLibString) {
+                       || ct == ASTNodeType::SystemLibString) {
                         push(strip_delimiters(child.getText()));
                         break;
                     }
@@ -119,13 +123,15 @@ namespace
             }
 
             if(t == ASTNodeType::ImportStatement
-            || t == ASTNodeType::ImportFromStatement) {
-                for(uintptr_t childIdx : node.children_) {
-                    if(childIdx == InvalidId) continue;
+               || t == ASTNodeType::ImportFromStatement) {
+                for(uintptr_t childIdx: node.children_) {
+                    if(childIdx == InvalidId) {
+                        continue;
+                    }
                     const ASTNode& child = ast[childIdx];
                     ASTNodeType ct = child.type_;
                     if(ct == ASTNodeType::DottedName
-                    || ct == ASTNodeType::RelativeImport) {
+                       || ct == ASTNodeType::RelativeImport) {
                         push(child.getText());
                         break;
                     }
@@ -134,8 +140,10 @@ namespace
             }
 
             if(t == ASTNodeType::ImportStatement) {
-                for(uintptr_t childIdx : node.children_) {
-                    if(childIdx == InvalidId) continue;
+                for(uintptr_t childIdx: node.children_) {
+                    if(childIdx == InvalidId) {
+                        continue;
+                    }
                     const ASTNode& child = ast[childIdx];
                     if(child.type_ == ASTNodeType::String) {
                         push(strip_delimiters(child.getText()));
@@ -156,8 +164,10 @@ namespace
             }
 
             if(t == ASTNodeType::ImportSpec) {
-                for(uintptr_t childIdx : node.children_) {
-                    if(childIdx == InvalidId) continue;
+                for(uintptr_t childIdx: node.children_) {
+                    if(childIdx == InvalidId) {
+                        continue;
+                    }
                     const ASTNode& child = ast[childIdx];
                     if(child.type_ == ASTNodeType::InterpretedStringLiteral) {
                         push(strip_delimiters(child.getText()));
@@ -177,25 +187,26 @@ namespace
     AnalysisResult analyze_from_ast(AST&& ast, const std::filesystem::path& path)
     {
         AnalysisResult result;
-        if(!ast) return result;
+        if(!ast)
+            return result;
         result.parsed = true;
 
         std::vector<Symbol> syms = extract_symbols(ast);
         ScopeTree tree = build_scope_tree(ast);
         associate_symbols(tree, syms);
 
-        result.dependencies.file     = path;
+        result.dependencies.file = path;
         result.dependencies.includes = collect_includes(ast);
 
         result.symbols.reserve(syms.size());
         for(size_t i = 0; i < syms.size(); ++i) {
             uintptr_t scopeId = tree.getScopeOfSymbol(i);
-            ScopeKind owning  = (scopeId != ScopeTree::InvalidId)
-                              ? tree[scopeId].kind_
-                              : ScopeKind::Unknown;
+            ScopeKind owning = (scopeId != ScopeTree::InvalidId)
+                                   ? tree[scopeId].kind_
+                                   : ScopeKind::Unknown;
             WorkspaceSymbol wsym;
-            wsym.symbol      = syms[i];
-            wsym.sourceFile  = path;
+            wsym.symbol = syms[i];
+            wsym.sourceFile = path;
             wsym.owningScope = owning;
             result.symbols.push_back(std::move(wsym));
         }
@@ -217,8 +228,9 @@ namespace
     {
         WS_STAT_STRUCT st;
         std::string p = path.string();
-        if(WS_STAT_FUNC(p.c_str(), &st) != 0) return false;
-        outSize  = (int64_t)st.st_size;
+        if(WS_STAT_FUNC(p.c_str(), &st) != 0)
+            return false;
+        outSize = (int64_t)st.st_size;
         outMtime = (int64_t)st.st_mtime;
         return true;
     }
@@ -227,16 +239,19 @@ namespace
     uint64_t hash_file(const std::filesystem::path& path)
     {
         std::string p = path.string();
-        FILE* f = fopen(p.c_str(), "rb");
-        if(!f) return 0;
+        FILE* file = nullptr;
+        errno_t err = fopen_s(&file, p.c_str(), "rb");
+        if(0 != err) {
+            return 0;
+        }
         XXH64_state_t* state = XXH64_createState();
         XXH64_reset(state, 0);
         char buf[65536];
         size_t n;
-        while((n = fread(buf, 1, sizeof(buf), f)) > 0) {
+        while((n = fread(buf, 1, sizeof(buf), file)) > 0) {
             XXH64_update(state, buf, n);
         }
-        fclose(f);
+        fclose(file);
         uint64_t h = XXH64_digest(state);
         XXH64_freeState(state);
         return h;
@@ -258,8 +273,8 @@ namespace
         ws.tuIndex_[key] = ws.translationUnits.size();
         ws.deps.push_back(std::move(r.dependencies));
         ws.symbols.insert(ws.symbols.end(),
-            std::make_move_iterator(r.symbols.begin()),
-            std::make_move_iterator(r.symbols.end()));
+                          std::make_move_iterator(r.symbols.begin()),
+                          std::make_move_iterator(r.symbols.end()));
         ws.translationUnits.push_back(std::move(r.translationUnit));
     }
 
@@ -271,7 +286,7 @@ namespace
             return;
         }
         bool found = false;
-        for(WorkspaceSymbol& sym : r.symbols) {
+        for(WorkspaceSymbol& sym: r.symbols) {
             if(match(sym)) {
                 std::lock_guard lk(mu);
                 ws.symbols.push_back(std::move(sym));
@@ -279,7 +294,7 @@ namespace
             }
         }
 
-        if(found){
+        if(found) {
             std::lock_guard lk(mu);
             ++ws.parsedCount;
             ws.deps.push_back(std::move(r.dependencies));
@@ -295,21 +310,23 @@ namespace
     void sort_workspace(Workspace& ws)
     {
         std::sort(ws.translationUnits.begin(), ws.translationUnits.end(),
-            [](const TranslationUnit& a, const TranslationUnit& b) {
-                return a.path < b.path;
-            });
+                  [](const TranslationUnit& a, const TranslationUnit& b) {
+                      return a.path < b.path;
+                  });
 
         std::sort(ws.deps.begin(), ws.deps.end(),
-            [](const FileDependencies& a, const FileDependencies& b) {
-                return a.file < b.file;
-            });
+                  [](const FileDependencies& a, const FileDependencies& b) {
+                      return a.file < b.file;
+                  });
 
         std::sort(ws.symbols.begin(), ws.symbols.end(),
-            [](const WorkspaceSymbol& a, const WorkspaceSymbol& b) {
-                if(a.sourceFile != b.sourceFile) return a.sourceFile < b.sourceFile;
-                if(a.symbol.line != b.symbol.line) return a.symbol.line < b.symbol.line;
-                return a.symbol.column < b.symbol.column;
-            });
+                  [](const WorkspaceSymbol& a, const WorkspaceSymbol& b) {
+                      if(a.sourceFile != b.sourceFile)
+                          return a.sourceFile < b.sourceFile;
+                      if(a.symbol.line != b.symbol.line)
+                          return a.symbol.line < b.symbol.line;
+                      return a.symbol.column < b.symbol.column;
+                  });
     }
 
     // -----------------------------------------------------------------------
@@ -323,13 +340,15 @@ namespace
         Emit&& emit)
     {
         std::error_code ec;
-        for(const auto& entry : std::filesystem::directory_iterator(dir, ec)) {
-            if(ec) break;
+        for(const auto& entry: std::filesystem::directory_iterator(dir, ec)) {
+            if(ec)
+                break;
 
             if(matcher.valid()) {
                 std::error_code relEc;
                 std::filesystem::path rel = std::filesystem::relative(entry.path(), matcher.workdir(), relEc);
-                if(!relEc && matcher.isIgnored(rel)) continue;
+                if(!relEc && matcher.isIgnored(rel))
+                    continue;
             }
 
             std::error_code typeEc;
@@ -388,7 +407,8 @@ IgnoreMatcher::IgnoreMatcher(IgnoreMatcher&& other) noexcept
 IgnoreMatcher& IgnoreMatcher::operator=(IgnoreMatcher&& other) noexcept
 {
     if(this != &other) {
-        if(repo_) git_repository_free(static_cast<git_repository*>(repo_));
+        if(repo_)
+            git_repository_free(static_cast<git_repository*>(repo_));
         repo_ = other.repo_;
         workdir_ = std::move(other.workdir_);
         other.repo_ = nullptr;
@@ -408,11 +428,13 @@ const std::filesystem::path& IgnoreMatcher::workdir() const noexcept
 
 bool IgnoreMatcher::isIgnored(const std::filesystem::path& relativePath) const
 {
-    if(!repo_) return false;
+    if(!repo_)
+        return false;
 
     std::string relStr = relativePath.string();
-    for(char& c : relStr) {
-        if(c == '\\') c = '/';
+    for(char& c: relStr) {
+        if(c == '\\')
+            c = '/';
     }
 
     int ignored = 0;
@@ -427,11 +449,13 @@ bool IgnoreMatcher::isIgnored(const std::filesystem::path& relativePath) const
 std::vector<std::filesystem::path> scan_workspace(const char8_t* root)
 {
     std::vector<std::filesystem::path> files;
-    if(nullptr == root) return files;
+    if(nullptr == root)
+        return files;
 
     std::filesystem::path rootPath(root);
     std::error_code ec;
-    if(!std::filesystem::is_directory(rootPath, ec) || ec) return files;
+    if(!std::filesystem::is_directory(rootPath, ec) || ec)
+        return files;
 
     IgnoreMatcher matcher(rootPath);
     scan_recursive(rootPath, matcher, [&](std::filesystem::path p) {
@@ -443,11 +467,13 @@ std::vector<std::filesystem::path> scan_workspace(const char8_t* root)
 
 Workspace analyze_workspace(const char8_t* root)
 {
-    if(nullptr == root) return {};
+    if(nullptr == root)
+        return {};
 
     std::filesystem::path rootPath(root);
     std::error_code ec;
-    if(!std::filesystem::is_directory(rootPath, ec) || ec) return {};
+    if(!std::filesystem::is_directory(rootPath, ec) || ec)
+        return {};
 
     constexpr size_t kQueueCapacity = 256;
     BlockingQueue<std::filesystem::path> queue(kQueueCapacity);
@@ -467,13 +493,14 @@ Workspace analyze_workspace(const char8_t* root)
                 allFiles.push_back(p);
                 queue.push(std::move(p));
             });
-        } catch(...) {}
+        } catch(...) {
+        }
         queue.markDone();
     });
 
     // Workers: consume paths, analyze each file, immediately merge the result.
     const uint32_t hwThreads = ast::get_physical_core_count();
-    const uint32_t nWorkers  = std::max(1u, hwThreads);
+    const uint32_t nWorkers = std::max(1u, hwThreads);
 
     std::vector<std::thread> workers;
     workers.reserve(nWorkers);
@@ -494,7 +521,7 @@ Workspace analyze_workspace(const char8_t* root)
     }
 
     scanThread.join();
-    for(std::thread& w : workers) w.join();
+    for(std::thread& w: workers) w.join();
 
     std::sort(allFiles.begin(), allFiles.end());
     ws.files = std::move(allFiles);
@@ -506,7 +533,8 @@ Workspace analyze_workspace(const char8_t* root)
 Workspace analyze_files(const std::vector<std::filesystem::path>& files)
 {
     const size_t N = files.size();
-    if(N == 0) return {};
+    if(N == 0)
+        return {};
 
     constexpr size_t kQueueCapacity = 256;
     BlockingQueue<std::filesystem::path> queue(std::min(kQueueCapacity, N));
@@ -520,12 +548,12 @@ Workspace analyze_files(const std::vector<std::filesystem::path>& files)
 
     const uint32_t hwThreads = ast::get_physical_core_count();
     const size_t nWorkers = (hwThreads > 1 && N > 1)
-                          ? std::min(static_cast<size_t>(hwThreads), N)
-                          : 1;
+                                ? std::min(static_cast<size_t>(hwThreads), N)
+                                : 1;
 
     // Feed the input file list into the bounded queue.
     std::thread feeder([&]() noexcept {
-        for(const auto& p : files) {
+        for(const auto& p: files) {
             queue.push(p);
         }
         queue.markDone();
@@ -550,7 +578,7 @@ Workspace analyze_files(const std::vector<std::filesystem::path>& files)
     }
 
     feeder.join();
-    for(std::thread& w : workers) w.join();
+    for(std::thread& w: workers) w.join();
 
     sort_workspace(ws);
     return ws;
@@ -597,17 +625,17 @@ static void commit_result(const Workspace& ws, AnalysisResult&& r,
             }
             int64_t fsize = 0, fmtime = 0;
             get_file_stat_ws(path, fsize, fmtime);
-            e.source_size      = fsize;
-            e.source_mtime     = fmtime;
-            e.language         = static_cast<uint32_t>(ast.language());
-            e.format_version   = kAstCacheFormatVersion;
+            e.source_size = fsize;
+            e.source_mtime = fmtime;
+            e.language = static_cast<uint32_t>(ast.language());
+            e.format_version = kAstCacheFormatVersion;
             e.uncompressed_size = (int64_t)rawBytes.size();
             if(!compressed.empty() && compressed.size() < rawBytes.size()) {
                 e.compression = AstCompressionMode::LZ4;
-                e.blob        = std::move(compressed);
+                e.blob = std::move(compressed);
             } else {
                 e.compression = AstCompressionMode::None;
-                e.blob        = std::move(rawBytes);
+                e.blob = std::move(rawBytes);
             }
             ws.persistentCache_->store(path.string(), e);
         }
@@ -618,8 +646,8 @@ static void commit_result(const Workspace& ws, AnalysisResult&& r,
     ++ws.parsedCount;
     ws.deps.push_back(std::move(r.dependencies));
     ws.symbols.insert(ws.symbols.end(),
-        std::make_move_iterator(r.symbols.begin()),
-        std::make_move_iterator(r.symbols.end()));
+                      std::make_move_iterator(r.symbols.begin()),
+                      std::make_move_iterator(r.symbols.end()));
     ws.translationUnits.push_back(std::move(r.translationUnit));
 }
 
@@ -653,7 +681,7 @@ const TranslationUnit* Workspace::get_translation_unit(
                     valid = (curHash == e.source_hash && curHash != 0);
                     if(valid) {
                         // Update mtime/size in DB to restore fast path next time.
-                        e.source_size  = curSize;
+                        e.source_size = curSize;
                         e.source_mtime = curMtime;
                         persistentCache_->store(path.string(), e);
                     }
@@ -681,8 +709,8 @@ const TranslationUnit* Workspace::get_translation_unit(
                             ++parsedCount;
                             deps.push_back(std::move(r.dependencies));
                             symbols.insert(symbols.end(),
-                                std::make_move_iterator(r.symbols.begin()),
-                                std::make_move_iterator(r.symbols.end()));
+                                           std::make_move_iterator(r.symbols.begin()),
+                                           std::make_move_iterator(r.symbols.end()));
                             translationUnits.push_back(std::move(r.translationUnit));
                             return &translationUnits[idx];
                         }
@@ -711,7 +739,7 @@ const TranslationUnit* Workspace::get_translation_unit(
 
 void Workspace::ensure_all_loaded() const
 {
-    for(const std::filesystem::path& p : files) {
+    for(const std::filesystem::path& p: files) {
         get_translation_unit(p);
     }
 }

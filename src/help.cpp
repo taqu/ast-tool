@@ -692,7 +692,7 @@ void print_top_level_help()
                 fprintf(stdout, "\n  %s\n", kCategories[ci].label);
                 header_printed = true;
             }
-            fprintf(stdout, "    %-12s%s\n", kCommands[i].name, kCommands[i].summary);
+            fprintf(stdout, "    %-12s%s\n", (const char*)kCommands[i].name, (const char*)kCommands[i].summary);
         }
     }
 
@@ -720,7 +720,7 @@ void print_command_help(const char8_t* topic)
             return;
         }
     }
-    fprintf(stderr, "error: unknown help topic '%s'\n", topic);
+    fprintf(stderr, "error: unknown help topic '%s'\n", (const char*)topic);
     fprintf(stderr, "Run 'ast-tool help' to see available commands.\n");
 }
 

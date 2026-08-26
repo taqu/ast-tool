@@ -130,8 +130,9 @@ bool ASTCacheDatabase::lookup(const std::string& key, Entry& out) const
 
 bool ASTCacheDatabase::store(const std::string& key, const Entry& e)
 {
-    if(!db_)
+    if(!db_) {
         return false;
+    }
 
     const char* sql =
         "INSERT OR REPLACE INTO ast_cache"
@@ -141,8 +142,9 @@ bool ASTCacheDatabase::store(const std::string& key, const Entry& e)
 
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr);
-    if(rc != SQLITE_OK)
+    if(rc != SQLITE_OK) {
         return false;
+    }
 
     sqlite3_exec(db_, "BEGIN;", nullptr, nullptr, nullptr);
 
@@ -176,13 +178,13 @@ bool ASTCacheDatabase::store(const std::string& key, const Entry& e)
 
 void ASTCacheDatabase::remove(const std::string& key)
 {
-    if(!db_)
+    if(!db_) {
         return;
+    }
     sqlite3_stmt* stmt = nullptr;
-    if(sqlite3_prepare_v2(db_, "DELETE FROM ast_cache WHERE path = ?;",
-                          -1, &stmt, nullptr)
-       != SQLITE_OK)
+    if(sqlite3_prepare_v2(db_, "DELETE FROM ast_cache WHERE path = ?;", -1, &stmt, nullptr) != SQLITE_OK) {
         return;
+    }
     sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_STATIC);
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);

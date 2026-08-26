@@ -464,8 +464,9 @@ AST::AST(const char8_t* path)
         return;
     }
 
-    FILE* file = fopen(reinterpret_cast<const char*>(path), "rb");
-    if(nullptr == file) {
+    FILE* file = nullptr;
+    errno_t err = fopen_s(&file, reinterpret_cast<const char*>(path), "rb");
+    if(0 != err) {
         return;
     }
     language_ = get_language_type(path);
@@ -678,7 +679,7 @@ void AST::setHash(ASTNode& node)
 
 namespace
 {
-    const char* read_stream(void* payload, uint32_t byte_offset, TSPoint position, uint32_t* bytes_read)
+    const char* read_stream(void* payload, uint32_t byte_offset, TSPoint /*position*/, uint32_t* bytes_read)
     {
         FILE* file = (FILE*)payload;
         fseek(file, byte_offset, SEEK_SET);
@@ -688,7 +689,7 @@ namespace
         return (0 < read) ? buffer : NULL;
     }
 
-    void traverse_all_nodes(AST& ast, TSNode root)
+    void traverse_all_nodes(AST& /*ast*/, TSNode root)
     {
         TSTreeCursor cursor = ts_tree_cursor_new(root);
         bool reached_root = false;
@@ -696,7 +697,6 @@ namespace
         while(!reached_root) {
             // 1. Process the current node
             TSNode current_node = ts_tree_cursor_current_node(&cursor);
-            const ASTNode& astNode = ast.add(current_node);
 
             // 2. Try to move deeper to the first child
             if(ts_tree_cursor_goto_first_child(&cursor)) {
