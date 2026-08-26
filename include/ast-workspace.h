@@ -16,6 +16,9 @@
  * Each source file is parsed exactly once during workspace construction.
  * Semantic services receive the already-built TranslationUnit objects and
  * never re-parse files.
+ *
+ * ASTs are now loaded lazily per path via get_translation_unit(); use
+ * ensure_all_loaded() to force a full workspace load.
  */
 #include "ast-extractor.h"
 #include "ast-ir.h"
@@ -23,6 +26,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include <filesystem>
 #include <functional>
@@ -203,12 +207,39 @@ struct AnalysisResult
  */
 struct Workspace
 {
-    std::vector<std::filesystem::path> files;      ///< All discovered source files, sorted.
-    std::vector<WorkspaceSymbol> symbols;          ///< Flat symbol index (all files).
-    std::vector<FileDependencies> deps;            ///< Per-file direct include/import graph.
-    std::vector<TranslationUnit> translationUnits; ///< Primary ownership: one TU per parsed file.
-    uint32_t parsedCount = 0;                      ///< Number of files successfully parsed.
-    uint32_t failedCount = 0;                      ///< Number of files that failed to parse.
+    std::vector<std::filesystem::path> files;             ///< All discovered source files, sorted.
+    mutable std::vector<WorkspaceSymbol> symbols;         ///< Flat symbol index (all files).
+    mutable std::vector<FileDependencies> deps;           ///< Per-file direct include/import graph.
+    mutable std::vector<TranslationUnit> translationUnits;///< Primary ownership: one TU per parsed file.
+    mutable uint32_t parsedCount = 0;                     ///< Number of files successfully parsed.
+    mutable uint32_t failedCount = 0;                     ///< Number of files that failed to parse.
+
+    // -----------------------------------------------------------------------
+    // Lazy AST cache — keyed by normalised path string.
+    // Fields are mutable so that get_translation_unit() and ensure_all_loaded()
+    // can be called on a const Workspace& while updating the in-memory cache.
+    mutable std::unordered_map<std::u8string, size_t> tuIndex_; ///< path key -> index in translationUnits.
+    mutable uint32_t cacheHits_   = 0; ///< AST cache hits (instrumentation).
+    mutable uint32_t cacheMisses_ = 0; ///< AST cache misses (instrumentation).
+
+    /**
+     * @brief Returns the TranslationUnit for @p path, parsing lazily on first access.
+     *
+     * On the first call for a given path the file is parsed, the resulting TU is
+     * stored in translationUnits, and its symbols/deps are merged into the workspace.
+     * Subsequent calls for the same path return the cached TU without re-parsing.
+     *
+     * Returns nullptr when the path cannot be parsed.
+     */
+    const TranslationUnit* get_translation_unit(const std::filesystem::path& path) const;
+
+    /**
+     * @brief Ensures every file in @p files has been parsed and cached.
+     *
+     * Calls get_translation_unit() for each path that has not yet been loaded.
+     * After this call every entry in translationUnits, symbols, and deps is populated.
+     */
+    void ensure_all_loaded() const;
 };
 
 /**
@@ -247,5 +278,14 @@ Workspace analyze_workspace(const char8_t* root);
  * @param files Paths to source files.  Order is preserved in Workspace::files.
  */
 Workspace analyze_files(const std::vector<std::filesystem::path>& files);
+
+/**
+ * @brief Opens a workspace by scanning @p root for source files without parsing any of them.
+ *
+ * Returns a Workspace with @p files populated and @p parsedCount == 0.
+ * Call Workspace::get_translation_unit() or Workspace::ensure_all_loaded() to parse files
+ * on demand.  Returns an empty workspace if @p root is null or is not a directory.
+ */
+Workspace open_workspace(const char8_t* root);
 } // namespace ast
 #endif // INC_AST_WORKSPACE_H_

@@ -128,7 +128,8 @@ bool search(const ArgSearch& arguments)
         return false;
     }
 
-    Workspace ws = analyze_workspace(arguments.root_);
+    Workspace ws = open_workspace(arguments.root_);
+    ws.ensure_all_loaded();
     SemanticSearchEngine engine(ws);
     std::vector<const WorkspaceSymbol*> results = engine.search(*q);
 

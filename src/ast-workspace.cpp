@@ -156,6 +156,8 @@ namespace
             return;
         }
         ++ws.parsedCount;
+        std::u8string key = r.translationUnit.path.lexically_normal().u8string();
+        ws.tuIndex_[key] = ws.translationUnits.size();
         ws.deps.push_back(std::move(r.dependencies));
         ws.symbols.insert(ws.symbols.end(),
             std::make_move_iterator(r.symbols.begin()),
@@ -454,6 +456,52 @@ Workspace analyze_files(const std::vector<std::filesystem::path>& files)
 
     sort_workspace(ws);
     return ws;
+}
+
+Workspace open_workspace(const char8_t* root)
+{
+    Workspace ws;
+    ws.files = scan_workspace(root);
+    ws.translationUnits.reserve(ws.files.size());
+    ws.symbols.reserve(ws.files.size() * 8);
+    ws.deps.reserve(ws.files.size());
+    return ws;
+}
+
+const TranslationUnit* Workspace::get_translation_unit(
+    const std::filesystem::path& path) const
+{
+    std::u8string key = path.lexically_normal().u8string();
+
+    auto it = tuIndex_.find(key);
+    if(it != tuIndex_.end()) {
+        ++cacheHits_;
+        return &translationUnits[it->second];
+    }
+
+    ++cacheMisses_;
+    AnalysisResult r = analyze_one(path);
+    if(!r.parsed) {
+        ++failedCount;
+        return nullptr;
+    }
+
+    size_t idx = translationUnits.size();
+    tuIndex_[key] = idx;
+    ++parsedCount;
+    deps.push_back(std::move(r.dependencies));
+    symbols.insert(symbols.end(),
+        std::make_move_iterator(r.symbols.begin()),
+        std::make_move_iterator(r.symbols.end()));
+    translationUnits.push_back(std::move(r.translationUnit));
+    return &translationUnits[idx];
+}
+
+void Workspace::ensure_all_loaded() const
+{
+    for(const std::filesystem::path& p : files) {
+        get_translation_unit(p);
+    }
 }
 
 } // namespace ast

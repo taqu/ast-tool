@@ -1,964 +1,378 @@
-# Add Detailed Tool Use Logging to the Evaluation Runner
+# Task: Replace Eager Workspace AST Loading with Lazy Per-Path AST Loading
 
 ## Goal
 
-Add detailed tool-use tracing to the evaluation framework.
+Change the workspace analysis model so that ASTs are no longer parsed and loaded for the entire workspace before executing commands.
 
-The current evaluation results contain aggregate information such as:
+Current behavior:
 
-```text
-tool usage counts
-ast-tool command counts
-workflow
-token usage
-elapsed time
-validation result
-```
+    Workspace
+        ↓
+    Discover all files
+        ↓
+    Parse / build ASTs for all files
+        ↓
+    Keep all ASTs in memory
+        ↓
+    Execute commands such as find, search, references, callers, etc.
 
-This is useful for high-level comparison, but it is not sufficient to understand *why* a tool was called repeatedly.
+Target behavior:
 
-For example, the current data may show:
+    Workspace
+        ↓
+    Discover and register file paths
+        ↓
+    Do NOT parse all files eagerly
+        ↓
+    A command requests ASTs for specific paths
+        ↓
+    Parse and load ASTs lazily per path
+        ↓
+    Keep loaded ASTs in an in-memory cache
+        ↓
+    Reuse cached ASTs for subsequent commands
 
-```text
-callers: 42 calls
-```
-
-but does not reveal:
-
-```text
-Which symbol was passed to callers?
-
-What arguments were used?
-
-What result was returned?
-
-Did the agent call callers again with the same input?
-
-Did the agent switch to another tool after seeing the result?
-
-Was the output empty, unexpected, or ambiguous?
-```
-
-The goal of this change is to record individual tool invocations including:
-
-```text
-tool name
-tool input
-tool output
-timestamp or sequence number
-```
-
-This logging should make it possible to analyze tool-call behavior for individual evaluation tasks.
-
-The implementation does not need to enable detailed tracing for every evaluation run.
-
-It should support running and tracing one or a small number of specified tests.
+For this task, do NOT implement a database cache, persistent cache, daemon, or disk-based AST cache. The scope is limited to lazy AST loading and an in-memory per-path cache.
 
 ---
 
-# 1. Keep `results.jsonl` as the Summary Result
+## Design Requirements
 
-Do not replace the existing `results.jsonl` format.
+### 1. Workspace initialization must not parse the entire workspace
 
-It should continue to contain the high-level evaluation result for each task.
+The workspace should still:
+
+- discover source files
+- register file paths
+- determine language information if necessary
+- build lightweight metadata required for later access
+
+However, workspace initialization must not:
+
+- parse every source file
+- construct ASTs for every file
+- eagerly populate the semantic layer for the entire workspace
+
+The goal is to make workspace initialization lightweight.
+
+---
+
+### 2. Introduce lazy AST access by path
+
+Provide a single path-based mechanism for obtaining an AST.
+
+Conceptually:
+
+    get_ast(path)
+
+The implementation should:
+
+    request AST for path
+        ↓
+    check in-memory cache
+
+        cache hit
+            ↓
+        return existing AST
+
+        cache miss
+            ↓
+        parse source file
+            ↓
+        construct AST / AST IR
+            ↓
+        store in memory cache
+            ↓
+        return AST
+
+The command implementations should not need to know whether the AST was already loaded.
+
+They should use the workspace API rather than parsing files directly.
+
+---
+
+### 3. Use an in-memory cache keyed by file path
+
+Maintain an in-memory cache conceptually similar to:
+
+    path
+        →
+    loaded AST / AST IR
 
 For example:
 
-```json
-{
-  "task_id": "level2-004",
-  "success": true,
-  "elapsed_seconds": 181.52,
-  "tools": {
-    "Bash": 17,
-    "Read": 5,
-    "Edit": 6
-  },
-  "ast_tool": {
-    "search": 4,
-    "callers": 8,
-    "references": 1
-  }
-}
-```
+    ast_cache[path] = parsed AST
 
-Detailed tool traces should be stored separately.
+Requirements:
 
-Do not embed all tool outputs into `results.jsonl`, because this could make the summary file unnecessarily large.
+- repeated requests for the same unchanged path should reuse the same in-memory AST
+- parsing should happen at most once per path during a normal command sequence unless invalidation is required
+- path normalization should be handled consistently
+- avoid duplicate cache entries for equivalent paths
+
+Do not implement persistent storage in this task.
 
 ---
 
-# 2. Add Per-Task Trace Files
+### 4. Update commands to load ASTs on demand
 
-For a traced task, create a separate file.
+Update commands such as:
 
-Recommended directory structure:
+- find
+- search
+- references
+- callers
+- callees
+- symbols
+- outline
 
-```text
-results/
-├── results.jsonl
-│
-└── traces/
-    ├── level2-004.jsonl
-    ├── level2-008.jsonl
-    └── ...
-```
+so that they no longer depend on a fully preloaded workspace AST collection.
 
-Each line in the trace file should represent one event.
+The desired pattern is:
 
-The primary event type is:
+    command
+        ↓
+    determine relevant file path(s)
+        ↓
+    workspace.get_ast(path)
+        ↓
+    AST is loaded from memory cache or parsed
+        ↓
+    execute command logic
 
-```text
-tool_use
-```
-
-Example:
-
-```json
-{
-  "event": "tool_use",
-  "sequence": 12,
-  "timestamp": "2026-08-26T12:34:56.123Z",
-
-  "tool": "Bash",
-
-  "input": {
-    "command": "ast-tool callers greet"
-  },
-
-  "output": "...",
-
-  "success": true
-}
-```
-
-For an ast-tool invocation, the trace should preserve both the outer tool call and the semantic command if possible.
-
-For example:
-
-```json
-{
-  "event": "tool_use",
-  "sequence": 7,
-
-  "tool": "Bash",
-
-  "ast_tool": {
-    "command": "callers",
-    "arguments": {
-      "symbol": "greet"
-    }
-  },
-
-  "input": {
-    "command": "ast-tool callers greet"
-  },
-
-  "output": {
-    "..."
-  },
-
-  "success": true
-}
-```
-
-Adapt the exact schema to the actual runner and agent output.
-
-The important requirement is that the original input and output remain available.
+Do not reintroduce an implicit "load all ASTs" operation inside individual commands.
 
 ---
 
-# 3. Prefer Structured JSONL Trace Data
+### 5. Preserve existing architecture boundaries
 
-Use JSONL rather than a human-formatted text log.
+Keep the existing architectural direction:
 
-For example:
+    Tree-sitter
+        ↓
+    AST IR
+        ↓
+    Semantic Layer
+        ↓
+    Workspace Analysis
+        ↓
+    Semantic Services
+        ↓
+    CLI / Agent / IDE
 
-```text
-level2-004.jsonl
-```
+Tree-sitter should remain an implementation detail of parsing.
 
-```json
-{"event":"task_start","task_id":"level2-004"}
+Higher-level command and semantic code should not directly manage Tree-sitter parser instances if the existing architecture already abstracts that responsibility.
 
-{"event":"tool_use","sequence":1,"tool":"Read","input":{...},"output":{...}}
+The workspace should evolve from:
 
-{"event":"tool_use","sequence":2,"tool":"Bash","input":{...},"output":{...}}
+    Workspace = collection of all eagerly loaded ASTs
 
-{"event":"tool_use","sequence":3,"tool":"Bash","input":{...},"output":{...}}
+toward:
 
-{"event":"task_end","success":true}
-```
-
-Reasons:
-
-```text
-Easy to parse later
-Supports large outputs
-Allows event-by-event analysis
-Can be converted to CSV later
-Allows repeated tool-call detection
-```
-
-Do not store the trace only as formatted terminal text.
+    Workspace = file registry + lazy AST provider + in-memory AST cache
 
 ---
 
-# 4. Capture Tool Input Exactly
+## Important Scope Constraint
 
-The trace must preserve the actual tool input as closely as possible.
+Do not attempt to solve the full semantic indexing problem in this change.
 
-Examples:
+In particular, do NOT add:
 
-### Grep
+- SQLite
+- database-backed cache
+- persistent AST storage
+- serialized AST cache
+- daemon/server mode
+- JSON-RPC
+- long-lived external processes
+- a full workspace-wide precomputed symbol index
 
-```json
-{
-  "tool": "Grep",
-  "input": {
-    "pattern": "greet",
-    "path": "src"
-  }
-}
-```
+Those may be added later.
 
-### Read
+The purpose of this change is specifically to remove the eager:
 
-```json
-{
-  "tool": "Read",
-  "input": {
-    "file_path": "src/main.cpp"
-  }
-}
-```
+    parse entire workspace
 
-### Bash
+behavior and replace it with:
 
-```json
-{
-  "tool": "Bash",
-  "input": {
-    "command": "ast-tool callers greet"
-  }
-}
-```
-
-Do not reduce the input to only a summary such as:
-
-```text
-tool = Bash
-```
-
-The arguments are required for later analysis.
+    parse ASTs only when a path actually needs analysis
 
 ---
 
-# 5. Capture Tool Output
+## Handling Commands That Need Multiple Files
 
-Capture the tool output associated with each tool invocation.
+Some commands may require analysis of multiple files.
 
-For example:
+For those commands, it is acceptable to iterate over relevant paths:
 
-```json
-{
-  "tool": "Bash",
-  "input": {
-    "command": "ast-tool callers greet"
-  },
-  "output": {
-    "stdout": "...",
-    "stderr": "...",
-    "exit_code": 0
-  }
-}
-```
+    for path in candidate_paths:
+        ast = workspace.get_ast(path)
+        analyze(ast)
 
-If the actual agent runtime provides the output as a string or another structure, preserve the original structure where practical.
+However, avoid blindly loading every file unless the command genuinely requires a workspace-wide scan.
 
-Do not aggressively normalize away information that may be useful later.
+If a command currently requires a full workspace scan because there is no lightweight way to narrow candidate files, preserve correctness first.
 
-The trace is intended for debugging and behavioral analysis.
+Do not introduce incorrect filtering merely to reduce the number of parsed files.
+
+The primary improvement in this task is that:
+
+- workspace startup does not parse everything
+- AST parsing is demand-driven
+- already loaded ASTs are reused
+
+Further candidate indexing and persistent semantic indexes can be addressed later.
 
 ---
 
-# 6. Avoid Truncating Outputs by Default
+## Invalidation / File Changes
 
-Do not truncate tool outputs silently.
+Implement only the minimum invalidation behavior necessary for correctness.
 
-For the initial implementation, prefer preserving the complete output.
+At minimum, avoid returning a clearly stale AST if the underlying source file changes during the same process lifetime.
 
-If output size is a concern, support an explicit option such as:
+If the current architecture already has file modification tracking, integrate with it.
 
-```text
---max-trace-output-bytes
-```
+Do not build a complex dependency or incremental invalidation system in this task.
 
-For example:
-
-```bash
-python run_eval.py \
-    --task level2-004 \
-    --trace-tools \
-    --max-trace-output-bytes 50000
-```
-
-If truncation occurs, record it explicitly:
-
-```json
-{
-  "output_truncated": true,
-  "original_output_bytes": 183421
-}
-```
-
-Do not make a truncated output look complete.
+A simple and maintainable per-file invalidation strategy is sufficient.
 
 ---
 
-# 7. Record a Sequence Number
+## Suggested Internal Structure
 
-Every event within a task trace should have a monotonically increasing sequence number.
+The exact names should follow the existing codebase conventions, but the design should be approximately:
 
-For example:
+    Workspace
+    ├── file registry
+    │     └── known source paths
+    │
+    ├── AST cache
+    │     └── path -> AST / AST IR
+    │
+    └── get_ast(path)
+          ├── normalize path
+          ├── check cache
+          ├── validate cache entry if necessary
+          ├── parse on cache miss
+          ├── store result
+          └── return AST
 
-```text
-1  task_start
-2  Skill
-3  Bash
-4  Read
-5  Bash
-6  Bash
-7  Edit
-8  validation
-9  task_end
-```
-
-The sequence number is important because it allows later analysis of patterns such as:
-
-```text
-callers
-→ callers
-```
-
-or:
-
-```text
-callers
-→ Bash
-→ callers
-```
-
-Do not rely only on timestamps for ordering.
+Do not expose the cache implementation unnecessarily to higher layers.
 
 ---
 
-# 8. Record Timing Where Available
+## Performance Instrumentation
 
-If practical, record:
+Add lightweight timing or counters where useful so we can verify the effect of this change.
 
-```text
-start timestamp
-end timestamp
-duration
-```
+At minimum, make it possible to distinguish:
 
-for each tool call.
+- workspace initialization time
+- number of discovered files
+- number of files parsed
+- AST cache hits
+- AST cache misses
+- command execution time
 
-For example:
+The expected behavior should be:
 
-```json
-{
-  "event": "tool_use",
-  "sequence": 12,
+First command:
 
-  "started_at": "2026-08-26T12:34:56.100Z",
-  "ended_at": "2026-08-26T12:34:57.420Z",
+    workspace initialization
+        → fast
 
-  "duration_seconds": 1.32
-}
-```
+    command
+        → parse only required paths
 
-This is useful for determining whether ast-tool improves navigation latency or adds expensive investigation steps.
+Second command involving the same paths:
 
-Timing is optional if the underlying agent stream does not provide enough information.
+    AST cache hit
+        → no reparsing
 
-Do not block the implementation on precise timing support.
+This instrumentation should be lightweight and should not significantly complicate the public CLI output.
 
 ---
 
-# 9. Add Task-Level Trace Selection
+## Tests
 
-The evaluation runner should support tracing only selected tasks.
+Add or update tests covering the following behavior.
 
-Recommended examples:
+### Test 1: Workspace initialization is lazy
 
-```bash
-python run_eval.py \
-    --task level2-004 \
-    --trace-tools
-```
+Creating or opening a workspace should discover files without parsing every file.
 
-Support specifying multiple tasks if convenient:
+Verify that the parse count is zero, or equivalent, immediately after workspace initialization.
 
-```bash
-python run_eval.py \
-    --task level2-004 \
-    --task level2-008 \
-    --trace-tools
-```
+### Test 2: First AST access parses the file
 
-Alternatively, support:
+Requesting an AST for a path should parse that file and store it in the in-memory cache.
 
-```bash
---tasks level2-004,level2-008
-```
+### Test 3: Repeated AST access uses the cache
 
-Follow the existing CLI style.
+Requesting the same AST twice should not parse the file twice.
 
-The important requirement is that it must be easy to trace one task without rerunning the entire evaluation suite.
+Expected behavior:
 
----
+    get_ast(foo.cpp)
+        → parse count +1
 
-# 10. Optional: Separate Trace Script
+    get_ast(foo.cpp)
+        → parse count unchanged
 
-If modifying `run_eval.py` significantly would make it complicated, it is acceptable to implement a separate script.
+### Test 4: Different paths are loaded independently
 
-For example:
+Accessing:
 
-```text
-trace_eval.py
-```
+    foo.cpp
+    bar.cpp
 
-Usage:
+should parse only those two files.
 
-```bash
-python trace_eval.py \
-    --task level2-004 \
-    --output results/traces/level2-004.jsonl
-```
+Other workspace files should remain unloaded.
 
-The trace script should reuse as much of the existing evaluation execution logic as possible.
+### Test 5: Existing commands still work
 
-Do not duplicate the entire evaluation runner if shared functions can be extracted.
+Run existing tests for commands including, where applicable:
 
-A possible structure is:
+- find
+- search
+- references
+- callers
+- callees
+- symbols
+- outline
 
-```text
-eval_runner.py
-    load_task()
-    run_task()
-    validate_task()
-
-run_eval.py
-    normal evaluation mode
-
-trace_eval.py
-    detailed tool tracing mode
-```
-
-This separation is acceptable and may be cleaner.
+Ensure that their functional behavior remains correct after removing eager workspace AST loading.
 
 ---
 
-# 11. Capture Raw Agent Events When Possible
-
-If the coding agent runtime already exposes a stream of structured events, prefer recording those events before converting them into aggregate statistics.
-
-For example, if the runtime produces:
-
-```text
-assistant_message
-tool_use
-tool_result
-assistant_message
-```
-
-record enough information to reconstruct the sequence.
-
-For example:
-
-```json
-{
-  "event": "tool_use",
-  "sequence": 4,
-  "tool_use_id": "toolu_123",
-  "tool": "Bash",
-  "input": {
-    "command": "ast-tool callers greet"
-  }
-}
-```
-
-followed by:
-
-```json
-{
-  "event": "tool_result",
-  "sequence": 5,
-  "tool_use_id": "toolu_123",
-  "output": {
-    "stdout": "...",
-    "stderr": ""
-  }
-}
-```
-
-It is also acceptable to combine them into a single event if that better matches the existing runtime.
-
-The key requirement is that the input can be associated with the correct output.
-
----
-
-# 12. Record ast-tool Metadata When Detectable
-
-The trace system should detect ast-tool commands when possible.
-
-For example:
-
-```text
-ast-tool callers greet
-```
-
-should ideally be represented as:
-
-```json
-{
-  "tool": "Bash",
-
-  "ast_tool": {
-    "detected": true,
-    "command": "callers",
-    "raw_command": "ast-tool callers greet"
-  }
-}
-```
-
-If parsing the arguments is reliable:
-
-```json
-{
-  "ast_tool": {
-    "detected": true,
-    "command": "callers",
-    "arguments": {
-      "symbol": "greet"
-    }
-  }
-}
-```
-
-Do not attempt fragile parsing that could corrupt the original command.
-
-Always preserve:
-
-```text
-raw_command
-```
-
-even if structured argument extraction is implemented.
-
----
-
-# 13. Add a Trace Index
-
-When detailed tracing is enabled, optionally create an index file.
-
-For example:
-
-```text
-results/traces/index.jsonl
-```
-
-Example:
-
-```json
-{
-  "task_id": "level2-004",
-  "trace_file": "level2-004.jsonl",
-  "success": true,
-  "tool_calls": 27,
-  "ast_tool_calls": 8
-}
-```
-
-This is optional but useful when many traces exist.
-
----
-
-# 14. Include Task Start and End Metadata
-
-Each trace should include task-level metadata.
-
-Example:
-
-```json
-{
-  "event": "task_start",
-  "task_id": "level2-004",
-  "repository": "repositories/basic-01",
-  "agent": "claude",
-  "started_at": "..."
-}
-```
-
-At the end:
-
-```json
-{
-  "event": "task_end",
-  "task_id": "level2-004",
-  "success": true,
-  "elapsed_seconds": 181.52,
-  "validation_success": true
-}
-```
-
-This allows a trace file to be analyzed independently without needing to join against `results.jsonl`.
-
----
-
-# 15. Desired Future Analysis
-
-The trace format should support future analysis such as:
-
-## Repeated identical calls
-
-```text
-callers(foo)
-→ callers(foo)
-```
-
-Count:
-
-```text
-same tool
-+
-same normalized input
-```
-
----
-
-## Command transitions
-
-Build transitions such as:
-
-```text
-search
-→ callers
-
-callers
-→ callers
-
-callers
-→ Bash
-
-callers
-→ Read
-
-callers
-→ references
-```
-
----
-
-## Output-driven retries
-
-Detect patterns such as:
-
-```text
-callers(foo)
-→ output empty
-
-callers(foo)
-→ output empty
-```
-
-or:
-
-```text
-callers(foo)
-→ error
-
-callers(foo)
-→ modified argument
-
-callers(foo)
-```
-
----
-
-## Investigation loops
-
-For example:
-
-```text
-callers
-→ Read
-→ callers
-→ Bash
-→ callers
-```
-
----
-
-## Same-target repetition
-
-For example:
-
-```text
-callers(foo) × 5
-```
-
-versus:
-
-```text
-callers(foo)
-callers(bar)
-callers(baz)
-```
-
-These represent different behaviors and should be distinguishable.
-
----
-
-# 16. Suggested Trace Schema
-
-Use a schema conceptually similar to:
-
-```json
-{
-  "event": "tool_call",
-
-  "sequence": 7,
-
-  "tool": {
-    "name": "Bash"
-  },
-
-  "input": {
-    "command": "ast-tool callers greet"
-  },
-
-  "output": {
-    "stdout": "...",
-    "stderr": "",
-    "exit_code": 0
-  },
-
-  "ast_tool": {
-    "detected": true,
-    "command": "callers",
-    "raw_command": "ast-tool callers greet"
-  },
-
-  "success": true,
-
-  "duration_seconds": 0.42
-}
-```
-
-Do not require every field to exist.
-
-For example, some tools may not have:
-
-```text
-stdout
-stderr
-exit_code
-```
-
-The schema should support heterogeneous tools.
-
----
-
-# 17. Error Handling
-
-Tool failures must also be logged.
-
-For example:
-
-```json
-{
-  "event": "tool_call",
-  "sequence": 14,
-
-  "tool": {
-    "name": "Bash"
-  },
-
-  "input": {
-    "command": "ast-tool callers unknown_symbol"
-  },
-
-  "output": {
-    "stdout": "",
-    "stderr": "symbol not found",
-    "exit_code": 1
-  },
-
-  "success": false
-}
-```
-
-Do not omit failed tool calls.
-
-They may be particularly important when analyzing repeated invocations.
-
----
-
-# 18. Do Not Change Evaluation Behavior
-
-Detailed logging must be observational.
-
-It should not:
-
-```text
-change the prompt
-change agent instructions
-change timeout behavior
-change tool availability
-change validation behavior
-```
-
-The same task with and without tracing should execute under the same evaluation conditions, except for the additional logging overhead.
-
----
-
-# 19. Tests
-
-Add tests for at least:
-
-### Tool input/output recording
-
-Verify:
-
-```text
-tool input
-+
-tool output
-```
-
-are both written.
-
-### Sequence ordering
-
-Verify:
-
-```text
-sequence 1
-sequence 2
-sequence 3
-```
-
-is preserved.
-
-### Failed tool call
-
-Verify failed calls are logged.
-
-### ast-tool detection
-
-Verify:
-
-```text
-ast-tool callers greet
-```
-
-is detected as:
-
-```text
-command = callers
-```
-
-while preserving the raw command.
-
-### Trace disabled
-
-Verify normal evaluation does not generate detailed trace files unless tracing is requested.
-
-### Single task selection
-
-Verify:
-
-```bash
---task level2-004
-```
-
-does not run unrelated tasks.
-
----
-
-# 20. Acceptance Criteria
+## Acceptance Criteria
 
 The implementation is complete when:
 
-* [ ] A single evaluation task can be selected and executed.
-* [ ] Detailed tracing can be enabled explicitly.
-* [ ] Each tool invocation records its tool name.
-* [ ] Tool input is recorded.
-* [ ] Tool output is recorded.
-* [ ] Failed tool calls are recorded.
-* [ ] Events have deterministic sequence numbers.
-* [ ] ast-tool commands are detected when possible.
-* [ ] The original raw command/input is always preserved.
-* [ ] `results.jsonl` remains a compact summary file.
-* [ ] Detailed traces are stored separately per task.
-* [ ] Normal evaluation behavior remains unchanged when tracing is disabled.
-* [ ] The trace format can support repeated-call and command-transition analysis later.
-* [ ] Unit tests cover the core trace functionality.
+1. Opening a workspace does not parse the entire workspace.
+2. ASTs are loaded lazily by file path.
+3. Loaded ASTs are cached in memory.
+4. Repeated access to the same unchanged file reuses the cached AST.
+5. Commands can operate without assuming that all workspace ASTs already exist in memory.
+6. Existing command behavior remains correct.
+7. Tests demonstrate lazy loading and cache reuse.
+8. No database or persistent cache is introduced.
+9. Performance counters or equivalent instrumentation can confirm how many files were actually parsed.
 
 ---
 
-# Final Design Principle
+## Final Deliverables
 
-The purpose is not simply to produce more logs.
+After implementation, provide:
 
-The trace should allow us to reconstruct this kind of sequence:
+1. A summary of the architectural changes.
+2. The main files and components modified.
+3. A description of the new AST loading flow.
+4. Test results.
+5. Any commands that still require scanning many or all workspace paths, with an explanation of why.
 
-```text
-1. search("greet")
-   → found declaration and references
-
-2. callers("greet")
-   → unexpected result
-
-3. Bash(...)
-   → inspect files manually
-
-4. callers("greet")
-   → same query again
-
-5. references("greet")
-   → different result
-
-6. Read(src/main.cpp)
-
-7. Edit(src/main.cpp)
-```
-
-The resulting data should make it possible to distinguish:
-
-```text
-Normal semantic traversal
-```
-
-from:
-
-```text
-Repeated identical queries
-```
-
-from:
-
-```text
-Manual verification after an unexpected result
-```
-
-from:
-
-```text
-Tool errors or symbol resolution failures
-```
-
-This is the primary objective of detailed tool-use tracing.
+Focus on a minimal, clean architectural change. Do not over-engineer the cache or add persistent storage at this stage.

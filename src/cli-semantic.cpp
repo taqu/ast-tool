@@ -68,7 +68,8 @@ bool with_resolved_symbol(
     const char8_t* symbol,
     std::function<bool(Workspace&, const WorkspaceSymbol&)> op)
 {
-    Workspace ws = analyze_workspace(root);
+    Workspace ws = open_workspace(root);
+    ws.ensure_all_loaded();
     if(ws.parsedCount == 0 && ws.failedCount == 0) {
         std::print(stderr, "error: workspace at '{}' is empty or could not be analyzed\n",
                    reinterpret_cast<const char*>(root));

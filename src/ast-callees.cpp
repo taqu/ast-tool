@@ -44,11 +44,8 @@ std::vector<CallSite> Callees::find(const Workspace&       workspace,
 {
     std::vector<CallSite> results;
 
-    // Locate the TranslationUnit that owns the caller's source file.
-    const TranslationUnit* tu = nullptr;
-    for(const TranslationUnit& t : workspace.translationUnits) {
-        if(t.path == caller.sourceFile) { tu = &t; break; }
-    }
+    // Locate (or lazily load) the TranslationUnit that owns the caller's source file.
+    const TranslationUnit* tu = workspace.get_translation_unit(caller.sourceFile);
     if(!tu) return results;
 
     // Validate the AST node index stored in the caller's symbol.

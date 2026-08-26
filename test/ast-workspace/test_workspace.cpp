@@ -374,6 +374,98 @@ namespace
         return ok;
     }
 
+    bool test_open_workspace_is_lazy()
+    {
+        bool ok = true;
+        Workspace ws = open_workspace((const char8_t*)kWorkspaceRoot);
+
+        ok &= check(ws.files.size() >= 4, "open_workspace: discovers files");
+        ok &= check(ws.parsedCount == 0,  "open_workspace: parsedCount is 0 (no parsing yet)");
+        ok &= check(ws.failedCount == 0,  "open_workspace: failedCount is 0");
+        ok &= check(ws.translationUnits.empty(), "open_workspace: no TUs loaded yet");
+        ok &= check(ws.symbols.empty(),           "open_workspace: no symbols yet");
+        ok &= check(std::is_sorted(ws.files.begin(), ws.files.end()),
+                    "open_workspace: files are sorted");
+        return ok;
+    }
+
+    bool test_get_translation_unit_parses_on_miss()
+    {
+        bool ok = true;
+        Workspace ws = open_workspace((const char8_t*)kWorkspaceRoot);
+
+        // Pick the first file that was discovered.
+        if(ws.files.empty()) {
+            std::cerr << "    SKIP: no files in workspace\n";
+            return true;
+        }
+
+        const TranslationUnit* tu = ws.get_translation_unit(ws.files[0]);
+        ok &= check(tu != nullptr,          "get_translation_unit: returns non-null on valid path");
+        ok &= check(ws.parsedCount == 1,    "get_translation_unit: parsedCount is 1 after first access");
+        ok &= check(ws.cacheHits_ == 0,     "get_translation_unit: no cache hits yet");
+        ok &= check(ws.cacheMisses_ == 1,   "get_translation_unit: one cache miss");
+        return ok;
+    }
+
+    bool test_get_translation_unit_cache_reuse()
+    {
+        bool ok = true;
+        Workspace ws = open_workspace((const char8_t*)kWorkspaceRoot);
+
+        if(ws.files.empty()) {
+            std::cerr << "    SKIP: no files in workspace\n";
+            return true;
+        }
+
+        const TranslationUnit* tu1 = ws.get_translation_unit(ws.files[0]);
+        ok &= check(tu1 != nullptr,         "cache reuse: first access succeeds");
+        ok &= check(ws.parsedCount == 1,    "cache reuse: parsedCount == 1 after first access");
+
+        const TranslationUnit* tu2 = ws.get_translation_unit(ws.files[0]);
+        ok &= check(tu2 != nullptr,         "cache reuse: second access succeeds");
+        ok &= check(tu1 == tu2,             "cache reuse: same pointer returned (no re-parse)");
+        ok &= check(ws.parsedCount == 1,    "cache reuse: parsedCount still 1 (no re-parse)");
+        ok &= check(ws.cacheHits_ == 1,     "cache reuse: one cache hit recorded");
+        return ok;
+    }
+
+    bool test_get_translation_unit_independent_paths()
+    {
+        bool ok = true;
+        Workspace ws = open_workspace((const char8_t*)kWorkspaceRoot);
+
+        if(ws.files.size() < 2) {
+            std::cerr << "    SKIP: need at least 2 files\n";
+            return true;
+        }
+
+        ws.get_translation_unit(ws.files[0]);
+        ok &= check(ws.parsedCount == 1, "independent paths: first file parses one TU");
+
+        ws.get_translation_unit(ws.files[1]);
+        ok &= check(ws.parsedCount == 2, "independent paths: second file parses a second TU");
+
+        // All other files should remain unloaded.
+        ok &= check(ws.translationUnits.size() == 2,
+                    "independent paths: only 2 TUs loaded");
+        return ok;
+    }
+
+    bool test_ensure_all_loaded()
+    {
+        bool ok = true;
+        Workspace ws = open_workspace((const char8_t*)kWorkspaceRoot);
+        ok &= check(ws.parsedCount == 0, "ensure_all_loaded: starts lazy");
+
+        ws.ensure_all_loaded();
+        ok &= check(ws.parsedCount == ws.files.size(),
+                    "ensure_all_loaded: parsedCount == files.size() after full load");
+        ok &= check(!ws.symbols.empty(), "ensure_all_loaded: symbols populated");
+        ok &= check(!ws.translationUnits.empty(), "ensure_all_loaded: TUs populated");
+        return ok;
+    }
+
     struct TestCase { const char* name; bool(*fn)(); };
 
 } // namespace
@@ -381,6 +473,11 @@ namespace
 bool run_tests_workspace()
 {
     static const TestCase cases[] = {
+        {"open_workspace is lazy",              test_open_workspace_is_lazy},
+        {"get_translation_unit: parse on miss", test_get_translation_unit_parses_on_miss},
+        {"get_translation_unit: cache reuse",   test_get_translation_unit_cache_reuse},
+        {"get_translation_unit: independent paths", test_get_translation_unit_independent_paths},
+        {"ensure_all_loaded",                   test_ensure_all_loaded},
         {"scan workspace",             test_scan_workspace},
         {"scan null/invalid root",     test_scan_null_root},
         {"analyze: file counts",       test_analyze_workspace_counts},
