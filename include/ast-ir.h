@@ -29,6 +29,7 @@
 #include <vector>
 #include <type_traits>
 #include <tree_sitter/api.h>
+#include "ast-node-type.h"
 
 struct TSLanguage;
 
@@ -125,12 +126,10 @@ struct ASTText
  */
 struct ASTNode
 {
-    /** Compares type_ against @p type using exact string equality. */
-    bool typeEquals(const char* type) const;
-    bool typeEquals(const char8_t* type) const;
-    /** Compares grammar_type_ against @p type using exact string equality. */
-    bool grammarEquals(const char* type) const;
-    bool grammarEquals(const char8_t* type) const;
+    /** Compares type_ against @p t using enum identity. */
+    bool typeEquals(ASTNodeType t) const noexcept { return type_ == t; }
+    /** Compares grammar_type_ against @p t using enum identity. */
+    bool grammarEquals(ASTNodeType t) const noexcept { return grammar_type_ == t; }
     /** Copies this node's source text into a new std::string. */
     std::u8string getText() const;
 
@@ -139,8 +138,8 @@ struct ASTNode
     uint32_t  hash_;   ///< Hash derived from the owning file path, node type, and byte range; identifies structurally equivalent nodes.
     ASTFlag   flags_;  ///< Bitmask of ASTFlag values describing this node.
 
-    const char* type_;         ///< tree-sitter node type name.
-    const char* grammar_type_; ///< tree-sitter grammar type name.
+    ASTNodeType type_;         ///< Enum identifier for the tree-sitter node type name.
+    ASTNodeType grammar_type_; ///< Enum identifier for the tree-sitter grammar type name.
     ASTText     text_;         ///< Source text covered by this node.
 
     uint32_t startByte_; ///< Start offset of this node's text, in bytes, within the source file.
@@ -180,6 +179,8 @@ public:
     ~AST();
     AST(AST&& other);
     AST& operator=(AST&& other);
+    friend std::vector<uint8_t> ast_serialize(const AST& ast);
+    friend AST ast_deserialize(const uint8_t* data, size_t size);
 
     /** Returns true if the source text was loaded successfully. */
     operator bool() const;
@@ -205,6 +206,10 @@ public:
 private:
     AST(const AST&) = delete;
     AST& operator=(const AST&) = delete;
+    // Tag type + constructor used exclusively by ast_deserialize.
+    struct DeserializedTag {};
+    AST(DeserializedTag, ASTLanguage lang, uint32_t filepathHash, int64_t size, char* text,
+        std::vector<uintptr_t> ids, std::vector<ASTNode> nodes, uint32_t collisions);
     ASTText   get_string(uint32_t start, uint32_t end) const;
     uintptr_t find(uintptr_t id) const;
     bool      existsHash(uint32_t hash) const;

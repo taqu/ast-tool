@@ -1,21 +1,18 @@
 #include "ast-references.h"
 #include "ast-ir.h"
 #include "ast-resolver.h"
-#include <cstring>
 
 namespace ast
 {
 
 // Returns true if @p type names an identifier-like AST node across supported languages.
-static bool is_identifier_type(const char* type)
+static bool is_identifier_type(ASTNodeType type)
 {
-    if(!type)
-        return false;
-    return strcmp(type, "identifier") == 0
-           || strcmp(type, "type_identifier") == 0
-           || strcmp(type, "field_identifier") == 0
-           || strcmp(type, "namespace_identifier") == 0
-           || strcmp(type, "property_identifier") == 0;
+    return type == ASTNodeType::Identifier
+           || type == ASTNodeType::TypeIdentifier
+           || type == ASTNodeType::FieldIdentifier
+           || type == ASTNodeType::NamespaceIdentifier
+           || type == ASTNodeType::PropertyIdentifier;
 }
 
 // Returns true when @p a and @p b refer to the same declaration.

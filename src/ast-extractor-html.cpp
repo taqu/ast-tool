@@ -10,15 +10,6 @@ namespace extractor
 {
 namespace
 {
-    // ── Node type string constants (tree-sitter-html grammar) ────────────────
-    constexpr const char* k_start_tag              = "start_tag";
-    constexpr const char* k_self_closing_element   = "self_closing_element";
-    constexpr const char* k_tag_name               = "tag_name";
-    constexpr const char* k_attribute              = "attribute";
-    constexpr const char* k_attribute_name         = "attribute_name";
-    constexpr const char* k_attribute_value        = "attribute_value";
-    constexpr const char* k_quoted_attribute_value = "quoted_attribute_value";
-
     // Extract the attribute value text from an attribute node.
     // Handles both unquoted (attribute_value) and quoted (quoted_attribute_value
     // wrapping an inner attribute_value alias) forms.
@@ -27,10 +18,10 @@ namespace
         for(uintptr_t id : attrNode.children_) {
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
-            if(child.typeEquals(k_attribute_value))
+            if(child.typeEquals(ASTNodeType::AttributeValue))
                 return child.getText();
-            if(child.typeEquals(k_quoted_attribute_value)) {
-                const ast::ASTNode* inner = findChild(tree, child, (const char8_t*)k_attribute_value);
+            if(child.typeEquals(ASTNodeType::QuotedAttributeValue)) {
+                const ast::ASTNode* inner = findChild(tree, child, ASTNodeType::AttributeValue);
                 return inner ? inner->getText() : std::u8string();
             }
         }
@@ -69,8 +60,8 @@ std::vector<Symbol> extract_symbols_html(const ast::AST& tree)
         // and URL fragments (href="#foo"). FQN uses the '#' prefix to match
         // the canonical CSS/fragment selector syntax and to stay distinct from
         // custom-element names that happen to share the same string.
-        if(node.typeEquals(k_attribute)) {
-            const ast::ASTNode* nameNode = findChild(tree, node, (const char8_t*)k_attribute_name);
+        if(node.typeEquals(ASTNodeType::Attribute)) {
+            const ast::ASTNode* nameNode = findChild(tree, node, ASTNodeType::AttributeName);
             if(nameNode && nameNode->getText() == u8"id") {
                 std::u8string value = getAttrValue(tree, node);
                 if(!value.empty()) {
@@ -88,8 +79,8 @@ std::vector<Symbol> extract_symbols_html(const ast::AST& tree)
         // the closest SymbolKind. Deduplicated so each component name appears
         // once even when used many times in the document.
         // Matches both <my-elem>...</my-elem> (start_tag) and <my-elem/>.
-        if(node.typeEquals(k_start_tag) || node.typeEquals(k_self_closing_element)) {
-            const ast::ASTNode* tagNode = findChild(tree, node, (const char8_t*)k_tag_name);
+        if(node.typeEquals(ASTNodeType::StartTag) || node.typeEquals(ASTNodeType::SelfClosingElement)) {
+            const ast::ASTNode* tagNode = findChild(tree, node, ASTNodeType::TagName);
             if(tagNode) {
                 std::u8string name = tagNode->getText();
                 if(isCustomElement(name))

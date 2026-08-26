@@ -70,6 +70,12 @@ set(MAIN_SOURCES
     # Context export tests
     "${CMAKE_CURRENT_SOURCE_DIR}/ast-context-export/test_context_export.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/ast-context-export/test_context_export.cpp"
+    # ASTNodeType enum tests
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-node-type/test_node_type.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-node-type/test_node_type.cpp"
+    # AST cache tests
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-cache/test_cache.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-cache/test_cache.cpp"
 )
 
 source_group("include" FILES ${HEADERS})
@@ -88,7 +94,9 @@ add_executable(${PROJECT_NAME} ${FILES} ${MIMALLOC_SOURCES} ${XXHASH_SOURCES} ${
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 23)
 
 # Make test headers discoverable from any sub-directory
-target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(${PROJECT_NAME} PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../src")
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${DEFAULT_CXX_FLAGS} -DAST_TOOL_TEST")

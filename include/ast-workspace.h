@@ -35,6 +35,8 @@
 #include <deque>
 #include <thread>
 
+namespace ast { class ASTCacheDatabase; }
+
 namespace ast
 {
 // -----------------------------------------------------------------------
@@ -219,13 +221,26 @@ struct Workspace
     // Fields are mutable so that get_translation_unit() and ensure_all_loaded()
     // can be called on a const Workspace& while updating the in-memory cache.
     mutable std::unordered_map<std::u8string, size_t> tuIndex_; ///< path key -> index in translationUnits.
-    mutable uint32_t cacheHits_   = 0; ///< AST cache hits (instrumentation).
-    mutable uint32_t cacheMisses_ = 0; ///< AST cache misses (instrumentation).
+    mutable uint32_t cacheHits_           = 0; ///< Memory cache hits.
+    mutable uint32_t cacheMisses_         = 0; ///< Memory cache misses.
+    mutable uint32_t persistentCacheHits_ = 0; ///< SQLite cache hits.
+    mutable uint32_t persistentCacheMisses_ = 0; ///< SQLite cache misses.
+
+    std::filesystem::path    workspaceRoot_;    ///< Root passed to open_workspace / analyze_workspace.
+    mutable ASTCacheDatabase* persistentCache_ = nullptr; ///< Persistent cache; null if unavailable.
+
+    Workspace();
+    ~Workspace();
+    Workspace(Workspace&&) noexcept;
+    Workspace& operator=(Workspace&&) noexcept;
+    Workspace(const Workspace&) = delete;
+    Workspace& operator=(const Workspace&) = delete;
 
     /**
      * @brief Returns the TranslationUnit for @p path, parsing lazily on first access.
      *
-     * On the first call for a given path the file is parsed, the resulting TU is
+     * Lookup order: memory cache → SQLite persistent cache → Tree-sitter parse.
+     * On the first call for a given path the file is parsed (or loaded from cache),
      * stored in translationUnits, and its symbols/deps are merged into the workspace.
      * Subsequent calls for the same path return the cached TU without re-parsing.
      *

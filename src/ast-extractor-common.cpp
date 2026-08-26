@@ -5,7 +5,7 @@ namespace ast
 {
 namespace extractor
 {
-    const ast::ASTNode* findChild(const ast::AST& tree, const ast::ASTNode& node, const char8_t* type)
+    const ast::ASTNode* findChild(const ast::AST& tree, const ast::ASTNode& node, ASTNodeType type)
     {
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;

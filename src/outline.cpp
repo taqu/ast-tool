@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "ast-format.h"
+#include "ast-node-type.h"
 #include "ast-tool.h"
 
 namespace ast
@@ -59,7 +60,7 @@ namespace
         for(uint32_t i = 0; i < entry.depth_; ++i) {
             std::print("  ");
         }
-        std::print("{}", node.type_);
+        std::print("{}", ast_node_type_to_string(node.type_));
         if(node.children_.empty()) {
             std::u8string text = preview_text(node);
             if(!text.empty()) {

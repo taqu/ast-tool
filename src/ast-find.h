@@ -8,6 +8,7 @@
  */
 #include <cstdint>
 #include <vector>
+#include "ast-node-type.h"
 
 namespace ast
 {
@@ -17,15 +18,15 @@ struct ASTNode;
 /**
  * @brief A set of optional search filters, combined with logical AND.
  *
- * An unset filter (nullptr, or its associated has*_ flag left false) is not applied.
+ * An unset filter (ASTNodeType::Unknown, or its associated has*_ flag left false) is not applied.
  * New filters (hash, flags, byte range, parent id, child count, ...) can be added here
  * as additional optional fields without disturbing existing callers.
  */
 struct FindCriteria
 {
-    const char8_t* type_    = nullptr; ///< Match ASTNode::type_ exactly, if set.
-    const char8_t* grammar_ = nullptr; ///< Match ASTNode::grammar_type_ exactly, if set.
-    const char8_t* text_    = nullptr; ///< Match if the node's source text contains this substring, if set.
+    ASTNodeType type_    = ASTNodeType::Unknown; ///< Match ASTNode::type_ exactly, if set (Unknown = not set).
+    ASTNodeType grammar_ = ASTNodeType::Unknown; ///< Match ASTNode::grammar_type_ exactly, if set (Unknown = not set).
+    const char8_t* text_ = nullptr; ///< Match if the node's source text contains this substring, if set.
 
     uint32_t id_ = 0;     ///< Value to match against ASTNode::id_, if #hasId_.
     bool hasId_ = false;

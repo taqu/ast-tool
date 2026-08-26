@@ -20,6 +20,8 @@
 #include "ast-callees/test_callees.h"
 #include "ast-semantic-diff/test_semantic_diff.h"
 #include "ast-context-export/test_context_export.h"
+#include "ast-node-type/test_node_type.h"
+#include "ast-cache/test_cache.h"
 #include <cassert>
 #include <iostream>
 
@@ -54,6 +56,8 @@ int main(void)
     all_passed &= run_tests_callees();
     all_passed &= run_tests_semantic_diff();
     all_passed &= run_tests_context_export();
+    all_passed &= run_tests_node_type();
+    all_passed &= run_tests_cache();
 
     std::cout << "===================================================" << std::endl;
     std::cout << (all_passed ? "ALL TESTS PASSED" : "SOME TESTS FAILED") << std::endl;

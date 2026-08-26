@@ -1,5 +1,7 @@
 #include "ast-workspace.h"
-#include <cstring>
+#include "ast-cache-db.h"
+#include "ast-cache.h"
+#include "xxhash.h"
 #include <algorithm>
 #include <filesystem>
 #include <unordered_set>
@@ -11,9 +13,70 @@
 #include <git2/global.h>
 #include <git2/repository.h>
 #include <git2/ignore.h>
+#if defined(_WIN32) || defined(_WIN64)
+#  include <sys/stat.h>
+#  include <sys/types.h>
+#  define WS_STAT_STRUCT struct _stat64
+#  define WS_STAT_FUNC(path, buf) _stat64(path, buf)
+#else
+#  include <sys/stat.h>
+#  include <sys/types.h>
+#  define WS_STAT_STRUCT struct stat
+#  define WS_STAT_FUNC(path, buf) stat(path, buf)
+#endif
 
 namespace ast
 {
+
+// ── Workspace special members ─────────────────────────────────────────────────
+
+Workspace::Workspace() = default;
+
+Workspace::~Workspace()
+{
+    delete persistentCache_;
+}
+
+Workspace::Workspace(Workspace&& other) noexcept
+    : files(std::move(other.files))
+    , symbols(std::move(other.symbols))
+    , deps(std::move(other.deps))
+    , translationUnits(std::move(other.translationUnits))
+    , parsedCount(other.parsedCount)
+    , failedCount(other.failedCount)
+    , tuIndex_(std::move(other.tuIndex_))
+    , cacheHits_(other.cacheHits_)
+    , cacheMisses_(other.cacheMisses_)
+    , persistentCacheHits_(other.persistentCacheHits_)
+    , persistentCacheMisses_(other.persistentCacheMisses_)
+    , workspaceRoot_(std::move(other.workspaceRoot_))
+    , persistentCache_(other.persistentCache_)
+{
+    other.persistentCache_ = nullptr;
+}
+
+Workspace& Workspace::operator=(Workspace&& other) noexcept
+{
+    if(this != &other) {
+        delete persistentCache_;
+        files                 = std::move(other.files);
+        symbols               = std::move(other.symbols);
+        deps                  = std::move(other.deps);
+        translationUnits      = std::move(other.translationUnits);
+        parsedCount           = other.parsedCount;
+        failedCount           = other.failedCount;
+        tuIndex_              = std::move(other.tuIndex_);
+        cacheHits_            = other.cacheHits_;
+        cacheMisses_          = other.cacheMisses_;
+        persistentCacheHits_  = other.persistentCacheHits_;
+        persistentCacheMisses_= other.persistentCacheMisses_;
+        workspaceRoot_        = std::move(other.workspaceRoot_);
+        persistentCache_      = other.persistentCache_;
+        other.persistentCache_ = nullptr;
+    }
+    return *this;
+}
+
 namespace
 {
     // -----------------------------------------------------------------------
@@ -39,15 +102,15 @@ namespace
 
         for(uint32_t i = 0; i < ast.size(); ++i) {
             const ASTNode& node = ast[i];
-            const char* t = node.type_;
+            ASTNodeType t = node.type_;
 
-            if(0 == ::strcmp(t, "preproc_include")) {
+            if(t == ASTNodeType::PreprocInclude) {
                 for(uintptr_t childIdx : node.children_) {
                     if(childIdx == InvalidId) continue;
                     const ASTNode& child = ast[childIdx];
-                    const char* ct = child.type_;
-                    if(0 == ::strcmp(ct, "string_literal")
-                    || 0 == ::strcmp(ct, "system_lib_string")) {
+                    ASTNodeType ct = child.type_;
+                    if(ct == ASTNodeType::StringLiteral
+                    || ct == ASTNodeType::SystemLibString) {
                         push(strip_delimiters(child.getText()));
                         break;
                     }
@@ -55,14 +118,14 @@ namespace
                 continue;
             }
 
-            if(0 == ::strcmp(t, "import_statement")
-            || 0 == ::strcmp(t, "import_from_statement")) {
+            if(t == ASTNodeType::ImportStatement
+            || t == ASTNodeType::ImportFromStatement) {
                 for(uintptr_t childIdx : node.children_) {
                     if(childIdx == InvalidId) continue;
                     const ASTNode& child = ast[childIdx];
-                    const char* ct = child.type_;
-                    if(0 == ::strcmp(ct, "dotted_name")
-                    || 0 == ::strcmp(ct, "relative_import")) {
+                    ASTNodeType ct = child.type_;
+                    if(ct == ASTNodeType::DottedName
+                    || ct == ASTNodeType::RelativeImport) {
                         push(child.getText());
                         break;
                     }
@@ -70,11 +133,11 @@ namespace
                 continue;
             }
 
-            if(0 == ::strcmp(t, "import_statement")) {
+            if(t == ASTNodeType::ImportStatement) {
                 for(uintptr_t childIdx : node.children_) {
                     if(childIdx == InvalidId) continue;
                     const ASTNode& child = ast[childIdx];
-                    if(0 == ::strcmp(child.type_, "string")) {
+                    if(child.type_ == ASTNodeType::String) {
                         push(strip_delimiters(child.getText()));
                         break;
                     }
@@ -82,21 +145,21 @@ namespace
                 continue;
             }
 
-            if(0 == ::strcmp(t, "use_declaration")) {
+            if(t == ASTNodeType::UseDeclaration) {
                 push(node.getText());
                 continue;
             }
 
-            if(0 == ::strcmp(t, "import_declaration")) {
+            if(t == ASTNodeType::ImportDeclaration) {
                 push(node.getText());
                 continue;
             }
 
-            if(0 == ::strcmp(t, "import_spec")) {
+            if(t == ASTNodeType::ImportSpec) {
                 for(uintptr_t childIdx : node.children_) {
                     if(childIdx == InvalidId) continue;
                     const ASTNode& child = ast[childIdx];
-                    if(0 == ::strcmp(child.type_, "interpreted_string_literal")) {
+                    if(child.type_ == ASTNodeType::InterpretedStringLiteral) {
                         push(strip_delimiters(child.getText()));
                         break;
                     }
@@ -109,15 +172,12 @@ namespace
     }
 
     // -----------------------------------------------------------------------
-    // Per-file analysis — returns an owned result; safe to call concurrently.
+    // Per-file analysis — builds scope/symbol layers from an already-parsed AST.
     // -----------------------------------------------------------------------
-    AnalysisResult analyze_one(const std::filesystem::path& path)
+    AnalysisResult analyze_from_ast(AST&& ast, const std::filesystem::path& path)
     {
         AnalysisResult result;
-
-        AST ast = parse(path.u8string().c_str());
         if(!ast) return result;
-
         result.parsed = true;
 
         std::vector<Symbol> syms = extract_symbols(ast);
@@ -142,6 +202,44 @@ namespace
 
         result.translationUnit = {std::move(ast), std::move(tree), std::move(syms), path};
         return result;
+    }
+
+    AnalysisResult analyze_one(const std::filesystem::path& path)
+    {
+        return analyze_from_ast(parse(path.u8string().c_str()), path);
+    }
+
+    // -----------------------------------------------------------------------
+    // File metadata helpers for cache invalidation.
+    // -----------------------------------------------------------------------
+
+    bool get_file_stat_ws(const std::filesystem::path& path, int64_t& outSize, int64_t& outMtime)
+    {
+        WS_STAT_STRUCT st;
+        std::string p = path.string();
+        if(WS_STAT_FUNC(p.c_str(), &st) != 0) return false;
+        outSize  = (int64_t)st.st_size;
+        outMtime = (int64_t)st.st_mtime;
+        return true;
+    }
+
+    // Compute XXH64 of file content. Returns 0 on failure.
+    uint64_t hash_file(const std::filesystem::path& path)
+    {
+        std::string p = path.string();
+        FILE* f = fopen(p.c_str(), "rb");
+        if(!f) return 0;
+        XXH64_state_t* state = XXH64_createState();
+        XXH64_reset(state, 0);
+        char buf[65536];
+        size_t n;
+        while((n = fread(buf, 1, sizeof(buf), f)) > 0) {
+            XXH64_update(state, buf, n);
+        }
+        fclose(f);
+        uint64_t h = XXH64_digest(state);
+        XXH64_freeState(state);
+        return h;
     }
 
     // -----------------------------------------------------------------------
@@ -461,6 +559,19 @@ Workspace analyze_files(const std::vector<std::filesystem::path>& files)
 Workspace open_workspace(const char8_t* root)
 {
     Workspace ws;
+    if(root) {
+        ws.workspaceRoot_ = std::filesystem::path(root);
+        std::filesystem::path cacheDir = ws.workspaceRoot_ / ".ast-tool";
+        std::error_code ec;
+        std::filesystem::create_directories(cacheDir, ec);
+        if(!ec) {
+            ws.persistentCache_ = new ASTCacheDatabase();
+            if(!ws.persistentCache_->open(cacheDir / "ast-cache.db")) {
+                delete ws.persistentCache_;
+                ws.persistentCache_ = nullptr;
+            }
+        }
+    }
     ws.files = scan_workspace(root);
     ws.translationUnits.reserve(ws.files.size());
     ws.symbols.reserve(ws.files.size() * 8);
@@ -468,33 +579,134 @@ Workspace open_workspace(const char8_t* root)
     return ws;
 }
 
+// Store an AnalysisResult into the workspace's lazy caches (memory + persistent).
+// All modified fields are mutable, so const Workspace& is valid here.
+static void commit_result(const Workspace& ws, AnalysisResult&& r,
+                          const std::u8string& key, const std::filesystem::path& path)
+{
+    // Persistent cache store.
+    if(ws.persistentCache_ && ws.persistentCache_->is_open()) {
+        const AST& ast = r.translationUnit.ast;
+        std::vector<uint8_t> rawBytes = ast_serialize(ast);
+        if(!rawBytes.empty()) {
+            std::vector<uint8_t> compressed = ast_lz4_compress(rawBytes.data(), rawBytes.size());
+            ASTCacheDatabase::Entry e;
+            // Compute source hash from source text.
+            if(ast.text() && ast.text_size() > 0) {
+                e.source_hash = XXH64(ast.text(), (size_t)ast.text_size(), 0);
+            }
+            int64_t fsize = 0, fmtime = 0;
+            get_file_stat_ws(path, fsize, fmtime);
+            e.source_size      = fsize;
+            e.source_mtime     = fmtime;
+            e.language         = static_cast<uint32_t>(ast.language());
+            e.format_version   = kAstCacheFormatVersion;
+            e.uncompressed_size = (int64_t)rawBytes.size();
+            if(!compressed.empty() && compressed.size() < rawBytes.size()) {
+                e.compression = AstCompressionMode::LZ4;
+                e.blob        = std::move(compressed);
+            } else {
+                e.compression = AstCompressionMode::None;
+                e.blob        = std::move(rawBytes);
+            }
+            ws.persistentCache_->store(path.string(), e);
+        }
+    }
+
+    size_t idx = ws.translationUnits.size();
+    ws.tuIndex_[key] = idx;
+    ++ws.parsedCount;
+    ws.deps.push_back(std::move(r.dependencies));
+    ws.symbols.insert(ws.symbols.end(),
+        std::make_move_iterator(r.symbols.begin()),
+        std::make_move_iterator(r.symbols.end()));
+    ws.translationUnits.push_back(std::move(r.translationUnit));
+}
+
 const TranslationUnit* Workspace::get_translation_unit(
     const std::filesystem::path& path) const
 {
     std::u8string key = path.lexically_normal().u8string();
 
+    // 1. Memory cache.
     auto it = tuIndex_.find(key);
     if(it != tuIndex_.end()) {
         ++cacheHits_;
         return &translationUnits[it->second];
     }
-
     ++cacheMisses_;
+
+    // 2. Persistent SQLite cache.
+    if(persistentCache_ && persistentCache_->is_open()) {
+        ASTCacheDatabase::Entry e;
+        if(persistentCache_->lookup(path.string(), e)) {
+            bool valid = (e.format_version == kAstCacheFormatVersion);
+            if(valid) {
+                // Fast path: mtime + size match.
+                int64_t curSize = 0, curMtime = 0;
+                bool statOk = get_file_stat_ws(path, curSize, curMtime);
+                if(statOk && curSize == e.source_size && curMtime == e.source_mtime) {
+                    // Trusted hit — decompress and deserialize.
+                } else if(statOk) {
+                    // Slow path: content hash check.
+                    uint64_t curHash = hash_file(path);
+                    valid = (curHash == e.source_hash && curHash != 0);
+                    if(valid) {
+                        // Update mtime/size in DB to restore fast path next time.
+                        e.source_size  = curSize;
+                        e.source_mtime = curMtime;
+                        persistentCache_->store(path.string(), e);
+                    }
+                } else {
+                    valid = false;
+                }
+            }
+            if(valid && !e.blob.empty()) {
+                // Decompress if needed.
+                std::vector<uint8_t> raw;
+                if(e.compression == AstCompressionMode::LZ4) {
+                    raw = ast_lz4_decompress(e.blob.data(), e.blob.size(),
+                                             (size_t)e.uncompressed_size);
+                } else {
+                    raw = std::move(e.blob);
+                }
+                if(!raw.empty()) {
+                    AST deserialized = ast_deserialize(raw.data(), raw.size());
+                    if(deserialized) {
+                        ++persistentCacheHits_;
+                        AnalysisResult r = analyze_from_ast(std::move(deserialized), path);
+                        if(r.parsed) {
+                            size_t idx = translationUnits.size();
+                            tuIndex_[key] = idx;
+                            ++parsedCount;
+                            deps.push_back(std::move(r.dependencies));
+                            symbols.insert(symbols.end(),
+                                std::make_move_iterator(r.symbols.begin()),
+                                std::make_move_iterator(r.symbols.end()));
+                            translationUnits.push_back(std::move(r.translationUnit));
+                            return &translationUnits[idx];
+                        }
+                    }
+                }
+                // Deserialization failed: evict the corrupt entry.
+                persistentCache_->remove(path.string());
+            } else if(!valid) {
+                persistentCache_->remove(path.string());
+            }
+        }
+        ++persistentCacheMisses_;
+    }
+
+    // 3. Parse fresh with Tree-sitter.
     AnalysisResult r = analyze_one(path);
     if(!r.parsed) {
         ++failedCount;
         return nullptr;
     }
 
-    size_t idx = translationUnits.size();
-    tuIndex_[key] = idx;
-    ++parsedCount;
-    deps.push_back(std::move(r.dependencies));
-    symbols.insert(symbols.end(),
-        std::make_move_iterator(r.symbols.begin()),
-        std::make_move_iterator(r.symbols.end()));
-    translationUnits.push_back(std::move(r.translationUnit));
-    return &translationUnits[idx];
+    // Store in persistent cache + memory cache.
+    commit_result(*this, std::move(r), key, path);
+    return &translationUnits[tuIndex_[key]];
 }
 
 void Workspace::ensure_all_loaded() const

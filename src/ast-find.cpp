@@ -28,10 +28,10 @@ namespace
 
 bool matches(const ASTNode& node, const FindCriteria& criteria)
 {
-    if(nullptr != criteria.type_ && !node.typeEquals(criteria.type_)) {
+    if(criteria.type_ != ASTNodeType::Unknown && !node.typeEquals(criteria.type_)) {
         return false;
     }
-    if(nullptr != criteria.grammar_ && !node.grammarEquals(criteria.grammar_)) {
+    if(criteria.grammar_ != ASTNodeType::Unknown && !node.grammarEquals(criteria.grammar_)) {
         return false;
     }
     if(criteria.hasId_ && node.hash_ != criteria.id_) {

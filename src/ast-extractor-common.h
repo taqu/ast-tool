@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include "ast-extractor.h"
+#include "ast-node-type.h"
 
 namespace ast
 {
@@ -23,7 +24,7 @@ namespace extractor
 
     // Returns the first direct child of `node` whose type equals `type`,
     // or nullptr if none is found.
-    const ast::ASTNode* findChild(const ast::AST& tree, const ast::ASTNode& node, const char8_t* type);
+    const ast::ASTNode* findChild(const ast::AST& tree, const ast::ASTNode& node, ASTNodeType type);
 
     // Returns true if any direct child of `node` has text exactly equal to `text`.
     bool childHasText(const ast::AST& tree, const ast::ASTNode& node, const char8_t* text);

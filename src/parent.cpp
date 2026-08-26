@@ -6,6 +6,7 @@
 #include <print>
 #include <string>
 #include "ast-format.h"
+#include "ast-node-type.h"
 #include "ast-tool.h"
 
 namespace ast
@@ -25,7 +26,7 @@ namespace
 
     void format_match(const ASTNode& node)
     {
-        std::print("{:X} {} @{}:{}", node.hash_, node.type_, node.start_.row_ + 1, node.start_.column_ + 1);
+        std::print("{:X} {} @{}:{}", node.hash_, ast_node_type_to_string(node.type_), node.start_.row_ + 1, node.start_.column_ + 1);
         std::u8string text = preview_text(node);
         if(!text.empty()) {
             std::print(" \"{}\"", (const char*)text.c_str());

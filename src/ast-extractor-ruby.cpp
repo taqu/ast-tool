@@ -11,20 +11,6 @@ namespace extractor
 {
 namespace
 {
-    // ── Node type string constants (tree-sitter-ruby grammar) ────────────────
-    constexpr const char* k_class            = "class";
-    constexpr const char* k_module           = "module";
-    constexpr const char* k_method           = "method";
-    constexpr const char* k_singleton_method = "singleton_method";
-    constexpr const char* k_assignment       = "assignment";
-    constexpr const char* k_call             = "call";
-    constexpr const char* k_identifier       = "identifier";
-    constexpr const char* k_constant         = "constant";
-    constexpr const char* k_global_variable  = "global_variable";
-    constexpr const char* k_class_variable   = "class_variable";
-    constexpr const char* k_argument_list    = "argument_list";
-    constexpr const char* k_simple_symbol    = "simple_symbol";
-
     // ── Low-level helpers ─────────────────────────────────────────────────────
 
     // Strip the leading ':' from a Ruby symbol literal (":foo" → "foo").
@@ -58,7 +44,7 @@ namespace
     // (Thin wrapper kept local so this file needs no extra #includes.)
     const ast::ASTNode* firstChildOfType(const ast::AST& tree,
                                           const ast::ASTNode& node,
-                                          const char8_t* type)
+                                          ASTNodeType type)
     {
         return findChild(tree, node, type);
     }
@@ -101,8 +87,8 @@ std::vector<Symbol> extract_symbols_ruby(const ast::AST& tree)
         // ── Class definition ──────────────────────────────────────────────────
         // Ruby classes default to public access; the isAccessAware flag enables
         // tracking of subsequent private/protected declarations in this scope.
-        if(node.typeEquals(k_class)) {
-            const ast::ASTNode* name_node = firstChildOfType(tree, node, (const char8_t*)k_constant);
+        if(node.typeEquals(ASTNodeType::Class)) {
+            const ast::ASTNode* name_node = firstChildOfType(tree, node, ASTNodeType::Constant);
             if(name_node) {
                 std::u8string name = name_node->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
@@ -115,8 +101,8 @@ std::vector<Symbol> extract_symbols_ruby(const ast::AST& tree)
         }
 
         // ── Module definition ─────────────────────────────────────────────────
-        if(node.typeEquals(k_module)) {
-            const ast::ASTNode* name_node = firstChildOfType(tree, node, (const char8_t*)k_constant);
+        if(node.typeEquals(ASTNodeType::Module)) {
+            const ast::ASTNode* name_node = firstChildOfType(tree, node, ASTNodeType::Constant);
             if(name_node) {
                 std::u8string name = name_node->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
@@ -130,8 +116,8 @@ std::vector<Symbol> extract_symbols_ruby(const ast::AST& tree)
 
         // ── Instance method (def name … end) ─────────────────────────────────
         // `initialize` is the Ruby constructor.
-        if(node.typeEquals(k_method)) {
-            const ast::ASTNode* name_node = firstChildOfType(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::Method)) {
+            const ast::ASTNode* name_node = firstChildOfType(tree, node, ASTNodeType::Identifier);
             if(name_node) {
                 std::u8string name = name_node->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
@@ -150,8 +136,8 @@ std::vector<Symbol> extract_symbols_ruby(const ast::AST& tree)
 
         // ── Singleton method (def self.name … end) ────────────────────────────
         // These are class-level methods (analogous to static methods).
-        if(node.typeEquals(k_singleton_method)) {
-            const ast::ASTNode* name_node = firstChildOfType(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::SingletonMethod)) {
+            const ast::ASTNode* name_node = firstChildOfType(tree, node, ASTNodeType::Identifier);
             if(name_node) {
                 std::u8string name = name_node->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
@@ -169,19 +155,19 @@ std::vector<Symbol> extract_symbols_ruby(const ast::AST& tree)
         // Emits constants (ALL_CAPS or CamelCase LHS), global variables ($foo),
         // and class variables (@@foo) defined at module/class scope.
         // Instance variables (@foo) are skipped — they are not file-scope symbols.
-        if(node.typeEquals(k_assignment)) {
+        if(node.typeEquals(ASTNodeType::Assignment)) {
             const ast::ASTNode* lhs = assignmentLhs(tree, node);
             if(!lhs) continue;
-            if(lhs->typeEquals(k_constant)) {
+            if(lhs->typeEquals(ASTNodeType::Constant)) {
                 std::u8string name = lhs->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
                 emit(makeSymbol(name, fqn, SymbolKind::Variable, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
-            } else if(lhs->typeEquals(k_global_variable)) {
+            } else if(lhs->typeEquals(ASTNodeType::GlobalVariable)) {
                 std::u8string name = lhs->getText(); // includes the '$' sigil
                 emit(makeSymbol(name, name, SymbolKind::Variable, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
-            } else if(lhs->typeEquals(k_class_variable)
+            } else if(lhs->typeEquals(ASTNodeType::ClassVariable)
                       && inNamedClassScope(scopeStack)) {
                 std::u8string name = lhs->getText(); // includes the '@@' sigil
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
@@ -195,7 +181,7 @@ std::vector<Symbol> extract_symbols_ruby(const ast::AST& tree)
         // In tree-sitter-ruby, a bare access modifier keyword inside a class body
         // appears as an identifier node.  It affects all subsequently defined
         // methods in that class scope.
-        if(node.typeEquals(k_identifier)) {
+        if(node.typeEquals(ASTNodeType::Identifier)) {
             std::u8string text = node.getText();
             if(text == u8"private")   { setTopAccess(scopeStack, Access::Private);   continue; }
             if(text == u8"protected") { setTopAccess(scopeStack, Access::Protected); continue; }
@@ -207,16 +193,16 @@ std::vector<Symbol> extract_symbols_ruby(const ast::AST& tree)
         // ── attr_reader / attr_writer / attr_accessor ─────────────────────────
         // These Ruby metaprogramming helpers synthesise getter/setter methods.
         // Emit one Method symbol per named attribute.
-        if(node.typeEquals(k_call)) {
-            const ast::ASTNode* callee = firstChildOfType(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::Call)) {
+            const ast::ASTNode* callee = firstChildOfType(tree, node, ASTNodeType::Identifier);
             if(!callee || !isAttrMethod(callee->getText())) continue;
-            const ast::ASTNode* args = firstChildOfType(tree, node, (const char8_t*)k_argument_list);
+            const ast::ASTNode* args = firstChildOfType(tree, node, ASTNodeType::ArgumentList);
             if(!args) continue;
             Access acc = topAccess(scopeStack);
             for(uintptr_t cid : args->children_) {
                 if(cid == ast::InvalidId) continue;
                 const ast::ASTNode& sym_node = tree[static_cast<uint32_t>(cid)];
-                if(!sym_node.typeEquals(k_simple_symbol)) continue;
+                if(!sym_node.typeEquals(ASTNodeType::SimpleSymbol)) continue;
                 std::u8string name = stripSymbolColon(sym_node.getText());
                 if(name.empty()) continue;
                 std::u8string fqn = buildFQN(scopeStack, name, u8"::");

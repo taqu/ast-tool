@@ -10,23 +10,12 @@ namespace extractor
 {
 namespace
 {
-    // ── Node type string constants (tree-sitter-css grammar) ────────────────
-    constexpr const char* k_class_selector       = "class_selector";
-    constexpr const char* k_id_selector          = "id_selector";
-    constexpr const char* k_class_name           = "class_name";
-    constexpr const char* k_id_name              = "id_name";
-    constexpr const char* k_keyframes_statement  = "keyframes_statement";
-    constexpr const char* k_keyframes_name       = "keyframes_name";
-    constexpr const char* k_declaration          = "declaration";
-    constexpr const char* k_property_name        = "property_name";
-    constexpr const char* k_custom_property_name = "custom_property_name";
-
     // Return the bare class name from a class_selector node (.foo → "foo").
     // Prefers the dedicated class_name child; falls back to stripping the
     // leading '.' from the node text for grammar variants that inline it.
     std::u8string getClassName(const ast::AST& tree, const ast::ASTNode& node)
     {
-        const ast::ASTNode* child = findChild(tree, node, (const char8_t*)k_class_name);
+        const ast::ASTNode* child = findChild(tree, node, ASTNodeType::ClassName);
         if(child) return child->getText();
         std::u8string text = node.getText();
         if(!text.empty() && text[0] == u8'.') return text.substr(1);
@@ -36,7 +25,7 @@ namespace
     // Return the bare id name from an id_selector node (#foo → "foo").
     std::u8string getIdName(const ast::AST& tree, const ast::ASTNode& node)
     {
-        const ast::ASTNode* child = findChild(tree, node, (const char8_t*)k_id_name);
+        const ast::ASTNode* child = findChild(tree, node, ASTNodeType::IdName);
         if(child) return child->getText();
         std::u8string text = node.getText();
         if(!text.empty() && text[0] == u8'#') return text.substr(1);
@@ -46,7 +35,7 @@ namespace
     // Return the animation name from a keyframes_statement node.
     std::u8string getKeyframesName(const ast::AST& tree, const ast::ASTNode& node)
     {
-        const ast::ASTNode* child = findChild(tree, node, (const char8_t*)k_keyframes_name);
+        const ast::ASTNode* child = findChild(tree, node, ASTNodeType::KeyframesName);
         return child ? child->getText() : std::u8string();
     }
 
@@ -58,7 +47,7 @@ namespace
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
-            if(!child.typeEquals(k_property_name) && !child.typeEquals(k_custom_property_name))
+            if(!child.typeEquals(ASTNodeType::PropertyName) && !child.typeEquals(ASTNodeType::CustomPropertyName))
                 continue;
             std::u8string text = child.getText();
             if(text.size() >= 2 && text[0] == u8'-' && text[1] == u8'-') return text;
@@ -87,7 +76,7 @@ std::vector<Symbol> extract_symbols_css(const ast::AST& tree)
         // ── Class selector (.classname) ──────────────────────────────────────
         // Emitted as SymbolKind::Class; FQN retains the leading '.' so it is
         // unambiguous against identically-named ID selectors and element types.
-        if(node.typeEquals(k_class_selector)) {
+        if(node.typeEquals(ASTNodeType::ClassSelector)) {
             std::u8string name = getClassName(tree, node);
             if(!name.empty()) {
                 std::u8string fqn = u8"." + name;
@@ -99,7 +88,7 @@ std::vector<Symbol> extract_symbols_css(const ast::AST& tree)
 
         // ── ID selector (#idname) ────────────────────────────────────────────
         // Closest kind is Variable; FQN retains the leading '#'.
-        if(node.typeEquals(k_id_selector)) {
+        if(node.typeEquals(ASTNodeType::IdSelector)) {
             std::u8string name = getIdName(tree, node);
             if(!name.empty()) {
                 std::u8string fqn = u8"#" + name;
@@ -112,7 +101,7 @@ std::vector<Symbol> extract_symbols_css(const ast::AST& tree)
         // ── @keyframes ───────────────────────────────────────────────────────
         // Named animation sequences are the closest CSS analogue to a reusable
         // callable — Function is the most appropriate SymbolKind.
-        if(node.typeEquals(k_keyframes_statement)) {
+        if(node.typeEquals(ASTNodeType::KeyframesStatement)) {
             std::u8string name = getKeyframesName(tree, node);
             if(!name.empty())
                 emit(makeSymbol(name, name, SymbolKind::Function, Access::Unknown,
@@ -123,7 +112,7 @@ std::vector<Symbol> extract_symbols_css(const ast::AST& tree)
         // ── CSS custom properties (--variable: value) ────────────────────────
         // Defined anywhere in the stylesheet; :root-scoped ones are effectively
         // global, but all are meaningful symbols for indexing purposes.
-        if(node.typeEquals(k_declaration)) {
+        if(node.typeEquals(ASTNodeType::Declaration)) {
             std::u8string name = getCustomPropertyName(tree, node);
             if(!name.empty())
                 emit(makeSymbol(name, name, SymbolKind::Variable, Access::Unknown,

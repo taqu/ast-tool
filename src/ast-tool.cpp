@@ -1,9 +1,11 @@
 #include "ast-tool.h"
+#include "ast-node-type.h"
 #include <cassert>
 #include <charconv>
 #include <cstring>
 #include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <thread>
 
@@ -226,25 +228,6 @@ bool dispatch(const Arguments& arguments)
     }
 }
 
-bool ASTNode::typeEquals(const char* type) const
-{
-    return 0 == ::strcmp(type_, type);
-}
-
-bool ASTNode::typeEquals(const char8_t* type) const
-{
-    return 0 == ::strcmp(type_, reinterpret_cast<const char*>(type));
-}
-
-bool ASTNode::grammarEquals(const char* type) const
-{
-    return 0 == ::strcmp(grammar_type_, type);
-}
-
-bool ASTNode::grammarEquals(const char8_t* type) const
-{
-    return 0 == ::strcmp(grammar_type_, reinterpret_cast<const char*>(type));
-}
 
 std::u8string ASTText::getText() const
 {
@@ -590,8 +573,8 @@ const ASTNode& AST::add(TSNode node)
     astNode.hash_ = 0;
     astNode.flags_ = ASTFlag::None;
 
-    astNode.type_ = ts_node_type(node);
-    astNode.grammar_type_ = ts_node_grammar_type(node);
+    astNode.type_ = ast_node_type_from_string(ts_node_type(node));
+    astNode.grammar_type_ = ast_node_type_from_string(ts_node_grammar_type(node));
     astNode.startByte_ = ts_node_start_byte(node);
     astNode.endByte_ = ts_node_end_byte(node);
     astNode.text_ = get_string(astNode.startByte_, astNode.endByte_);
@@ -678,7 +661,8 @@ void AST::setHash(ASTNode& node)
     XXH32_state_t* state = XXH32_createState();
     while(true) {
         XXH32_reset(state, filepath_hash_);
-        XXH32_update(state, node.type_, strlen(node.type_));
+        std::string_view typeName = ast_node_type_to_string(node.type_);
+        XXH32_update(state, typeName.data(), typeName.size());
         XXH32_update(state, &node.startByte_, sizeof(node.startByte_));
         XXH32_update(state, &node.endByte_, sizeof(node.endByte_));
         XXH32_update(state, &collisions_, sizeof(collisions_));

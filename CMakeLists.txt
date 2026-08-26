@@ -142,6 +142,8 @@ endif()
 ########################################################################
 # Sources
 set(HEADERS
+    "${HEADER_ROOT}/ast-node-type.h"
+    "${HEADER_ROOT}/ast-cache.h"
     "${HEADER_ROOT}/ast-ir.h"
     "${HEADER_ROOT}/ast-tool.h"
     "${HEADER_ROOT}/ast-extractor.h"
@@ -162,6 +164,17 @@ set(HEADERS
 )
 
 set(SOURCES
+    "${SOURCE_ROOT}/lz4/lz4.h"
+    "${SOURCE_ROOT}/lz4/lz4.c"
+    "${SOURCE_ROOT}/lz4/lz4hc.h"
+    "${SOURCE_ROOT}/lz4/lz4hc.c"
+    "${SOURCE_ROOT}/sqlite/sqlite3.h"
+    "${SOURCE_ROOT}/sqlite/sqlite3ext.h"
+    "${SOURCE_ROOT}/sqlite/sqlite3.c"
+    "${SOURCE_ROOT}/ast-node-type.cpp"
+    "${SOURCE_ROOT}/ast-serial.cpp"
+    "${SOURCE_ROOT}/ast-cache-db.h"
+    "${SOURCE_ROOT}/ast-cache-db.cpp"
     "${SOURCE_ROOT}/ast-tool.cpp"
     "${SOURCE_ROOT}/ast-extractor.cpp"
     "${SOURCE_ROOT}/ast-extractor-common.h"

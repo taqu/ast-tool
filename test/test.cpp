@@ -39,7 +39,7 @@ namespace
     void dump(const AST& ast, const ASTNode& node, std::ostream& os, uint32_t indent = 0)
     {
         print_indent(os, indent);
-        os << node.type_ << std::endl;
+        os << ast_node_type_to_string(node.type_) << std::endl;
         for(uintptr_t c : node.children_) {
             const ASTNode& child = ast[c];
             dump(ast, child, os, indent+2);

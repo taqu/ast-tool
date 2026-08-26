@@ -1,5 +1,4 @@
 #include "ast-scope-builder.h"
-#include <cstring>
 #include "ast-ir.h"
 
 namespace ast
@@ -7,89 +6,89 @@ namespace ast
 namespace
 {
     /**
-     * Maps a tree-sitter node type name to a ScopeKind.
+     * Maps a tree-sitter node type enum to a ScopeKind.
      * Returns ScopeKind::Unknown when the node type does not introduce a new scope.
      */
-    ScopeKind classify_node(const char* type)
+    ScopeKind classify_node(ASTNodeType type)
     {
         // Global / translation-unit roots
-        if(0 == ::strcmp(type, "translation_unit")  // C, C++
-        || 0 == ::strcmp(type, "source_file")        // Rust, Go, TypeScript, JavaScript
-        || 0 == ::strcmp(type, "program")            // Java, Ruby, bash
-        || 0 == ::strcmp(type, "compilation_unit")   // C#
-        || 0 == ::strcmp(type, "module")) {          // Python
+        if(type == ASTNodeType::TranslationUnit  // C, C++
+        || type == ASTNodeType::SourceFile        // Rust, Go, TypeScript, JavaScript
+        || type == ASTNodeType::Program           // Java, Ruby, bash
+        || type == ASTNodeType::CompilationUnit   // C#
+        || type == ASTNodeType::Module) {         // Python
             return ScopeKind::Global;
         }
 
         // Namespaces / packages / modules
-        if(0 == ::strcmp(type, "namespace_definition")   // C++
-        || 0 == ::strcmp(type, "namespace_declaration")  // C#
-        || 0 == ::strcmp(type, "package_declaration")    // Java, Go
-        || 0 == ::strcmp(type, "package_clause")) {      // Go
+        if(type == ASTNodeType::NamespaceDefinition   // C++
+        || type == ASTNodeType::NamespaceDeclaration  // C#
+        || type == ASTNodeType::PackageDeclaration    // Java, Go
+        || type == ASTNodeType::PackageClause) {      // Go
             return ScopeKind::Namespace;
         }
 
         // Module items (Rust mod, etc.)
-        if(0 == ::strcmp(type, "mod_item")           // Rust
-        || 0 == ::strcmp(type, "module_declaration")) { // C++20
+        if(type == ASTNodeType::ModItem           // Rust
+        || type == ASTNodeType::ModuleDeclaration) { // C++20
             return ScopeKind::Module;
         }
 
         // Classes
-        if(0 == ::strcmp(type, "class_specifier")    // C++
-        || 0 == ::strcmp(type, "class_declaration")  // C#, Java, TypeScript, JavaScript
-        || 0 == ::strcmp(type, "class_definition")   // Python
-        || 0 == ::strcmp(type, "trait_item")         // Rust
-        || 0 == ::strcmp(type, "impl_item")) {       // Rust
+        if(type == ASTNodeType::ClassSpecifier    // C++
+        || type == ASTNodeType::ClassDeclaration  // C#, Java, TypeScript, JavaScript
+        || type == ASTNodeType::ClassDefinition   // Python
+        || type == ASTNodeType::TraitItem         // Rust
+        || type == ASTNodeType::ImplItem) {       // Rust
             return ScopeKind::Class;
         }
 
         // Structs
-        if(0 == ::strcmp(type, "struct_specifier")   // C, C++
-        || 0 == ::strcmp(type, "union_specifier")    // C, C++ (union shares scope semantics)
-        || 0 == ::strcmp(type, "struct_item")        // Rust
-        || 0 == ::strcmp(type, "struct_declaration") // Go, C#
-        || 0 == ::strcmp(type, "struct_type")) {     // Go
+        if(type == ASTNodeType::StructSpecifier   // C, C++
+        || type == ASTNodeType::UnionSpecifier    // C, C++ (union shares scope semantics)
+        || type == ASTNodeType::StructItem        // Rust
+        || type == ASTNodeType::StructDeclaration // Go, C#
+        || type == ASTNodeType::StructType) {     // Go
             return ScopeKind::Struct;
         }
 
         // Enums
-        if(0 == ::strcmp(type, "enum_specifier")     // C, C++
-        || 0 == ::strcmp(type, "enum_declaration")   // C#, Java, TypeScript
-        || 0 == ::strcmp(type, "enum_item")) {       // Rust
+        if(type == ASTNodeType::EnumSpecifier     // C, C++
+        || type == ASTNodeType::EnumDeclaration   // C#, Java, TypeScript
+        || type == ASTNodeType::EnumItem) {       // Rust
             return ScopeKind::Enum;
         }
 
         // Methods (member functions)
-        if(0 == ::strcmp(type, "method_declaration")  // C#, Java
-        || 0 == ::strcmp(type, "method_definition")   // Python (in class), JavaScript
-        || 0 == ::strcmp(type, "constructor_declaration") // C#, Java
-        || 0 == ::strcmp(type, "destructor_declaration")) { // C#
+        if(type == ASTNodeType::MethodDeclaration  // C#, Java
+        || type == ASTNodeType::MethodDefinition   // Python (in class), JavaScript
+        || type == ASTNodeType::ConstructorDeclaration // C#, Java
+        || type == ASTNodeType::DestructorDeclaration) { // C#
             return ScopeKind::Method;
         }
 
         // Free functions
-        if(0 == ::strcmp(type, "function_definition")  // C, C++, Python
-        || 0 == ::strcmp(type, "function_declaration") // TypeScript, C#
-        || 0 == ::strcmp(type, "function_item")        // Rust
-        || 0 == ::strcmp(type, "function_declaration_statement") // Go
-        || 0 == ::strcmp(type, "function_expression")  // JavaScript
-        || 0 == ::strcmp(type, "func_declaration")) {  // Go
+        if(type == ASTNodeType::FunctionDefinition  // C, C++, Python
+        || type == ASTNodeType::FunctionDeclaration // TypeScript, C#
+        || type == ASTNodeType::FunctionItem        // Rust
+        || type == ASTNodeType::FunctionDeclarationStatement // Go
+        || type == ASTNodeType::FunctionExpression  // JavaScript
+        || type == ASTNodeType::FuncDeclaration) {  // Go
             return ScopeKind::Function;
         }
 
         // Lambdas / closures / anonymous functions
-        if(0 == ::strcmp(type, "lambda_expression")   // C++, Java
-        || 0 == ::strcmp(type, "closure_expression")  // Rust
-        || 0 == ::strcmp(type, "arrow_function")      // JavaScript, TypeScript
-        || 0 == ::strcmp(type, "func_literal")) {     // Go
+        if(type == ASTNodeType::LambdaExpression   // C++, Java
+        || type == ASTNodeType::ClosureExpression  // Rust
+        || type == ASTNodeType::ArrowFunction      // JavaScript, TypeScript
+        || type == ASTNodeType::FuncLiteral) {     // Go
             return ScopeKind::Lambda;
         }
 
         // Bare blocks / compound statements
-        if(0 == ::strcmp(type, "compound_statement")  // C, C++
-        || 0 == ::strcmp(type, "block")               // Rust, Go, JavaScript
-        || 0 == ::strcmp(type, "statement_block")) {  // JavaScript
+        if(type == ASTNodeType::CompoundStatement  // C, C++
+        || type == ASTNodeType::Block              // Rust, Go, JavaScript
+        || type == ASTNodeType::StatementBlock) {  // JavaScript
             return ScopeKind::Block;
         }
 

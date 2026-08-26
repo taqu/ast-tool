@@ -11,47 +11,13 @@ namespace extractor
 {
 namespace
 {
-    // ── Node type string constants (tree-sitter-tsx grammar) ──────────────────
-    // TSX is a superset of TypeScript; these constants are identical to the TS
-    // extractor, with JSX-specific additions at the bottom.
-    constexpr const char* k_internal_module               = "internal_module";
-    constexpr const char* k_ambient_declaration           = "ambient_declaration";
-    constexpr const char* k_enum_declaration              = "enum_declaration";
-    constexpr const char* k_interface_declaration         = "interface_declaration";
-    constexpr const char* k_class_declaration             = "class_declaration";
-    constexpr const char* k_abstract_class_declaration    = "abstract_class_declaration";
-    constexpr const char* k_public_field_definition       = "public_field_definition";
-    constexpr const char* k_method_definition             = "method_definition";
-    constexpr const char* k_abstract_method_signature     = "abstract_method_signature";
-    constexpr const char* k_method_signature              = "method_signature";
-    constexpr const char* k_property_signature            = "property_signature";
-    constexpr const char* k_type_alias_declaration        = "type_alias_declaration";
-    constexpr const char* k_function_declaration          = "function_declaration";
-    constexpr const char* k_generator_function_declaration= "generator_function_declaration";
-    constexpr const char* k_variable_declaration          = "variable_declaration";
-    constexpr const char* k_lexical_declaration           = "lexical_declaration";
-    constexpr const char* k_variable_declarator           = "variable_declarator";
-    constexpr const char* k_pair                          = "pair";
-    constexpr const char* k_arrow_function                = "arrow_function";
-    constexpr const char* k_function_expression           = "function_expression";
-    constexpr const char* k_generator_function            = "generator_function";
-    constexpr const char* k_object                        = "object";
-    constexpr const char* k_identifier                    = "identifier";
-    constexpr const char* k_type_identifier               = "type_identifier";
-    constexpr const char* k_property_identifier           = "property_identifier";
-    constexpr const char* k_private_property_identifier   = "private_property_identifier";
-    constexpr const char* k_accessibility_modifier        = "accessibility_modifier";
-    // ── JSX additions ─────────────────────────────────────────────────────────
-    constexpr const char* k_jsx_opening_element           = "jsx_opening_element";
-    constexpr const char* k_jsx_self_closing_element      = "jsx_self_closing_element";
-
     // ── Low-level helpers ─────────────────────────────────────────────────────
 
     bool isFunctionLike(const ast::ASTNode& node)
     {
-        return node.typeEquals(k_arrow_function)
-            || node.typeEquals(k_function_expression)
-            || node.typeEquals(k_generator_function);
+        return node.typeEquals(ASTNodeType::ArrowFunction)
+            || node.typeEquals(ASTNodeType::FunctionExpression)
+            || node.typeEquals(ASTNodeType::GeneratorFunction);
     }
 
     const ast::ASTNode* getDeclValue(const ast::AST& tree, const ast::ASTNode& decl)
@@ -61,7 +27,7 @@ namespace
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
             if(seenEq) return &child;
-            if(child.typeEquals("=")) seenEq = true;
+            if(child.getText() == u8"=") seenEq = true;
         }
         return nullptr;
     }
@@ -73,7 +39,7 @@ namespace
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
             if(seenColon) return &child;
-            if(child.typeEquals(":")) seenColon = true;
+            if(child.getText() == u8":") seenColon = true;
         }
         return nullptr;
     }
@@ -82,9 +48,9 @@ namespace
     // A private_property_identifier (#name) implies Private.
     Access getMemberAccess(const ast::AST& tree, const ast::ASTNode& node)
     {
-        const ast::ASTNode* acc = findChild(tree, node, (const char8_t*)k_accessibility_modifier);
+        const ast::ASTNode* acc = findChild(tree, node, ASTNodeType::AccessibilityModifier);
         if(!acc) {
-            if(findChild(tree, node, (const char8_t*)k_private_property_identifier))
+            if(findChild(tree, node, ASTNodeType::PrivatePropertyIdentifier))
                 return Access::Private;
             return Access::Public;
         }
@@ -100,8 +66,8 @@ namespace
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
-            if(child.typeEquals(k_property_identifier) ||
-               child.typeEquals(k_private_property_identifier))
+            if(child.typeEquals(ASTNodeType::PropertyIdentifier) ||
+               child.typeEquals(ASTNodeType::PrivatePropertyIdentifier))
                 return child.getText();
         }
         return {};
@@ -138,7 +104,7 @@ namespace
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
-            if(child.typeEquals(k_identifier)) return &child;
+            if(child.typeEquals(ASTNodeType::Identifier)) return &child;
         }
         return nullptr;
     }
@@ -176,15 +142,15 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
         if(insideFunctionScope(scopeStack)) continue;
 
         // ── Ambient declaration (declare …) ───────────────────────────────────
-        if(node.typeEquals(k_ambient_declaration)) {
+        if(node.typeEquals(ASTNodeType::AmbientDeclaration)) {
             scopeStack.push_back({u8"", SymbolKind::Function, node.endByte_,
                                   Access::Unknown, false});
             continue;
         }
 
         // ── Namespace ─────────────────────────────────────────────────────────
-        if(node.typeEquals(k_internal_module)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::InternalModule)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -197,8 +163,8 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
         }
 
         // ── Enum ──────────────────────────────────────────────────────────────
-        if(node.typeEquals(k_enum_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::EnumDeclaration)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -213,7 +179,7 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
         // ── Enum value ────────────────────────────────────────────────────────
         // Both bare (property_identifier) and assigned (enum_assignment child)
         // values appear as property_identifier in DFS order inside an enum scope.
-        if(node.typeEquals(k_property_identifier) && insideEnumScope(scopeStack)) {
+        if(node.typeEquals(ASTNodeType::PropertyIdentifier) && insideEnumScope(scopeStack)) {
             std::u8string name = node.getText();
             std::u8string fqn  = buildFQN(scopeStack, name, u8".");
             emit(makeSymbol(name, fqn, SymbolKind::EnumValue, Access::Public,
@@ -222,8 +188,8 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
         }
 
         // ── Interface ─────────────────────────────────────────────────────────
-        if(node.typeEquals(k_interface_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_type_identifier);
+        if(node.typeEquals(ASTNodeType::InterfaceDeclaration)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::TypeIdentifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -236,7 +202,7 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
         }
 
         // ── Interface method signature (abstract) ─────────────────────────────
-        if(node.typeEquals(k_method_signature)) {
+        if(node.typeEquals(ASTNodeType::MethodSignature)) {
             std::u8string name = getMemberName(tree, node);
             if(!name.empty()) {
                 std::u8string fqn = buildFQN(scopeStack, name, u8".");
@@ -247,7 +213,7 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
         }
 
         // ── Interface property signature ──────────────────────────────────────
-        if(node.typeEquals(k_property_signature)) {
+        if(node.typeEquals(ASTNodeType::PropertySignature)) {
             std::u8string name = getMemberName(tree, node);
             if(!name.empty()) {
                 std::u8string fqn = buildFQN(scopeStack, name, u8".");
@@ -258,9 +224,9 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
         }
 
         // ── Class (regular and abstract) ──────────────────────────────────────
-        if(node.typeEquals(k_class_declaration) ||
-           node.typeEquals(k_abstract_class_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_type_identifier);
+        if(node.typeEquals(ASTNodeType::ClassDeclaration) ||
+           node.typeEquals(ASTNodeType::AbstractClassDeclaration)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::TypeIdentifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -273,7 +239,7 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
         }
 
         // ── Class field ───────────────────────────────────────────────────────
-        if(node.typeEquals(k_public_field_definition)) {
+        if(node.typeEquals(ASTNodeType::PublicFieldDefinition)) {
             std::u8string name = getMemberName(tree, node);
             if(!name.empty()) {
                 std::u8string fqn = buildFQN(scopeStack, name, u8".");
@@ -288,7 +254,7 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
         }
 
         // ── Method / constructor ──────────────────────────────────────────────
-        if(node.typeEquals(k_method_definition)) {
+        if(node.typeEquals(ASTNodeType::MethodDefinition)) {
             std::u8string name = getMemberName(tree, node);
             if(!name.empty()) {
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -306,7 +272,7 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
         }
 
         // ── Abstract method signature (no body) ───────────────────────────────
-        if(node.typeEquals(k_abstract_method_signature)) {
+        if(node.typeEquals(ASTNodeType::AbstractMethodSignature)) {
             std::u8string name = getMemberName(tree, node);
             if(!name.empty()) {
                 std::u8string fqn = buildFQN(scopeStack, name, u8".");
@@ -318,8 +284,8 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
         }
 
         // ── Type alias ────────────────────────────────────────────────────────
-        if(node.typeEquals(k_type_alias_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_type_identifier);
+        if(node.typeEquals(ASTNodeType::TypeAliasDeclaration)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::TypeIdentifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -330,9 +296,9 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
         }
 
         // ── Free function (regular, async, generator) ─────────────────────────
-        if(node.typeEquals(k_function_declaration) ||
-           node.typeEquals(k_generator_function_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::FunctionDeclaration) ||
+           node.typeEquals(ASTNodeType::GeneratorFunctionDeclaration)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -345,14 +311,14 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
         }
 
         // ── Variable / lexical declaration ────────────────────────────────────
-        if(node.typeEquals(k_variable_declaration) ||
-           node.typeEquals(k_lexical_declaration)) {
+        if(node.typeEquals(ASTNodeType::VariableDeclaration) ||
+           node.typeEquals(ASTNodeType::LexicalDeclaration)) {
             continue;
         }
 
         // ── Variable declarator ───────────────────────────────────────────────
-        if(node.typeEquals(k_variable_declarator)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::VariableDeclarator)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(!id) continue;
             std::u8string name = id->getText();
             std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -363,7 +329,7 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
                                i, node.start_.row_, node.start_.column_));
                 scopeStack.push_back({name, SymbolKind::Function, node.endByte_,
                                       Access::Unknown, false});
-            } else if(val && val->typeEquals(k_object)) {
+            } else if(val && val->typeEquals(ASTNodeType::Object)) {
                 emit(makeSymbol(name, fqn, SymbolKind::Variable, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
                 scopeStack.push_back({name, SymbolKind::Variable, val->endByte_,
@@ -376,9 +342,9 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
         }
 
         // ── Object literal key-value pair ─────────────────────────────────────
-        if(node.typeEquals(k_pair)) {
+        if(node.typeEquals(ASTNodeType::Pair)) {
             if(!insideObjectLiteralScope(scopeStack)) continue;
-            const ast::ASTNode* key = findChild(tree, node, (const char8_t*)k_property_identifier);
+            const ast::ASTNode* key = findChild(tree, node, ASTNodeType::PropertyIdentifier);
             if(!key) continue;
             std::u8string name = key->getText();
             std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -402,8 +368,8 @@ std::vector<Symbol> extract_symbols_tsx(const ast::AST& tree)
         // Only processed outside function bodies, where JSX appears at module scope
         // (e.g. assigned to a top-level const). JSX inside component render methods
         // is already suppressed by insideFunctionScope above.
-        if(node.typeEquals(k_jsx_opening_element) ||
-           node.typeEquals(k_jsx_self_closing_element)) {
+        if(node.typeEquals(ASTNodeType::JsxOpeningElement) ||
+           node.typeEquals(ASTNodeType::JsxSelfClosingElement)) {
             const ast::ASTNode* tag = jsxTagName(tree, node);
             if(tag) {
                 std::u8string name = tag->getText();

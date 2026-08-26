@@ -12,7 +12,6 @@
 #include "ast-ir.h"
 #include "ast-scope.h"
 #include "ast-workspace.h"
-#include <cstring>
 
 namespace ast
 {
@@ -20,23 +19,21 @@ namespace call_utils
 {
 
 // Returns true if @p type names a call-expression node across supported languages.
-inline bool is_call_expression(const char* type)
+inline bool is_call_expression(ASTNodeType type)
 {
-    if(!type) return false;
-    return strcmp(type, "call_expression")   == 0  // C/C++, Go, Rust, JS/TS
-        || strcmp(type, "method_invocation") == 0  // Java
-        || strcmp(type, "call")              == 0; // Python, Ruby
+    return type == ASTNodeType::CallExpression   // C/C++, Go, Rust, JS/TS
+        || type == ASTNodeType::MethodInvocation // Java
+        || type == ASTNodeType::Call;            // Python, Ruby
 }
 
 // Returns true if @p type names an identifier-like AST node across supported languages.
-inline bool is_identifier_type(const char* type)
+inline bool is_identifier_type(ASTNodeType type)
 {
-    if(!type) return false;
-    return strcmp(type, "identifier")           == 0
-        || strcmp(type, "type_identifier")      == 0
-        || strcmp(type, "field_identifier")     == 0
-        || strcmp(type, "namespace_identifier") == 0
-        || strcmp(type, "property_identifier")  == 0;
+    return type == ASTNodeType::Identifier
+        || type == ASTNodeType::TypeIdentifier
+        || type == ASTNodeType::FieldIdentifier
+        || type == ASTNodeType::NamespaceIdentifier
+        || type == ASTNodeType::PropertyIdentifier;
 }
 
 // Returns true when @p a and @p b refer to the same declaration.
@@ -72,8 +69,8 @@ inline size_t find_callee_identifier(const AST& ast, size_t callNodeIndex)
 
     // Field / member access: obj.method(), obj->method()
     // Take the last identifier-like child (method name, not the object).
-    if(strcmp(calleeNode.type_, "field_expression")  == 0 ||
-       strcmp(calleeNode.type_, "member_expression") == 0)
+    if(calleeNode.type_ == ASTNodeType::FieldExpression ||
+       calleeNode.type_ == ASTNodeType::MemberExpression)
     {
         for(int i = static_cast<int>(calleeNode.children_.size()) - 1; i >= 0; --i) {
             uintptr_t c = calleeNode.children_[static_cast<size_t>(i)];
@@ -86,8 +83,8 @@ inline size_t find_callee_identifier(const AST& ast, size_t callNodeIndex)
 
     // Qualified / scoped: Ns::foo(), a::b::c()
     // Take the last identifier-like child (function name, not the qualifier).
-    if(strcmp(calleeNode.type_, "qualified_identifier") == 0 ||
-       strcmp(calleeNode.type_, "scoped_identifier")    == 0)
+    if(calleeNode.type_ == ASTNodeType::QualifiedIdentifier ||
+       calleeNode.type_ == ASTNodeType::ScopedIdentifier)
     {
         for(int i = static_cast<int>(calleeNode.children_.size()) - 1; i >= 0; --i) {
             uintptr_t c = calleeNode.children_[static_cast<size_t>(i)];
@@ -100,8 +97,8 @@ inline size_t find_callee_identifier(const AST& ast, size_t callNodeIndex)
 
     // Template instantiation: foo<T>(), bar<int>()
     // Take the first identifier-like child (function name, not the template argument).
-    if(strcmp(calleeNode.type_, "template_function") == 0 ||
-       strcmp(calleeNode.type_, "generic_function")  == 0)
+    if(calleeNode.type_ == ASTNodeType::TemplateFunction ||
+       calleeNode.type_ == ASTNodeType::GenericFunction)
     {
         for(uintptr_t c : calleeNode.children_) {
             if(c == InvalidId) continue;

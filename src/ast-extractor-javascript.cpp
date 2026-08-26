@@ -11,29 +11,13 @@ namespace extractor
 {
 namespace
 {
-    // ── Node type string constants (tree-sitter-javascript grammar) ──────────
-    constexpr const char* k_function_declaration           = "function_declaration";
-    constexpr const char* k_generator_function_declaration = "generator_function_declaration";
-    constexpr const char* k_class_declaration              = "class_declaration";
-    constexpr const char* k_method_definition              = "method_definition";
-    constexpr const char* k_field_definition               = "field_definition";
-    constexpr const char* k_variable_declarator            = "variable_declarator";
-    constexpr const char* k_pair                           = "pair";
-    constexpr const char* k_identifier                     = "identifier";
-    constexpr const char* k_property_identifier            = "property_identifier";
-    constexpr const char* k_private_property_identifier    = "private_property_identifier";
-    constexpr const char* k_arrow_function                 = "arrow_function";
-    constexpr const char* k_function_expression            = "function_expression";
-    constexpr const char* k_generator_function             = "generator_function";
-    constexpr const char* k_object                         = "object";
-
     // ── Low-level helpers ─────────────────────────────────────────────────────
 
     bool isFunctionLike(const ast::ASTNode& node)
     {
-        return node.typeEquals(k_arrow_function)
-            || node.typeEquals(k_function_expression)
-            || node.typeEquals(k_generator_function);
+        return node.typeEquals(ASTNodeType::ArrowFunction)
+            || node.typeEquals(ASTNodeType::FunctionExpression)
+            || node.typeEquals(ASTNodeType::GeneratorFunction);
     }
 
     // Return the value node of a variable_declarator (the child after '=').
@@ -44,7 +28,7 @@ namespace
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
             if(seenEq) return &child;
-            if(child.typeEquals("=")) seenEq = true;
+            if(!child.text_.empty() && child.text_.text_[0] == '=') seenEq = true;
         }
         return nullptr;
     }
@@ -57,7 +41,7 @@ namespace
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
             if(seenColon) return &child;
-            if(child.typeEquals(":")) seenColon = true;
+            if(!child.text_.empty() && child.text_.text_[0] == ':') seenColon = true;
         }
         return nullptr;
     }
@@ -70,8 +54,8 @@ namespace
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
-            if(child.typeEquals(k_property_identifier) ||
-               child.typeEquals(k_private_property_identifier))
+            if(child.typeEquals(ASTNodeType::PropertyIdentifier) ||
+               child.typeEquals(ASTNodeType::PrivatePropertyIdentifier))
                 return child.getText();
         }
         return {};
@@ -117,9 +101,9 @@ std::vector<Symbol> extract_symbols_javascript(const ast::AST& tree)
         if(insideFunctionScope(scopeStack)) continue;
 
         // ── Free function (regular, async, generator) ─────────────────────────
-        if(node.typeEquals(k_function_declaration) ||
-           node.typeEquals(k_generator_function_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::FunctionDeclaration) ||
+           node.typeEquals(ASTNodeType::GeneratorFunctionDeclaration)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -134,8 +118,8 @@ std::vector<Symbol> extract_symbols_javascript(const ast::AST& tree)
         }
 
         // ── Class declaration ─────────────────────────────────────────────────
-        if(node.typeEquals(k_class_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::ClassDeclaration)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -152,8 +136,8 @@ std::vector<Symbol> extract_symbols_javascript(const ast::AST& tree)
         // setters, static methods, and async methods. The name is always in the
         // first property_identifier child; static/get/set keywords have distinct
         // node types so findChild skips them cleanly.
-        if(node.typeEquals(k_method_definition)) {
-            const ast::ASTNode* propId = findChild(tree, node, (const char8_t*)k_property_identifier);
+        if(node.typeEquals(ASTNodeType::MethodDefinition)) {
+            const ast::ASTNode* propId = findChild(tree, node, ASTNodeType::PropertyIdentifier);
             if(propId) {
                 std::u8string name = propId->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -170,7 +154,7 @@ std::vector<Symbol> extract_symbols_javascript(const ast::AST& tree)
         }
 
         // ── Class field (public and private) ──────────────────────────────────
-        if(node.typeEquals(k_field_definition)) {
+        if(node.typeEquals(ASTNodeType::FieldDefinition)) {
             std::u8string name = getFieldName(tree, node);
             if(!name.empty()) {
                 std::u8string fqn = buildFQN(scopeStack, name, u8".");
@@ -191,8 +175,8 @@ std::vector<Symbol> extract_symbols_javascript(const ast::AST& tree)
         //       method_definition and pair nodes receive the correct FQN prefix.
         //   • anything else (number, string, array, …)
         //     → emit as Variable, no scope push.
-        if(node.typeEquals(k_variable_declarator)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::VariableDeclarator)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(!id) continue;
             std::u8string name = id->getText();
             std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -203,7 +187,7 @@ std::vector<Symbol> extract_symbols_javascript(const ast::AST& tree)
                                i, node.start_.row_, node.start_.column_));
                 scopeStack.push_back({name, SymbolKind::Function, node.endByte_,
                                       Access::Unknown, false});
-            } else if(val && val->typeEquals(k_object)) {
+            } else if(val && val->typeEquals(ASTNodeType::Object)) {
                 emit(makeSymbol(name, fqn, SymbolKind::Variable, Access::Unknown,
                                i, node.start_.row_, node.start_.column_));
                 // Scope spans the object literal's byte range; method_definition
@@ -222,9 +206,9 @@ std::vector<Symbol> extract_symbols_javascript(const ast::AST& tree)
         // scope), which is set up by the variable_declarator handler above.
         // function-valued pairs are emitted as Function; other values as Variable
         // (they are observable properties of the module-level object).
-        if(node.typeEquals(k_pair)) {
+        if(node.typeEquals(ASTNodeType::Pair)) {
             if(!insideObjectLiteralScope(scopeStack)) continue;
-            const ast::ASTNode* key = findChild(tree, node, (const char8_t*)k_property_identifier);
+            const ast::ASTNode* key = findChild(tree, node, ASTNodeType::PropertyIdentifier);
             if(!key) continue;
             std::u8string name = key->getText();
             std::u8string fqn  = buildFQN(scopeStack, name, u8".");

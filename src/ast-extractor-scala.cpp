@@ -11,33 +11,15 @@ namespace extractor
 {
 namespace
 {
-    // ── Node type string constants (tree-sitter-scala grammar) ────────────────
-    constexpr const char* k_package_clause       = "package_clause";
-    constexpr const char* k_package_object       = "package_object";
-    constexpr const char* k_object_definition    = "object_definition";
-    constexpr const char* k_class_definition     = "class_definition";
-    constexpr const char* k_trait_definition     = "trait_definition";
-    constexpr const char* k_function_definition  = "function_definition";
-    constexpr const char* k_function_declaration = "function_declaration";
-    constexpr const char* k_val_definition       = "val_definition";
-    constexpr const char* k_var_definition       = "var_definition";
-    constexpr const char* k_type_definition      = "type_definition";
-    constexpr const char* k_class_parameter      = "class_parameter";
-    constexpr const char* k_identifier           = "identifier";
-    constexpr const char* k_type_identifier      = "type_identifier";
-    constexpr const char* k_package_identifier   = "package_identifier";
-    constexpr const char* k_modifiers            = "modifiers";
-    constexpr const char* k_access_modifier      = "access_modifier";
-
     // ── Low-level helpers ─────────────────────────────────────────────────────
 
     // Scala defaults to public; returns Private/Protected only when an explicit
     // access_modifier is present inside a modifiers child.
     Access getAccess(const ast::AST& tree, const ast::ASTNode& node)
     {
-        const ast::ASTNode* mods = findChild(tree, node, (const char8_t*)k_modifiers);
+        const ast::ASTNode* mods = findChild(tree, node, ASTNodeType::Modifiers);
         if(!mods) return Access::Public;
-        const ast::ASTNode* acc = findChild(tree, *mods, (const char8_t*)k_access_modifier);
+        const ast::ASTNode* acc = findChild(tree, *mods, ASTNodeType::AccessModifier);
         if(!acc) return Access::Public;
         std::u8string text = acc->getText();
         if(text == u8"private")   return Access::Private;
@@ -98,8 +80,8 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
         // ── Package clause ────────────────────────────────────────────────────
         // Emitted as Namespace. Uses uint32_t(-1) so the scope spans the entire
         // file (the package_clause node itself ends after the package keyword).
-        if(node.typeEquals(k_package_clause)) {
-            const ast::ASTNode* pkgId = findChild(tree, node, (const char8_t*)k_package_identifier);
+        if(node.typeEquals(ASTNodeType::PackageClause)) {
+            const ast::ASTNode* pkgId = findChild(tree, node, ASTNodeType::PackageIdentifier);
             if(pkgId) {
                 std::u8string name = pkgId->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -113,8 +95,8 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
 
         // ── Package object ────────────────────────────────────────────────────
         // "package object utils { … }" — a namespace-level container.
-        if(node.typeEquals(k_package_object)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::PackageObject)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -128,8 +110,8 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
 
         // ── Object definition (singleton) ─────────────────────────────────────
         // Both plain objects and case objects are emitted as Class (closest kind).
-        if(node.typeEquals(k_object_definition)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::ObjectDefinition)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -143,8 +125,8 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
 
         // ── Class definition (regular, abstract, case) ────────────────────────
         // isAccessAware repurposed: true → case class (all constructor params are fields).
-        if(node.typeEquals(k_class_definition)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::ClassDefinition)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name   = id->getText();
                 std::u8string fqn    = buildFQN(scopeStack, name, u8".");
@@ -159,8 +141,8 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
         }
 
         // ── Trait definition ──────────────────────────────────────────────────
-        if(node.typeEquals(k_trait_definition)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::TraitDefinition)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -176,10 +158,10 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
         // ── Constructor parameter → Field ─────────────────────────────────────
         // Emitted when the parameter has a `val`/`var` prefix (regular class) or
         // when the enclosing class is a case class (all params become val fields).
-        if(node.typeEquals(k_class_parameter)) {
+        if(node.typeEquals(ASTNodeType::ClassParameter)) {
             bool isCaseClass = !scopeStack.empty() && scopeStack.back().isAccessAware;
             if(!isCaseClass && !paramIsField(tree, node)) continue;
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -192,8 +174,8 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
 
         // ── Function definition (with body) ───────────────────────────────────
         // Inside a class/object/trait → Method; otherwise → Function.
-        if(node.typeEquals(k_function_definition)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::FunctionDefinition)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -209,8 +191,8 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
         }
 
         // ── Function declaration (abstract method, no body) ───────────────────
-        if(node.typeEquals(k_function_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::FunctionDeclaration)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -223,8 +205,8 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
 
         // ── Val definition (immutable) ────────────────────────────────────────
         // Field inside a class/object; Variable at package/top-level scope.
-        if(node.typeEquals(k_val_definition)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::ValDefinition)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -241,8 +223,8 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
         }
 
         // ── Var definition (mutable) ──────────────────────────────────────────
-        if(node.typeEquals(k_var_definition)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::VarDefinition)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");
@@ -257,8 +239,8 @@ std::vector<Symbol> extract_symbols_scala(const ast::AST& tree)
         }
 
         // ── Type alias ────────────────────────────────────────────────────────
-        if(node.typeEquals(k_type_definition)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_type_identifier);
+        if(node.typeEquals(ASTNodeType::TypeDefinition)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::TypeIdentifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8".");

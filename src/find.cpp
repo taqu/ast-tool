@@ -6,6 +6,7 @@
 #include <vector>
 #include "ast-find.h"
 #include "ast-format.h"
+#include "ast-node-type.h"
 #include "ast-tool.h"
 
 namespace ast
@@ -15,7 +16,7 @@ namespace
     /** Prints one matching node as "<id> <type> @row:col [\"preview\"]". */
     void format_match(const ASTNode& node)
     {
-        std::print("{:X} {} @{}:{}", node.hash_, node.type_, node.start_.row_ + 1, node.start_.column_ + 1);
+        std::print("{:X} {} @{}:{}", node.hash_, ast_node_type_to_string(node.type_), node.start_.row_ + 1, node.start_.column_ + 1);
         std::u8string text = preview_text(node);
         if(!text.empty()) {
             std::print(" \"{}\"", (const char*)text.c_str());
@@ -106,8 +107,12 @@ bool find(const ArgFind& arguments)
     // --line/--column are accepted as 1-based (matching outline's @row:col display);
     // FindCriteria's position is zero-based, matching ASTPoint.
     FindCriteria criteria;
-    criteria.type_ = arguments.type_;
-    criteria.grammar_ = arguments.grammar_;
+    criteria.type_ = (nullptr != arguments.type_)
+        ? ast_node_type_from_string(reinterpret_cast<const char*>(arguments.type_))
+        : ASTNodeType::Unknown;
+    criteria.grammar_ = (nullptr != arguments.grammar_)
+        ? ast_node_type_from_string(reinterpret_cast<const char*>(arguments.grammar_))
+        : ASTNodeType::Unknown;
     criteria.text_ = arguments.text_;
     criteria.id_ = arguments.id_;
     criteria.hasId_ = arguments.hasId_;

@@ -10,13 +10,6 @@ namespace extractor
 {
 namespace
 {
-    // ── Node type string constants (Python grammar) ─────────────────────────
-    constexpr const char* k_class_definition    = "class_definition";
-    constexpr const char* k_function_definition = "function_definition";
-    constexpr const char* k_identifier          = "identifier";
-    constexpr const char* k_assignment          = "assignment";
-    constexpr const char* k_block               = "block";
-
     // Extract the simple name from a class/function definition node: the
     // first identifier-grammar child. Stops at the body ("block") so a
     // malformed tree can never pick up a name from inside the body.
@@ -25,8 +18,8 @@ namespace
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
-            if(child.typeEquals(k_block)) break;
-            if(child.grammarEquals(k_identifier)) return child.getText();
+            if(child.typeEquals(ASTNodeType::Block)) break;
+            if(child.grammarEquals(ASTNodeType::Identifier)) return child.getText();
         }
         return {};
     }
@@ -39,7 +32,7 @@ namespace
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
             // The first child is always the left-hand side.
-            if(child.typeEquals(k_identifier)) return child.getText();
+            if(child.typeEquals(ASTNodeType::Identifier)) return child.getText();
             return {}; // attribute, tuple, subscript, etc. → not a simple assignment
         }
         return {};
@@ -69,7 +62,7 @@ std::vector<Symbol> extract_symbols_python(const ast::AST& tree)
         }
 
         // ── Class ────────────────────────────────────────────────────────
-        if(node.typeEquals(k_class_definition)) {
+        if(node.typeEquals(ASTNodeType::ClassDefinition)) {
             std::u8string name = getDefName(tree, node);
             if(!name.empty()) {
                 std::u8string fqn = buildFQN(scopeStack, name, u8".");
@@ -82,7 +75,7 @@ std::vector<Symbol> extract_symbols_python(const ast::AST& tree)
         }
 
         // ── Function / Method ─────────────────────────────────────────────
-        if(node.typeEquals(k_function_definition)) {
+        if(node.typeEquals(ASTNodeType::FunctionDefinition)) {
             std::u8string name = getDefName(tree, node);
             if(!name.empty()) {
                 SymbolKind kind = SymbolKind::Function;
@@ -102,7 +95,7 @@ std::vector<Symbol> extract_symbols_python(const ast::AST& tree)
 
         // ── Assignment → module variable or class variable ────────────────
         // Skip assignments inside function bodies (local variables).
-        if(node.typeEquals(k_assignment) && !insideFunctionScope(scopeStack)) {
+        if(node.typeEquals(ASTNodeType::Assignment) && !insideFunctionScope(scopeStack)) {
             std::u8string name = getAssignmentName(tree, node);
             if(!name.empty()) {
                 SymbolKind kind = inNamedClassScope(scopeStack)

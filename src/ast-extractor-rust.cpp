@@ -11,32 +11,12 @@ namespace extractor
 {
 namespace
 {
-    // ── Node type string constants (tree-sitter-rust grammar) ────────────────
-    constexpr const char* k_mod_item                = "mod_item";
-    constexpr const char* k_struct_item             = "struct_item";
-    constexpr const char* k_field_declaration       = "field_declaration";
-    constexpr const char* k_enum_item               = "enum_item";
-    constexpr const char* k_enum_variant            = "enum_variant";
-    constexpr const char* k_trait_item              = "trait_item";
-    constexpr const char* k_impl_item               = "impl_item";
-    constexpr const char* k_function_item           = "function_item";
-    constexpr const char* k_function_signature_item = "function_signature_item";
-    constexpr const char* k_const_item              = "const_item";
-    constexpr const char* k_static_item             = "static_item";
-    constexpr const char* k_type_item               = "type_item";
-    constexpr const char* k_identifier              = "identifier";
-    constexpr const char* k_type_identifier         = "type_identifier";
-    constexpr const char* k_field_identifier        = "field_identifier";
-    constexpr const char* k_visibility_modifier     = "visibility_modifier";
-    constexpr const char* k_parameters              = "parameters";
-    constexpr const char* k_self_parameter          = "self_parameter";
-
     // ── Low-level helpers ─────────────────────────────────────────────────────
 
     // Returns Public if the node has a visibility_modifier child, Unknown otherwise.
     Access getAccess(const ast::AST& tree, const ast::ASTNode& node)
     {
-        return findChild(tree, node, (const char8_t*)k_visibility_modifier)
+        return findChild(tree, node, ASTNodeType::VisibilityModifier)
             ? Access::Public
             : Access::Unknown;
     }
@@ -44,9 +24,9 @@ namespace
     // True if the function node's parameters list contains a self parameter.
     bool hasSelfParam(const ast::AST& tree, const ast::ASTNode& node)
     {
-        const ast::ASTNode* params = findChild(tree, node, (const char8_t*)k_parameters);
+        const ast::ASTNode* params = findChild(tree, node, ASTNodeType::Parameters);
         if(!params) return false;
-        return findChild(tree, *params, (const char8_t*)k_self_parameter) != nullptr;
+        return findChild(tree, *params, ASTNodeType::SelfParameter) != nullptr;
     }
 
     // For impl_item: return the implementing type name.
@@ -59,7 +39,7 @@ namespace
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
             if(child.getText() == u8"for") { seenFor = true; continue; }
-            if(child.typeEquals(k_type_identifier)) {
+            if(child.typeEquals(ASTNodeType::TypeIdentifier)) {
                 if(seenFor) return child.getText(); // type after "for"
             }
         }
@@ -67,7 +47,7 @@ namespace
         for(uintptr_t id : node.children_) {
             if(id == ast::InvalidId) continue;
             const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
-            if(child.typeEquals(k_type_identifier)) return child.getText();
+            if(child.typeEquals(ASTNodeType::TypeIdentifier)) return child.getText();
         }
         return {};
     }
@@ -111,8 +91,8 @@ std::vector<Symbol> extract_symbols_rust(const ast::AST& tree)
         if(insideFunctionScope(scopeStack)) continue;
 
         // ── Module ────────────────────────────────────────────────────────────
-        if(node.typeEquals(k_mod_item)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::ModItem)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
@@ -125,8 +105,8 @@ std::vector<Symbol> extract_symbols_rust(const ast::AST& tree)
         }
 
         // ── Struct ────────────────────────────────────────────────────────────
-        if(node.typeEquals(k_struct_item)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_type_identifier);
+        if(node.typeEquals(ASTNodeType::StructItem)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::TypeIdentifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
@@ -140,8 +120,8 @@ std::vector<Symbol> extract_symbols_rust(const ast::AST& tree)
         }
 
         // ── Struct field ──────────────────────────────────────────────────────
-        if(node.typeEquals(k_field_declaration)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_field_identifier);
+        if(node.typeEquals(ASTNodeType::FieldDeclaration)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::FieldIdentifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
@@ -153,8 +133,8 @@ std::vector<Symbol> extract_symbols_rust(const ast::AST& tree)
         }
 
         // ── Enum ──────────────────────────────────────────────────────────────
-        if(node.typeEquals(k_enum_item)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_type_identifier);
+        if(node.typeEquals(ASTNodeType::EnumItem)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::TypeIdentifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
@@ -168,8 +148,8 @@ std::vector<Symbol> extract_symbols_rust(const ast::AST& tree)
         }
 
         // ── Enum variant ──────────────────────────────────────────────────────
-        if(node.typeEquals(k_enum_variant)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::EnumVariant)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
@@ -180,8 +160,8 @@ std::vector<Symbol> extract_symbols_rust(const ast::AST& tree)
         }
 
         // ── Trait ─────────────────────────────────────────────────────────────
-        if(node.typeEquals(k_trait_item)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_type_identifier);
+        if(node.typeEquals(ASTNodeType::TraitItem)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::TypeIdentifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
@@ -197,7 +177,7 @@ std::vector<Symbol> extract_symbols_rust(const ast::AST& tree)
         // ── Impl block ────────────────────────────────────────────────────────
         // No symbol emitted; push a Struct scope so enclosed function_item nodes
         // receive the correct FQN prefix and are classified as methods.
-        if(node.typeEquals(k_impl_item)) {
+        if(node.typeEquals(ASTNodeType::ImplItem)) {
             std::u8string typeName = getImplTypeName(tree, node);
             if(!typeName.empty()) {
                 std::u8string fqn = buildFQN(scopeStack, typeName, u8"::");
@@ -212,8 +192,8 @@ std::vector<Symbol> extract_symbols_rust(const ast::AST& tree)
         //   name=="new" && no self param  → Constructor
         //   inside struct/trait scope     → Method
         //   otherwise                     → Function
-        if(node.typeEquals(k_function_item)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::FunctionItem)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
@@ -236,8 +216,8 @@ std::vector<Symbol> extract_symbols_rust(const ast::AST& tree)
         }
 
         // ── Trait abstract method signature (no body) ─────────────────────────
-        if(node.typeEquals(k_function_signature_item)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::FunctionSignatureItem)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
@@ -249,8 +229,8 @@ std::vector<Symbol> extract_symbols_rust(const ast::AST& tree)
         }
 
         // ── Constant ──────────────────────────────────────────────────────────
-        if(node.typeEquals(k_const_item)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::ConstItem)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
@@ -264,8 +244,8 @@ std::vector<Symbol> extract_symbols_rust(const ast::AST& tree)
         }
 
         // ── Static variable ───────────────────────────────────────────────────
-        if(node.typeEquals(k_static_item)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_identifier);
+        if(node.typeEquals(ASTNodeType::StaticItem)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::Identifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
@@ -279,8 +259,8 @@ std::vector<Symbol> extract_symbols_rust(const ast::AST& tree)
         }
 
         // ── Type alias ────────────────────────────────────────────────────────
-        if(node.typeEquals(k_type_item)) {
-            const ast::ASTNode* id = findChild(tree, node, (const char8_t*)k_type_identifier);
+        if(node.typeEquals(ASTNodeType::TypeItem)) {
+            const ast::ASTNode* id = findChild(tree, node, ASTNodeType::TypeIdentifier);
             if(id) {
                 std::u8string name = id->getText();
                 std::u8string fqn  = buildFQN(scopeStack, name, u8"::");
