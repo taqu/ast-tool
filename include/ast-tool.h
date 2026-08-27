@@ -100,6 +100,8 @@ enum class SubCommand
     References,
     Callers,
     Callees,
+    CacheWarm,
+    CacheStatus,
 };
 
 /** Arguments for the "help" subcommand. */
@@ -215,6 +217,15 @@ struct ArgFind
     bool hasColumn_;
 };
 
+/** Arguments for the "cache" subcommand (warm / status). */
+struct ArgCache
+{
+    const char8_t* root_;    ///< Workspace root directory.
+    bool           warm_;    ///< Run cache warming.
+    bool           status_;  ///< Show cache status.
+    bool           verbose_; ///< Verbose output.
+};
+
 /** Parsed command-line arguments, discriminated by #sub_. */
 struct Arguments
 {
@@ -233,6 +244,7 @@ struct Arguments
         ArgReferences references_;
         ArgCallers callers_;
         ArgCallees callees_;
+        ArgCache cache_;
     };
 };
 

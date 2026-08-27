@@ -31,7 +31,7 @@ def main():
         local_dir = os.path.abspath(os.path.join("workspace", f"{instance_id}"))
         github_url = f"https://github.com/{repo_name}.git"
         
-        # ƒŠƒ|ƒWƒgƒŠ€”õ
+        # ãƒªãƒã‚¸ãƒˆãƒªæº–å‚™
         if not os.path.exists(local_dir):
             try:
                 repo = Repo.clone_from(github_url, local_dir)
@@ -47,12 +47,13 @@ def main():
             print(f"Checkout failed: {e}")
             continue
         
-        # –â‘è•¶‚Ì•Û‘¶
+        # å•é¡Œæ–‡ã®ä¿å­˜
         instruction_file = os.path.join(local_dir, "SWE_PROBLEM_STATEMENT.md")
         with open(instruction_file, "w", encoding="utf-8") as f:
             f.write(problem_statement)
             
-        # --- Claude Code Š®‘S©“®Àsi‘ÎôB + ƒAƒ‹ƒtƒ@j ---
+        continue
+        # --- Claude Code å®Œå…¨è‡ªå‹•å®Ÿè¡Œï¼ˆå¯¾ç­–B + ã‚¢ãƒ«ãƒ•ã‚¡ï¼‰ ---
         claude_instruction = (
             "Read 'SWE_PROBLEM_STATEMENT.md' to understand the issue. "
             "Locate the bug, modify the source code to fix it, and ensure all relevant tests pass. "
@@ -60,11 +61,11 @@ def main():
         )
         
         env_config = os.environ.copy()
-        env_config["CLAUDE_CODE_TRUST_ALL"] = "1"  # Workspace Trust‚ÌŠm”F‚ğƒXƒLƒbƒv
-        env_config["CI"] = "true"                  # ƒwƒbƒhƒŒƒXŠÂ‹«‚Æ‚µ‚Ä–¾¦
+        env_config["CLAUDE_CODE_TRUST_ALL"] = "1"  # Workspace Trustã®ç¢ºèªã‚’ã‚¹ã‚­ãƒƒãƒ—
+        env_config["CI"] = "true"                  # ãƒ˜ãƒƒãƒ‰ãƒ¬ã‚¹ç’°å¢ƒã¨ã—ã¦æ˜ç¤º
         
         try:
-            # 1‚Â‚ÌƒŠƒ|ƒWƒgƒŠ‚ªƒhƒcƒ{‚Éƒnƒ}‚Á‚½‚Ì‚½‚ß‚Éƒ^ƒCƒ€ƒAƒEƒgi—á: 15•ª=900•bj‚ğİ’è
+            # 1ã¤ã®ãƒªãƒã‚¸ãƒˆãƒªãŒãƒ‰ãƒ„ãƒœã«ãƒãƒã£ãŸæ™‚ã®ãŸã‚ã«ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆï¼ˆä¾‹: 15åˆ†=900ç§’ï¼‰ã‚’è¨­å®š
             subprocess.run(
                 [
                     "claude", 
@@ -78,7 +79,7 @@ def main():
                 timeout=900 
             )
             
-            # --- ÀsŠ®—¹ŒãAGit·•ªiƒpƒbƒ`j‚ğ’Šo‚µ‚Ä•Û‘¶ ---
+            # --- å®Ÿè¡Œå®Œäº†å¾Œã€Gitå·®åˆ†ï¼ˆãƒ‘ãƒƒãƒï¼‰ã‚’æŠ½å‡ºã—ã¦ä¿å­˜ ---
             patch_diff = repo.git.diff()
             
             if patch_diff.strip():
@@ -88,7 +89,7 @@ def main():
                     "model_name_or_path": "claude-code-agent"
                 }
                 
-                # SWE-benchŒö®ƒtƒH[ƒ}ƒbƒg(JSONL)‚Å’Ç‹L•Û‘¶
+                # SWE-benchå…¬å¼ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆ(JSONL)ã§è¿½è¨˜ä¿å­˜
                 with open(output_preds_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(prediction_entry) + "\n")
                 print(f"[Success] Extracted patch for {instance_id}")
@@ -105,7 +106,7 @@ def main():
             print("\nInterrupted by user. Exiting...")
             break
 
-    # --- ‘SƒŠƒ|ƒWƒgƒŠ„‰ñŒãAÅŒã‚ÉŒö®•]‰¿ƒn[ƒlƒX‚ğ’@‚¢‚Ä©“®WŒv ---
+    # --- å…¨ãƒªãƒã‚¸ãƒˆãƒªå·¡å›å¾Œã€æœ€å¾Œã«å…¬å¼è©•ä¾¡ãƒãƒ¼ãƒã‚¹ã‚’å©ã„ã¦è‡ªå‹•é›†è¨ˆ ---
     if output_preds_path.exists():
         print("\n=============================================")
         print("All repos processed. Starting SWE-bench Evaluation...")
@@ -117,7 +118,7 @@ def main():
             "--predictions_path", str(output_preds_path),
             "--run_id", "claude_code_eval_run"
         ]
-        # •]‰¿‚ğÀsi“à•”‚ÅDocker‚ª—§‚¿ã‚ª‚èƒeƒXƒg‚ª‰ñ‚è‚Ü‚·j
+        # è©•ä¾¡ã‚’å®Ÿè¡Œï¼ˆå†…éƒ¨ã§DockerãŒç«‹ã¡ä¸ŠãŒã‚Šãƒ†ã‚¹ãƒˆãŒå›ã‚Šã¾ã™ï¼‰
         subprocess.run(eval_command)
     else:
         print("\nNo patches were generated. Evaluation skipped.")

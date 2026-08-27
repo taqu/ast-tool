@@ -37,6 +37,7 @@
 #include "outline.h"
 #include "parent.h"
 #include "range.h"
+#include "cache.h"
 #include "callees.h"
 #include "callers.h"
 #include "references.h"
@@ -165,6 +166,8 @@ namespace
             return parse_callers(arguments, argc, argv);
         } else if(arg1_sv == u8"callees") {
             return parse_callees(arguments, argc, argv);
+        } else if(arg1_sv == u8"cache") {
+            return parse_cache(arguments, argc, argv);
         } else {
             return false;
         }
@@ -223,6 +226,10 @@ bool dispatch(const Arguments& arguments)
         return callers(arguments.callers_);
     case SubCommand::Callees:
         return callees(arguments.callees_);
+    case SubCommand::CacheWarm:
+        return cache_warm_cmd(arguments.cache_);
+    case SubCommand::CacheStatus:
+        return cache_status_cmd(arguments.cache_);
     default:
         return false;
     }
@@ -689,7 +696,7 @@ namespace
         return (0 < read) ? buffer : NULL;
     }
 
-    void traverse_all_nodes(AST& /*ast*/, TSNode root)
+    void traverse_all_nodes(AST& ast, TSNode root)
     {
         TSTreeCursor cursor = ts_tree_cursor_new(root);
         bool reached_root = false;
@@ -697,6 +704,7 @@ namespace
         while(!reached_root) {
             // 1. Process the current node
             TSNode current_node = ts_tree_cursor_current_node(&cursor);
+            ast.add(current_node);
 
             // 2. Try to move deeper to the first child
             if(ts_tree_cursor_goto_first_child(&cursor)) {

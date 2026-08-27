@@ -76,6 +76,9 @@ set(MAIN_SOURCES
     # AST cache tests
     "${CMAKE_CURRENT_SOURCE_DIR}/ast-cache/test_cache.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/ast-cache/test_cache.cpp"
+    # AST cache warm tests
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-cache-warm/test_cache_warm.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-cache-warm/test_cache_warm.cpp"
 )
 
 source_group("include" FILES ${HEADERS})

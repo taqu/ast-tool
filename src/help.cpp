@@ -15,6 +15,7 @@ enum class CommandCategory
 {
     ASTInspection,
     SemanticAnalysis,
+    CacheManagement,
 };
 
 struct CommandEntry
@@ -627,6 +628,106 @@ static const char8_t kHelpReferences[] =
     u8"\n"
     u8"        ast-tool references --json --pretty foo src/\n";
 
+static const char8_t kHelpCache[] =
+    u8"NAME\n"
+    u8"    cache - Manage the workspace AST cache.\n"
+    u8"\n"
+    u8"SYNOPSIS\n"
+    u8"    ast-tool cache warm   [--verbose] [<root>]\n"
+    u8"    ast-tool cache status [<root>]\n"
+    u8"\n"
+    u8"SUBCOMMANDS\n"
+    u8"    warm      Warm the workspace AST cache (parse missing/stale files).\n"
+    u8"    status    Show AST cache information for a workspace.\n"
+    u8"\n"
+    u8"Run 'ast-tool cache warm --help' or 'ast-tool cache status --help' for\n"
+    u8"detailed documentation.\n";
+
+static const char8_t kHelpCacheWarm[] =
+    u8"NAME\n"
+    u8"    cache warm - Warm the workspace AST cache in the background.\n"
+    u8"\n"
+    u8"SYNOPSIS\n"
+    u8"    ast-tool cache warm [--verbose] [<root>]\n"
+    u8"\n"
+    u8"DESCRIPTION\n"
+    u8"    Scan the workspace rooted at <root>, identify source files whose AST\n"
+    u8"    cache entries are missing, stale, or incompatible with the current\n"
+    u8"    format, and parse only those files.\n"
+    u8"\n"
+    u8"    Files with up-to-date cache entries are skipped.  If the workspace was\n"
+    u8"    fully cached during the previous session and no source files have\n"
+    u8"    changed, the command exits quickly after a lightweight metadata scan.\n"
+    u8"\n"
+    u8"    Only one cache warming process may update a workspace at a time.  A\n"
+    u8"    second invocation for the same workspace exits immediately without\n"
+    u8"    waiting.  The lock is released automatically if the process crashes.\n"
+    u8"\n"
+    u8"    This command is intended as a session-start hook:\n"
+    u8"\n"
+    u8"        ast-tool cache warm src/ >/dev/null 2>&1 &\n"
+    u8"\n"
+    u8"ARGUMENTS\n"
+    u8"    <root>    Workspace root directory. Defaults to '.'.\n"
+    u8"\n"
+    u8"OPTIONS\n"
+    u8"    --verbose, -v    Print warming statistics on completion.\n"
+    u8"\n"
+    u8"OUTPUT (--verbose)\n"
+    u8"    Workspace files:     <n>\n"
+    u8"    Valid cache entries: <n>\n"
+    u8"    Missing entries:     <n>\n"
+    u8"    Stale entries:       <n>\n"
+    u8"    Files parsed:        <n>\n"
+    u8"    Files updated:       <n>\n"
+    u8"    Files failed:        <n>\n"
+    u8"    Removed entries:     <n>\n"
+    u8"    Metadata check:      <ms> ms\n"
+    u8"    Parsing:             <ms> ms\n"
+    u8"    Total elapsed:       <ms> ms\n"
+    u8"\n"
+    u8"EXAMPLES\n"
+    u8"    Warm the cache for the current workspace:\n"
+    u8"\n"
+    u8"        ast-tool cache warm\n"
+    u8"\n"
+    u8"    Warm in the background (session-start hook style):\n"
+    u8"\n"
+    u8"        ast-tool cache warm src/ >/dev/null 2>&1 &\n"
+    u8"\n"
+    u8"    Warm with statistics:\n"
+    u8"\n"
+    u8"        ast-tool cache warm --verbose src/\n";
+
+static const char8_t kHelpCacheStatus[] =
+    u8"NAME\n"
+    u8"    cache status - Show AST cache information for a workspace.\n"
+    u8"\n"
+    u8"SYNOPSIS\n"
+    u8"    ast-tool cache status [<root>]\n"
+    u8"\n"
+    u8"DESCRIPTION\n"
+    u8"    Print information about the persistent AST cache for the workspace\n"
+    u8"    rooted at <root>.\n"
+    u8"\n"
+    u8"ARGUMENTS\n"
+    u8"    <root>    Workspace root directory. Defaults to '.'.\n"
+    u8"\n"
+    u8"OUTPUT\n"
+    u8"    Cache database:      <path>\n"
+    u8"    AST format version:  <n>\n"
+    u8"    Cached files:        <n>\n"
+    u8"    Database size:       <size>\n"
+    u8"\n"
+    u8"EXAMPLES\n"
+    u8"    Show cache status for the current workspace:\n"
+    u8"\n"
+    u8"        ast-tool cache status\n"
+    u8"\n"
+    u8"    Show cache status for a specific workspace:\n"
+    u8"\n"
+    u8"        ast-tool cache status src/\n";
+
 // ---------------------------------------------------------------------------
 // Command metadata tables
 
@@ -645,6 +746,8 @@ static const CommandEntry kCommands[] = {
     {u8"references", u8"Find references to a symbol.",                     CommandCategory::SemanticAnalysis, kHelpReferences, false},
     {u8"callers",    u8"Find direct callers of a function.",               CommandCategory::SemanticAnalysis, kHelpCallers,    false},
     {u8"callees",    u8"Find direct callees of a function.",               CommandCategory::SemanticAnalysis, kHelpCallees,    false},
+    // Cache Management
+    {u8"cache",        u8"Manage the workspace AST cache (warm / status).", CommandCategory::CacheManagement, kHelpCache,       false},
 };
 
 static constexpr int kCommandCount = sizeof(kCommands) / sizeof(kCommands[0]);
@@ -658,6 +761,7 @@ struct CategoryInfo
 static const CategoryInfo kCategories[] = {
     {CommandCategory::ASTInspection,   "AST Inspection"},
     {CommandCategory::SemanticAnalysis, "Semantic Analysis"},
+    {CommandCategory::CacheManagement,  "Cache Management"},
 };
 
 static constexpr int kCategoryCount = sizeof(kCategories) / sizeof(kCategories[0]);

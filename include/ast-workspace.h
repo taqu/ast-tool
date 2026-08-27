@@ -268,6 +268,16 @@ struct Workspace
 std::vector<std::filesystem::path> scan_workspace(const char8_t* root);
 
 /**
+ * @brief Streams discovered source files under @p root into @p emit, one at a time.
+ *
+ * Calls @p emit for each supported source file found.  Unlike scan_workspace(),
+ * this never accumulates all paths, so scanning and processing can overlap.
+ * Files are emitted in filesystem-traversal order (not sorted).
+ */
+void scan_workspace_stream(const std::filesystem::path& root,
+                           std::function<void(std::filesystem::path)> emit);
+
+/**
  * @brief Parses and analyzes every source file under @p root.
  *
  * Equivalent to:

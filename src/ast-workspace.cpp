@@ -465,6 +465,16 @@ std::vector<std::filesystem::path> scan_workspace(const char8_t* root)
     return files;
 }
 
+void scan_workspace_stream(const std::filesystem::path& root,
+                           std::function<void(std::filesystem::path)> emit)
+{
+    std::error_code ec;
+    if(!std::filesystem::is_directory(root, ec) || ec)
+        return;
+    IgnoreMatcher matcher(root);
+    scan_recursive(root, matcher, std::move(emit));
+}
+
 Workspace analyze_workspace(const char8_t* root)
 {
     if(nullptr == root)

@@ -1,1071 +1,1301 @@
-# Task: Implement Persistent Binary AST Cache Using SQLite and LZ4
+# Task: Parallelize `warm_cache` Using the Existing BlockingQueue Pattern
 
 ## Goal
 
-Implement a persistent AST cache using SQLite and LZ4 compression.
+Refactor and parallelize the workspace AST cache warming implementation.
 
-The AST representation has been prepared for binary serialization by replacing raw node type string pointers with compact enum identifiers.
+The project already contains a reusable bounded producer-consumer queue:
 
-Use this representation to persist parsed AST data across process executions.
-
-The desired architecture is:
-
-    Source File
-        ↓
-    Check AST Cache
-        ↓
-    Cache hit
-        → load binary AST
-        → LZ4 decompress
-        → deserialize
-        → use AST
-
-    Cache miss
-        ↓
-    Parse source with Tree-sitter
-        ↓
-    Build AST / AST IR
-        ↓
-    Serialize AST to binary
-        ↓
-    LZ4 compress
-        ↓
-    Store in SQLite
-        ↓
-    Use AST
-
-The persistent cache should be used transparently by the workspace and lazy AST loading system.
-
----
-
-# Scope
-
-Implement:
-
-- binary serialization of AST data
-- binary deserialization of AST data
-- LZ4 compression and decompression
-- SQLite-backed persistent AST storage
-- per-file cache lookup
-- cache invalidation when source files change
-- integration with lazy per-path AST loading
-
-Do not implement:
-
-- a daemon
-- a server mode
-- JSON-RPC
-- a distributed cache
-- workspace-wide preloading
-- advanced dependency invalidation
-- incremental AST updates
-- a full semantic database
-
-The cache should operate at the individual source file level.
-
----
-
-# Target Architecture
-
-The workspace should behave approximately as follows:
-
-    Workspace
-    │
-    ├── File Registry
-    │       known source paths
-    │
-    ├── Memory AST Cache
-    │       path → loaded AST
-    │
-    └── Persistent AST Cache
-            SQLite database
-                    ↓
-                compressed binary AST
-
-When a command requires an AST:
-
-    get_ast(path)
-
-        ↓
-
-    1. Check memory cache
-
-        hit
-            ↓
-        return AST
-
-        miss
-            ↓
-
-    2. Check SQLite cache
-
-        valid entry found
-            ↓
-        read blob
-            ↓
-        LZ4 decompress
-            ↓
-        deserialize AST
-            ↓
-        insert into memory cache
-            ↓
-        return AST
-
-        cache miss / invalid
-            ↓
-
-    3. Parse source
-
-        Tree-sitter
-            ↓
-        AST extraction
-            ↓
-        AST IR
-            ↓
-        serialize
-            ↓
-        LZ4 compress
-            ↓
-        store in SQLite
-            ↓
-        insert into memory cache
-            ↓
-        return AST
-
-The command layer should not need to know whether the AST came from:
-
-- memory
-- SQLite cache
-- fresh parsing
-
-The existing workspace API should remain the abstraction boundary.
-
----
-
-# SQLite Database Location
-
-Store the cache in a workspace-local directory.
-
-Preferred layout:
-
-    <workspace>/
-    └── .ast-tool/
-        └── ast-cache.db
-
-The `.ast-tool` directory should be created automatically if necessary.
-
-The cache database should not be required to be committed to source control.
-
-If the project already has a workspace cache or metadata directory, follow the existing convention instead.
-
----
-
-# Cache Key and Validation
-
-The cache must determine whether a stored AST still corresponds to the current source file.
-
-Each cache entry should contain at least:
-
-    normalized_path
-    source content hash
-    source size
-    source modification time
-    language
-    AST format version
-    compressed AST blob
-
-Recommended lookup flow:
-
-    get_ast(path)
-
-        ↓
-
-    normalize path
-
-        ↓
-
-    obtain current file metadata
-
-        ↓
-
-    lookup SQLite entry
-
-        ↓
-
-    metadata matches?
-
-        yes
-            ↓
-        cache hit
-
-        no
-            ↓
-        reparse source
-        replace cache entry
-
-Do not rely only on file modification time if that could cause stale cache entries.
-
-A content hash should be the authoritative validation mechanism.
-
-For performance, metadata such as:
-
-    mtime
-    size
-
-may be used as a fast path to avoid recomputing the content hash when the file clearly has not changed.
-
-The exact validation strategy should prioritize correctness first.
-
----
-
-# Database Schema
-
-Use a simple schema focused on per-file AST caching.
-
-A starting point could be:
-
-```sql id="kmz8kv"
-CREATE TABLE IF NOT EXISTS ast_cache (
-    path TEXT PRIMARY KEY,
-
-    source_hash BLOB NOT NULL,
-    source_size INTEGER NOT NULL,
-    source_mtime INTEGER NOT NULL,
-
-    language INTEGER NOT NULL,
-
-    format_version INTEGER NOT NULL,
-
-    uncompressed_size INTEGER NOT NULL,
-    compressed_size INTEGER NOT NULL,
-
-    ast_blob BLOB NOT NULL
-);
+```cpp
+template<typename T>
+class BlockingQueue
 ````
 
-The exact schema may be adjusted to match existing project types.
+in `ast-workspace.h`.
 
-Keep the schema simple.
+The workspace analysis code already uses the following pattern:
 
-Do not normalize every AST node into relational database rows.
-
-The AST should be stored as one binary blob per source file.
-
-SQLite is used for:
-
-* persistence
-* cache lookup
-* metadata
-* invalidation
-* atomic replacement of cached file entries
-
-It is not intended to become a node-by-node AST query engine.
-
----
-
-# Binary Serialization Requirements
-
-Implement explicit binary serialization.
-
-Do not serialize raw C++ object memory directly unless every serialized field is explicitly guaranteed to be portable and stable.
-
-Do not write the entire `ASTNode` structure with:
-
-```cpp id="ghkmd2"
-file.write(
-    reinterpret_cast<const char*>(&node),
-    sizeof(ASTNode));
-```
-
-unless the implementation first proves that every field is safe and the format is explicitly defined.
-
-Instead, define a binary format.
-
-For example:
-
-```text id="6etf7d"
-AST File Header
-
-magic
-format_version
-language
-node_count
-...
-```
-
-followed by serialized nodes.
-
-Conceptually:
-
-```text id="nx1q09"
-Header
-    ↓
-Node 0
-Node 1
-Node 2
-...
-```
-
-Each field should be written explicitly in a defined order.
-
-Use fixed-width integer types where possible:
-
-```
-uint8_t
-uint16_t
-uint32_t
-uint64_t
-```
-
-Do not serialize:
-
-* pointers
-* `const char*`
-* process-local addresses
-* `uintptr_t` values that are not stable AST indices
-
-Before serialization, ensure that AST node identifiers are in their stable remapped/index form.
-
-If the AST currently uses:
-
-```text id="tdhpr2"
-before remap_ids()
-    id_ = Tree-sitter node identifier
-
-after remap_ids()
-    id_ = AST-local index
-```
-
-then only serialize the AST after the stable index representation has been established.
-
-Do not serialize Tree-sitter node IDs.
-
----
-
-# AST Format Versioning
-
-The cache format must include an explicit version.
-
-For example:
-
-```cpp id="s6klce"
-constexpr uint32_t kAstCacheFormatVersion = 1;
-```
-
-Every cached AST entry must store the format version.
-
-If the version does not match:
-
-```
-current code format
-    !=
-cached format
-```
-
-then treat the cache entry as invalid.
-
-The implementation should:
-
-```
-cache version mismatch
-    ↓
-ignore old cache entry
-    ↓
-reparse source
-    ↓
-write new cache entry
-```
-
-Do not attempt automatic migration in this task.
-
-Version mismatch should simply invalidate the cached entry.
-
----
-
-# LZ4 Compression
-
-Use LZ4 to compress the serialized AST blob before storing it in SQLite.
-
-The flow should be:
-
-```text id="zbs5tt"
-AST
-    ↓
-binary serialization
-    ↓
-uncompressed byte buffer
-    ↓
-LZ4 compression
-    ↓
-compressed byte buffer
-    ↓
-SQLite BLOB
-```
-
-On load:
-
-```text id="wttphx"
-SQLite BLOB
-    ↓
-LZ4 decompression
-    ↓
-binary byte buffer
-    ↓
-AST deserialization
-    ↓
-AST
-```
-
-Store enough metadata to know the expected decompressed size.
-
-At minimum:
-
-```
-uncompressed_size
-compressed_size
-```
-
-Use the existing LZ4 integration available in the project.
-
-Handle compression failures safely.
-
-Do not store corrupted or partially serialized cache entries.
-
----
-
-# Compression Policy
-
-LZ4 compression may not always reduce the size of very small ASTs.
-
-Implement a simple policy:
-
-```
-serialize AST
-
-    ↓
-
-attempt LZ4 compression
-
-    ↓
-
-compressed data is smaller?
-
-    yes
+```text
+Directory Scanner
         ↓
-    store compressed
-
-    no
+BlockingQueue<Path>
         ↓
-    store uncompressed
+Multiple Worker Threads
+        ↓
+Analyze File
+        ↓
+Merge Result
 ```
 
-If both compressed and uncompressed entries are supported, store an explicit compression mode.
+Reuse this existing concurrency pattern for AST cache warming instead of introducing a new thread pool, task system, or queue implementation.
 
-For example:
+The new cache warming architecture should be:
 
-```text id="c2s1pk"
-compression = None
-compression = LZ4
+```text
+Directory Scanner
+        ↓
+BlockingQueue<filesystem::path>
+        ↓
+Parallel Cache Workers
+        │
+        ├── stat file
+        ├── lookup cache metadata
+        ├── validate metadata
+        ├── compute content hash when necessary
+        ├── parse stale/missing files
+        ├── serialize AST
+        └── compress AST
+        ↓
+BlockingQueue<CacheWriteRequest>
+        ↓
+Single SQLite Writer Thread
+        ↓
+Atomic / batched database updates
 ```
 
-The cache loader must use the stored mode rather than assuming all blobs are compressed.
+The objective is to parallelize the expensive file processing and AST parsing while keeping SQLite writes serialized and safe.
 
 ---
 
-# Serialization Scope
+# Existing Sequential Logic
 
-Serialize all information required to reconstruct a usable AST / AST IR without Tree-sitter.
+The current `warm_cache` logic is conceptually:
 
-After deserialization, the AST should be usable by existing higher-level logic without reparsing the source file.
+```cpp
+for(const auto& path: files) {
+    int64_t curSize = 0, curMtime = 0;
+    bool statOk = cw_stat(path, curSize, curMtime);
 
-At minimum, inspect the AST and related structures to determine all required data.
+    if(!statOk) {
+        ++stats.files_failed;
+        continue;
+    }
 
-Potential data may include:
+    ASTCacheDatabase::Metadata meta;
+    bool hasMeta = db.lookup_metadata(path.string(), meta);
 
-* AST nodes
-* node IDs
-* parent IDs
-* hashes
-* flags
-* node type enum
-* grammar type enum
-* source text or text references
-* child relationships, if stored separately
-* AST-level metadata
-* language information
+    if(hasMeta &&
+       meta.format_version == kAstCacheFormatVersion &&
+       meta.source_size == curSize &&
+       meta.source_mtime == curMtime) {
+        ++stats.valid_entries;
+        continue;
+    }
 
-Do not serialize data that can be cheaply reconstructed unless necessary.
+    if(hasMeta &&
+       meta.format_version == kAstCacheFormatVersion) {
+        uint64_t curHash = cw_hash_file(path);
 
-The goal is:
+        if(curHash != 0 &&
+           curHash == meta.source_hash) {
 
+            db.update_mtime_size(
+                path.string(),
+                curSize,
+                curMtime);
+
+            ++stats.valid_entries;
+            continue;
+        }
+
+        ++stats.stale_entries;
+    }
+    else {
+        ++stats.missing_entries;
+    }
+
+    AST ast = parse(...);
+
+    if(!ast) {
+        ++stats.files_failed;
+        continue;
+    }
+
+    cw_store(db, path, ast);
+
+    ++stats.files_parsed;
+    ++stats.files_updated;
+}
 ```
-deserialize
-    ↓
-obtain a fully usable AST IR
-```
 
-without requiring Tree-sitter.
+Replace this sequential loop with a producer-consumer pipeline.
+
+Do not change the cache validation semantics unless required for thread safety or integration with the writer queue.
 
 ---
 
-# ASTText Handling
+# Required Architecture
 
-Inspect `ASTText` carefully before implementing serialization.
+## Stage 1: Directory Scanner
 
-Do not assume it can be serialized by copying its in-memory representation.
+Reuse the existing workspace scanning pattern.
 
-Determine whether `ASTText` contains:
+The scanner thread should:
 
-* pointers
-* views
-* references into source buffers
-* offsets
-* owned strings
+1. Create the existing `IgnoreMatcher`.
+2. Use the existing `scan_recursive()` implementation.
+3. Push discovered source files into:
 
-The serialized representation must not depend on process-local pointers.
+```cpp
+BlockingQueue<std::filesystem::path>
+```
 
-If `ASTText` currently references source memory, serialize either:
+Example structure:
 
-1. stable byte offsets into the source file, or
-2. owned text data,
+```cpp
+BlockingQueue<std::filesystem::path> fileQueue;
 
-depending on the existing AST design.
+std::thread scanThread([&]() noexcept {
+    try {
+        IgnoreMatcher matcher(rootPath);
 
-Prefer a compact representation.
+        scan_recursive(
+            rootPath,
+            matcher,
+            [&](std::filesystem::path path) {
+                fileQueue.push(std::move(path));
+            });
+    }
+    catch(...) {
+        // Record scan failure if appropriate.
+    }
 
-If source text offsets are sufficient to reconstruct `ASTText`, avoid duplicating large source strings inside every AST node.
+    fileQueue.markDone();
+});
+```
 
-Document the chosen approach.
+Do not introduce a separate workspace file discovery implementation.
+
+Reuse the same discovery and ignore behavior used by normal workspace analysis.
 
 ---
 
-# Path Handling
+# Do Not Accumulate All Paths Unnecessarily
 
-Use a consistent normalized path representation for SQLite keys.
+The cache warmer should process files as they are discovered.
 
-Requirements:
+Prefer:
 
-* the same file must not produce multiple cache entries because of equivalent paths
-* relative versus absolute path handling must be consistent
-* paths should be interpreted relative to the workspace where appropriate
-
-Prefer a stable workspace-relative path as the database key if compatible with the existing workspace model.
-
-For example:
-
-```text id="vzk2ky"
-src/main.cpp
-include/foo.h
-```
-
-rather than machine-specific absolute paths.
-
----
-
-# SQLite Access Layer
-
-Keep SQLite details isolated.
-
-Introduce a dedicated component conceptually similar to:
-
-```text id="1aqzwg"
-ASTCacheDatabase
-```
-
-or follow existing project naming conventions.
-
-Responsibilities:
-
-```text id="k39i2y"
-open database
-initialize schema
-
-lookup(path)
-
-store(path, metadata, blob)
-
-remove(path)
-
-clear invalid entries
-```
-
-The rest of the AST/workspace code should not contain raw SQL statements.
-
-The workspace should interact with a cache abstraction.
-
-For example:
-
-```text id="xv2m1s"
-Workspace
-    ↓
-PersistentASTCache
-    ↓
-SQLite
+```text
+scan
+  ↓
+push path
+  ↓
+worker starts processing immediately
 ```
 
 rather than:
 
-```text id="ptsh7p"
-Workspace
+```text
+scan entire workspace
+  ↓
+store all paths
+  ↓
+start processing
+```
+
+Do not keep an `allFiles` vector unless it is required for another existing feature.
+
+The purpose of streaming paths into the queue is to overlap:
+
+* directory scanning
+* cache validation
+* file hashing
+* AST parsing
+
+---
+
+# Stage 2: Parallel Cache Workers
+
+Create multiple worker threads using the existing workspace analysis style.
+
+The worker count should be based on the existing CPU/core detection utilities.
+
+For example:
+
+```cpp
+const uint32_t hwThreads = ast::get_physical_core_count();
+const uint32_t nWorkers = std::max(1u, hwThreads);
+```
+
+However, cache warming is a background optimization and should not unnecessarily monopolize the machine.
+
+If appropriate, cap the worker count using a conservative maximum such as:
+
+```cpp
+const uint32_t nWorkers =
+    std::max(1u, std::min(4u, hwThreads));
+```
+
+Prefer an existing project convention for worker count if one exists.
+
+Do not introduce a new general-purpose thread pool.
+
+Reuse the existing `std::thread + BlockingQueue` approach.
+
+Each worker should:
+
+```text
+pop path
     ↓
-direct SQL queries everywhere
+stat file
+    ↓
+lookup metadata
+    ↓
+fast metadata validation
+    ↓
+if needed:
+    compute content hash
+    ↓
+if valid:
+    enqueue metadata update if needed
+else:
+    parse AST
+    ↓
+    serialize
+    ↓
+    LZ4 compress
+    ↓
+    enqueue prepared cache entry
 ```
 
 ---
 
-# Memory Cache Integration
+# Worker Function
 
-The persistent cache should work together with the existing lazy in-memory AST cache.
+Extract the per-file warming logic into a helper conceptually similar to:
 
-The lookup order must be:
-
-```text id="n49l6q"
-1. Memory AST cache
-
-2. Persistent SQLite AST cache
-
-3. Parse source
+```cpp
+warm_one_file(...)
 ```
 
-Do not bypass the memory cache when a database cache exists.
+For example:
 
-The expected behavior is:
-
-First access in a process:
-
-```text id="3s7qay"
-Memory miss
-    ↓
-SQLite hit
-    ↓
-deserialize
-    ↓
-Memory cache insert
+```cpp
+void warm_one_file(
+    const std::filesystem::path& path,
+    ASTCacheDatabase& dbReader,
+    BlockingQueue<CacheWriteRequest>& writeQueue,
+    WarmStats& localStats);
 ```
 
-Second access:
+The function should contain the logic currently inside the sequential loop.
 
-```text id="qczcf7"
-Memory hit
-    ↓
-return immediately
+Do not duplicate cache validation logic in multiple places.
+
+---
+
+# Cache Metadata Lookup
+
+Workers need to perform:
+
+```cpp
+db.lookup_metadata(...)
 ```
 
-First access after a source change:
+Do not assume that one shared `ASTCacheDatabase` instance is safe for simultaneous access from multiple worker threads.
 
-```text id="t8j8ay"
-Memory miss / invalid
+Inspect the existing `ASTCacheDatabase` implementation.
+
+Prefer one SQLite read connection per worker.
+
+The intended structure is:
+
+```text
+Worker 1
     ↓
-SQLite entry invalid
+SQLite connection A
+
+Worker 2
     ↓
+SQLite connection B
+
+Worker 3
+    ↓
+SQLite connection C
+
+...
+
+Writer
+    ↓
+SQLite write connection W
+```
+
+A worker may create and own its read connection for its entire lifetime.
+
+Conceptually:
+
+```cpp
+workers.emplace_back([&]() noexcept {
+    ASTCacheDatabase dbReader;
+
+    if(!dbReader.open_readonly(dbPath)) {
+        // Record worker/database failure.
+        return;
+    }
+
+    WarmStats localStats;
+
+    std::filesystem::path path;
+
+    while(fileQueue.pop(path)) {
+        try {
+            warm_one_file(
+                path,
+                dbReader,
+                writeQueue,
+                localStats);
+        }
+        catch(...) {
+            ++localStats.files_failed;
+        }
+    }
+
+    merge_worker_stats(localStats);
+});
+```
+
+Adapt this to the actual `ASTCacheDatabase` API.
+
+Do not invent a new database abstraction if the existing class can support separate read-only connections.
+
+---
+
+# Tree-sitter / Parser Thread Safety
+
+Before enabling parallel parsing, inspect the implementation of:
+
+```cpp
+parse(...)
+```
+
+Verify that parsing is safe when called concurrently.
+
+In particular, check whether parsing uses:
+
+* a shared `TSParser`
+* global mutable parser state
+* static mutable buffers
+* shared extractor state
+
+If parser state is not thread-safe, each worker must own independent parser state.
+
+The desired model is:
+
+```text
+Worker 1 → Parser Context A
+Worker 2 → Parser Context B
+Worker 3 → Parser Context C
+```
+
+Do not share one `TSParser` instance across concurrent worker threads.
+
+If the existing parser abstraction already creates parser state per call, preserve that behavior.
+
+---
+
+# Stage 3: SQLite Write Queue
+
+Workers must not directly perform cache database writes.
+
+Introduce:
+
+```cpp
+BlockingQueue<CacheWriteRequest>
+```
+
+All database modifications must be sent through this queue.
+
+There should be one dedicated writer thread.
+
+The writer queue should receive at least two types of requests.
+
+## Type 1: Metadata Update
+
+When:
+
+```text
+size/mtime changed
+but
+content hash is unchanged
+```
+
+the worker should not directly call:
+
+```cpp
+db.update_mtime_size(...)
+```
+
+Instead, enqueue a request containing:
+
+```text
+path
+source_size
+source_mtime
+```
+
+Conceptually:
+
+```cpp
+struct MetadataUpdate
+{
+    std::string path;
+    int64_t source_size;
+    int64_t source_mtime;
+};
+```
+
+---
+
+## Type 2: Full Cache Entry Update
+
+When a file must be reparsed:
+
+```text
 parse
     ↓
-serialize
+serialize AST
     ↓
-compress
+LZ4 compress
     ↓
-replace SQLite entry
+prepare complete cache entry
     ↓
-Memory cache insert
+enqueue CacheEntryUpdate
 ```
 
----
+Conceptually:
 
-# Error Handling and Cache Corruption
+```cpp
+struct CacheEntryUpdate
+{
+    std::string path;
 
-The cache must never make normal AST analysis fail permanently.
+    ASTCacheDatabase::Metadata metadata;
 
-If any of the following occur:
+    CompressionMode compression;
 
-* SQLite read error
-* missing entry
-* corrupted blob
-* invalid format
-* decompression failure
-* deserialization failure
-* invalid node count
-* invalid parent index
-* version mismatch
-
-then:
-
-```text id="vxovhy"
-treat cache entry as invalid
-    ↓
-discard / remove entry if appropriate
-    ↓
-parse source normally
-    ↓
-replace cache entry
+    std::vector<std::byte> blob;
+};
 ```
 
-A corrupted cache must be recoverable automatically.
+Use the actual existing serialized cache representation if one already exists.
 
-Do not require manual cache deletion for normal recovery.
+Do not duplicate serialization or compression logic.
+
+Refactor existing helpers if necessary so that workers can prepare a complete cache entry without writing it directly to SQLite.
+
+For example, split an existing helper conceptually like:
+
+```text
+cw_store()
+```
+
+into:
+
+```text
+cw_prepare_entry()
+    ↓
+produces complete serialized/compressed entry
+
+cw_store_prepared_entry()
+    ↓
+writes prepared entry to SQLite
+```
+
+Reuse existing serialization and compression code.
 
 ---
 
-# Validation of Deserialized Data
+# CacheWriteRequest
 
-Do not blindly trust cached binary data.
+Use an appropriate tagged request type.
 
-Perform lightweight validation during deserialization.
+For example:
 
-At minimum validate:
+```cpp
+using CacheWriteRequest =
+    std::variant<
+        MetadataUpdate,
+        CacheEntryUpdate
+    >;
+```
 
-* header magic
-* format version
-* buffer boundaries
-* node count limits
-* enum values
-* node ID ranges
-* parent ID ranges
-* required AST metadata
+If the project avoids `std::variant`, use the project's existing preferred style.
 
-The deserializer must not read beyond the available buffer.
-
-Malformed cache data should fail cleanly.
+Keep the request representation simple.
 
 ---
 
-# Atomicity
+# Single SQLite Writer
 
-Cache writes should be safe against interruption.
+Create one writer thread that owns the SQLite write connection.
 
-Avoid leaving a partially written cache entry.
+Conceptually:
 
-Use SQLite transactions or equivalent atomic replacement behavior.
+```cpp
+std::thread writerThread([&]() noexcept {
+    CacheWriteRequest request;
 
-The expected behavior is:
+    while(writeQueue.pop(request)) {
+        try {
+            apply_write_request(
+                dbWriter,
+                request);
+        }
+        catch(...) {
+            record_write_failure(...);
+        }
+    }
+});
+```
 
-```text id="amwj7d"
+Only this writer thread should perform:
+
+* `INSERT`
+* `UPDATE`
+* `REPLACE`
+* cache entry deletion
+* other database modifications related to warming
+
+The workers may perform read-only metadata lookups using their own database connections.
+
+---
+
+# Atomic Database Updates
+
+Each full AST cache update must remain atomic.
+
+The worker must prepare the complete cache entry before it reaches the writer:
+
+```text
+parse
+    ↓
+build AST
+    ↓
+serialize completely
+    ↓
+compress completely
+    ↓
+create CacheEntryUpdate
+    ↓
+enqueue
+```
+
+The writer then commits the already prepared entry.
+
+Do not expose:
+
+* partially serialized ASTs
+* partially compressed blobs
+* partially updated metadata
+
+Use SQLite transactions.
+
+For a single full entry update:
+
+```text
 BEGIN
-
-serialize
-compress
-replace cache entry
-
+    replace complete entry
 COMMIT
 ```
 
-If writing fails, the old valid cache entry should remain usable when possible.
+If batching is implemented, all writes in a committed batch must still be complete and internally consistent.
 
 ---
 
-# Concurrency
+# Batched SQLite Transactions
 
-Inspect whether multiple `ast-tool` processes may access the same workspace.
+The single writer may batch requests to reduce transaction overhead.
 
-The implementation should not corrupt the SQLite database if multiple CLI invocations occur.
+For example:
 
-Use SQLite's normal transactional behavior.
-
-Do not introduce complex custom locking unless required.
-
-If necessary, configure SQLite appropriately for concurrent readers and safe writers.
-
-Keep this implementation simple.
-
----
-
-# Performance Instrumentation
-
-Add lightweight cache statistics.
-
-At minimum, track:
-
-```text id="wwyyqk"
-memory_cache_hits
-memory_cache_misses
-
-persistent_cache_hits
-persistent_cache_misses
-
-files_parsed
-
-bytes_serialized
-bytes_compressed
-
-serialization_time
-compression_time
-
-database_load_time
-database_store_time
-
-decompression_time
-deserialization_time
+```text
+pop up to N requests
+    ↓
+BEGIN
+    ↓
+apply requests
+    ↓
+COMMIT
 ```
 
-These values may be:
+A reasonable initial batch size may be:
 
-* internal counters
-* debug logging
-* optional profiling output
+```cpp
+constexpr size_t kWriteBatchSize = 64;
+```
 
-Do not make them noisy in normal CLI output.
+However, do not introduce complex batching logic if the existing database layer already has a suitable transaction mechanism.
 
-The purpose is to measure whether the persistent cache actually improves performance.
+Correctness and simplicity are more important than maximum throughput.
+
+The writer must flush all remaining queued requests before exiting.
+
+---
+
+# Worker Statistics
+
+The existing sequential statistics updates are not thread-safe.
+
+Do not update shared statistics directly from every worker.
+
+Do not add a mutex around every individual statistic increment.
+
+Instead, each worker should maintain local statistics:
+
+```cpp
+struct WarmStats
+{
+    uint64_t valid_entries = 0;
+    uint64_t missing_entries = 0;
+    uint64_t stale_entries = 0;
+
+    uint64_t files_parsed = 0;
+    uint64_t files_updated = 0;
+    uint64_t files_failed = 0;
+
+    double parsing_ms = 0.0;
+
+    // Add existing relevant fields as necessary.
+};
+```
+
+Each worker:
+
+```text
+process files
+    ↓
+accumulate local statistics
+    ↓
+finish
+    ↓
+merge local statistics once
+```
+
+For example:
+
+```cpp
+std::mutex statsMu;
+
+{
+    std::lock_guard lock(statsMu);
+    stats.merge(localStats);
+}
+```
+
+Avoid taking `statsMu` for every file unless required for immediate reporting.
+
+---
+
+# Writer Statistics
+
+Database write failures and write timing should be collected by the writer thread.
+
+The writer may maintain:
+
+```text
+database_write_time
+entries_written
+metadata_updates
+write_failures
+```
+
+Merge writer statistics after the writer exits.
+
+Keep worker parsing statistics and writer database statistics logically separate.
+
+---
+
+# Queue Lifecycle
+
+The shutdown order must be correct.
+
+The intended lifecycle is:
+
+```text
+1. Start writer thread.
+
+2. Start worker threads.
+
+3. Start scanner thread.
+
+4. Scanner finishes:
+       fileQueue.markDone()
+
+5. Workers continue draining fileQueue.
+
+6. All workers exit.
+
+7. Main thread joins all workers.
+
+8. No worker can produce additional write requests.
+
+9. Call:
+       writeQueue.markDone()
+
+10. Writer continues draining all remaining requests.
+
+11. Writer exits.
+
+12. Join writer thread.
+```
+
+Conceptually:
+
+```cpp
+scanThread.join();
+
+for(auto& worker : workers) {
+    worker.join();
+}
+
+writeQueue.markDone();
+
+writerThread.join();
+```
+
+Do not call:
+
+```cpp
+writeQueue.markDone();
+```
+
+before all workers have finished producing requests.
+
+---
+
+# Queue Capacity and Backpressure
+
+Reuse the bounded nature of the existing `BlockingQueue`.
+
+The queue sizes should prevent unbounded memory growth.
+
+For example:
+
+```text
+fileQueue:
+    bounds the number of pending paths
+
+writeQueue:
+    bounds the number of prepared AST blobs waiting for SQLite
+```
+
+The write queue is especially important because serialized/compressed AST blobs may consume significant memory.
+
+A bounded queue provides natural backpressure:
+
+```text
+workers produce entries too quickly
+    ↓
+writeQueue fills
+    ↓
+workers block
+    ↓
+memory remains bounded
+```
+
+Choose reasonable capacities based on the existing queue usage patterns.
+
+Do not create an unbounded vector of prepared AST blobs.
+
+---
+
+# File Processing Logic
+
+Preserve the existing validation flow.
+
+For each path:
+
+```text
+stat
+    ↓
+metadata lookup
+    ↓
+
+metadata matches:
+    format version
+    size
+    mtime
+        ↓
+    valid
+        ↓
+    skip
+
+
+otherwise:
+
+    metadata exists and format matches?
+        ↓ yes
+    compute content hash
+        ↓
+
+    hash matches
+        ↓
+    enqueue MetadataUpdate
+        ↓
+    valid
+
+
+    hash differs
+        ↓
+    stale
+        ↓
+    parse
+
+
+metadata missing / format mismatch
+        ↓
+    missing
+        ↓
+    parse
+```
+
+The worker should only parse when necessary.
+
+Do not deserialize cached AST blobs during cache warming merely to determine freshness.
+
+---
+
+# Suggested Worker Structure
+
+The final worker logic should be approximately:
+
+```cpp
+void worker()
+{
+    ASTCacheDatabase dbReader = open_worker_reader();
+
+    WarmStats localStats;
+
+    std::filesystem::path path;
+
+    while(fileQueue.pop(path)) {
+        try {
+            warm_one_file(
+                path,
+                dbReader,
+                writeQueue,
+                localStats);
+        }
+        catch(...) {
+            ++localStats.files_failed;
+        }
+    }
+
+    merge_worker_stats(localStats);
+}
+```
+
+The `warm_one_file()` implementation should:
+
+```text
+stat
+    ↓
+lookup metadata
+    ↓
+fast validation
+    ↓
+optional hash validation
+    ↓
+
+valid:
+    optionally enqueue MetadataUpdate
+    return
+
+invalid:
+    parse
+    ↓
+    serialize
+    ↓
+    compress
+    ↓
+    enqueue CacheEntryUpdate
+```
+
+---
+
+# Do Not Hold Locks During Parsing
+
+Do not use a global mutex around:
+
+```text
+parse
+serialize
+compress
+```
+
+These are intentionally parallel operations.
+
+Synchronization should only be used for:
+
+* final statistics merge
+* queue internals
+* SQLite writer ownership
+* any parser state that is proven to require thread isolation
+
+Do not accidentally serialize the worker pipeline with a global lock.
+
+---
+
+# Normal Commands During Background Warming
+
+This change must remain compatible with the existing background warming design.
+
+While warming is running:
+
+```text
+background:
+    workers validate and update cache
+
+foreground:
+    normal find/search/etc.
+```
+
+The foreground command must not wait for the warmer except for normal SQLite locking behavior.
+
+The database writer should commit complete entries atomically.
+
+A foreground command should either observe:
+
+```text
+old valid cache entry
+```
+
+or:
+
+```text
+new valid cache entry
+```
+
+It must not observe a partially written AST entry.
+
+---
+
+# Duplicate Warmer Protection
+
+Do not change the existing workspace-level single-warmer lock design.
+
+The expected behavior remains:
+
+```text
+first cache warmer
+    ↓
+acquires WorkspaceWarmLock
+    ↓
+runs pipeline
+
+
+second cache warmer
+    ↓
+cannot acquire lock
+    ↓
+exit successfully immediately
+```
+
+The parallel worker implementation applies only inside the process that successfully acquired the workspace warm lock.
+
+---
+
+# Error Handling
+
+A failure processing one file must not terminate the entire warming operation.
+
+For example:
+
+```text
+parse failure
+serialization failure
+compression failure
+metadata lookup failure
+```
+
+should:
+
+```text
+record failure
+    ↓
+continue with next file
+```
+
+Likewise, a failed database write should not terminate the writer unless the database has become unusable.
+
+Record the failure and continue when possible.
+
+The cache warmer remains best-effort.
 
 ---
 
 # Tests
 
-Add tests for the following.
+Add or update tests for the parallel implementation.
 
-## Test 1: Serialize and Deserialize Round Trip
+## Test 1: Fully Cached Workspace
 
-```text id="u4ph5s"
-Source
-    ↓
-Parse
-    ↓
-AST
-    ↓
-Serialize
-    ↓
-Deserialize
-    ↓
-AST
-```
-
-Verify that the reconstructed AST is semantically equivalent to the original.
-
-Check at least:
-
-* node count
-* node IDs
-* parent relationships
-* hashes
-* flags
-* node types
-* grammar types
-* text representation
-* AST-level metadata
-
----
-
-## Test 2: LZ4 Compression Round Trip
+All entries are valid.
 
 Verify:
 
-```text id="wgc4k9"
-serialized bytes
-    ↓
-compress
-    ↓
-decompress
-    ↓
-original serialized bytes
+* zero files parsed
+* zero full cache entries written
+* workers exit correctly
+* writer exits correctly
+
+---
+
+## Test 2: Mixed Workspace
+
+Use a workspace containing:
+
+```text
+valid cached files
+missing files
+stale files
+mtime-only changed files with identical content
 ```
-
-The final byte buffer must match the original.
-
----
-
-## Test 3: SQLite Cache Hit
-
-````text id="0wfjda"
-First process:
-
-    source
-        ↓
-    parse
-        ↓
-    store cache
-
-Second process:
-
-    same source
-        ↓
-    SQLite hit
-        ↓
-    deserialize
-
-Verify that the second access does not invoke Tree-sitter parsing.
-
----
-
-## Test 4: Source Change Invalidates Cache
-
-```text id="7h2uub"
-parse source version A
-    ↓
-store cache
-
-modify source
-
-request AST
-    ↓
-old cache invalid
-    ↓
-reparse source version B
-````
-
-Verify that the stale cached AST is not returned.
-
----
-
-## Test 5: Cache Version Change
-
-Create or simulate an entry with an old format version.
 
 Verify:
 
-```text id="go0tng"
-version mismatch
-    ↓
-ignore cache
-    ↓
-reparse
+```text
+valid
+    → skipped
+
+mtime-only change
+    → metadata update
+
+missing
+    → parsed and stored
+
+stale
+    → parsed and stored
 ```
 
 ---
 
-## Test 6: Corrupted Blob Recovery
+## Test 3: Parallel Parsing
 
-Store intentionally corrupted cache data.
+Use enough stale files to ensure multiple workers are active.
+
+Verify that:
+
+* multiple files may be processed concurrently
+* resulting cache entries are valid
+* no duplicate or corrupted entries are produced
+
+If practical, add instrumentation or a test hook to confirm more than one worker performs parsing.
+
+---
+
+## Test 4: Single Writer
+
+Verify that all database writes pass through the writer thread.
+
+Workers must not directly perform SQLite write operations.
+
+---
+
+## Test 5: Queue Shutdown
 
 Verify:
 
-```text id="laxh20"
-load cache
+```text
+scanner finishes
     ↓
-failure
+fileQueue.markDone()
     ↓
-parse source normally
+workers drain all paths
     ↓
-replace invalid cache entry
+workers finish
+    ↓
+writeQueue.markDone()
+    ↓
+writer drains all requests
+    ↓
+writer exits
 ```
 
-The command should still succeed.
+Ensure no requests are lost during shutdown.
 
 ---
 
-## Test 7: Memory Cache Takes Priority
+## Test 6: Bounded Backpressure
 
-Within one process:
+Use a small write queue capacity and artificially slow the writer.
 
-```text id="gkegpz"
-get_ast(foo.cpp)
-    ↓
-SQLite load
+Verify that:
 
-get_ast(foo.cpp)
-    ↓
-Memory cache hit
-```
-
-Verify that the second access performs:
-
-* no SQLite read
-* no decompression
-* no deserialization
-* no Tree-sitter parse
+* workers block when the write queue is full
+* memory does not grow without bound
+* all entries are eventually written
 
 ---
 
-## Test 8: Existing Semantic Commands
+## Test 7: Concurrent Foreground Access
 
-Run existing tests for:
+Run cache warming while executing a normal AST cache read or semantic command.
 
-* find
-* search
-* references
-* callers
-* callees
-* symbols
-* outline
+Verify that:
 
-Verify that the deserialized AST works identically to a freshly parsed AST.
+* the foreground command succeeds
+* it does not observe corrupted cache data
+* SQLite remains usable
+* complete old or new entries are observed
+
+---
+
+## Test 8: Worker Failure
+
+Cause one file to fail parsing.
+
+Verify:
+
+* the worker records the failure
+* other workers continue
+* the warming operation completes
+
+---
+
+# Performance Measurements
+
+Measure at least:
+
+```text
+1 worker
+vs
+N workers
+```
+
+for:
+
+```text
+cold workspace
+partially stale workspace
+fully warm workspace
+```
+
+Record:
+
+* total elapsed time
+* files parsed
+* metadata validation time
+* parsing time
+* serialization time
+* compression time
+* database write time
+
+The goal is not necessarily linear scaling.
+
+The expected behavior is:
+
+```text
+fully warm workspace
+    → dominated by scanning + metadata lookup
+
+cold/stale workspace
+    → benefits from parallel parsing
+```
 
 ---
 
 # Implementation Order
 
-Use the following order.
+Implement in this order.
 
 ## Step 1
 
-Inspect the complete AST and ASTText ownership model.
+Inspect:
 
-Identify all fields required to reconstruct a usable AST.
+* `BlockingQueue`
+* existing workspace scan/worker implementation
+* `ASTCacheDatabase`
+* parser thread safety
+* current `warm_cache`
+* existing serialization/compression helpers
 
-Do not start serialization until pointer/reference fields are understood.
+Reuse existing infrastructure.
 
 ---
 
 ## Step 2
 
-Define the binary format.
+Extract the sequential per-file logic into:
 
-Add:
+```text
+warm_one_file()
+```
 
-* magic value
-* format version
-* fixed-width fields
-* bounds validation
+Keep behavior unchanged initially.
 
 ---
 
 ## Step 3
 
-Implement in-memory binary serialization and deserialization.
+Introduce:
 
-Add round-trip tests before involving SQLite or LZ4.
+```text
+BlockingQueue<filesystem::path>
+```
+
+and reuse the existing scanner/worker pattern.
 
 ---
 
 ## Step 4
 
-Add LZ4 compression and decompression.
+Make SQLite metadata reads safe for parallel workers.
 
-Verify binary round trips.
+Prefer one read connection per worker.
 
 ---
 
 ## Step 5
 
-Implement the SQLite cache layer.
+Introduce:
 
-Keep SQL isolated behind a dedicated cache component.
+```text
+BlockingQueue<CacheWriteRequest>
+```
+
+and move all database writes into one writer thread.
 
 ---
 
 ## Step 6
 
-Integrate with:
+Refactor cache storage if necessary so workers can:
 
-```
-Workspace::get_ast(path)
+```text
+prepare cache entry
 ```
 
-using:
+while the writer performs:
 
-```text id="c53itf"
-memory
-    ↓ miss
-SQLite
-    ↓ miss
-parse
+```text
+store prepared cache entry
 ```
+
+Do not duplicate serialization or compression logic.
 
 ---
 
 ## Step 7
 
-Add invalidation and corruption recovery.
+Implement safe queue shutdown.
+
+Ensure the writer is marked done only after every worker has exited.
 
 ---
 
 ## Step 8
 
-Add instrumentation and measure:
+Add worker-local statistics and final aggregation.
 
-* cold parse
-* SQLite cache load
-* memory cache hit
+---
 
-Use representative repositories.
+## Step 9
+
+Run concurrency and performance tests.
+
+Verify that the parallel implementation is faster for a cold or stale workspace and does not regress the fully warm fast path significantly.
 
 ---
 
@@ -1073,47 +1303,25 @@ Use representative repositories.
 
 The implementation is complete when:
 
-1. ASTs can be serialized into an explicit binary format.
-
-2. The binary format contains no process-local pointers.
-
-3. AST node type and grammar type identifiers are serialized as stable enum values.
-
-4. Serialized ASTs can be LZ4 compressed.
-
-5. ASTs can be stored and loaded as SQLite BLOBs.
-
-6. The cache is keyed per source file.
-
-7. Source changes invalidate stale entries.
-
-8. Cache format changes invalidate incompatible entries.
-
-9. The lookup order is:
-
-   ```
-   memory
-       ↓
-   SQLite persistent cache
-       ↓
-   source parsing
-   ```
-
-10. A cached AST can be deserialized and used by existing semantic operations without Tree-sitter parsing.
-
-11. Corrupted cache data automatically falls back to normal parsing.
-
-12. Existing semantic command tests continue to pass.
-
-13. Performance counters make it possible to compare:
-
-    cold parse
-    persistent cache load
-    memory cache hit
-
-14. No database cache is required for workspace initialization.
-
-15. The implementation remains per-file and lazy; do not preload or deserialize the entire workspace.
+1. The existing `BlockingQueue` implementation is reused.
+2. The existing workspace scanner pattern is reused.
+3. Files begin processing while directory scanning is still in progress.
+4. Multiple workers can validate and parse files concurrently.
+5. Each worker has safe SQLite read access.
+6. Parser state is safe for concurrent use.
+7. Workers do not directly perform SQLite writes.
+8. All SQLite writes are performed by one dedicated writer thread.
+9. Prepared AST entries are fully serialized and compressed before enqueueing.
+10. The writer stores only complete cache entries.
+11. SQLite updates remain atomic.
+12. Queue capacity provides bounded memory usage and backpressure.
+13. Worker statistics are not updated through data races.
+14. Queue shutdown does not lose pending write requests.
+15. A fully cached unchanged workspace still exits quickly.
+16. Cold and stale workspaces benefit from parallel processing.
+17. Existing foreground commands remain safe while background warming is active.
+18. Existing workspace warming lock behavior remains unchanged.
+19. No new general-purpose thread pool or queue implementation is introduced.
 
 ---
 
@@ -1121,29 +1329,32 @@ The implementation is complete when:
 
 After implementation, provide:
 
-1. A summary of the binary AST format.
+1. A summary of the final producer-consumer architecture.
 
-2. The format version and invalidation strategy.
+2. The number and purpose of each queue.
 
-3. The SQLite schema.
+3. The worker count policy.
 
-4. The LZ4 compression strategy.
+4. How SQLite read access is handled per worker.
 
-5. How `ASTText` is represented in the serialized format.
+5. How SQLite writes are serialized.
 
-6. The cache lookup flow.
+6. The transaction/batching strategy.
 
-7. Performance measurements for:
+7. How queue shutdown is coordinated.
 
-   ```
-   cold parse
-   SQLite cache load
-   memory cache hit
-   ```
+8. Parser thread-safety considerations and the solution used.
 
-8. Test results.
+9. Performance comparison:
 
-9. Any remaining fields that cannot currently be serialized safely and why.
+   * sequential warming
+   * parallel warming
+   * fully warm workspace
 
-Keep the implementation focused on a robust per-file persistent AST cache. The primary objective is to avoid reparsing unchanged source files across separate `ast-tool` process executions while preserving the existing lazy per-path AST loading architecture.
+10. Test results.
 
+11. Any remaining concurrency limitations or race conditions.
+
+Keep the implementation focused on reusing the existing workspace concurrency architecture.
+
+Do not introduce a new thread pool, task scheduler, or queue abstraction unless the existing `BlockingQueue` is proven insufficient.

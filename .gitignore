@@ -70,6 +70,7 @@ __pycache__/
 /bench/workspace
 /bench/cache
 /.claude
+/.ast-tool
 
 # Evaluation runner — generated at runtime
 /evaluation/repositories/
@@ -80,3 +81,4 @@ __pycache__/
 /evaluation/tests4/
 /evaluation/tests5/
 
+*.db

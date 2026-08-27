@@ -22,6 +22,7 @@
 #include "ast-context-export/test_context_export.h"
 #include "ast-node-type/test_node_type.h"
 #include "ast-cache/test_cache.h"
+#include "ast-cache-warm/test_cache_warm.h"
 #include <cassert>
 #include <iostream>
 
@@ -43,6 +44,9 @@ int main(void)
     all_passed &= run_tests_go();
     all_passed &= run_tests_java();
     all_passed &= run_tests_javascript();
+    all_passed &= run_tests_node_type();
+    all_passed &= run_tests_cache();
+    all_passed &= run_tests_cache_warm();
     all_passed &= run_tests_scope();
     all_passed &= run_tests_scope_builder();
     all_passed &= run_tests_symbol_scope();
@@ -56,8 +60,6 @@ int main(void)
     all_passed &= run_tests_callees();
     all_passed &= run_tests_semantic_diff();
     all_passed &= run_tests_context_export();
-    all_passed &= run_tests_node_type();
-    all_passed &= run_tests_cache();
 
     std::cout << "===================================================" << std::endl;
     std::cout << (all_passed ? "ALL TESTS PASSED" : "SOME TESTS FAILED") << std::endl;

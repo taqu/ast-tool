@@ -46,6 +46,39 @@ bool ASTCacheDatabase::open(const std::filesystem::path& dbPath)
     return init_schema();
 }
 
+bool ASTCacheDatabase::open_readonly(const std::filesystem::path& dbPath)
+{
+    close();
+    std::string path = dbPath.string();
+    int rc = sqlite3_open_v2(path.c_str(), &db_,
+                             SQLITE_OPEN_READONLY | SQLITE_OPEN_NOMUTEX, nullptr);
+    if(rc != SQLITE_OK) {
+        sqlite3_close(db_);
+        db_ = nullptr;
+        return false;
+    }
+    sqlite3_exec(db_, "PRAGMA busy_timeout=5000;", nullptr, nullptr, nullptr);
+    return true;
+}
+
+bool ASTCacheDatabase::begin_transaction()
+{
+    if(!db_) return false;
+    return sqlite3_exec(db_, "BEGIN;", nullptr, nullptr, nullptr) == SQLITE_OK;
+}
+
+bool ASTCacheDatabase::commit_transaction()
+{
+    if(!db_) return false;
+    return sqlite3_exec(db_, "COMMIT;", nullptr, nullptr, nullptr) == SQLITE_OK;
+}
+
+bool ASTCacheDatabase::rollback_transaction()
+{
+    if(!db_) return false;
+    return sqlite3_exec(db_, "ROLLBACK;", nullptr, nullptr, nullptr) == SQLITE_OK;
+}
+
 void ASTCacheDatabase::close()
 {
     if(db_) {
@@ -146,7 +179,9 @@ bool ASTCacheDatabase::store(const std::string& key, const Entry& e)
         return false;
     }
 
-    sqlite3_exec(db_, "BEGIN;", nullptr, nullptr, nullptr);
+    bool manage_txn = (sqlite3_get_autocommit(db_) != 0);
+    if(manage_txn)
+        sqlite3_exec(db_, "BEGIN;", nullptr, nullptr, nullptr);
 
     sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_blob(stmt, 2, &e.source_hash, 8, SQLITE_STATIC);
@@ -166,12 +201,111 @@ bool ASTCacheDatabase::store(const std::string& key, const Entry& e)
     bool ok = (sqlite3_step(stmt) == SQLITE_DONE);
     sqlite3_finalize(stmt);
 
-    if(ok) {
-        sqlite3_exec(db_, "COMMIT;", nullptr, nullptr, nullptr);
-    } else {
-        sqlite3_exec(db_, "ROLLBACK;", nullptr, nullptr, nullptr);
+    if(manage_txn) {
+        if(ok) sqlite3_exec(db_, "COMMIT;", nullptr, nullptr, nullptr);
+        else   sqlite3_exec(db_, "ROLLBACK;", nullptr, nullptr, nullptr);
     }
     return ok;
+}
+
+// ── Metadata-only lookup ──────────────────────────────────────────────────────
+
+bool ASTCacheDatabase::lookup_metadata(const std::string& key, Metadata& out) const
+{
+    if(!db_)
+        return false;
+
+    const char* sql =
+        "SELECT source_hash, source_size, source_mtime, language, format_version"
+        " FROM ast_cache WHERE path = ?;";
+
+    sqlite3_stmt* stmt = nullptr;
+    if(sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK)
+        return false;
+
+    sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_STATIC);
+
+    bool found = false;
+    if(sqlite3_step(stmt) == SQLITE_ROW) {
+        const void* hashBlob = sqlite3_column_blob(stmt, 0);
+        int hashBytes = sqlite3_column_bytes(stmt, 0);
+        if(hashBlob && hashBytes == 8)
+            memcpy(&out.source_hash, hashBlob, 8);
+        out.source_size    = sqlite3_column_int64(stmt, 1);
+        out.source_mtime   = sqlite3_column_int64(stmt, 2);
+        out.language       = (uint32_t)sqlite3_column_int64(stmt, 3);
+        out.format_version = (uint32_t)sqlite3_column_int64(stmt, 4);
+        found = true;
+    }
+
+    sqlite3_finalize(stmt);
+    return found;
+}
+
+// ── List all paths ────────────────────────────────────────────────────────────
+
+std::vector<std::string> ASTCacheDatabase::list_all_paths() const
+{
+    std::vector<std::string> result;
+    if(!db_)
+        return result;
+
+    sqlite3_stmt* stmt = nullptr;
+    if(sqlite3_prepare_v2(db_, "SELECT path FROM ast_cache;", -1, &stmt, nullptr) != SQLITE_OK)
+        return result;
+
+    while(sqlite3_step(stmt) == SQLITE_ROW) {
+        const char* p = (const char*)sqlite3_column_text(stmt, 0);
+        if(p)
+            result.emplace_back(p);
+    }
+    sqlite3_finalize(stmt);
+    return result;
+}
+
+// ── Metadata update ───────────────────────────────────────────────────────────
+
+bool ASTCacheDatabase::update_mtime_size(const std::string& key, int64_t newSize, int64_t newMtime)
+{
+    if(!db_)
+        return false;
+
+    const char* sql =
+        "UPDATE ast_cache SET source_size = ?, source_mtime = ? WHERE path = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    if(sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK)
+        return false;
+
+    sqlite3_bind_int64(stmt, 1, newSize);
+    sqlite3_bind_int64(stmt, 2, newMtime);
+    sqlite3_bind_text(stmt, 3, key.c_str(), -1, SQLITE_STATIC);
+
+    bool ok = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+    return ok;
+}
+
+// ── Aggregate queries ─────────────────────────────────────────────────────────
+
+int64_t ASTCacheDatabase::entry_count() const
+{
+    if(!db_)
+        return 0;
+    sqlite3_stmt* stmt = nullptr;
+    if(sqlite3_prepare_v2(db_, "SELECT COUNT(*) FROM ast_cache;", -1, &stmt, nullptr) != SQLITE_OK)
+        return 0;
+    int64_t n = 0;
+    if(sqlite3_step(stmt) == SQLITE_ROW)
+        n = sqlite3_column_int64(stmt, 0);
+    sqlite3_finalize(stmt);
+    return n;
+}
+
+int64_t ASTCacheDatabase::db_size_bytes(const std::filesystem::path& dbPath) const
+{
+    std::error_code ec;
+    auto sz = std::filesystem::file_size(dbPath, ec);
+    return ec ? -1 : (int64_t)sz;
 }
 
 // ── Remove ────────────────────────────────────────────────────────────────────
