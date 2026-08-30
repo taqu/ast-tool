@@ -240,6 +240,8 @@ set(SOURCES
     "${SOURCE_ROOT}/cache.cpp"
     "${SOURCE_ROOT}/cache-warm.h"
     "${SOURCE_ROOT}/cache-warm.cpp"
+    "${SOURCE_ROOT}/setup.h"
+    "${SOURCE_ROOT}/setup.cpp"
     "${SOURCE_ROOT}/ast-scope.cpp"
     "${SOURCE_ROOT}/ast-scope-builder.cpp"
     "${SOURCE_ROOT}/ast-symbol-scope.cpp"

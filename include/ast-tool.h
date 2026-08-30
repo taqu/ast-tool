@@ -102,6 +102,7 @@ enum class SubCommand
     Callees,
     CacheWarm,
     CacheStatus,
+    Setup,
 };
 
 /** Arguments for the "help" subcommand. */
@@ -220,10 +221,24 @@ struct ArgFind
 /** Arguments for the "cache" subcommand (warm / status). */
 struct ArgCache
 {
-    const char8_t* root_;    ///< Workspace root directory.
-    bool           warm_;    ///< Run cache warming.
-    bool           status_;  ///< Show cache status.
-    bool           verbose_; ///< Verbose output.
+    const char8_t* root_;       ///< Workspace root directory.
+    bool           warm_;       ///< Run cache warming.
+    bool           status_;     ///< Show cache status.
+    bool           verbose_;    ///< Verbose output.
+    bool           background_; ///< Spawn warming in the background and return immediately.
+};
+
+/** Arguments for the "setup" subcommand. */
+struct ArgSetup
+{
+    bool claude_;              ///< Configure Claude Code.
+    bool codex_;               ///< Configure Codex.
+    bool dry_run_;             ///< Show what would be done without writing.
+    bool remove_;              ///< Remove instead of install.
+    bool global_;              ///< Install globally.
+    bool local_;               ///< Install locally for user.
+    const char8_t* claude_config_; ///< Override Claude config path (nullptr = default).
+    const char8_t* codex_config_;  ///< Override Codex config path (nullptr = default).
 };
 
 /** Parsed command-line arguments, discriminated by #sub_. */
@@ -245,6 +260,7 @@ struct Arguments
         ArgCallers callers_;
         ArgCallees callees_;
         ArgCache cache_;
+        ArgSetup setup_;
     };
 };
 

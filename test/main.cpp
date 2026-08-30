@@ -23,6 +23,7 @@
 #include "ast-node-type/test_node_type.h"
 #include "ast-cache/test_cache.h"
 #include "ast-cache-warm/test_cache_warm.h"
+#include "ast-setup/test_setup.h"
 #include <cassert>
 #include <iostream>
 
@@ -47,6 +48,7 @@ int main(void)
     all_passed &= run_tests_node_type();
     all_passed &= run_tests_cache();
     all_passed &= run_tests_cache_warm();
+    all_passed &= run_tests_setup();
     all_passed &= run_tests_scope();
     all_passed &= run_tests_scope_builder();
     all_passed &= run_tests_symbol_scope();

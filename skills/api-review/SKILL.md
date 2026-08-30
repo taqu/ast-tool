@@ -97,9 +97,17 @@ ast-tool callers <symbol> <root>
 ast-tool callers MyNs::symbol <root>
 ```
 
+`<root>` must be a directory path, not a file.
+
 Callers must be reviewed or updated when the function signature or behavior changes.
 
 Note: only direct callers are reported. Transitive callers (callers of callers) require applying `callers` recursively to each discovered caller.
+
+**If `callers` fails with "ambiguous":** In C++ codebases, a method may appear twice — once as a declaration in a header and once as a definition in a .cpp file. Both share the same FQN, making the result ambiguous. Try narrowing `<root>` to the implementation directory (excluding headers). If they share the same directory, fall back to Grep:
+```
+grep -rn "\bsymbol\s*(" src/ --include="*.cpp"
+```
+Do not retry `callers` more than twice with the same FQN against the same root.
 
 ---
 
@@ -137,13 +145,19 @@ Callees indicate what the implementation depends on. Changes to callees may affe
 ## Common Mistakes
 
 **Using grep to find callers.**
-Text search matches all occurrences of the function name — including in comments, strings, and forward declarations — not just call sites. Use `callers` for accurate call-site enumeration.
+Text search matches all occurrences of the function name — including in comments, strings, and forward declarations — not just call sites. Use `callers` for accurate call-site enumeration when the symbol is unambiguous.
 
 **Assuming an empty `references` result means the symbol is safe to remove.**
 Verify that the workspace root passed to `references` covers the full relevant source tree. An empty result is only reliable if the search scope is complete.
 
 **Treating `callers` as a transitive call graph.**
 `callers` reports only direct call sites. To understand indirect callers, apply `callers` recursively to the discovered caller set.
+
+**Retrying `callers` repeatedly after an ambiguity error.**
+In C++, `callers`, `callees`, and `references` fail when the same FQN exists in both a header (declaration) and .cpp file (definition). There is no `--kind` or `--id` flag to disambiguate. After two failures, switch to Grep.
+
+**Passing flags from `find` to `callers`.**
+`--id`, `--line`, and `--column` are `find`-only flags. Using them with `callers`, `callees`, or `references` causes "symbol '--flag' not found".
 
 ## Best Practices
 

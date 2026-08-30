@@ -1,1360 +1,767 @@
-# Task: Parallelize `warm_cache` Using the Existing BlockingQueue Pattern
+# Phase 1 — Improve `Skill.md` for Agent Tool Selection
 
 ## Goal
 
-Refactor and parallelize the workspace AST cache warming implementation.
+Improve the `semantic-analysis` Skill so that coding agents use `ast-tool` more efficiently and with less trial-and-error.
 
-The project already contains a reusable bounded producer-consumer queue:
+This phase should focus only on **agent guidance**.
 
-```cpp
-template<typename T>
-class BlockingQueue
-````
+Do not change:
 
-in `ast-workspace.h`.
+* `ast-tool` implementation
+* semantic resolution
+* CLI behavior
+* subcommands
+* JSON output format
+* error messages
+* cache behavior
+* evaluation task definitions
 
-The workspace analysis code already uses the following pattern:
+The goal is to determine how much improvement can be achieved through better tool-selection guidance alone.
+
+---
+
+# Background
+
+Existing evaluation traces show that agents often enter inefficient exploration loops.
+
+A common pattern looks like:
 
 ```text
-Directory Scanner
-        ↓
-BlockingQueue<Path>
-        ↓
-Multiple Worker Threads
-        ↓
-Analyze File
-        ↓
-Merge Result
+callers
+  ↓ failure
+
+search
+  ↓
+
+callers
+  ↓ failure
+
+find
+  ↓ failure
+
+search --json --pretty
+  ↓
+
+references
+  ↓ failure
+
+help
+  ↓
+
+symbols
+  ↓
+
+grep
+  ↓
+
+Read
+  ↓
+
+Edit
 ```
 
-Reuse this existing concurrency pattern for AST cache warming instead of introducing a new thread pool, task system, or queue implementation.
+Several recurring behaviors have been observed:
 
-The new cache warming architecture should be:
+1. `callers` is often attempted before the exact semantic symbol is known.
+2. Failed commands are retried several times with only minor argument changes.
+3. `find` is used as a fallback for semantic symbol resolution.
+4. Agents frequently call `--help`.
+5. Agents tend to prefer `--json --pretty`.
+6. Agents sometimes dump the entire workspace with broad `search` commands.
+7. Generic tools such as Grep are eventually used after several failed AST Tool attempts.
+
+The Skill should provide a much clearer default workflow.
+
+---
+
+# Scope
+
+Update the existing `semantic-analysis` `Skill.md`.
+
+The Skill should become primarily a **decision guide for tool selection**, not a long reference manual.
+
+The Skill should help an agent answer:
 
 ```text
-Directory Scanner
+What kind of question am I trying to answer?
         ↓
-BlockingQueue<filesystem::path>
+Which ast-tool command should I use first?
         ↓
-Parallel Cache Workers
-        │
-        ├── stat file
-        ├── lookup cache metadata
-        ├── validate metadata
-        ├── compute content hash when necessary
-        ├── parse stale/missing files
-        ├── serialize AST
-        └── compress AST
-        ↓
-BlockingQueue<CacheWriteRequest>
-        ↓
-Single SQLite Writer Thread
-        ↓
-Atomic / batched database updates
+What should I do if that command fails?
 ```
 
-The objective is to parallelize the expensive file processing and AST parsing while keeping SQLite writes serialized and safe.
+Keep the Skill concise.
+
+The objective is not to duplicate `ast-tool --help`.
 
 ---
 
-# Existing Sequential Logic
+# Core Design Principle
 
-The current `warm_cache` logic is conceptually:
+The Skill should make the common semantic workflow obvious:
 
-```cpp
-for(const auto& path: files) {
-    int64_t curSize = 0, curMtime = 0;
-    bool statOk = cw_stat(path, curSize, curMtime);
-
-    if(!statOk) {
-        ++stats.files_failed;
-        continue;
-    }
-
-    ASTCacheDatabase::Metadata meta;
-    bool hasMeta = db.lookup_metadata(path.string(), meta);
-
-    if(hasMeta &&
-       meta.format_version == kAstCacheFormatVersion &&
-       meta.source_size == curSize &&
-       meta.source_mtime == curMtime) {
-        ++stats.valid_entries;
-        continue;
-    }
-
-    if(hasMeta &&
-       meta.format_version == kAstCacheFormatVersion) {
-        uint64_t curHash = cw_hash_file(path);
-
-        if(curHash != 0 &&
-           curHash == meta.source_hash) {
-
-            db.update_mtime_size(
-                path.string(),
-                curSize,
-                curMtime);
-
-            ++stats.valid_entries;
-            continue;
-        }
-
-        ++stats.stale_entries;
-    }
-    else {
-        ++stats.missing_entries;
-    }
-
-    AST ast = parse(...);
-
-    if(!ast) {
-        ++stats.files_failed;
-        continue;
-    }
-
-    cw_store(db, path, ast);
-
-    ++stats.files_parsed;
-    ++stats.files_updated;
-}
+```text
+search
+  ↓
+identify exact symbol
+  ↓
+callers / references / callees
+  ↓
+Read only relevant files
+  ↓
+Edit
 ```
 
-Replace this sequential loop with a producer-consumer pipeline.
+For many tasks, this should be the preferred trajectory.
 
-Do not change the cache validation semantics unless required for thread safety or integration with the writer queue.
+The Skill should explicitly distinguish:
+
+```text
+Semantic analysis
+```
+
+from:
+
+```text
+AST structure inspection
+```
+
+These should not be mixed casually.
 
 ---
 
-# Required Architecture
+# Required Decision Tree
 
-## Stage 1: Directory Scanner
+Add a short decision tree near the beginning of the Skill.
 
-Reuse the existing workspace scanning pattern.
+Use guidance equivalent to:
 
-The scanner thread should:
+```text
+Need to locate a symbol?
+→ search
 
-1. Create the existing `IgnoreMatcher`.
-2. Use the existing `scan_recursive()` implementation.
-3. Push discovered source files into:
+Need all direct callers of a function?
+→ callers
 
-```cpp
-BlockingQueue<std::filesystem::path>
+Need semantic references to a symbol?
+→ references
+
+Need functions called by a function?
+→ callees
+
+Need semantic symbols from one known file?
+→ symbols
+
+Need to inspect AST structure or syntax nodes?
+→ find / outline
+
+Need parent/child AST relationships?
+→ parent / children / range
 ```
 
-Example structure:
+The exact wording may be adjusted to match the existing Skill style.
 
-```cpp
-BlockingQueue<std::filesystem::path> fileQueue;
-
-std::thread scanThread([&]() noexcept {
-    try {
-        IgnoreMatcher matcher(rootPath);
-
-        scan_recursive(
-            rootPath,
-            matcher,
-            [&](std::filesystem::path path) {
-                fileQueue.push(std::move(path));
-            });
-    }
-    catch(...) {
-        // Record scan failure if appropriate.
-    }
-
-    fileQueue.markDone();
-});
-```
-
-Do not introduce a separate workspace file discovery implementation.
-
-Reuse the same discovery and ignore behavior used by normal workspace analysis.
+The important requirement is that agents can determine the correct first command quickly.
 
 ---
 
-# Do Not Accumulate All Paths Unnecessarily
+# Recommended Semantic Workflow
 
-The cache warmer should process files as they are discovered.
+Document the preferred workflow for symbol-based tasks.
+
+Example:
+
+```text
+1. Use `search` to identify the target symbol when its exact identity is uncertain.
+2. Use the fully-qualified symbol name returned by `search`.
+3. Use `callers`, `references`, or `callees` depending on the task.
+4. Read only the files returned by semantic analysis.
+5. Make the required edits.
+```
+
+Example:
+
+```bash
+ast-tool search --name validate .
+ast-tool callers auth::AuthToken::validate .
+```
+
+Avoid adding many examples.
+
+One or two compact examples are sufficient.
+
+---
+
+# Guidance for `callers`
+
+Add explicit guidance that `callers` should normally be used after the target symbol is known.
 
 Prefer:
 
 ```text
-scan
+search
   ↓
-push path
-  ↓
-worker starts processing immediately
+callers
 ```
 
-rather than:
+when the symbol name may be ambiguous.
+
+Do not encourage repeated `callers` invocations with guessed symbol forms.
+
+If `callers` fails because the symbol cannot be resolved or is ambiguous:
 
 ```text
-scan entire workspace
-  ↓
-store all paths
-  ↓
-start processing
+Use `search` or `symbols` to identify the exact target.
+Do not repeatedly retry `callers` with minor command-line variations.
 ```
 
-Do not keep an `allFiles` vector unless it is required for another existing feature.
-
-The purpose of streaming paths into the queue is to overlap:
-
-* directory scanning
-* cache validation
-* file hashing
-* AST parsing
+This is important.
 
 ---
 
-# Stage 2: Parallel Cache Workers
+# Guidance for `references`
 
-Create multiple worker threads using the existing workspace analysis style.
+Clarify that `references` performs semantic reference lookup.
 
-The worker count should be based on the existing CPU/core detection utilities.
+Use it when the task asks for:
 
-For example:
+* usages
+* references
+* semantic occurrences
+* symbol impact analysis
 
-```cpp
-const uint32_t hwThreads = ast::get_physical_core_count();
-const uint32_t nWorkers = std::max(1u, hwThreads);
-```
+Do not recommend `find --text` as the primary substitute for semantic references.
 
-However, cache warming is a background optimization and should not unnecessarily monopolize the machine.
-
-If appropriate, cap the worker count using a conservative maximum such as:
-
-```cpp
-const uint32_t nWorkers =
-    std::max(1u, std::min(4u, hwThreads));
-```
-
-Prefer an existing project convention for worker count if one exists.
-
-Do not introduce a new general-purpose thread pool.
-
-Reuse the existing `std::thread + BlockingQueue` approach.
-
-Each worker should:
+If semantic resolution fails, prefer:
 
 ```text
-pop path
-    ↓
-stat file
-    ↓
-lookup metadata
-    ↓
-fast metadata validation
-    ↓
-if needed:
-    compute content hash
-    ↓
-if valid:
-    enqueue metadata update if needed
-else:
-    parse AST
-    ↓
-    serialize
-    ↓
-    LZ4 compress
-    ↓
-    enqueue prepared cache entry
-```
-
----
-
-# Worker Function
-
-Extract the per-file warming logic into a helper conceptually similar to:
-
-```cpp
-warm_one_file(...)
-```
-
-For example:
-
-```cpp
-void warm_one_file(
-    const std::filesystem::path& path,
-    ASTCacheDatabase& dbReader,
-    BlockingQueue<CacheWriteRequest>& writeQueue,
-    WarmStats& localStats);
-```
-
-The function should contain the logic currently inside the sequential loop.
-
-Do not duplicate cache validation logic in multiple places.
-
----
-
-# Cache Metadata Lookup
-
-Workers need to perform:
-
-```cpp
-db.lookup_metadata(...)
-```
-
-Do not assume that one shared `ASTCacheDatabase` instance is safe for simultaneous access from multiple worker threads.
-
-Inspect the existing `ASTCacheDatabase` implementation.
-
-Prefer one SQLite read connection per worker.
-
-The intended structure is:
-
-```text
-Worker 1
-    ↓
-SQLite connection A
-
-Worker 2
-    ↓
-SQLite connection B
-
-Worker 3
-    ↓
-SQLite connection C
-
-...
-
-Writer
-    ↓
-SQLite write connection W
-```
-
-A worker may create and own its read connection for its entire lifetime.
-
-Conceptually:
-
-```cpp
-workers.emplace_back([&]() noexcept {
-    ASTCacheDatabase dbReader;
-
-    if(!dbReader.open_readonly(dbPath)) {
-        // Record worker/database failure.
-        return;
-    }
-
-    WarmStats localStats;
-
-    std::filesystem::path path;
-
-    while(fileQueue.pop(path)) {
-        try {
-            warm_one_file(
-                path,
-                dbReader,
-                writeQueue,
-                localStats);
-        }
-        catch(...) {
-            ++localStats.files_failed;
-        }
-    }
-
-    merge_worker_stats(localStats);
-});
-```
-
-Adapt this to the actual `ASTCacheDatabase` API.
-
-Do not invent a new database abstraction if the existing class can support separate read-only connections.
-
----
-
-# Tree-sitter / Parser Thread Safety
-
-Before enabling parallel parsing, inspect the implementation of:
-
-```cpp
-parse(...)
-```
-
-Verify that parsing is safe when called concurrently.
-
-In particular, check whether parsing uses:
-
-* a shared `TSParser`
-* global mutable parser state
-* static mutable buffers
-* shared extractor state
-
-If parser state is not thread-safe, each worker must own independent parser state.
-
-The desired model is:
-
-```text
-Worker 1 → Parser Context A
-Worker 2 → Parser Context B
-Worker 3 → Parser Context C
-```
-
-Do not share one `TSParser` instance across concurrent worker threads.
-
-If the existing parser abstraction already creates parser state per call, preserve that behavior.
-
----
-
-# Stage 3: SQLite Write Queue
-
-Workers must not directly perform cache database writes.
-
-Introduce:
-
-```cpp
-BlockingQueue<CacheWriteRequest>
-```
-
-All database modifications must be sent through this queue.
-
-There should be one dedicated writer thread.
-
-The writer queue should receive at least two types of requests.
-
-## Type 1: Metadata Update
-
-When:
-
-```text
-size/mtime changed
-but
-content hash is unchanged
-```
-
-the worker should not directly call:
-
-```cpp
-db.update_mtime_size(...)
-```
-
-Instead, enqueue a request containing:
-
-```text
-path
-source_size
-source_mtime
-```
-
-Conceptually:
-
-```cpp
-struct MetadataUpdate
-{
-    std::string path;
-    int64_t source_size;
-    int64_t source_mtime;
-};
-```
-
----
-
-## Type 2: Full Cache Entry Update
-
-When a file must be reparsed:
-
-```text
-parse
-    ↓
-serialize AST
-    ↓
-LZ4 compress
-    ↓
-prepare complete cache entry
-    ↓
-enqueue CacheEntryUpdate
-```
-
-Conceptually:
-
-```cpp
-struct CacheEntryUpdate
-{
-    std::string path;
-
-    ASTCacheDatabase::Metadata metadata;
-
-    CompressionMode compression;
-
-    std::vector<std::byte> blob;
-};
-```
-
-Use the actual existing serialized cache representation if one already exists.
-
-Do not duplicate serialization or compression logic.
-
-Refactor existing helpers if necessary so that workers can prepare a complete cache entry without writing it directly to SQLite.
-
-For example, split an existing helper conceptually like:
-
-```text
-cw_store()
-```
-
-into:
-
-```text
-cw_prepare_entry()
-    ↓
-produces complete serialized/compressed entry
-
-cw_store_prepared_entry()
-    ↓
-writes prepared entry to SQLite
-```
-
-Reuse existing serialization and compression code.
-
----
-
-# CacheWriteRequest
-
-Use an appropriate tagged request type.
-
-For example:
-
-```cpp
-using CacheWriteRequest =
-    std::variant<
-        MetadataUpdate,
-        CacheEntryUpdate
-    >;
-```
-
-If the project avoids `std::variant`, use the project's existing preferred style.
-
-Keep the request representation simple.
-
----
-
-# Single SQLite Writer
-
-Create one writer thread that owns the SQLite write connection.
-
-Conceptually:
-
-```cpp
-std::thread writerThread([&]() noexcept {
-    CacheWriteRequest request;
-
-    while(writeQueue.pop(request)) {
-        try {
-            apply_write_request(
-                dbWriter,
-                request);
-        }
-        catch(...) {
-            record_write_failure(...);
-        }
-    }
-});
-```
-
-Only this writer thread should perform:
-
-* `INSERT`
-* `UPDATE`
-* `REPLACE`
-* cache entry deletion
-* other database modifications related to warming
-
-The workers may perform read-only metadata lookups using their own database connections.
-
----
-
-# Atomic Database Updates
-
-Each full AST cache update must remain atomic.
-
-The worker must prepare the complete cache entry before it reaches the writer:
-
-```text
-parse
-    ↓
-build AST
-    ↓
-serialize completely
-    ↓
-compress completely
-    ↓
-create CacheEntryUpdate
-    ↓
-enqueue
-```
-
-The writer then commits the already prepared entry.
-
-Do not expose:
-
-* partially serialized ASTs
-* partially compressed blobs
-* partially updated metadata
-
-Use SQLite transactions.
-
-For a single full entry update:
-
-```text
-BEGIN
-    replace complete entry
-COMMIT
-```
-
-If batching is implemented, all writes in a committed batch must still be complete and internally consistent.
-
----
-
-# Batched SQLite Transactions
-
-The single writer may batch requests to reduce transaction overhead.
-
-For example:
-
-```text
-pop up to N requests
-    ↓
-BEGIN
-    ↓
-apply requests
-    ↓
-COMMIT
-```
-
-A reasonable initial batch size may be:
-
-```cpp
-constexpr size_t kWriteBatchSize = 64;
-```
-
-However, do not introduce complex batching logic if the existing database layer already has a suitable transaction mechanism.
-
-Correctness and simplicity are more important than maximum throughput.
-
-The writer must flush all remaining queued requests before exiting.
-
----
-
-# Worker Statistics
-
-The existing sequential statistics updates are not thread-safe.
-
-Do not update shared statistics directly from every worker.
-
-Do not add a mutex around every individual statistic increment.
-
-Instead, each worker should maintain local statistics:
-
-```cpp
-struct WarmStats
-{
-    uint64_t valid_entries = 0;
-    uint64_t missing_entries = 0;
-    uint64_t stale_entries = 0;
-
-    uint64_t files_parsed = 0;
-    uint64_t files_updated = 0;
-    uint64_t files_failed = 0;
-
-    double parsing_ms = 0.0;
-
-    // Add existing relevant fields as necessary.
-};
-```
-
-Each worker:
-
-```text
-process files
-    ↓
-accumulate local statistics
-    ↓
-finish
-    ↓
-merge local statistics once
-```
-
-For example:
-
-```cpp
-std::mutex statsMu;
-
-{
-    std::lock_guard lock(statsMu);
-    stats.merge(localStats);
-}
-```
-
-Avoid taking `statsMu` for every file unless required for immediate reporting.
-
----
-
-# Writer Statistics
-
-Database write failures and write timing should be collected by the writer thread.
-
-The writer may maintain:
-
-```text
-database_write_time
-entries_written
-metadata_updates
-write_failures
-```
-
-Merge writer statistics after the writer exits.
-
-Keep worker parsing statistics and writer database statistics logically separate.
-
----
-
-# Queue Lifecycle
-
-The shutdown order must be correct.
-
-The intended lifecycle is:
-
-```text
-1. Start writer thread.
-
-2. Start worker threads.
-
-3. Start scanner thread.
-
-4. Scanner finishes:
-       fileQueue.markDone()
-
-5. Workers continue draining fileQueue.
-
-6. All workers exit.
-
-7. Main thread joins all workers.
-
-8. No worker can produce additional write requests.
-
-9. Call:
-       writeQueue.markDone()
-
-10. Writer continues draining all remaining requests.
-
-11. Writer exits.
-
-12. Join writer thread.
-```
-
-Conceptually:
-
-```cpp
-scanThread.join();
-
-for(auto& worker : workers) {
-    worker.join();
-}
-
-writeQueue.markDone();
-
-writerThread.join();
-```
-
-Do not call:
-
-```cpp
-writeQueue.markDone();
-```
-
-before all workers have finished producing requests.
-
----
-
-# Queue Capacity and Backpressure
-
-Reuse the bounded nature of the existing `BlockingQueue`.
-
-The queue sizes should prevent unbounded memory growth.
-
-For example:
-
-```text
-fileQueue:
-    bounds the number of pending paths
-
-writeQueue:
-    bounds the number of prepared AST blobs waiting for SQLite
-```
-
-The write queue is especially important because serialized/compressed AST blobs may consume significant memory.
-
-A bounded queue provides natural backpressure:
-
-```text
-workers produce entries too quickly
-    ↓
-writeQueue fills
-    ↓
-workers block
-    ↓
-memory remains bounded
-```
-
-Choose reasonable capacities based on the existing queue usage patterns.
-
-Do not create an unbounded vector of prepared AST blobs.
-
----
-
-# File Processing Logic
-
-Preserve the existing validation flow.
-
-For each path:
-
-```text
-stat
-    ↓
-metadata lookup
-    ↓
-
-metadata matches:
-    format version
-    size
-    mtime
-        ↓
-    valid
-        ↓
-    skip
-
-
-otherwise:
-
-    metadata exists and format matches?
-        ↓ yes
-    compute content hash
-        ↓
-
-    hash matches
-        ↓
-    enqueue MetadataUpdate
-        ↓
-    valid
-
-
-    hash differs
-        ↓
-    stale
-        ↓
-    parse
-
-
-metadata missing / format mismatch
-        ↓
-    missing
-        ↓
-    parse
-```
-
-The worker should only parse when necessary.
-
-Do not deserialize cached AST blobs during cache warming merely to determine freshness.
-
----
-
-# Suggested Worker Structure
-
-The final worker logic should be approximately:
-
-```cpp
-void worker()
-{
-    ASTCacheDatabase dbReader = open_worker_reader();
-
-    WarmStats localStats;
-
-    std::filesystem::path path;
-
-    while(fileQueue.pop(path)) {
-        try {
-            warm_one_file(
-                path,
-                dbReader,
-                writeQueue,
-                localStats);
-        }
-        catch(...) {
-            ++localStats.files_failed;
-        }
-    }
-
-    merge_worker_stats(localStats);
-}
-```
-
-The `warm_one_file()` implementation should:
-
-```text
-stat
-    ↓
-lookup metadata
-    ↓
-fast validation
-    ↓
-optional hash validation
-    ↓
-
-valid:
-    optionally enqueue MetadataUpdate
-    return
-
-invalid:
-    parse
-    ↓
-    serialize
-    ↓
-    compress
-    ↓
-    enqueue CacheEntryUpdate
-```
-
----
-
-# Do Not Hold Locks During Parsing
-
-Do not use a global mutex around:
-
-```text
-parse
-serialize
-compress
-```
-
-These are intentionally parallel operations.
-
-Synchronization should only be used for:
-
-* final statistics merge
-* queue internals
-* SQLite writer ownership
-* any parser state that is proven to require thread isolation
-
-Do not accidentally serialize the worker pipeline with a global lock.
-
----
-
-# Normal Commands During Background Warming
-
-This change must remain compatible with the existing background warming design.
-
-While warming is running:
-
-```text
-background:
-    workers validate and update cache
-
-foreground:
-    normal find/search/etc.
-```
-
-The foreground command must not wait for the warmer except for normal SQLite locking behavior.
-
-The database writer should commit complete entries atomically.
-
-A foreground command should either observe:
-
-```text
-old valid cache entry
+search
 ```
 
 or:
 
 ```text
-new valid cache entry
+symbols <known-file>
 ```
 
-It must not observe a partially written AST entry.
+before falling back to textual tools.
 
 ---
 
-# Duplicate Warmer Protection
+# Guidance for `find`
 
-Do not change the existing workspace-level single-warmer lock design.
+The Skill must explicitly define `find` as an AST-inspection tool.
 
-The expected behavior remains:
+Add guidance equivalent to:
 
 ```text
-first cache warmer
-    ↓
-acquires WorkspaceWarmLock
-    ↓
-runs pipeline
+Use `find` when you need AST nodes, syntax structure, node types, text matches within AST nodes, or node IDs.
 
-
-second cache warmer
-    ↓
-cannot acquire lock
-    ↓
-exit successfully immediately
+Do not use `find` as the default tool for semantic symbol resolution.
 ```
 
-The parallel worker implementation applies only inside the process that successfully acquired the workspace warm lock.
-
----
-
-# Error Handling
-
-A failure processing one file must not terminate the entire warming operation.
+This distinction should be very clear.
 
 For example:
 
 ```text
-parse failure
-serialization failure
-compression failure
-metadata lookup failure
+Find the declaration of a semantic symbol
+→ search / symbols
+
+Inspect a function_definition AST node
+→ find
 ```
 
-should:
+---
+
+# Guidance for `symbols`
+
+Explain the intended role of `symbols`.
+
+Use `symbols` when:
 
 ```text
-record failure
+The relevant file is already known and you need the semantic symbols defined or declared in that file.
+```
+
+It is especially useful as a narrow fallback after `search` identifies a likely file.
+
+Do not recommend workspace-wide `symbols` behavior because `symbols` is file-oriented.
+
+---
+
+# Avoid Repeated Failed Commands
+
+Add a clear retry rule.
+
+For example:
+
+```text
+If an ast-tool command fails, do not repeat the same subcommand with small argument variations unless the error message clearly indicates the required correction.
+```
+
+Prefer:
+
+```text
+failed semantic query
+  ↓
+search / symbols
+  ↓
+identify exact target
+  ↓
+retry once
+```
+
+Avoid:
+
+```text
+callers
+callers
+callers
+callers
+```
+
+with guessed inputs.
+
+The Skill should encourage strategy changes after failure, not blind retries.
+
+---
+
+# Help Usage
+
+Reduce unnecessary `--help` calls.
+
+The Skill should contain enough command-selection information that ordinary semantic tasks do not require help lookup.
+
+Add guidance equivalent to:
+
+```text
+Do not call `ast-tool --help` or `<command> --help` for normal command discovery.
+
+Use help only when:
+- a command option or syntax is genuinely unknown, or
+- an error indicates that the command was invoked incorrectly.
+```
+
+Do not completely forbid help.
+
+It should remain available as a fallback.
+
+---
+
+# JSON Output Guidance
+
+Agents currently tend to prefer:
+
+```bash
+--json --pretty
+```
+
+even when plain output is sufficient.
+
+Add explicit guidance:
+
+```text
+Prefer plain-text output for normal interactive exploration.
+
+Use `--json` only when structured fields are required.
+
+Avoid `--pretty` unless human-readable JSON formatting is specifically useful.
+```
+
+Examples where plain output is preferred:
+
+```bash
+ast-tool search --name validate .
+ast-tool callers auth::AuthToken::validate .
+```
+
+Structured JSON may be useful when:
+
+* stable IDs are required
+* multiple fields must be processed programmatically
+* the next step requires machine-readable output
+
+Do not state that JSON is forbidden.
+
+The goal is to avoid unnecessary token-heavy output.
+
+---
+
+# Avoid Workspace-Wide Dumps
+
+Add guidance against broad workspace enumeration unless it is genuinely needed.
+
+Avoid patterns such as:
+
+```bash
+ast-tool search --json --pretty .
+```
+
+when the task is about one symbol.
+
+Prefer a narrow query:
+
+```bash
+ast-tool search --name validate .
+```
+
+or equivalent filters already supported by the CLI.
+
+The Skill should communicate:
+
+```text
+Query narrowly first.
+Expand scope only when necessary.
+```
+
+This should apply generally, not only to `search`.
+
+---
+
+# Prefer Semantic Tools Before Grep
+
+For semantic questions, the Skill should encourage AST Tool usage before generic text search.
+
+Examples:
+
+```text
+"Who calls this function?"
+→ callers
+
+"Where is this symbol referenced?"
+→ references
+
+"Where is this symbol defined?"
+→ search / symbols
+```
+
+Grep remains a valid fallback when:
+
+* semantic resolution is unsupported
+* AST Tool fails after a reasonable recovery attempt
+* the task is explicitly textual rather than semantic
+
+Do not ban Grep.
+
+The goal is to avoid using it before the semantic tools have had a reasonable opportunity to answer the question.
+
+---
+
+# Suggested Skill Structure
+
+Keep the Skill compact.
+
+A recommended structure is:
+
+```text
+# Semantic Analysis with ast-tool
+
+## Use ast-tool when
+
+## Command Decision Tree
+
+## Preferred Workflow
+
+## Failure Recovery
+
+## Output Guidelines
+
+## Command Reference
+
+## Examples
+```
+
+The `Command Reference` section should be short.
+
+For example:
+
+```text
+search      Find semantic symbols across the workspace.
+symbols     List semantic symbols in a known file.
+callers     Find direct callers.
+callees     Find direct callees.
+references  Find semantic references.
+find        Inspect AST nodes and syntax structure.
+outline     Show file structure.
+```
+
+Do not reproduce the full CLI help text.
+
+Low-level commands such as:
+
+```text
+parent
+children
+range
+```
+
+may be mentioned briefly under AST inspection but do not need extensive documentation.
+
+---
+
+# Recommended Guidance Example
+
+The final Skill should communicate a workflow approximately like this:
+
+```text
+For semantic code navigation, prefer ast-tool before Grep.
+
+Start narrow.
+
+Symbol lookup:
+  ast-tool search --name <name> <root>
+
+Known file:
+  ast-tool symbols <file>
+
+Direct callers:
+  ast-tool callers <fqn> <root>
+
+References:
+  ast-tool references <fqn> <root>
+
+Callees:
+  ast-tool callees <fqn> <root>
+
+AST structure:
+  ast-tool find ...
+  ast-tool outline ...
+
+Typical workflow:
+
+  search
     ↓
-continue with next file
-```
-
-Likewise, a failed database write should not terminate the writer unless the database has become unusable.
-
-Record the failure and continue when possible.
-
-The cache warmer remains best-effort.
-
----
-
-# Tests
-
-Add or update tests for the parallel implementation.
-
-## Test 1: Fully Cached Workspace
-
-All entries are valid.
-
-Verify:
-
-* zero files parsed
-* zero full cache entries written
-* workers exit correctly
-* writer exits correctly
-
----
-
-## Test 2: Mixed Workspace
-
-Use a workspace containing:
-
-```text
-valid cached files
-missing files
-stale files
-mtime-only changed files with identical content
-```
-
-Verify:
-
-```text
-valid
-    → skipped
-
-mtime-only change
-    → metadata update
-
-missing
-    → parsed and stored
-
-stale
-    → parsed and stored
-```
-
----
-
-## Test 3: Parallel Parsing
-
-Use enough stale files to ensure multiple workers are active.
-
-Verify that:
-
-* multiple files may be processed concurrently
-* resulting cache entries are valid
-* no duplicate or corrupted entries are produced
-
-If practical, add instrumentation or a test hook to confirm more than one worker performs parsing.
-
----
-
-## Test 4: Single Writer
-
-Verify that all database writes pass through the writer thread.
-
-Workers must not directly perform SQLite write operations.
-
----
-
-## Test 5: Queue Shutdown
-
-Verify:
-
-```text
-scanner finishes
+  exact symbol
     ↓
-fileQueue.markDone()
+  callers / references / callees
     ↓
-workers drain all paths
+  Read relevant files
     ↓
-workers finish
-    ↓
-writeQueue.markDone()
-    ↓
-writer drains all requests
-    ↓
-writer exits
+  Edit
+
+If a semantic command fails:
+- do not repeatedly retry it with guessed arguments
+- use search or symbols to identify the target
+- retry after resolving the ambiguity
+
+Prefer plain output.
+Use --json only when structured output is needed.
+Avoid --pretty by default.
+Avoid workspace-wide dumps.
+Use --help only as a fallback.
 ```
 
-Ensure no requests are lost during shutdown.
+Do not copy this section mechanically if the existing Skill has a better structure.
+
+Preserve useful existing content while making the decision path substantially clearer.
 
 ---
 
-## Test 6: Bounded Backpressure
+# Preserve Useful Existing Guidance
 
-Use a small write queue capacity and artificially slow the writer.
+Review the existing `Skill.md` before editing it.
 
-Verify that:
+Do not blindly replace the entire file.
 
-* workers block when the write queue is full
-* memory does not grow without bound
-* all entries are eventually written
+Preserve existing guidance that is:
 
----
+* correct
+* concise
+* useful to coding agents
+* not redundant with the new decision tree
 
-## Test 7: Concurrent Foreground Access
+Remove or shorten content that:
 
-Run cache warming while executing a normal AST cache read or semantic command.
+* duplicates CLI help
+* over-explains implementation details
+* describes parser internals that agents do not need
+* makes command selection harder
+* encourages broad output unnecessarily
 
-Verify that:
-
-* the foreground command succeeds
-* it does not observe corrupted cache data
-* SQLite remains usable
-* complete old or new entries are observed
-
----
-
-## Test 8: Worker Failure
-
-Cause one file to fail parsing.
-
-Verify:
-
-* the worker records the failure
-* other workers continue
-* the warming operation completes
+The Skill should describe how to use the semantic interface, not how Tree-sitter or AST internals work.
 
 ---
 
-# Performance Measurements
+# Token Efficiency
 
-Measure at least:
+One explicit objective of this phase is reducing total token usage.
+
+Optimize the Skill itself for low token cost.
+
+Avoid:
+
+* long prose explanations
+* repeated command descriptions
+* large JSON examples
+* exhaustive option listings
+* internal architecture descriptions
+* multiple examples of the same workflow
+
+Prefer:
 
 ```text
-1 worker
-vs
-N workers
+short rules
+small decision tables
+compact examples
+clear fallback behavior
 ```
 
-for:
+A shorter Skill that reliably directs the agent is preferable to a comprehensive manual.
+
+---
+
+# Evaluation
+
+Use the Phase 0 metrics to evaluate Phase 1.
+
+Run the same evaluation cases used for the baseline.
+
+Do not change the test prompts or repositories.
+
+Compare at least:
 
 ```text
-cold workspace
-partially stale workspace
-fully warm workspace
+success rate
+total tool calls
+ast_tool_calls
+ast_tool_failures
+ast_tool_retries
+ast_tool_help_calls
+ast_tool_json_calls
+ast_tool_pretty_json_calls
+grep_calls
+read_calls
+elapsed_seconds
+input_tokens
+output_tokens
+total_tokens
 ```
 
-Record:
-
-* total elapsed time
-* files parsed
-* metadata validation time
-* parsing time
-* serialization time
-* compression time
-* database write time
-
-The goal is not necessarily linear scaling.
-
-The expected behavior is:
+Also inspect:
 
 ```text
-fully warm workspace
-    → dominated by scanning + metadata lookup
-
-cold/stale workspace
-    → benefits from parallel parsing
+tool_sequence
+ast_tool_sequence
+recovery distance
 ```
 
----
-
-# Implementation Order
-
-Implement in this order.
-
-## Step 1
-
-Inspect:
-
-* `BlockingQueue`
-* existing workspace scan/worker implementation
-* `ASTCacheDatabase`
-* parser thread safety
-* current `warm_cache`
-* existing serialization/compression helpers
-
-Reuse existing infrastructure.
+where available.
 
 ---
 
-## Step 2
+# Expected Behavioral Improvements
 
-Extract the sequential per-file logic into:
+The expected trajectory should move from patterns like:
 
 ```text
-warm_one_file()
+callers
+  ↓ fail
+search
+  ↓
+callers
+  ↓ fail
+find
+  ↓
+help
+  ↓
+symbols
+  ↓
+grep
 ```
 
-Keep behavior unchanged initially.
-
----
-
-## Step 3
-
-Introduce:
+toward:
 
 ```text
-BlockingQueue<filesystem::path>
+search
+  ↓
+callers
+  ↓
+Read
+  ↓
+Edit
 ```
 
-and reuse the existing scanner/worker pattern.
-
----
-
-## Step 4
-
-Make SQLite metadata reads safe for parallel workers.
-
-Prefer one read connection per worker.
-
----
-
-## Step 5
-
-Introduce:
+For a known unambiguous symbol, an even shorter path may be valid:
 
 ```text
-BlockingQueue<CacheWriteRequest>
+callers
+  ↓
+Read
+  ↓
+Edit
 ```
 
-and move all database writes into one writer thread.
+Do not force extra `search` calls when the exact symbol is already known.
 
----
-
-## Step 6
-
-Refactor cache storage if necessary so workers can:
-
-```text
-prepare cache entry
-```
-
-while the writer performs:
-
-```text
-store prepared cache entry
-```
-
-Do not duplicate serialization or compression logic.
-
----
-
-## Step 7
-
-Implement safe queue shutdown.
-
-Ensure the writer is marked done only after every worker has exited.
-
----
-
-## Step 8
-
-Add worker-local statistics and final aggregation.
-
----
-
-## Step 9
-
-Run concurrency and performance tests.
-
-Verify that the parallel implementation is faster for a cold or stale workspace and does not regress the fully warm fast path significantly.
+The Skill should reduce unnecessary work, not enforce a rigid sequence.
 
 ---
 
 # Acceptance Criteria
 
-The implementation is complete when:
+Phase 1 is complete when:
 
-1. The existing `BlockingQueue` implementation is reused.
-2. The existing workspace scanner pattern is reused.
-3. Files begin processing while directory scanning is still in progress.
-4. Multiple workers can validate and parse files concurrently.
-5. Each worker has safe SQLite read access.
-6. Parser state is safe for concurrent use.
-7. Workers do not directly perform SQLite writes.
-8. All SQLite writes are performed by one dedicated writer thread.
-9. Prepared AST entries are fully serialized and compressed before enqueueing.
-10. The writer stores only complete cache entries.
-11. SQLite updates remain atomic.
-12. Queue capacity provides bounded memory usage and backpressure.
-13. Worker statistics are not updated through data races.
-14. Queue shutdown does not lose pending write requests.
-15. A fully cached unchanged workspace still exits quickly.
-16. Cold and stale workspaces benefit from parallel processing.
-17. Existing foreground commands remain safe while background warming is active.
-18. Existing workspace warming lock behavior remains unchanged.
-19. No new general-purpose thread pool or queue implementation is introduced.
+1. The existing `semantic-analysis` Skill has been updated.
+2. The Skill contains a clear command decision tree.
+3. Semantic commands and AST-inspection commands are clearly separated.
+4. `search` is recommended for uncertain symbol identity.
+5. `callers`, `references`, and `callees` are recommended for their corresponding semantic questions.
+6. `symbols` is documented as a file-scoped semantic inspection tool.
+7. `find` is documented primarily as an AST-inspection tool.
+8. Repeated retries after failed commands are explicitly discouraged.
+9. `--help` is described as a fallback rather than a normal workflow step.
+10. Plain output is preferred for normal exploration.
+11. `--json` is used only when structured output is useful.
+12. `--pretty` is discouraged by default.
+13. Narrow queries are preferred over workspace-wide dumps.
+14. Existing useful Skill guidance is preserved where appropriate.
+15. No `ast-tool` implementation or CLI behavior is changed.
+16. Existing evaluation tests are rerun without changing their prompts.
+17. Phase 0 baseline metrics and Phase 1 metrics are compared.
+18. The implementation reports whether help calls, retries, broad JSON usage, tool calls, and total tokens improved or regressed.
 
 ---
 
-# Final Deliverables
+# Non-Goals
 
-After implementation, provide:
+Do NOT implement any of the following in Phase 1:
 
-1. A summary of the final producer-consumer architecture.
+* declaration/definition symbol unification
+* fixes to `callers`
+* fixes to `references`
+* fixes to `callees`
+* symbol-ID-based queries
+* CLI argument changes
+* CLI command removal
+* CLI command renaming
+* compact JSON implementation
+* JSON field removal
+* output limiting
+* error-message changes
+* automatic command recommendations
+* cache changes
+* workspace performance changes
+* evaluation task changes
 
-2. The number and purpose of each queue.
+Do not modify `ast-tool` behavior to make the Phase 1 metrics look better.
 
-3. The worker count policy.
+This phase must isolate the effect of better agent instructions.
 
-4. How SQLite read access is handled per worker.
+---
 
-5. How SQLite writes are serialized.
+# Deliverables
 
-6. The transaction/batching strategy.
+Provide:
 
-7. How queue shutdown is coordinated.
+1. The updated `Skill.md`.
+2. A concise summary of the changes made.
+3. The evaluation results using the same tests as the Phase 0 baseline.
+4. A comparison of Phase 0 vs Phase 1 for the key metrics.
+5. At least one before/after tool trajectory if available.
+6. Any observed cases where the Skill guidance is insufficient because the underlying CLI or semantic resolver prevents an efficient workflow.
 
-8. Parser thread-safety considerations and the solution used.
+Do not proceed to Phase 2.
 
-9. Performance comparison:
-
-   * sequential warming
-   * parallel warming
-   * fully warm workspace
-
-10. Test results.
-
-11. Any remaining concurrency limitations or race conditions.
-
-Keep the implementation focused on reusing the existing workspace concurrency architecture.
-
-Do not introduce a new thread pool, task scheduler, or queue abstraction unless the existing `BlockingQueue` is proven insufficient.
+If evaluation reveals problems that require CLI or semantic changes, document them as findings for later phases rather than implementing them in this phase.

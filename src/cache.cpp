@@ -3,10 +3,13 @@
 #include "ast-cache.h"
 #include "ast-tool.h"
 #include "cache-warm.h"
+#include "setup.h"
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
+#include <string>
 #include <string_view>
+#include <vector>
 
 namespace ast
 {
@@ -44,10 +47,13 @@ bool parse_cache(Arguments& arguments, int32_t argc, const char8_t** argv)
     a.verbose_ = false;
     a.root_    = nullptr;
 
+    a.background_ = false;
     for(int32_t i = 3; i < argc; ++i) {
         std::u8string_view flag{argv[i]};
         if(flag == u8"--verbose" || flag == u8"-v") {
             a.verbose_ = true;
+        } else if(flag == u8"--background") {
+            a.background_ = true;
         } else if(flag.starts_with(u8"-")) {
             // Unknown flag — ignore.
         } else {
@@ -65,6 +71,16 @@ bool parse_cache(Arguments& arguments, int32_t argc, const char8_t** argv)
 
 bool cache_warm_cmd(const ArgCache& args)
 {
+    if(args.background_) {
+        // Spawn a detached background process running cache warm (without --background)
+        std::filesystem::path exe = get_executable_path();
+        if(exe.empty()) exe = "ast-tool";
+        std::vector<std::string> bgArgs = {"cache", "warm"};
+        if(args.verbose_) bgArgs.emplace_back("--verbose");
+        if(args.root_)    bgArgs.emplace_back(reinterpret_cast<const char*>(args.root_));
+        return spawn_background(exe, bgArgs);
+    }
+
     std::filesystem::path root(args.root_);
     WarmStats stats;
     WarmResult result = warm_cache(root, stats, args.verbose_);

@@ -1,30 +1,10 @@
-## 次回議論用：AST Tool Evaluation ロードマップと進捗まとめ
+# AST Tool — Roadmap / Progress
 
-### 現在地
+**基準日: 2026-08-30**
 
-AST Tool の Agent Evaluation は、単なる「ast-tool を使ったかどうか」の確認から一歩進み、
+## 1. 最終目標
 
-> **ast-tool が Coding Agent の探索行動・成功率・トークン・実行時間にどのような影響を与えるか**
-
-を比較・分析する段階に入っています。
-
-現時点で特に重要なのは、
-
-* `search` は既存の `Grep` をある程度代替している可能性
-* `callers` / `callees` / semantic navigation は追加の探索を発生させている可能性
-* 成功率の明確な改善はまだ確認できていない
-* ast-tool 使用時に **実行時間が大幅に増加している**
-* そのため、次は **高速化を優先して再開する**
-
-という状態です。
-
----
-
-# 1. これまでの進捗
-
-## AST Tool の基本アーキテクチャ
-
-設計方針は概ね固まっています。
+AST Tool の最終的な構成は：
 
 ```text
 Tree-sitter
@@ -36,1009 +16,756 @@ Semantic Layer
 Workspace Analysis
     ↓
 Semantic Services
+    ├── Search
+    ├── Resolution
+    ├── References
+    ├── Callers / Callees
+    ├── Semantic Diff
+    └── Context Export
     ↓
 AI Agent / CLI / IDE
 ```
 
-主要な設計原則：
+設計原則：
 
 * Tree-sitter は parsing に限定
-* AST IR を安定した中間表現にする
+* AST IR を stable intermediate representation とする
 * Semantic Layer は AST IR のみに依存
 * Workspace が複数ファイルの semantic information を集約
 * Semantic Services は parser-independent
-* 上位層は Tree-sitter を直接利用しない
-* language-specific な処理は extractor に閉じ込める
-* Semantic Provider は optional enrichment
-* Agent は parser internals ではなく `ast-tool` を利用する
-
-提供する Semantic Services の中心は：
-
-```text
-search
-resolution
-references
-callers
-callees
-semantic diff
-context export
-```
+* 上位レイヤーから Tree-sitter を直接触らない
+* language-specific processing は extractor に閉じ込める
+* Semantic Provider による optional enrichment
+* Agent は parser internals ではなく `ast-tool` を利用
 
 ---
 
 # 2. Agent Evaluation
 
-Evaluation framework を作成し、複数レベルのテストを実行しています。
+ここはかなり進んでいます。
+
+## Evaluation test
+
+YAML ベースの test framework を構築。
+
+例：
 
 ```text
-smoke
-level1
-level2
-level3
-level4
-level5
+smoke-001.yaml
+level1-xxx.yaml
+level2-xxx.yaml
+...
 ```
 
-各タスクでは repository modification と validation を行い、結果を `results.jsonl` に保存する形です。
-
-Evaluation runner については、
-
-* task ごとの実行
-* validation
-* tool usage 集計
-* ast-tool command usage 集計
-* workflow 情報
-* token usage
-* elapsed time
-
-などを記録する方向で進めています。
-
-また、`results.jsonl` を利用して、
+Task level を分けて、
 
 ```text
-成功済み
-    → skip
-
-失敗
-    → retry
-
-結果なし
-    → run
-```
-
-とする resume / retry の改善も検討済みです。
-
-さらに将来的な複数 Agent 比較を考慮し、
-
-```text
-(agent, task_id)
-```
-
-単位で結果を扱う設計を想定しています。
-
----
-
-# 3. ast-tool の Command Usage
-
-現時点の使用回数は次の通りです。
-
-```text
-command      total
-
-callers       42
-search        39
-references    17
-find          17
-callees        9
-symbols        2
-outline        2
-```
-
-Level 別では特に、
-
-```text
-callers
-    Level 2: 20
-    Level 3: 10
-    Level 1: 8
-    Level 4: 4
-
-search
-    Level 2: 16
-    Level 3: 14
-```
-
-が多く使われています。
-
----
-
-# 4. ast-tool あり / なし比較の結果
-
-## 成功率
-
-Level 4 では、
-
-```text
-with ast-tool     4 validation failures
-without ast-tool  4 validation failures
-```
-
-となりました。
-
-現時点では、
-
-> **ast-tool による明確な validation success の改善は確認できていない**
-
-という結果です。
-
-ただし、Agent が ast-tool を全く使っていないわけではなく、積極的に利用しています。
-
-したがって問題は、
-
-```text
-ast-tool is not used
-```
-
-ではなく、
-
-```text
-ast-tool is used,
-but the additional information is not yet converted
-into better task execution.
-```
-
-という可能性があります。
-
----
-
-# 5. `search` は Grep を代替している可能性
-
-これは比較結果からかなり強く示唆されています。
-
-全体：
-
-```text
-Grep
-
-with ast-tool      16
-without ast-tool   49
-
-delta             -33
-```
-
-特に：
-
-```text
+Level 1
+    ↓
+Level 2
+    ↓
 Level 3
-
-with ast-tool       0
-without ast-tool   10
-```
-
-```text
+    ↓
 Level 4
-
-with ast-tool       1
-without ast-tool   12
+    ↓
+Level 5
 ```
 
-したがって、
+と Agent の能力を段階的に評価する方針。
+
+特に Level 2 以降では `ast-tool` の利用状況も評価対象。
+
+---
+
+## 実行結果の例
+
+既に成功している test がある。
+
+### smoke-001
 
 ```text
+success
+elapsed_seconds: 15.56
+```
+
+### level1-001
+
+```text
+success
+elapsed_seconds: 13.78
+tools:
+  Grep
+  Read
+  Edit
+```
+
+### level2-008
+
+```text
+success
+elapsed_seconds: 100.6
+
+tools:
+  Skill: 1
+  Bash: 10
+  Read: 5
+  Edit: 5
+
+ast_tool:
+  callers: 4
+  search: 2
+  references: 1
+```
+
+### level2-004
+
+```text
+success
+elapsed_seconds: 181.52
+
+tools:
+  Skill: 1
+  Bash: 17
+  Read: 5
+  Glob: 1
+  Grep: 1
+  Edit: 6
+
+ast_tool:
+  search: 4
+  callers: 8
+  help: 2
+  references: 1
+  symbols: 1
+```
+
+つまり、**「Agent が task を成功させたか」だけでなく、「どの tool をどう使ったか」まで trace から分析できる段階**まで来ています。
+
+---
+
+# 3. 次のフェーズ：Tool-use Trace Analysis
+
+ここが**次回のメインテーマ**です。
+
+今までは主に：
+
+```text
+Task
+ ↓
+Agent
+ ↓
+Success / Failure
+```
+
+を見ていました。
+
+次は：
+
+```text
+Task
+ ↓
+Agent
+ ↓
+Tool-use trace
+ ↓
+AST Tool usage
+ ↓
+Outcome
+```
+
+を調べます。
+
+特に見るべきなのは：
+
+### A. Agent が `ast-tool` を使ったタイミング
+
+```text
+Task start
+    ↓
+Grep
+    ↓
+Read
+    ↓
 ast-tool search
     ↓
-Grep の一部を代替
-```
-
-している可能性が高いです。
-
-以前の、
-
-> ast-tool は既存の探索に追加されるだけで置換していない
-
-という仮説は修正する必要があります。
-
-より正確には：
-
-```text
-search
-    → existing text search を代替する傾向
-
-callers / callees / references
-    → additional semantic exploration を増やしている可能性
-```
-
-です。
-
----
-
-# 6. Read / Edit はほぼ変化していない
-
-全体では：
-
-```text
-Read
-
-with ast-tool      294
-without ast-tool   295
-```
-
-```text
+ast-tool callers
+    ↓
 Edit
-
-with ast-tool       86
-without ast-tool    84
-```
-
-ほぼ同じです。
-
-つまり、
-
-```text
-探索方法は変化
-```
-
-している一方、
-
-```text
-最終的なコード確認
-コード修正
-```
-
-の量は大きく減っていません。
-
-これは自然な結果でもあります。
-
-ast-tool があっても Agent は最終的にファイルを読んで修正する必要があります。
-
----
-
-# 7. Bash が大幅に増加
-
-ここは非常に重要です。
-
-```text
-Bash
-
-with ast-tool      162
-without ast-tool    57
-
-delta             +105
-```
-
-特に：
-
-```text
-Level 1   +19
-Level 2   +53
-Level 3   +31
-Level 4   +10
-Level 5    -7
-```
-
-です。
-
-Level 2 は特に顕著です。
-
-```text
-Bash average per task
-
-with ast-tool      6.75
-without ast-tool   0.12
-```
-
-これは、
-
-```text
-ast-tool
-    ↓
-semantic result
-    ↓
-additional verification / investigation
-    ↓
-Bash
-```
-
-のような行動が発生している可能性があります。
-
-ただし現時点では、Bash が何のために増えているかはまだ確定していません。
-
-そのため、詳細な tool-use trace を取る方針になっています。
-
----
-
-# 8. Glob も増加
-
-```text
-Glob
-
-with ast-tool      34
-without ast-tool   12
-
-delta             +22
-```
-
-特に Level 4 / Level 5 で増えています。
-
-```text
-Level 4   +7
-Level 5   +9
-```
-
-これも、
-
-```text
-semantic navigation
-    ↓
-related file discovery
-    ↓
-Glob
-```
-
-のような追加探索が発生している可能性があります。
-
----
-
-# 9. Workflow Length
-
-workflow length は全体的に ast-tool 使用時の方が長くなっています。
-
-```text
-level     with_ast    without_ast    delta
-
-overall      15.24       12.59       +2.66
-smoke        16.00       14.00       +2.00
-level1        7.62        4.38       +3.25
-level2       12.50        5.88       +6.62
-level3        9.38        8.25       +1.12
-level4       21.38       19.25       +2.12
-level5       25.25       25.00       +0.25
-```
-
-特に Level 2：
-
-```text
-+6.62 tool / workflow steps per task
-```
-
-です。
-
-しかも Level 2 の Bash 増加も：
-
-```text
-+6.62 per task
-```
-
-となっています。
-
-この一致は非常に興味深く、
-
-> **Level 2 では ast-tool 使用後に追加 Bash investigation がほぼそのまま workflow 増加につながっている**
-
-可能性があります。
-
-これは次の trace analysis で確認する価値があります。
-
----
-
-# 10. 現在の重要な仮説
-
-現時点では ast-tool の各 command を同じものとして扱わない方がよさそうです。
-
-現在の仮説：
-
-```text
-ast-tool
-│
-├── search
-│     └── Grep を代替する傾向
-│
-├── find / references
-│     └── navigation を補助
-│
-└── callers / callees
-      └── semantic exploration を追加
-            ↓
-          workflow ↑
-          Bash ↑
-          Glob ↑
-          token ↑
-          elapsed time ↑
-```
-
-特に `callers` は最多使用 command です。
-
-```text
-callers: 42
-search:  39
-```
-
-ここで新しい仮説が出ています。
-
-> **`callers` が Agent の想定と異なる結果を返し、Agent が何度も呼び直したり、別の方法で検証しているのではないか？**
-
-ただし、現在の aggregate data だけでは、
-
-```text
-callers(foo)
-→ callers(foo)
 ```
 
 なのか、
 
 ```text
-callers(foo)
-→ callers(bar)
-→ callers(baz)
-```
-
-なのか区別できません。
-
-そのため詳細 trace が必要です。
-
----
-
-# 11. Tool Use Trace の次の作業
-
-`run_eval.py` または専用スクリプトに、詳細な tool use logging を追加する予定です。
-
-推奨方針：
-
-```text
-results.jsonl
-    → compact summary
-
-traces/
-    level2-004.jsonl
-    level2-008.jsonl
-    ...
-```
-
-各 tool invocation について：
-
-```text
-sequence
-tool name
-input
-output
-success / failure
-timestamp / duration
-```
-
-を保存します。
-
-ast-tool が Bash 経由で実行される場合は、可能なら：
-
-```text
-raw command
-ast-tool command
-arguments
-```
-
-も記録します。
-
-例えば：
-
-```text
-sequence: 7
-
-tool:
-    Bash
-
-input:
-    ast-tool callers greet
-
-output:
-    ...
-
-ast_tool:
-    command: callers
-    arguments: ...
-```
-
----
-
-# 12. Trace で調べること
-
-最初に少数のテストを指定して実行します。
-
-例えば：
-
-```text
-level2-004
-level2-008
-```
-
-など。
-
-分析したいパターン：
-
-### 同一 query の繰り返し
-
-```text
-callers(foo)
-→ callers(foo)
-→ callers(foo)
-```
-
-### Command transition
-
-```text
-callers
-→ callers
-```
-
-```text
-callers
-→ Bash
-```
-
-```text
-callers
-→ Read
-```
-
-```text
-callers
-→ references
-```
-
-### Empty / unexpected result の再試行
-
-```text
-callers(foo)
-→ unexpected result
-
-callers(foo)
-→ same query
-```
-
-### 正常な semantic traversal
-
-```text
-callers(foo)
-→ callers(bar)
-→ callers(baz)
-```
-
-これらを区別することが目的です。
-
----
-
-# 13. 次回の最優先事項：高速化
-
-## ここから再開する
-
-Tool-use trace の仕組みは並行して進めますが、次回の主題は **高速化**です。
-
-理由：
-
-> **ast-tool を使うと実行時間が倍近くになっている。**
-
-したがって、次のフェーズではまず、
-
-```text
-Why is ast-tool slow?
-```
-
-を調べる必要があります。
-
-分析の優先順位は次の通り。
-
----
-
-## Phase 1 — Performance Baseline
-
-まず各 ast-tool command の性能を測定する。
-
-対象：
-
-```text
-search
-find
-references
-callers
-callees
-symbols
-outline
-```
-
-各 command について：
-
-```text
-wall-clock time
-number of files
-repository size
-number of results
-```
-
-を取得する。
-
-最初に知りたいのは：
-
-```text
-Agent execution time increase
-```
-
-が、
-
-```text
-A. ast-tool command 自体が遅い
-```
-
-のか、
-
-```text
-B. ast-tool は速いが、Agent が追加探索するため全体が遅い
-```
-
-のかです。
-
-これは最優先で切り分ける。
-
----
-
-# 14. Phase 2 — Command-Level Profiling
-
-特に最多使用の：
-
-```text
-callers
-search
-references
-```
-
-を重点的に調査する。
-
-例えば `callers` について：
-
-```text
-callers
+Task start
     ↓
-symbol lookup
+ast-tool search
     ↓
-workspace / file traversal
+ast-tool references
     ↓
-reference search
+Read
     ↓
-semantic resolution
+Edit
+```
+
+なのか。
+
+---
+
+### B. `ast-tool` を使った結果、本当に tool-use が減ったか
+
+比較したいのは：
+
+```text
+Without ast-tool
     ↓
-result formatting
+Grep / Glob / Read / Bash
+    ↓
+many tool calls
 ```
 
-のどこに時間が使われているかを測定する。
-
-可能なら内部 timing を追加する。
-
-例：
+vs.
 
 ```text
-total:                820 ms
-
-symbol lookup:         20 ms
-workspace loading:    400 ms
-reference collection: 300 ms
-resolution:            50 ms
-formatting:            10 ms
-```
-
----
-
-# 15. 高速化の優先仮説
-
-次回は以下を順番に確認する。
-
-## Hypothesis A — Workspace / Index の再構築
-
-最も疑わしい候補。
-
-もし command ごとに：
-
-```text
-workspace load
-parse
-semantic extraction
-```
-
-を繰り返しているなら、
-
-```text
-callers
-search
-references
-```
-
-を連続して実行すると非常に遅くなります。
-
-改善候補：
-
-```text
-long-lived workspace
-persistent index
-in-memory cache
-incremental analysis
-```
-
----
-
-## Hypothesis B — 同じ symbol / file の再解析
-
-例えば：
-
-```text
-callers(foo)
-references(foo)
-callees(foo)
-```
-
-で同じ symbol resolution や file parsing を繰り返している可能性。
-
-改善候補：
-
-```text
-symbol cache
-resolution cache
-reference cache
-parsed AST cache
-```
-
----
-
-## Hypothesis C — `callers` / `callees` の実装コスト
-
-`callers` が最多利用されているため、個別最適化の価値が高い可能性があります。
-
-特に：
-
-```text
-callers
-```
-
-が毎回 workspace 全体を scan しているなら優先的に改善する。
-
-候補：
-
-```text
-reverse reference index
-symbol → references index
-caller cache
-workspace-level dependency graph
-```
-
----
-
-## Hypothesis D — CLI startup overhead
-
-Agent が毎回：
-
-```bash
-ast-tool callers ...
-```
-
-のように CLI process を起動している場合、
-
-```text
-process startup
-workspace initialization
-configuration loading
-index loading
-```
-
-が毎回発生している可能性があります。
-
-改善候補：
-
-```text
-persistent daemon
-server mode
-JSON-RPC
-long-lived process
-```
-
-ただし、まず profiling で startup cost が支配的か確認する。
-
----
-
-# 16. 次回の推奨作業順序
-
-### Step 1
-
-代表的な repository と query を使い、
-
-```text
-search
-references
-callers
-callees
-```
-
-の単体実行時間を測定。
-
-### Step 2
-
-同じ process / workspace 内で連続実行した場合と、
-
-```text
-ast-tool callers ...
-ast-tool references ...
-ast-tool search ...
-```
-
-のような個別 CLI invocation を比較。
-
-### Step 3
-
-内部 profiling を追加し、時間の内訳を取得。
-
-### Step 4
-
-最大の bottleneck を一つ選ぶ。
-
-### Step 5
-
-その bottleneck だけを最初に最適化。
-
-### Step 6
-
-再度 Agent Evaluation を実行。
-
-比較：
-
-```text
-success rate
-elapsed time
-tokens
-workflow length
-Grep usage
-Bash usage
-ast-tool usage
-```
-
----
-
-# 17. 高速化後に再評価するポイント
-
-高速化後も単に、
-
-```text
-ast-tool command time
-```
-
-だけを見るのではなく、
-
-```text
-End-to-end evaluation time
-```
-
-を見る。
-
-最終的に重要なのは：
-
-```text
-ast-tool is fast
-```
-
-ではなく、
-
-```text
-Agent completes the task faster
+With ast-tool
+    ↓
+search / callers / references
+    ↓
+fewer exploratory calls
 ```
 
 です。
 
-成功パターンの理想形は：
+特に、
+
+* tool call count
+* Read count
+* Grep count
+* Glob count
+* Bash count
+* AST Tool count
+* total elapsed time
+* input/output tokens
+
+の関係を見る。
+
+---
+
+### C. `ast-tool` を使っているのに効率化していないケース
+
+これも重要。
+
+例えば：
 
 ```text
-Without ast-tool
-
 Grep
-→ Read
-→ Grep
-→ Read
-→ Edit
+Read
+Grep
+Read
+ast-tool search
+Read
+Grep
+Edit
 ```
 
-が、
+なら、
+
+> AST Tool は使われたが、Agent の探索戦略そのものは変わっていない
+
+可能性があります。
+
+逆に：
 
 ```text
-With optimized ast-tool
-
-search
-→ callers / references
-→ Read
-→ Edit
+ast-tool search
+ast-tool callers
+Read
+Edit
 ```
 
-となり、
-
-```text
-Grep ↓
-Bash ↓
-Workflow ↓
-Elapsed time ↓
-Token usage ↓ or neutral
-Success ↑ or unchanged
-```
-
-に近づくことです。
+なら、かなり理想的。
 
 ---
 
-# 18. 次回議論のスタート地点
+### D. Task Level と tool-use の関係
 
-次回はこの状態から開始する。
-
-## Current priority
+特に：
 
 ```text
-Tool-use analysis
-    → continue in parallel
-
-Performance
-    → highest priority
+Level 1
+Level 2
+Level 3
+Level 4
+Level 5
 ```
 
-最初の問いは：
-
-> **ast-tool 使用時に実行時間が倍近くになる原因は、ast-tool 自体の処理速度なのか、それとも Agent の追加 exploration behavior なのか？**
-
-この切り分けから始める。
-
-その後：
+で、
 
 ```text
-1. Baseline benchmark
-
-2. Command-level profiling
-
-3. Identify bottleneck
-
-4. Optimize
-
-5. Re-run selected evaluations
-
-6. Compare end-to-end results
-
-7. Use detailed tool traces to understand
-   whether callers / callees cause repeated or unnecessary exploration
+difficulty
+    ↓
+AST Tool usage
+    ↓
+tool call efficiency
+    ↓
+success rate
 ```
 
-という順序で進める。
+がどう変化するかを見る。
 
 ---
 
-## 一言でいうと現在地
+# 4. AST Cache / Workspace Performance
+
+現在こちらも大きな設計変更を進めています。
+
+従来：
 
 ```text
-Phase 1
-Architecture
-    ✓
-
-Phase 2
-Evaluation framework
-    ✓
-
-Phase 3
-Task generation / Level evaluation
-    ✓
-
-Phase 4
-With vs Without ast-tool comparison
-    ✓
-
-Phase 5
-Behavior analysis
-    → in progress
-    → detailed tool traces next
-
-Phase 6
-Performance optimization
-    → NEXT / highest priority
-
-Phase 7
-Re-evaluation after optimization
-    → pending
+workspace 全体
+    ↓
+AST を全部メモリに展開
+    ↓
+find/search/etc.
 ```
 
-**次回は「なぜ遅いのか」を定量的に分解して、最大のボトルネックから高速化するところから再開。**
-その間、詳細な tool-use trace を使って、特に `callers` が「有益な semantic traversal」なのか「期待と違う結果による再試行・検証ループ」なのかを確認する、という進め方がよさそうです。
+これが workspace 全体の AST 展開で bottleneck になっている。
+
+---
+
+## 新しい方針
+
+```text
+workspace
+    ↓
+path を streaming
+    ↓
+path ごとに AST を memory に展開
+    ↓
+find/search
+    ↓
+hit した AST を残す
+```
+
+つまり、workspace 全体を一度に AST 化して保持するのではなく、
+
+```text
+Path
+ ↓
+AST
+ ↓
+command
+ ↓
+必要な AST だけ保持
+```
+
+という方向。
+
+DB cache は後段。
+
+---
+
+# 5. AST Binary Cache
+
+その次の optimization として、
+
+```text
+AST
+ ↓
+binary serialization
+ ↓
+LZ4
+ ↓
+SQLite
+```
+
+という persistent cache を導入。
+
+すでに **LZ4 と SQLite を使える状態**まで進んでいます。
+
+Cache validation は：
+
+```text
+format_version
+source_size
+source_mtime
+```
+
+を fast path として利用。
+
+一致しなければ：
+
+```text
+source hash
+```
+
+を確認。
+
+hash が一致する場合は AST の再解析を避け、
+
+```text
+mtime / size
+```
+
+だけ更新する。
+
+hash も異なる場合：
+
+```text
+parse
+ ↓
+serialize
+ ↓
+LZ4
+ ↓
+SQLite
+```
+
+---
+
+# 6. Cache Warming の並列化
+
+現在の `warm_cache` は sequential loop。
+
+```text
+for path:
+    stat
+    metadata lookup
+    hash
+    parse
+    store
+```
+
+これを既存の `BlockingQueue` ベースの workspace analysis と同じモデルに変更する方針。
+
+## 最終構成
+
+```text
+Directory Scanner
+        ↓
+BlockingQueue<Path>
+        ↓
+ ┌──────┼──────┬──────┐
+ ↓      ↓      ↓      ↓
+Worker Worker Worker Worker
+ │      │      │      │
+ │ stat
+ │ metadata lookup
+ │ hash
+ │ parse
+ │ serialize
+ │ LZ4
+ │
+ └──────┬──────┴──────┘
+        ↓
+BlockingQueue<CacheWriteRequest>
+        ↓
+Single SQLite Writer
+        ↓
+batched transaction
+```
+
+既存の：
+
+```cpp
+BlockingQueue<T>
+```
+
+を再利用する。
+
+新しい thread pool / task scheduler は作らない。
+
+---
+
+## SQLite
+
+worker は DB read を行うが、write は直接行わない。
+
+```text
+Workers
+    ↓
+read-only SQLite connection
+```
+
+↓
+
+```text
+CacheWriteRequest Queue
+```
+
+↓
+
+```text
+Single Writer
+    ↓
+SQLite transaction
+```
+
+という構造。
+
+これにより AST parsing / serialization / LZ4 compression は並列化しつつ、DB write は単純化。
+
+---
+
+# 7. Background Cache Warming
+
+さらに SessionStart から cache warming を開始する方針。
+
+狙い：
+
+```text
+SessionStart
+    ↓
+background cache warm
+    ↓
+Agent immediately starts working
+```
+
+tool use が実際に始まるまでに cache warming を先行させる。
+
+以前の Session ですでに workspace が scan 済みなら、
+
+```text
+existing cache
+    ↓
+差分確認
+    ↓
+何もなければ即終了
+```
+
+となる。
+
+---
+
+# 8. Multiple Process Protection
+
+Claude Code / Codex が同じ workspace で同時に SessionStart する可能性があるため、
+
+```text
+Claude
+   ↓
+cache warm
+
+Codex
+   ↓
+cache warm
+```
+
+となっても二重 warming しない。
+
+`WorkspaceWarmLock` を導入する方針。
+
+設計：
+
+```text
+Windows
+    → Named Mutex
+
+Linux/macOS
+    → OS-level file lock
+```
+
+重要なのは lockfile の「存在」を見るのではなく、**OS の lock state** を使うこと。
+
+```text
+Process A
+    ↓
+acquire lock
+    ↓
+warm
+
+
+Process B
+    ↓
+try acquire
+    ↓
+failed
+    ↓
+exit 0
+```
+
+Crash 時にも stale lock が残って永久に warming できなくなる問題を避ける。
+
+---
+
+# 9. `ast-tool setup`
+
+次に追加する CLI。
+
+```text
+ast-tool setup
+```
+
+目的：
+
+```text
+Claude Code SessionStart
+        ↓
+ast-tool cache warm --background
+```
+
+および：
+
+```text
+Codex SessionStart
+        ↓
+ast-tool cache warm --background
+```
+
+を自動設定。
+
+要求事項：
+
+* idempotent
+* existing hooks を壊さない
+* duplicate hook を作らない
+* ast-tool の hook を識別できる
+* configuration を atomic に更新
+* workspace path を setup 時に固定しない
+* background execution
+* Claude / Codex 両対応
+* 将来的に remove/update 可能な構造
+
+---
+
+# 10. 現在の全体ロードマップ
+
+```text
+[Completed / Mostly Completed]
+
+AST IR
+  ↓
+Semantic Layer
+  ↓
+Workspace Analysis
+  ↓
+Semantic Services
+  ↓
+Agent Evaluation Framework
+  ↓
+Level 1 / Level 2 tests
+  ↓
+AST Tool usage trace collection
+```
+
+↓
+
+```text
+[Current]
+
+Tool-use Trace Analysis
+  ↓
+Agent がどう ast-tool を使うか調査
+  ↓
+tool call efficiency
+  ↓
+AST Tool usage pattern
+  ↓
+成功率 / latency / token usage との相関
+```
+
+↓
+
+```text
+[In Progress]
+
+Workspace AST memory bottleneck
+  ↓
+Path streaming
+  ↓
+Per-path AST processing
+  ↓
+必要な AST のみ保持
+```
+
+↓
+
+```text
+[Next]
+
+Binary AST Cache
+  ↓
+SQLite
+  ↓
+LZ4
+  ↓
+metadata / hash validation
+```
+
+↓
+
+```text
+[Next]
+
+Parallel Cache Warming
+  ↓
+existing BlockingQueue
+  ↓
+parallel workers
+  ↓
+single SQLite writer
+```
+
+↓
+
+```text
+[Next]
+
+Background Cache Warming
+  ↓
+WorkspaceWarmLock
+  ↓
+SessionStart
+```
+
+↓
+
+```text
+[Next]
+
+ast-tool setup
+  ↓
+Claude Code SessionStart
+  +
+Codex SessionStart
+```
+
+---
+
+# 11. 次回の開始地点
+
+次回は **実装より先に tool-use trace を調査する**。
+
+見る対象は特に：
+
+```text
+1. task
+2. agent success/failure
+3. total elapsed time
+4. total tokens
+5. tool call sequence
+6. ast-tool invocation
+7. ast-tool command
+8. Grep / Glob / Read / Bash との関係
+9. ast-tool invocation → subsequent tool calls
+10. task level
+```
+
+そして最終的には、
+
+```text
+                    ┌─ success
+                    │
+Task ─→ Trace ─→ AST Tool usage
+                    │
+                    ├─ tool calls
+                    ├─ latency
+                    └─ tokens
+```
+
+という形で、**「AST Tool が Agent の探索行動を本当に改善しているか」**を定量的に見られる状態にするのが次の大きなマイルストーンです。
+
+### 現時点での一番重要な問い
+
+> **AST Tool を使ったこと自体ではなく、AST Tool を使うことで Agent の tool-use trajectory がどう変わったか？**
+
+ここを trace から掘るのが、次の議論の中心です。

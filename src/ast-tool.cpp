@@ -38,6 +38,7 @@
 #include "parent.h"
 #include "range.h"
 #include "cache.h"
+#include "setup.h"
 #include "callees.h"
 #include "callers.h"
 #include "references.h"
@@ -168,6 +169,8 @@ namespace
             return parse_callees(arguments, argc, argv);
         } else if(arg1_sv == u8"cache") {
             return parse_cache(arguments, argc, argv);
+        } else if(arg1_sv == u8"setup") {
+            return parse_setup(arguments, argc, argv);
         } else {
             return false;
         }
@@ -230,6 +233,8 @@ bool dispatch(const Arguments& arguments)
         return cache_warm_cmd(arguments.cache_);
     case SubCommand::CacheStatus:
         return cache_status_cmd(arguments.cache_);
+    case SubCommand::Setup:
+        return run_setup(arguments.setup_);
     default:
         return false;
     }

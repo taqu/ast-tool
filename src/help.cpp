@@ -628,6 +628,70 @@ static const char8_t kHelpReferences[] =
     u8"\n"
     u8"        ast-tool references --json --pretty foo src/\n";
 
+static const char8_t kHelpSetup[] =
+    u8"NAME\n"
+    u8"    setup - Configure coding-agent session-start hooks.\n"
+    u8"\n"
+    u8"SYNOPSIS\n"
+    u8"    ast-tool setup [--claude] [--codex] [--all] [--global] [--local]\n"
+    u8"                   [--dry-run] [--remove]\n"
+    u8"\n"
+    u8"DESCRIPTION\n"
+    u8"    Configures supported coding agents (Claude Code and Codex) to run\n"
+    u8"    AST cache warming automatically at the start of each session.\n"
+    u8"\n"
+    u8"    The installed hook launches:\n"
+    u8"\n"
+    u8"        ast-tool cache warm --background\n"
+    u8"\n"
+    u8"    which immediately returns after spawning the cache warmer as a\n"
+    u8"    detached background process.  The agent is not blocked.\n"
+    u8"\n"
+    u8"    The command is idempotent: running it multiple times does not\n"
+    u8"    create duplicate hooks.\n"
+    u8"\n"
+    u8"    Existing user hooks are never removed or overwritten.\n"
+    u8"\n"
+    u8"TARGETS\n"
+    u8"    Claude Code    ~/.claude/settings.json (hooks.SessionStart)\n"
+    u8"    Codex          ~/.codex/config.toml    ([hooks] session_start)\n"
+    u8"\n"
+    u8"OPTIONS\n"
+    u8"    --claude      Configure Claude Code only.\n"
+    u8"    --codex       Configure Codex only.\n"
+    u8"    --all         Configure all agents (default).\n"
+    u8"    --global      Install the hook in a global settings file.\n"
+    u8"    --local       Install the hook in a user-specific settings file.\n"
+    u8"    --dry-run     Show what would be changed without writing files.\n"
+    u8"    --remove      Remove the ast-tool hook; preserve all other hooks.\n"
+    u8"\n"
+    u8"EXAMPLES\n"
+    u8"    Configure both agents:\n"
+    u8"\n"
+    u8"        ast-tool setup\n"
+    u8"\n"
+    u8"    Configure Claude Code only:\n"
+    u8"\n"
+    u8"        ast-tool setup --claude\n"
+    u8"\n"
+    u8"    Preview without writing:\n"
+    u8"\n"
+    u8"        ast-tool setup --dry-run\n"
+    u8"\n"
+    u8"    Remove the ast-tool hooks:\n"
+    u8"\n"
+    u8"        ast-tool setup --remove\n"
+    u8"\n"
+    u8"ARCHITECTURE\n"
+    u8"    SessionStart\n"
+    u8"        -> ast-tool cache warm --background  (hook exits immediately)\n"
+    u8"        -> background: workspace scan\n"
+    u8"        -> background: parallel AST parsing\n"
+    u8"        -> background: SQLite cache update\n"
+    u8"\n"
+    u8"    A workspace-level lock prevents duplicate warming when both\n"
+    u8"    Claude Code and Codex sessions start simultaneously.\n";
+
 static const char8_t kHelpCache[] =
     u8"NAME\n"
     u8"    cache - Manage the workspace AST cache.\n"
@@ -747,7 +811,8 @@ static const CommandEntry kCommands[] = {
     {u8"callers",    u8"Find direct callers of a function.",               CommandCategory::SemanticAnalysis, kHelpCallers,    false},
     {u8"callees",    u8"Find direct callees of a function.",               CommandCategory::SemanticAnalysis, kHelpCallees,    false},
     // Cache Management
-    {u8"cache",        u8"Manage the workspace AST cache (warm / status).", CommandCategory::CacheManagement, kHelpCache,       false},
+    {u8"cache",        u8"Manage the workspace AST cache (warm / status).", CommandCategory::CacheManagement, kHelpCache,  false},
+    {u8"setup",        u8"Configure coding-agent session-start hooks.",      CommandCategory::CacheManagement, kHelpSetup, false},
 };
 
 static constexpr int kCommandCount = sizeof(kCommands) / sizeof(kCommands[0]);
