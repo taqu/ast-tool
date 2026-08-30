@@ -19,7 +19,7 @@ namespace
             std::print("  \"caller_kind\": \"file_scope\",\n");
             std::print("  \"caller_fqn\": \"\",\n");
         }
-        std::print("  \"file\": \"{}\",\n", (const char*)s.sourceFile.u8string().c_str());
+        std::print("  \"file\": \"{}\",\n", cli::json_escape(s.sourceFile.u8string()));
         std::print("  \"line\": {},\n", s.line + 1);
         std::print("  \"column\": {}\n", s.column + 1);
         std::print(" }}");
@@ -36,7 +36,7 @@ namespace
             std::print("\"caller_kind\":\"file_scope\",");
             std::print("\"caller_fqn\":\"\",");
         }
-        std::print("\"file\":\"{}\",", (const char*)s.sourceFile.u8string().c_str());
+        std::print("\"file\":\"{}\",", cli::json_escape(s.sourceFile.u8string()));
         std::print("\"line\":{},", s.line + 1);
         std::print("\"column\":{}", s.column + 1);
         std::print("}}");

@@ -6,6 +6,7 @@
 #include "ast-symbol-scope.h"
 #include "ast-ir.h"
 #include "ast-workspace.h"
+#include "cli-semantic.h"
 #include <iostream>
 #include <string_view>
 
@@ -375,6 +376,39 @@ namespace
         return ok;
     }
 
+    // -----------------------------------------------------------------------
+    // Declaration/definition deduplication:
+    // DdRefClass::ddRefMethod is declared (kind=Method) in decl_def_ref.h and
+    // defined out-of-line (kind=Function) in decl_def_ref_impl.cpp.  The resolver
+    // must return exactly 1 candidate; FindReferences must work end-to-end.
+
+    bool test_decl_def_references()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kRefRoot);
+        auto candidates = cli::resolve_symbol_query(ws, u8"DdRefClass::ddRefMethod");
+        ok &= check(candidates.size() == 1,
+                    "DdRefClass::ddRefMethod resolves to exactly 1 candidate");
+        if(candidates.empty()) return false;
+
+        ok &= check(candidates[0]->symbol.kind != SymbolKind::Function,
+                    "resolved kind is Method, not the misclassified Function");
+
+        FindReferences finder(ws);
+        auto refs = finder.find(*candidates[0]);
+        bool foundCallSite = false;
+        for(const auto& r : refs) {
+            std::u8string f = r.sourceFile.u8string();
+            if(f.find(u8"decl_def_ref_impl") != std::string::npos) {
+                foundCallSite = true;
+                break;
+            }
+        }
+        ok &= check(foundCallSite,
+                    "reference to ddRefMethod found in decl_def_ref_impl.cpp");
+        return ok;
+    }
+
     struct TestCase { const char* name; bool(*fn)(); };
 
 } // namespace
@@ -405,6 +439,8 @@ bool run_tests_references()
         {"result ordering within file",                   test_result_ordering},
         // owningScope field
         {"owningScope set for namespace-member reference", test_owning_scope_namespace},
+        // Declaration/definition deduplication
+        {"decl/def: references work across decl+def",     test_decl_def_references},
     };
 
     std::cout << "=== find references tests ===\n";

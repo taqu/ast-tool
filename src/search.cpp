@@ -4,6 +4,8 @@
 #include "ast-search.h"
 #include "ast-tool.h"
 #include "ast-workspace.h"
+#include "cli-semantic.h"
+#include <charconv>
 #include <cstring>
 #include <print>
 
@@ -17,7 +19,7 @@ namespace
         std::print("  \"kind\": \"{}\",\n", getSymbolKindName(r.symbol.kind));
         std::print("  \"name\": \"{}\",\n", (const char*)r.symbol.name.c_str());
         std::print("  \"fqn\": \"{}\",\n", (const char*)r.symbol.fqn.c_str());
-        std::print("  \"file\": \"{}\",\n", (const char*)r.sourceFile.u8string().c_str());
+        std::print("  \"file\": \"{}\",\n", cli::json_escape(r.sourceFile.u8string()));
         std::print("  \"line\": {},\n", r.symbol.line + 1);
         std::print("  \"column\": {},\n", r.symbol.column + 1);
         std::print("  \"owning_scope\": \"{}\"\n", getScopeKindName(r.owningScope));
@@ -31,7 +33,7 @@ namespace
         std::print("\"kind\":\"{}\",", getSymbolKindName(r.symbol.kind));
         std::print("\"name\":\"{}\",", (const char*)r.symbol.name.c_str());
         std::print("\"fqn\":\"{}\",", (const char*)r.symbol.fqn.c_str());
-        std::print("\"file\":\"{}\",", (const char*)r.sourceFile.u8string().c_str());
+        std::print("\"file\":\"{}\",", cli::json_escape(r.sourceFile.u8string()));
         std::print("\"line\":{},", r.symbol.line + 1);
         std::print("\"column\":{},", r.symbol.column + 1);
         std::print("\"owning_scope\":\"{}\"", getScopeKindName(r.owningScope));
@@ -58,6 +60,7 @@ bool parse_search(Arguments& arguments, int32_t argc, const char8_t** argv)
     args.file_regex_ = nullptr;
     args.json_ = false;
     args.pretty_ = false;
+    args.limit_ = 0;
 
     for(int32_t i = 2; i < argc; ++i) {
         if(STREQUALS(argv[i], "--name")) {
@@ -103,6 +106,17 @@ bool parse_search(Arguments& arguments, int32_t argc, const char8_t** argv)
             args.pretty_ = true;
             continue;
         }
+        if(STREQUALS(argv[i], "--limit")) {
+            if((i + 1) < argc) {
+                const char* s = reinterpret_cast<const char*>(argv[++i]);
+                uint32_t v = 0;
+                auto [ptr, ec] = std::from_chars(s, s + std::strlen(s), v);
+                if(ec == std::errc{}) {
+                    args.limit_ = v;
+                }
+            }
+            continue;
+        }
         args.root_ = argv[i];
     }
     return args.root_ != nullptr;
@@ -132,6 +146,12 @@ bool search(const ArgSearch& arguments)
     ws.ensure_all_loaded();
     SemanticSearchEngine engine(ws);
     std::vector<const WorkspaceSymbol*> results = engine.search(*q);
+
+    if(arguments.limit_ > 0 && results.size() > arguments.limit_) {
+        std::print(stderr, "note: {} results, showing first {} (--limit {})\n",
+                   results.size(), arguments.limit_, arguments.limit_);
+        results.resize(arguments.limit_);
+    }
 
     if(arguments.json_) {
         std::print("[");

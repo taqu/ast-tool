@@ -1,6 +1,7 @@
 #include "cli-semantic.h"
 #include <cstring>
 #include <print>
+#include <unordered_set>
 
 namespace ast
 {
@@ -45,14 +46,39 @@ std::vector<const WorkspaceSymbol*> resolve_symbol_query(
     const char8_t* query)
 {
     std::u8string_view q{query};
-    std::vector<const WorkspaceSymbol*> matches;
+    std::vector<const WorkspaceSymbol*> raw;
     bool byFqn = q.find(u8"::") != std::u8string_view::npos;
     for(const WorkspaceSymbol& sym : ws.symbols) {
         if(byFqn ? sym.symbol.fqn == q : sym.symbol.name == q) {
-            matches.push_back(&sym);
+            raw.push_back(&sym);
         }
     }
-    return matches;
+    if(raw.size() <= 1) return raw;
+
+    // Collapse declaration/definition duplicates for callable symbols.
+    // The C++ extractor assigns kind=Function to out-of-line definitions
+    // (isQualified=true), while in-class declarations get the correct
+    // Method/Constructor/Destructor kind.  When a FQN group contains both,
+    // keep only the properly-kinded entries to avoid false ambiguity errors.
+    std::unordered_set<std::u8string> fqnsWithProperCallable;
+    for(const WorkspaceSymbol* p : raw) {
+        if(p->symbol.kind == SymbolKind::Method
+           || p->symbol.kind == SymbolKind::Constructor
+           || p->symbol.kind == SymbolKind::Destructor) {
+            fqnsWithProperCallable.insert(std::u8string(p->symbol.fqn));
+        }
+    }
+    if(fqnsWithProperCallable.empty()) return raw;
+
+    std::vector<const WorkspaceSymbol*> result;
+    for(const WorkspaceSymbol* p : raw) {
+        if(p->symbol.kind == SymbolKind::Function
+           && fqnsWithProperCallable.count(std::u8string(p->symbol.fqn))) {
+            continue; // misclassified out-of-line definition — skip it
+        }
+        result.push_back(p);
+    }
+    return result;
 }
 
 bool is_callable(SymbolKind kind)

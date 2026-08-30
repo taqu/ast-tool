@@ -1,6 +1,7 @@
 #include "test_callees.h"
 #include "ast-callees.h"
 #include "ast-workspace.h"
+#include "cli-semantic.h"
 #include <iostream>
 #include <string_view>
 
@@ -362,6 +363,37 @@ namespace
         return ok;
     }
 
+    // -----------------------------------------------------------------------
+    // Declaration/definition deduplication:
+    // DdCleClass::ddCleMethod is declared (kind=Method) in decl_def_cle.h and
+    // defined out-of-line (kind=Function) in decl_def_cle_impl.cpp.  The resolver
+    // must return exactly 1 candidate; Callees::find must work end-to-end.
+
+    bool test_decl_def_callees()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        auto candidates = cli::resolve_symbol_query(ws, u8"DdCleClass::ddCleMethod");
+        ok &= check(candidates.size() == 1,
+                    "DdCleClass::ddCleMethod resolves to exactly 1 candidate");
+        if(candidates.empty()) return false;
+
+        ok &= check(candidates[0]->symbol.kind != SymbolKind::Function,
+                    "resolved kind is Method, not the misclassified Function");
+
+        Callees callees;
+        auto sites = callees.find(ws, *candidates[0]);
+        bool foundHelper = false;
+        for(const auto& s : sites) {
+            if(s.callee && s.callee->symbol.name == u8"ddCleHelper") {
+                foundHelper = true;
+                break;
+            }
+        }
+        ok &= check(foundHelper, "ddCleMethod has ddCleHelper as a callee");
+        return ok;
+    }
+
     struct TestCase { const char* name; bool(*fn)(); };
 
 } // namespace
@@ -382,6 +414,7 @@ bool run_tests_callees()
         {"unresolved call: silently skipped",               test_unresolved_call},
         {"cross-file callee",                               test_cross_file_callee},
         {"result ordering within function",                 test_result_ordering},
+        {"decl/def: callees work across decl+def",          test_decl_def_callees},
     };
 
     std::cout << "=== callees tests ===\n";

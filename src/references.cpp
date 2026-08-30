@@ -12,7 +12,7 @@ namespace
     void print_ref_json_pretty(const ReferenceResult& r, bool last)
     {
         std::print(" {{\n");
-        std::print("  \"file\": \"{}\",\n", (const char*)r.sourceFile.u8string().c_str());
+        std::print("  \"file\": \"{}\",\n", cli::json_escape(r.sourceFile.u8string()));
         std::print("  \"line\": {},\n", r.line + 1);
         std::print("  \"column\": {},\n", r.column + 1);
         std::print("  \"owning_scope\": \"{}\"\n", getScopeKindName(r.owningScope));
@@ -23,7 +23,7 @@ namespace
     void print_ref_json(const ReferenceResult& r, bool last)
     {
         std::print("{{");
-        std::print("\"file\":\"{}\",", (const char*)r.sourceFile.u8string().c_str());
+        std::print("\"file\":\"{}\",", cli::json_escape(r.sourceFile.u8string()));
         std::print("\"line\":{},", r.line + 1);
         std::print("\"column\":{},", r.column + 1);
         std::print("\"owning_scope\":\"{}\"", getScopeKindName(r.owningScope));

@@ -1,6 +1,7 @@
 #include "test_callers.h"
 #include "ast-callers.h"
 #include "ast-workspace.h"
+#include "cli-semantic.h"
 #include <iostream>
 #include <string_view>
 
@@ -323,6 +324,59 @@ namespace
         return ok;
     }
 
+    // -----------------------------------------------------------------------
+    // Declaration/definition deduplication:
+    // DdCalClass::ddCalMethod is declared (kind=Method) in decl_def_class.h and
+    // defined out-of-line (kind=Function) in decl_def_impl.cpp.  The resolver
+    // must return exactly one candidate (not report ambiguity).
+
+    bool test_decl_def_no_ambiguity()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCalRoot);
+        auto candidates = cli::resolve_symbol_query(ws, u8"DdCalClass::ddCalMethod");
+        ok &= check(candidates.size() == 1,
+                    "DdCalClass::ddCalMethod resolves to exactly 1 candidate");
+        if(!candidates.empty()) {
+            ok &= check(candidates[0]->symbol.kind != SymbolKind::Function,
+                        "resolved kind is Method, not the misclassified Function");
+        }
+        return ok;
+    }
+
+    bool test_decl_def_callers()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCalRoot);
+        auto candidates = cli::resolve_symbol_query(ws, u8"DdCalClass::ddCalMethod");
+        ok &= check(candidates.size() == 1, "DdCalClass::ddCalMethod resolved");
+        if(candidates.empty()) return false;
+
+        Callers callers(ws);
+        auto sites = callers.find(*candidates[0]);
+
+        ok &= check(sites.size() == 1, "ddCalMethod has exactly 1 caller (ddCalCaller)");
+        if(!sites.empty() && sites[0].caller) {
+            ok &= check(sites[0].caller->symbol.name == u8"ddCalCaller",
+                        "caller is ddCalCaller");
+        }
+        return ok;
+    }
+
+    bool test_decl_def_constructor()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCalRoot);
+        auto candidates = cli::resolve_symbol_query(ws, u8"DdCalClass::DdCalClass");
+        ok &= check(candidates.size() == 1,
+                    "DdCalClass constructor resolves to exactly 1 candidate");
+        if(!candidates.empty()) {
+            ok &= check(candidates[0]->symbol.kind == SymbolKind::Constructor,
+                        "resolved kind is Constructor");
+        }
+        return ok;
+    }
+
     struct TestCase { const char* name; bool(*fn)(); };
 
 } // namespace
@@ -341,6 +395,9 @@ bool run_tests_callers()
         {"unresolved call: no false positives",          test_unresolved_call},
         {"cross-file call",                              test_cross_file},
         {"result ordering within file",                  test_result_ordering},
+        {"decl/def: no ambiguity for out-of-line method", test_decl_def_no_ambiguity},
+        {"decl/def: callers work across decl+def",       test_decl_def_callers},
+        {"decl/def: constructor resolves to 1 candidate", test_decl_def_constructor},
     };
 
     std::cout << "=== callers tests ===\n";

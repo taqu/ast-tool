@@ -172,6 +172,7 @@ struct ArgSearch
     const char8_t* file_regex_; ///< --file-regex RE2 pattern, or nullptr if unset.
     bool json_;                 ///< Output results as JSON when true.
     bool pretty_;               ///< Pretty-print the JSON output when true.
+    uint32_t limit_;            ///< --limit N: cap returned results (0 = unlimited).
 };
 
 /** Arguments for the "callees" subcommand. */
