@@ -1,736 +1,315 @@
-# Phase 2 — Reduce AST Tool Output and JSON Token Cost
+# Phase 2-2 — Residual Failure and Agent Trajectory Analysis
 
 ## Goal
 
-Reduce the number of tokens consumed by `ast-tool` output without changing semantic behavior.
+Analyze the evaluation traces after the Phase 2-1 semantic resolution improvements.
 
-Phase 1 improved agent command selection through `Skill.md`.
+Phase 2-1 significantly reduced `ast-tool` failures, especially for `callers`, `callees`, and `references`, but the reduction in failures did not translate into a comparable reduction in total tool calls or elapsed time.
 
-Phase 2 should now improve the CLI output itself so that successful AST Tool usage produces less context for the coding agent to consume.
+The goal of this phase is to identify why.
 
-The primary objectives are:
-
-```text
-smaller command output
-        ↓
-fewer output tokens
-        ↓
-smaller agent context
-        ↓
-lower total token usage
-```
-
-This phase must preserve correctness and existing semantic behavior.
+Do **not** modify `ast-tool` behavior in this phase.
 
 ---
 
-# Phase 1 Results
+## Background
 
-Phase 1 preserved evaluation correctness:
+Phase 2-1 improved C++ semantic resolution, especially declaration/definition ambiguity.
 
-```text
-validation success:
-37 / 41
-```
+Observed results:
 
-Token usage improved:
+* AST tool failures: `36 -> 12`
+* AST tool failure rate: `51.43% -> 19.05%`
+* AST tool retries: `23 -> 17`
+* Average recovery distance: `2.23 -> 1.70`
+* Total tokens: `162,628 -> 160,530`
 
-```text
-Before Phase 1:
-total tokens = 186155
-average tokens/test = 4540.4
+However:
 
-After Phase 1:
-total tokens = 176983
-average tokens/test = 4316.7
-```
+* Total tool calls: `519 -> 563`
+* Read calls: `254 -> 281`
+* Glob calls: `15 -> 35`
+* Elapsed time: `2100.56s -> 2329.46s`
 
-This is approximately a 4.9% reduction in total tokens.
-
-AST Tool command selection also became significantly narrower.
-
-Examples:
-
-```text
-callers:
-51 → 23
-
-find:
-27 → 9
-
-references:
-16 → 4
-
-callees:
-16 → 3
-
-search:
-37 → 22
-```
-
-This suggests that Phase 1 successfully reduced unnecessary semantic exploration.
-
-Phase 2 should preserve those gains and focus specifically on reducing the cost of each AST Tool response.
+This suggests that semantic commands are succeeding more often, but the agent may still perform redundant exploration afterward.
 
 ---
 
-# Important: Re-establish the Phase 1 Baseline First
+## Scope
 
-Before modifying AST Tool output behavior, regenerate the Phase 1 analysis from the current evaluation result files.
+Analyze the existing evaluation traces and classify two things:
 
-There appears to be a possible inconsistency between the Phase 1 command table and previously generated aggregate statistics.
+1. Remaining `ast-tool` failures
+2. Tool-call trajectories after successful semantic queries
 
-For example, the command table indicates substantially fewer AST Tool calls, while some aggregate values appear unchanged from the pre-Phase-1 run.
+Focus especially on:
 
-Do not modify metrics to make them agree manually.
+* `callers`
+* `references`
+* `callees`
+* `search`
 
-Instead:
+Also investigate unexpected fallback usage of:
 
-1. Run the current `analyze_results.py` against the actual Phase 1 result files.
-2. Regenerate all aggregate metrics.
-3. Save this output as the authoritative Phase 1 baseline.
-4. Record the exact result directory/input used.
-5. Use that same evaluation configuration for the Phase 2 comparison.
-
-Do not change evaluation prompts, repositories, model configuration, or test selection.
-
----
-
-# Scope
-
-Phase 2 is limited to AST Tool output efficiency.
-
-Focus on:
-
-* JSON output formatting
-* default textual output
-* unnecessary fields
-* unnecessarily broad result sets
-* unnecessarily verbose error-independent successful output
-
-Do NOT change semantic resolution in this phase.
-
-Do NOT fix declaration/definition ambiguity yet.
-
-That belongs to Phase 3.
+* `Glob`
+* `Grep`
+* `Read`
+* repeated `search`
+* `find`
+* `symbols`
 
 ---
 
-# 1. Preserve Plain Text as the Preferred Agent Output
+## Task 1 — Classify Remaining AST Tool Failures
 
-Plain-text output should remain concise and optimized for coding-agent consumption.
+Inspect every remaining failed `ast-tool` invocation from the Phase 2-1 evaluation.
 
-For semantic commands, prefer one result per line.
+Group failures into meaningful categories, for example:
 
-Examples:
+* unresolved declaration/definition ambiguity
+* overload ambiguity
+* namespace/class resolution issue
+* invalid or overly broad query
+* unsupported symbol form
+* CLI usage error
+* empty result interpreted as failure
+* unrelated parser/semantic issue
+* agent misuse
 
-```text
-auth::AuthToken::validate src/auth/auth_token.h:9:5
-```
+For each category, report:
 
-or:
+* number of occurrences
+* affected commands
+* representative command sequence
+* likely root cause
+* whether the issue belongs to:
 
-```text
-web::AuthController::handleLogin src/web/auth_controller.cpp:13:9
-```
+  * Semantic Layer
+  * Resolver
+  * CLI/API UX
+  * Skill.md
+  * Agent behavior
 
-Avoid explanatory prose around successful results.
-
-Do not print headers such as:
-
-```text
-Results:
-Found symbols:
-Search results:
-```
-
-unless they materially improve interpretation.
-
-The agent already knows which command it executed.
-
----
-
-# 2. Keep `--json` Compact by Default
-
-`--json` should emit compact JSON.
-
-Example:
-
-```json
-[{"kind":"Method","fqn":"auth::AuthToken::validate","file":"src/auth/auth_token.h","line":9,"column":5}]
-```
-
-Do not insert indentation or unnecessary whitespace.
-
-Pretty printing should occur only when explicitly requested with:
-
-```text
---pretty
-```
-
-If the current implementation already behaves this way, preserve it and verify it with tests.
+Do not fix the failures yet.
 
 ---
 
-# 3. `--pretty` Must Remain Explicit
+## Task 2 — Analyze Post-Success Trajectories
 
-Do not automatically enable pretty output when `--json` is used.
-
-These should have clearly different behavior:
+For every successful invocation of:
 
 ```text
---json
-```
-
-→ compact machine-readable output
-
-```text
---json --pretty
-```
-
-→ formatted human-readable output
-
-Phase 1 already instructs agents to avoid `--pretty` by default.
-
-Phase 2 should make compact JSON genuinely inexpensive enough that structured output remains viable when needed.
-
----
-
-# 4. Audit JSON Fields for Agent Value
-
-Review JSON output for the core semantic commands:
-
-```text
-search
-symbols
 callers
 references
 callees
 ```
 
-Identify fields that are always emitted but rarely useful to coding agents.
+inspect the following tool calls in the same evaluation task.
 
-For example, current symbol output may contain values such as:
-
-```text
-access
-static
-constexpr
-inline
-owning_scope
-```
-
-Do not remove fields blindly.
-
-For each field determine:
-
-1. Is it required by existing tests or consumers?
-2. Is it required for semantic identification?
-3. Is it useful to the agent in the common navigation workflow?
-4. Can it be omitted from a compact/default representation without breaking compatibility?
-
-Prefer backward compatibility.
-
-If removing existing JSON fields would break the documented schema or likely external consumers, do not remove them in this phase.
-
-Instead document the finding for a future schema/versioning change.
-
----
-
-# 5. Do Not Introduce a Breaking JSON Schema Change
-
-Existing JSON consumers may depend on the current fields.
-
-Therefore:
-
-* do not rename existing fields
-* do not change their meaning
-* do not change arrays into objects or vice versa
-* do not remove documented fields without explicit compatibility handling
-
-Token reduction is not worth silently breaking the CLI API.
-
-If the existing JSON schema is intrinsically too verbose, document that as a finding rather than performing an incompatible redesign.
-
----
-
-# 6. Prevent Accidental Workspace-Wide Output Explosion
-
-A major token-cost pattern is broad commands such as:
-
-```bash
-ast-tool search --json --pretty .
-```
-
-which can return every symbol in the workspace.
-
-Phase 1 discourages this behavior, but the CLI should also be reasonably safe.
-
-Inspect the current `search` behavior.
-
-If `search` without a filter means "return all symbols", determine whether a safe result limit can be introduced without breaking existing documented behavior.
-
-Possible approaches include:
+Identify cases such as:
 
 ```text
-default result limit
+search
+→ callers succeeds
+→ Glob
+→ Read
+→ Read
 ```
 
 or:
 
 ```text
-explicit --all for unrestricted enumeration
+callers succeeds
+→ search
+→ find
+→ symbols
 ```
 
-However, compatibility is important.
+Determine whether the agent is performing redundant verification after already receiving a usable semantic result.
 
-Do NOT implement a breaking behavior change merely to reduce tokens.
+Classify post-success behavior into categories such as:
 
-If changing default enumeration would break existing usage, defer the behavior change and document it.
+* semantic result used directly
+* result followed by required source inspection
+* redundant Glob fallback
+* redundant Grep fallback
+* redundant repeated semantic query
+* result lacked enough information
+* agent did not appear to trust the result
+* task genuinely required additional exploration
 
 ---
 
-# 7. Prefer Narrow Search Results
+## Task 3 — Measure Post-Success Exploration Cost
 
-When filters such as:
+Add trace-analysis metrics if needed.
 
-```text
---name
-```
-
-are supplied, ensure `search` only returns matching symbols and does not include unrelated workspace information.
-
-Example:
-
-```bash
-ast-tool search --name validate .
-```
-
-should produce only relevant matching symbols.
-
-It should not require the agent to process unrelated symbol records.
-
-Review this path carefully because it is part of the preferred Phase 1 workflow:
+At minimum, report:
 
 ```text
-search
-  ↓
-exact symbol
-  ↓
-callers / references / callees
+successful semantic queries
+successful semantic queries followed by Glob
+successful semantic queries followed by Grep
+successful semantic queries followed by Read
+successful semantic queries followed by another semantic lookup
 ```
+
+Also report, where practical:
+
+```text
+average tool calls after successful semantic query
+average Read calls after successful semantic query
+average fallback calls after successful semantic query
+```
+
+A small bounded window such as the next 3–5 tool calls is acceptable, but document the chosen definition.
 
 ---
 
-# 8. Minimize Duplicate Semantic Information
+## Task 4 — Validate Trace Analyzer Consistency
 
-Inspect output for cases where the same information is repeated.
+There are inconsistencies between the command summary table and the JSON statistics.
 
-For example, avoid unnecessarily emitting both:
-
-```text
-name: AuthToken::validate
-fqn: auth::AuthToken::validate
-qualified_name: auth::AuthToken::validate
-```
-
-unless those fields are intentionally part of a stable API.
-
-Likewise, avoid repeating file/line information in multiple textual forms.
-
-Again, do not break existing JSON compatibility.
-
-Prioritize eliminating duplication in plain-text output first.
-
----
-
-# 9. Keep Error Handling Out of Scope
-
-Do not redesign error messages in this phase.
-
-Although verbose or non-actionable errors can increase token usage, error recovery is a later phase.
-
-In particular, do NOT yet implement:
-
-* suggested retry commands
-* semantic candidate IDs in errors
-* automatic ambiguity recovery
-* declaration/definition unification
-* resolver changes
-
-Those belong to later phases.
-
-Phase 2 should isolate the effect of successful-output reduction.
-
----
-
-# 10. Measure Actual Output Size
-
-Add lightweight measurements to tests or evaluation analysis so that output reduction is measurable.
-
-For each AST Tool invocation, if the trace already contains command output, derive at least:
-
-```text
-ast_tool_output_bytes
-```
-
-and preferably:
-
-```text
-ast_tool_output_chars
-```
-
-per invocation and in aggregate.
-
-Do not introduce tokenizer dependencies.
-
-Character/byte counts are sufficient for Phase 2 output-volume analysis.
-
-If convenient, aggregate by command:
-
-```json
-{
-  "ast_tool_output_by_command": {
-    "search": {
-      "calls": 22,
-      "bytes": 18420
-    },
-    "callers": {
-      "calls": 23,
-      "bytes": 3280
-    }
-  }
-}
-```
-
-This will help determine which subcommands generate the most context.
-
----
-
-# 11. Measure JSON and Pretty JSON Separately
-
-Using the Phase 0 analyzer infrastructure, report output volume for:
-
-```text
-plain AST Tool calls
-JSON AST Tool calls
-pretty JSON AST Tool calls
-```
-
-Suggested aggregate metrics:
-
-```text
-ast_tool_plain_calls
-ast_tool_json_calls
-ast_tool_pretty_json_calls
-
-ast_tool_plain_output_bytes
-ast_tool_json_output_bytes
-ast_tool_pretty_json_output_bytes
-```
-
-If the analyzer cannot reliably distinguish these today, add the smallest necessary extension.
-
-Do not turn this into a general logging-framework redesign.
-
----
-
-# 12. Core Commands to Audit
-
-Prioritize:
+Examples observed include differing counts for:
 
 ```text
 search
 callers
 references
-callees
-symbols
+help
 ```
 
-These are the primary semantic-agent interface.
-
-Secondary commands:
+and an unexpected command entry:
 
 ```text
-find
-outline
+"2": 1
 ```
 
-may also be reviewed if their output is clearly excessive.
+Investigate the trace parser / command classifier.
 
-Low-level AST commands do not require optimization unless a trivial improvement is obvious.
+Fix the analyzer if necessary, but do not alter `ast-tool` itself.
+
+The table and JSON summary must be generated from the same normalized command classification and must agree.
+
+Unknown or malformed commands should be reported explicitly rather than silently classified as a valid command.
 
 ---
 
-# 13. Tests
+## Non-goals
 
-Add or update tests for output behavior.
+Do not:
 
-At minimum cover the following.
+* modify semantic resolution
+* modify CLI output
+* add symbol-ID APIs
+* change `Skill.md`
+* change command behavior
+* remove subcommands
+* optimize performance
+* change evaluation tasks
 
-## Compact JSON
+This phase is analysis and measurement only, except for fixes to the trace-analysis tooling itself.
 
-Command:
+---
+
+## Deliverables
+
+Produce a report containing:
+
+### 1. Remaining Failure Summary
+
+Example:
 
 ```text
-search --json
+Category                         Count
+--------------------------------------
+overload ambiguity                  3
+references resolution issue         2
+agent CLI misuse                    2
+...
 ```
 
-Verify that output contains no pretty-print indentation/newlines beyond what is structurally necessary.
+### 2. Post-Success Trajectory Summary
 
----
-
-## Pretty JSON
-
-Command:
+Example:
 
 ```text
-search --json --pretty
+Behavior                                      Count
+---------------------------------------------------
+semantic result used directly                   12
+followed by necessary Read                       8
+followed by redundant Glob                       6
+followed by redundant Grep                       2
+followed by repeated semantic lookup             4
 ```
 
-Verify that formatted JSON is still available.
+### 3. Representative Traces
 
----
-
-## Plain Search
-
-Command:
-
-```text
-search --name validate
-```
-
-Verify that the output contains only matching results and remains concise.
-
----
-
-## Callers Plain Output
-
-Verify that each caller is represented compactly without unnecessary descriptive text.
-
----
-
-## References Plain Output
-
-Verify concise one-reference-per-line output.
-
----
-
-## Callees Plain Output
-
-Verify concise output.
-
----
-
-## Symbols Plain Output
-
-Verify concise symbol + identifier output.
-
----
-
-## JSON Compatibility
-
-Existing JSON-format tests must continue to pass.
-
-If documented JSON fields are retained, explicitly test that they are still present.
-
----
-
-# 14. Evaluation Procedure
-
-After implementation, rerun exactly the same 41 evaluation tests used for Phase 1.
-
-Do not modify:
-
-* task YAML
-* repositories
-* validation scripts
-* Skill.md
-* agent prompt
-* AST Tool semantic behavior
-
-Compare Phase 1 vs Phase 2.
-
-At minimum report:
-
-```text
-validation success
-
-total tokens
-average tokens per test
-
-total tool calls
-average tool calls per test
-
-ast_tool_calls
-ast_tool_failures
-ast_tool_retries
-
-ast_tool_json_calls
-ast_tool_pretty_json_calls
-
-total AST Tool output bytes
-average AST Tool output bytes per call
-
-output bytes by AST Tool command
-
-elapsed time
-```
-
----
-
-# 15. Primary Success Criteria
-
-Phase 2 should be considered successful if:
-
-```text
-validation success does not regress
-```
-
-and at least one of:
-
-```text
-total tokens decreases
-AST Tool output volume decreases
-average tokens per test decreases
-```
-
-shows a meaningful improvement.
-
-The most important metric is:
-
-```text
-total tokens
-```
-
-not merely JSON byte count.
-
-Reducing output bytes is useful only if it improves or preserves actual agent efficiency.
-
----
-
-# 16. Watch for Compensating Behavior
-
-A smaller AST Tool response is not automatically better.
+Include a few short examples showing the exact command trajectory.
 
 For example:
 
 ```text
-Before:
-search → enough information → edit
+search validate
+callers auth::AuthToken::validate .
+Glob **/*.cpp
+Read src/auth/auth_token.cpp
 ```
 
-could become:
+Explain whether the additional calls were necessary.
+
+### 4. Root-Cause Assessment
+
+Determine which of these is currently the dominant bottleneck:
 
 ```text
-After:
-search → insufficient information
-      → search
-      → symbols
-      → Read
-      → edit
+A. remaining resolver defects
+B. insufficient semantic command output
+C. Skill.md guidance
+D. redundant agent verification / distrust
+E. trace-analysis artifact
 ```
 
-This would reduce per-command output while increasing total exploration.
+Multiple causes may exist, but rank them.
 
-Therefore compare:
+### 5. Recommended Next Phase
+
+Recommend exactly one primary implementation target for the next phase.
+
+Examples:
 
 ```text
-tool_sequence
-ast_tool_sequence
-total_tool_calls
-total_tokens
+Improve remaining resolver cases
 ```
 
-as well as raw output size.
-
-Do not optimize an individual command at the expense of the overall trajectory.
-
----
-
-# Non-Goals
-
-Do NOT implement:
-
-* Skill.md changes
-* semantic resolver changes
-* declaration/definition unification
-* `callers` ambiguity fixes
-* `references` ambiguity fixes
-* symbol-ID-based lookup
-* new semantic symbol identity
-* actionable error recommendations
-* subcommand removal
-* CLI restructuring
-* cache performance work
-* workspace analysis changes
-* evaluation task changes
-
-Do not proceed to Phase 3.
-
----
-
-# Implementation Strategy
-
-Prefer small, reviewable changes.
-
-Recommended order:
+or:
 
 ```text
-1. Regenerate authoritative Phase 1 baseline
-2. Audit current output behavior
-3. Measure output size
-4. Verify compact JSON behavior
-5. Reduce obvious plain-text verbosity
-6. Reduce safe redundant output
-7. Preserve JSON compatibility
-8. Run unit tests
-9. Run the same 41 evaluation tests
-10. Compare Phase 1 vs Phase 2
+Improve semantic output so successful callers/references results
+contain enough context to avoid Glob/Read fallback
 ```
 
-Avoid introducing a generalized output-formatting framework unless the project already has one that should be reused.
+or:
+
+```text
+Update Skill.md to explicitly trust successful semantic results
+and avoid redundant filesystem verification
+```
+
+Do not implement that recommendation in this phase.
 
 ---
 
-# Acceptance Criteria
+## Acceptance Criteria
 
-Phase 2 is complete when:
+This phase is complete when:
 
-1. The authoritative Phase 1 baseline has been regenerated from the actual result files.
-2. Any discrepancy in the previous Phase 1 aggregate report has been identified or documented.
-3. Core semantic command output has been audited.
-4. `--json` output is compact by default.
-5. `--pretty` remains explicit.
-6. Plain-text output remains concise.
-7. Narrow `search` queries do not return unrelated workspace symbols.
-8. Existing JSON compatibility is preserved.
-9. AST Tool output volume can be measured.
-10. Output volume can be compared by command.
-11. Plain/JSON/pretty-JSON usage can be distinguished where practical.
-12. Existing unit tests continue to pass.
-13. New output-specific tests are added where necessary.
-14. The same 41 evaluation tests are rerun.
-15. Validation success does not regress unexpectedly.
-16. Phase 1 vs Phase 2 token usage is reported.
-17. Phase 1 vs Phase 2 AST Tool output volume is reported.
-18. Any proposed breaking output/schema changes are documented but not implemented.
+1. Every remaining Phase 2-1 `ast-tool` failure is classified.
+2. Successful `callers`, `references`, and `callees` calls have been analyzed for follow-up exploration.
+3. The increase in `Glob` / `Read` usage is explained with trace evidence.
+4. Command-count inconsistencies in the trace analyzer are understood and fixed if they are analyzer bugs.
+5. The report identifies the dominant remaining bottleneck.
+6. One concrete next implementation phase is recommended.
+7. No `ast-tool` behavior has been changed.
 
----
-
-# Deliverables
-
-Provide:
-
-1. The authoritative regenerated Phase 1 baseline.
-2. A short explanation of the apparent previous aggregate-statistics discrepancy, if identified.
-3. The Phase 2 implementation.
-4. Updated/new tests.
-5. Phase 2 evaluation results for the same 41 tests.
-6. A Phase 1 vs Phase 2 comparison table.
-7. AST Tool output-size statistics by command.
-8. Token usage comparison.
-9. At least one representative before/after command output.
-10. Any findings that should be addressed in Phase 3 rather than this phase.
-
-Do not proceed to Phase 3.
+The purpose of this phase is to avoid making another implementation change before we know whether the next bottleneck is semantic correctness, output usability, Skill guidance, or redundant agent exploration.

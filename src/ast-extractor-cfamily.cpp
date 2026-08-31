@@ -167,6 +167,55 @@ namespace
         return {};
     }
 
+    void appendParameterType(const ast::AST& tree, const ast::ASTNode& node,
+                             std::u8string& out)
+    {
+        if(node.typeEquals(ASTNodeType::QualifiedIdentifier)
+           || node.typeEquals(ASTNodeType::PrimitiveType)
+           || node.typeEquals(ASTNodeType::TypeIdentifier)
+           || node.typeEquals(ASTNodeType::SizedTypeSpecifier)
+           || node.typeEquals(ASTNodeType::TypeQualifier)
+           || node.typeEquals(ASTNodeType::TemplateType)) {
+            out += node.getText();
+            return;
+        }
+        if(node.typeEquals(ASTNodeType::PointerDeclarator)
+           || node.typeEquals(ASTNodeType::AbstractPointerDeclarator)) {
+            out += u8"*";
+        } else if(node.typeEquals(ASTNodeType::ReferenceDeclarator)
+                  || node.typeEquals(ASTNodeType::AbstractReferenceDeclarator)) {
+            out += u8"&";
+        } else if(node.typeEquals(ASTNodeType::ArrayDeclarator)) {
+            out += u8"[]";
+        }
+        for(uintptr_t id: node.children_) {
+            if(id == ast::InvalidId) continue;
+            const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
+            if(child.typeEquals(ASTNodeType::Identifier)
+               || child.typeEquals(ASTNodeType::FieldIdentifier)) continue;
+            appendParameterType(tree, child, out);
+        }
+    }
+
+    std::u8string callableSignature(const ast::AST& tree,
+                                    const ast::ASTNode& declarator)
+    {
+        const ast::ASTNode* params = findChild(tree, declarator, ASTNodeType::ParameterList);
+        if(!params) return u8"()";
+        std::u8string signature = u8"(";
+        bool first = true;
+        for(uintptr_t id: params->children_) {
+            if(id == ast::InvalidId) continue;
+            const ast::ASTNode& param = tree[static_cast<uint32_t>(id)];
+            if(!param.typeEquals(ASTNodeType::ParameterDeclaration)) continue;
+            if(!first) signature += u8",";
+            appendParameterType(tree, param, signature);
+            first = false;
+        }
+        signature += u8")";
+        return signature;
+    }
+
     // A C++ declaration is a global/namespace variable only when its parent is the
     // translation_unit root or a namespace body (declaration_list).
     bool isGlobalOrNamespaceDecl(const ast::AST& tree, const ast::ASTNode& node)
@@ -185,14 +234,14 @@ std::vector<Symbol> extract_symbols_cfamily(const ast::AST& tree)
     std::vector<ScopeFrame>         scopeStack;
     char8_t buffer[BUFFER_SIZE];
 
-    // For functions, deduplicate by FQN alone (declaration + out-of-line definition).
+    // Deduplicate repeated syntax for the same callable while preserving overloads.
     auto emit = [&](Symbol sym) {
         bool funcLike = sym.kind == SymbolKind::Function
                      || sym.kind == SymbolKind::Method
                      || sym.kind == SymbolKind::Constructor
                      || sym.kind == SymbolKind::Destructor;
         std::u8string key = funcLike
-            ? sym.fqn
+            ? (sym.fqn + sym.signature)
             : (sym.fqn + u8":" + ast::to_string_intermediate(buffer, static_cast<int32_t>(sym.kind)));
         if(!sym.fqn.empty() && seen.insert(key).second) {
             result.push_back(std::move(sym));
@@ -353,6 +402,8 @@ std::vector<Symbol> extract_symbols_cfamily(const ast::AST& tree)
 
                     Symbol sym = makeSymbol(fn.name, fqn, kind, topAccess(scopeStack),
                                            i, node.start_.row_, node.start_.column_);
+                    sym.signature = callableSignature(tree, *funcDecl);
+                    sym.isDefinition = node.typeEquals(ASTNodeType::FunctionDefinition);
                     sym.isStatic    = childHasText(tree, node, u8"static");
                     sym.isConstexpr = childHasText(tree, node, u8"constexpr");
                     sym.isInline    = childHasText(tree, node, u8"inline");
@@ -397,6 +448,8 @@ std::vector<Symbol> extract_symbols_cfamily(const ast::AST& tree)
 
                     Symbol sym = makeSymbol(fn.name, fqn, kind, topAccess(scopeStack),
                                            i, node.start_.row_, node.start_.column_);
+                    sym.signature = callableSignature(tree, *operatorCastDecl);
+                    sym.isDefinition = node.typeEquals(ASTNodeType::FunctionDefinition);
                     sym.isStatic    = childHasText(tree, node, u8"static");
                     sym.isConstexpr = childHasText(tree, node, u8"constexpr");
                     sym.isInline    = childHasText(tree, node, u8"inline");
@@ -479,6 +532,8 @@ std::vector<Symbol> extract_symbols_cfamily(const ast::AST& tree)
 
                         Symbol sym = makeSymbol(fn.name, fqn, kind, topAccess(scopeStack),
                                                 i, node.start_.row_, node.start_.column_);
+                        sym.signature = callableSignature(tree, *funcDecl);
+                        sym.isDefinition = false;
                         sym.isStatic = childHasText(tree, node, u8"static");
                         sym.isConstexpr = childHasText(tree, node, u8"constexpr");
                         sym.isInline = childHasText(tree, node, u8"inline");

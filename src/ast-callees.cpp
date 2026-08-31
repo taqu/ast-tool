@@ -44,16 +44,19 @@ std::vector<CallSite> Callees::find(const Workspace&       workspace,
 {
     std::vector<CallSite> results;
 
+    const WorkspaceSymbol* canonicalCaller = find_in_workspace(workspace, caller);
+    if(!canonicalCaller) return results;
+
     // Locate (or lazily load) the TranslationUnit that owns the caller's source file.
-    const TranslationUnit* tu = workspace.get_translation_unit(caller.sourceFile);
+    const TranslationUnit* tu = workspace.get_translation_unit(canonicalCaller->sourceFile);
     if(!tu) return results;
 
     // Validate the AST node index stored in the caller's symbol.
-    size_t funcNodeIdx = caller.symbol.nodeIndex;
+    size_t funcNodeIdx = canonicalCaller->symbol.nodeIndex;
     if(funcNodeIdx >= tu->ast.size()) return results;
 
     // Find a stable pointer to the caller in workspace.symbols.
-    const WorkspaceSymbol* callerPtr = find_in_workspace(workspace, caller);
+    const WorkspaceSymbol* callerPtr = canonicalCaller;
 
     IdentifierResolver resolver(tu->scopeTree, tu->symbols, tu->path, workspace);
 

@@ -37,6 +37,16 @@
 namespace ast
 {
 
+/** True when @p kind represents a callable declaration. */
+bool is_callable_symbol(SymbolKind kind);
+
+/** True when two physical occurrences denote the same logical semantic symbol. */
+bool same_semantic_symbol(const WorkspaceSymbol& a, const WorkspaceSymbol& b);
+
+/** Choose the definition occurrence when available, otherwise the first declaration. */
+const WorkspaceSymbol& canonical_symbol(
+    const std::vector<WorkspaceSymbol>& occurrences);
+
 // -----------------------------------------------------------------------
 // ResolutionStatus
 

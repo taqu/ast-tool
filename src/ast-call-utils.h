@@ -12,6 +12,7 @@
 #include "ast-ir.h"
 #include "ast-scope.h"
 #include "ast-workspace.h"
+#include "ast-resolver.h"
 
 namespace ast
 {
@@ -39,10 +40,7 @@ inline bool is_identifier_type(ASTNodeType type)
 // Returns true when @p a and @p b refer to the same declaration.
 inline bool same_declaration(const WorkspaceSymbol& a, const WorkspaceSymbol& b)
 {
-    return a.symbol.fqn  == b.symbol.fqn
-        && a.symbol.kind == b.symbol.kind
-        && a.sourceFile  == b.sourceFile
-        && a.symbol.line == b.symbol.line;
+    return same_semantic_symbol(a, b);
 }
 
 // Returns the AST node index of the identifier that names the called function
@@ -116,10 +114,13 @@ inline size_t find_callee_identifier(const AST& ast, size_t callNodeIndex)
 inline const WorkspaceSymbol* find_in_workspace(const Workspace& workspace,
                                                  const WorkspaceSymbol& sym)
 {
+    const WorkspaceSymbol* declaration = nullptr;
     for(const WorkspaceSymbol& ws : workspace.symbols) {
-        if(same_declaration(ws, sym)) return &ws;
+        if(!same_declaration(ws, sym)) continue;
+        if(ws.symbol.isDefinition) return &ws;
+        if(!declaration) declaration = &ws;
     }
-    return nullptr;
+    return declaration;
 }
 
 // Returns a pointer into workspace.symbols for the function/method/lambda that

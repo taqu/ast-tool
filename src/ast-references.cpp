@@ -1,6 +1,7 @@
 #include "ast-references.h"
 #include "ast-ir.h"
 #include "ast-resolver.h"
+#include "ast-call-utils.h"
 
 namespace ast
 {
@@ -13,15 +14,6 @@ static bool is_identifier_type(ASTNodeType type)
            || type == ASTNodeType::FieldIdentifier
            || type == ASTNodeType::NamespaceIdentifier
            || type == ASTNodeType::PropertyIdentifier;
-}
-
-// Returns true when @p a and @p b refer to the same declaration.
-static bool same_declaration(const WorkspaceSymbol& a, const WorkspaceSymbol& b)
-{
-    return a.symbol.fqn == b.symbol.fqn
-           && a.symbol.kind == b.symbol.kind
-           && a.sourceFile == b.sourceFile
-           && a.symbol.line == b.symbol.line;
 }
 
 // -----------------------------------------------------------------------
@@ -55,7 +47,7 @@ std::vector<ReferenceResult> FindReferences::find(
             if(!resolution.resolved())
                 continue;
 
-            if(!same_declaration(resolution.symbol(), target))
+            if(!same_semantic_symbol(resolution.symbol(), target))
                 continue;
 
             ReferenceResult ref;
@@ -69,10 +61,17 @@ std::vector<ReferenceResult> FindReferences::find(
                                   : ScopeKind::Unknown;
 
             // ref.line is 0-based (ASTNode.start_.row_); target.symbol.line is 1-based.
-            if(!includeDeclaration
-               && ref.sourceFile == target.sourceFile
-               && ref.line + 1 == target.symbol.line) {
-                continue;
+            if(!includeDeclaration) {
+                bool declarationSite = false;
+                for(const WorkspaceSymbol& occurrence: workspace_.symbols) {
+                    if(same_semantic_symbol(occurrence, target)
+                       && ref.sourceFile == occurrence.sourceFile
+                       && ref.line + 1 == occurrence.symbol.line) {
+                        declarationSite = true;
+                        break;
+                    }
+                }
+                if(declarationSite) continue;
             }
 
             results.push_back(std::move(ref));

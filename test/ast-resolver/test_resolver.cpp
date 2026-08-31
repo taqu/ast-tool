@@ -130,6 +130,8 @@ namespace
         uintptr_t global = tree.add(ScopeKind::Global, ScopeTree::InvalidNodeIndex, 0, 1000);
 
         std::vector<Symbol> syms = { makeFunc(u8"foo"), makeFunc(u8"foo") };
+        syms[0].signature = u8"(int)";
+        syms[1].signature = u8"(double)";
         tree.addSymbol(global, 0);
         tree.addSymbol(global, 1);
         wire_symbol_map(tree, {{global, 0}, {global, 1}}, 2);

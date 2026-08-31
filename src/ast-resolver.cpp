@@ -1,8 +1,44 @@
 #include "ast-resolver.h"
 #include "ast-lookup.h"
+#include <algorithm>
 
 namespace ast
 {
+
+bool is_callable_symbol(SymbolKind kind)
+{
+    return kind == SymbolKind::Function || kind == SymbolKind::Method
+        || kind == SymbolKind::Constructor || kind == SymbolKind::Destructor;
+}
+
+bool same_semantic_symbol(const WorkspaceSymbol& a, const WorkspaceSymbol& b)
+{
+    if(a.symbol.fqn != b.symbol.fqn) return false;
+    const bool aCallable = is_callable_symbol(a.symbol.kind);
+    const bool bCallable = is_callable_symbol(b.symbol.kind);
+    if(aCallable || bCallable) {
+        if(!aCallable || !bCallable) return false;
+        if(a.symbol.signature.empty() || b.symbol.signature.empty()) {
+            return a.symbol.kind == b.symbol.kind
+                && a.sourceFile == b.sourceFile
+                && a.symbol.line == b.symbol.line
+                && a.symbol.nodeIndex == b.symbol.nodeIndex;
+        }
+        return a.symbol.signature == b.symbol.signature;
+    }
+    return a.symbol.kind == b.symbol.kind
+        && a.sourceFile == b.sourceFile
+        && a.symbol.line == b.symbol.line;
+}
+
+const WorkspaceSymbol& canonical_symbol(
+    const std::vector<WorkspaceSymbol>& occurrences)
+{
+    for(const WorkspaceSymbol& occurrence: occurrences) {
+        if(occurrence.symbol.isDefinition) return occurrence;
+    }
+    return occurrences.front();
+}
 
 // -----------------------------------------------------------------------
 // ResolutionResult factories
@@ -67,9 +103,34 @@ ResolutionResult IdentifierResolver::from_candidates(std::vector<WorkspaceSymbol
 {
     if(c.empty())
         return ResolutionResult::make_unresolved();
-    if(c.size() == 1)
-        return ResolutionResult::make_resolved(std::move(c[0]));
-    return ResolutionResult::make_ambiguous(std::move(c));
+
+    std::vector<std::vector<WorkspaceSymbol>> logicalSymbols;
+    for(WorkspaceSymbol& candidate: c) {
+        auto group = std::find_if(logicalSymbols.begin(), logicalSymbols.end(),
+            [&](const std::vector<WorkspaceSymbol>& occurrences) {
+                if(!same_semantic_symbol(occurrences.front(), candidate)) return false;
+                if(!candidate.symbol.isDefinition) return true;
+                return std::none_of(occurrences.begin(), occurrences.end(),
+                    [](const WorkspaceSymbol& occurrence) {
+                        return occurrence.symbol.isDefinition;
+                    });
+            });
+        if(group == logicalSymbols.end()) {
+            logicalSymbols.push_back({std::move(candidate)});
+        } else {
+            group->push_back(std::move(candidate));
+        }
+    }
+    if(logicalSymbols.size() == 1) {
+        return ResolutionResult::make_resolved(
+            canonical_symbol(logicalSymbols.front()));
+    }
+    std::vector<WorkspaceSymbol> canonical;
+    canonical.reserve(logicalSymbols.size());
+    for(const auto& occurrences: logicalSymbols) {
+        canonical.push_back(canonical_symbol(occurrences));
+    }
+    return ResolutionResult::make_ambiguous(std::move(canonical));
 }
 
 ResolutionResult IdentifierResolver::resolve(std::u8string_view name, uintptr_t fromScope) const

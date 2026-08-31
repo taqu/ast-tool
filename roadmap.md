@@ -1,771 +1,753 @@
-# AST Tool — Roadmap / Progress
-
-**基準日: 2026-08-30**
-
-## 1. 最終目標
-
-AST Tool の最終的な構成は：
+## 推奨 Phase 構成
 
 ```text
-Tree-sitter
-    ↓
-AST IR
-    ↓
-Semantic Layer
-    ↓
-Workspace Analysis
-    ↓
-Semantic Services
-    ├── Search
-    ├── Resolution
-    ├── References
-    ├── Callers / Callees
-    ├── Semantic Diff
-    └── Context Export
-    ↓
-AI Agent / CLI / IDE
+Phase 0
+Baseline / Trace Metrics
+        ↓
+Phase 1
+Skill.md 改善
+        ↓
+Phase 2
+CLI Output / JSON UX 改善
+        ↓
+Phase 3
+Symbol Resolution 改善
+        ↓
+Phase 4
+Symbol ID-based API
+        ↓
+Phase 5
+Error Recovery UX
+        ↓
+Phase 6
+Agent-facing Command Surface の整理
+        ↓
+Phase 7
+Trace Analysis / Effect Measurement
 ```
-
-設計原則：
-
-* Tree-sitter は parsing に限定
-* AST IR を stable intermediate representation とする
-* Semantic Layer は AST IR のみに依存
-* Workspace が複数ファイルの semantic information を集約
-* Semantic Services は parser-independent
-* 上位レイヤーから Tree-sitter を直接触らない
-* language-specific processing は extractor に閉じ込める
-* Semantic Provider による optional enrichment
-* Agent は parser internals ではなく `ast-tool` を利用
 
 ---
 
-# 2. Agent Evaluation
+# Phase 0 — Baseline を固定
 
-ここはかなり進んでいます。
+### 目的
 
-## Evaluation test
+実装前の状態を測定して、改善効果を比較できるようにする。
 
-YAML ベースの test framework を構築。
+### やること
 
-例：
-
-```text
-smoke-001.yaml
-level1-xxx.yaml
-level2-xxx.yaml
-...
-```
-
-Task level を分けて、
+既存 trace から最低限、
 
 ```text
-Level 1
-    ↓
-Level 2
-    ↓
-Level 3
-    ↓
-Level 4
-    ↓
-Level 5
+total tool calls
+ast-tool calls
+ast-tool failures
+ast-tool retries
+help calls
+grep calls
+glob calls
+read calls
+bash calls
+
+elapsed time
+input tokens
+output tokens
+total tokens
 ```
 
-と Agent の能力を段階的に評価する方針。
+を集計できるようにする。
 
-特に Level 2 以降では `ast-tool` の利用状況も評価対象。
-
----
-
-## 実行結果の例
-
-既に成功している test がある。
-
-### smoke-001
+さらに、
 
 ```text
-success
-elapsed_seconds: 15.56
+ast-tool command sequence
 ```
 
-### level1-001
-
-```text
-success
-elapsed_seconds: 13.78
-tools:
-  Grep
-  Read
-  Edit
-```
-
-### level2-008
-
-```text
-success
-elapsed_seconds: 100.6
-
-tools:
-  Skill: 1
-  Bash: 10
-  Read: 5
-  Edit: 5
-
-ast_tool:
-  callers: 4
-  search: 2
-  references: 1
-```
-
-### level2-004
-
-```text
-success
-elapsed_seconds: 181.52
-
-tools:
-  Skill: 1
-  Bash: 17
-  Read: 5
-  Glob: 1
-  Grep: 1
-  Edit: 6
-
-ast_tool:
-  search: 4
-  callers: 8
-  help: 2
-  references: 1
-  symbols: 1
-```
-
-つまり、**「Agent が task を成功させたか」だけでなく、「どの tool をどう使ったか」まで trace から分析できる段階**まで来ています。
-
----
-
-# 3. 次のフェーズ：Tool-use Trace Analysis
-
-ここが**次回のメインテーマ**です。
-
-今までは主に：
-
-```text
-Task
- ↓
-Agent
- ↓
-Success / Failure
-```
-
-を見ていました。
-
-次は：
-
-```text
-Task
- ↓
-Agent
- ↓
-Tool-use trace
- ↓
-AST Tool usage
- ↓
-Outcome
-```
-
-を調べます。
-
-特に見るべきなのは：
-
-### A. Agent が `ast-tool` を使ったタイミング
-
-```text
-Task start
-    ↓
-Grep
-    ↓
-Read
-    ↓
-ast-tool search
-    ↓
-ast-tool callers
-    ↓
-Edit
-```
-
-なのか、
-
-```text
-Task start
-    ↓
-ast-tool search
-    ↓
-ast-tool references
-    ↓
-Read
-    ↓
-Edit
-```
-
-なのか。
-
----
-
-### B. `ast-tool` を使った結果、本当に tool-use が減ったか
-
-比較したいのは：
-
-```text
-Without ast-tool
-    ↓
-Grep / Glob / Read / Bash
-    ↓
-many tool calls
-```
-
-vs.
-
-```text
-With ast-tool
-    ↓
-search / callers / references
-    ↓
-fewer exploratory calls
-```
-
-です。
-
-特に、
-
-* tool call count
-* Read count
-* Grep count
-* Glob count
-* Bash count
-* AST Tool count
-* total elapsed time
-* input/output tokens
-
-の関係を見る。
-
----
-
-### C. `ast-tool` を使っているのに効率化していないケース
-
-これも重要。
+を保存。
 
 例えば：
 
 ```text
-Grep
-Read
-Grep
-Read
-ast-tool search
-Read
-Grep
-Edit
+callers
+search
+callers
+find
+find
+search
+references
+find
+help
+...
 ```
 
-なら、
+### 完了条件
 
-> AST Tool は使われたが、Agent の探索戦略そのものは変わっていない
-
-可能性があります。
-
-逆に：
+同じ evaluation test を複数回実行して、
 
 ```text
-ast-tool search
-ast-tool callers
-Read
-Edit
+baseline.json
 ```
 
-なら、かなり理想的。
+のような形で比較可能。
+
+### Coding Agent への指示
+
+> Do not modify ast-tool behavior in this phase.
+> Add or improve trace analysis only. Establish baseline metrics for tool calls, ast-tool failures, retries, help usage, token usage, and elapsed time.
 
 ---
 
-### D. Task Level と tool-use の関係
+# Phase 1 — Skill.md を Decision Tree 化
 
-特に：
+これは比較的安全なので最初の実装対象にします。
 
-```text
-Level 1
-Level 2
-Level 3
-Level 4
-Level 5
-```
+### 目的
 
-で、
+Agent が `help → trial & error` に入るのを減らす。
+
+### Skill.md の構成
+
+今までの説明中心ではなく、
 
 ```text
-difficulty
-    ↓
-AST Tool usage
-    ↓
-tool call efficiency
-    ↓
-success rate
+## Semantic Task Decision Tree
+
+Need to find a symbol?
+→ search
+
+Need callers?
+→ callers
+
+Need references?
+→ references
+
+Need callees?
+→ callees
+
+Need symbols in a specific file?
+→ symbols
+
+Need AST structure?
+→ find
+
+Need command syntax clarification?
+→ help
 ```
 
-がどう変化するかを見る。
+という形式。
+
+さらに、
+
+```text
+Do not:
+- retry the same failed command without changing the input
+- use --pretty by default
+- dump the entire workspace
+- use find for semantic resolution
+- call --help for normal command discovery
+```
+
+を明記。
+
+### 完了条件
+
+Skill の変更だけで evaluation を再実行。
+
+比較：
+
+```text
+help calls ↓
+repeated command ↓
+ast-tool calls ↑/↓
+total calls ↓
+tokens ↓
+```
+
+### 重要
+
+**この Phase では CLI や semantic implementation を変更しない。**
+
+Skill の効果だけを測る。
 
 ---
 
-# 4. AST Cache / Workspace Performance
+# Phase 2 — Output / JSON UX
 
-現在こちらも大きな設計変更を進めています。
+次は Agent が大量の output を要求する問題を潰します。
 
-従来：
-
-```text
-workspace 全体
-    ↓
-AST を全部メモリに展開
-    ↓
-find/search/etc.
-```
-
-これが workspace 全体の AST 展開で bottleneck になっている。
-
----
-
-## 新しい方針
+### 目的
 
 ```text
-workspace
-    ↓
-path を streaming
-    ↓
-path ごとに AST を memory に展開
-    ↓
-find/search
-    ↓
-hit した AST を残す
+--json --pretty
 ```
 
-つまり、workspace 全体を一度に AST 化して保持するのではなく、
+による token waste を減らす。
 
-```text
-Path
- ↓
-AST
- ↓
-command
- ↓
-必要な AST だけ保持
-```
+### 方針
 
-という方向。
+デフォルト JSON は compact。
 
-DB cache は後段。
-
----
-
-# 5. AST Binary Cache
-
-その次の optimization として、
-
-```text
-AST
- ↓
-binary serialization
- ↓
-LZ4
- ↓
-SQLite
-```
-
-という persistent cache を導入。
-
-すでに **LZ4 と SQLite を使える状態**まで進んでいます。
-
-Cache validation は：
-
-```text
-format_version
-source_size
-source_mtime
-```
-
-を fast path として利用。
-
-一致しなければ：
-
-```text
-source hash
-```
-
-を確認。
-
-hash が一致する場合は AST の再解析を避け、
-
-```text
-mtime / size
-```
-
-だけ更新する。
-
-hash も異なる場合：
-
-```text
-parse
- ↓
-serialize
- ↓
-LZ4
- ↓
-SQLite
-```
-
----
-
-# 6. Cache Warming の並列化
-
-現在の `warm_cache` は sequential loop。
-
-```text
-for path:
-    stat
-    metadata lookup
-    hash
-    parse
-    store
-```
-
-これを既存の `BlockingQueue` ベースの workspace analysis と同じモデルに変更する方針。
-
-## 最終構成
-
-```text
-Directory Scanner
-        ↓
-BlockingQueue<Path>
-        ↓
- ┌──────┼──────┬──────┐
- ↓      ↓      ↓      ↓
-Worker Worker Worker Worker
- │      │      │      │
- │ stat
- │ metadata lookup
- │ hash
- │ parse
- │ serialize
- │ LZ4
- │
- └──────┬──────┴──────┘
-        ↓
-BlockingQueue<CacheWriteRequest>
-        ↓
-Single SQLite Writer
-        ↓
-batched transaction
-```
-
-既存の：
-
-```cpp
-BlockingQueue<T>
-```
-
-を再利用する。
-
-新しい thread pool / task scheduler は作らない。
-
----
-
-## SQLite
-
-worker は DB read を行うが、write は直接行わない。
-
-```text
-Workers
-    ↓
-read-only SQLite connection
+```bash
+ast-tool search --json ...
 ```
 
 ↓
 
-```text
-CacheWriteRequest Queue
+```json
+{"id":"819318E9","kind":"function","name":"validate","fqn":"auth::AuthToken::validate","file":"src/auth/auth_token.cpp","line":7}
 ```
 
-↓
+`--pretty` は明示指定時のみ pretty print。
+
+### さらに
+
+Agent が semantic task で必要とする情報を優先。
+
+例えば不要な、
 
 ```text
-Single Writer
-    ↓
-SQLite transaction
+access
+static
+constexpr
+inline
 ```
 
-という構造。
+などを常時出さない。
 
-これにより AST parsing / serialization / LZ4 compression は並列化しつつ、DB write は単純化。
+ただし、**既存 CLI/API の互換性を壊さない**ようにする。
+
+### 完了条件
+
+同一 task について、
+
+```text
+plain
+json
+json --pretty
+```
+
+の output token 数を比較。
+
+特に、
+
+```text
+search --json --pretty .
+```
+
+のような workspace-wide query に上限・compact化が効いているか確認。
 
 ---
 
-# 7. Background Cache Warming
+# Phase 3 — Semantic Symbol Resolution 改善
 
-さらに SessionStart から cache warming を開始する方針。
+ここが**最重要の実装 Phase**です。
 
-狙い：
+### 問題
 
 ```text
-SessionStart
-    ↓
-background cache warm
-    ↓
-Agent immediately starts working
+auth::AuthToken::validate
 ```
 
-tool use が実際に始まるまでに cache warming を先行させる。
-
-以前の Session ですでに workspace が scan 済みなら、
+について、
 
 ```text
-existing cache
-    ↓
-差分確認
-    ↓
-何もなければ即終了
+header declaration
+cpp definition
 ```
 
-となる。
+が別 symbol として ambiguity を起こしている。
 
----
+### 目的
 
-# 8. Multiple Process Protection
-
-Claude Code / Codex が同じ workspace で同時に SessionStart する可能性があるため、
+semantic layer で、
 
 ```text
-Claude
-   ↓
-cache warm
-
-Codex
-   ↓
-cache warm
+declaration
+definition
+      ↓
+same logical symbol
 ```
 
-となっても二重 warming しない。
+として扱えるようにする。
 
-`WorkspaceWarmLock` を導入する方針。
+### 実装対象
 
-設計：
+まず C++ に限定してよいです。
 
 ```text
-Windows
-    → Named Mutex
+Function declaration
+Function definition
 
-Linux/macOS
-    → OS-level file lock
+Method declaration
+Method definition
 ```
 
-重要なのは lockfile の「存在」を見るのではなく、**OS の lock state** を使うこと。
+の identity / resolution を確認。
+
+### 重要な設計
+
+ここでは CLI をいじる前に、
 
 ```text
-Process A
-    ↓
-acquire lock
-    ↓
-warm
-
-
-Process B
-    ↓
-try acquire
-    ↓
-failed
-    ↓
-exit 0
-```
-
-Crash 時にも stale lock が残って永久に warming できなくなる問題を避ける。
-
----
-
-# 9. `ast-tool setup`
-
-次に追加する CLI。
-
-```text
-ast-tool setup
-```
-
-目的：
-
-```text
-Claude Code SessionStart
-        ↓
-ast-tool cache warm --background
-```
-
-および：
-
-```text
-Codex SessionStart
-        ↓
-ast-tool cache warm --background
-```
-
-を自動設定。
-
-要求事項：
-
-* idempotent
-* existing hooks を壊さない
-* duplicate hook を作らない
-* ast-tool の hook を識別できる
-* configuration を atomic に更新
-* workspace path を setup 時に固定しない
-* background execution
-* Claude / Codex 両対応
-* 将来的に remove/update 可能な構造
-
----
-
-# 10. 現在の全体ロードマップ
-
-```text
-[Completed / Mostly Completed]
-
 AST IR
-  ↓
+ ↓
 Semantic Layer
-  ↓
-Workspace Analysis
-  ↓
-Semantic Services
-  ↓
-Agent Evaluation Framework
-  ↓
-Level 1 / Level 2 tests
-  ↓
-AST Tool usage trace collection
+ ↓
+Symbol identity
+ ↓
+Resolver
 ```
 
-↓
+を正しくする。
+
+### 完了条件
+
+例えば、
+
+```bash
+ast-tool callers auth::AuthToken::validate .
+```
+
+が ambiguity にならず、正しい caller を返す。
+
+同様に、
+
+```bash
+ast-tool references auth::AuthToken::validate .
+```
+
+も検証。
+
+### Regression tests
+
+最低限：
 
 ```text
-[Current]
-
-Tool-use Trace Analysis
-  ↓
-Agent がどう ast-tool を使うか調査
-  ↓
-tool call efficiency
-  ↓
-AST Tool usage pattern
-  ↓
-成功率 / latency / token usage との相関
+declaration + definition
+overload
+namespace
+class method
+multiple translation units
 ```
 
-↓
-
-```text
-[In Progress]
-
-Workspace AST memory bottleneck
-  ↓
-Path streaming
-  ↓
-Per-path AST processing
-  ↓
-必要な AST のみ保持
-```
-
-↓
-
-```text
-[Next]
-
-Binary AST Cache
-  ↓
-SQLite
-  ↓
-LZ4
-  ↓
-metadata / hash validation
-```
-
-↓
-
-```text
-[Next]
-
-Parallel Cache Warming
-  ↓
-existing BlockingQueue
-  ↓
-parallel workers
-  ↓
-single SQLite writer
-```
-
-↓
-
-```text
-[Next]
-
-Background Cache Warming
-  ↓
-WorkspaceWarmLock
-  ↓
-SessionStart
-```
-
-↓
-
-```text
-[Next]
-
-ast-tool setup
-  ↓
-Claude Code SessionStart
-  +
-Codex SessionStart
-```
+を入れる。
 
 ---
 
-# 11. 次回の開始地点
+# Phase 4 — Stable Symbol ID API
 
-次回は **実装より先に tool-use trace を調査する**。
+Phase 3 と非常に相性がいいですが、**別 Phase にした方が Agent 実装は安全**です。
 
-見る対象は特に：
+### 目的
 
-```text
-1. task
-2. agent success/failure
-3. total elapsed time
-4. total tokens
-5. tool call sequence
-6. ast-tool invocation
-7. ast-tool command
-8. Grep / Glob / Read / Bash との関係
-9. ast-tool invocation → subsequent tool calls
-10. task level
-```
-
-そして最終的には、
+名前による resolution が失敗しても、
 
 ```text
-                    ┌─ success
-                    │
-Task ─→ Trace ─→ AST Tool usage
-                    │
-                    ├─ tool calls
-                    ├─ latency
-                    └─ tokens
+search
+ ↓
+symbol ID
+ ↓
+callers --id
 ```
 
-という形で、**「AST Tool が Agent の探索行動を本当に改善しているか」**を定量的に見られる状態にするのが次の大きなマイルストーンです。
+という deterministic な workflow を可能にする。
 
-### 現時点での一番重要な問い
+### CLI
 
-> **AST Tool を使ったこと自体ではなく、AST Tool を使うことで Agent の tool-use trajectory がどう変わったか？**
+例えば：
 
-ここを trace から掘るのが、次の議論の中心です。
+```bash
+ast-tool callers --id 819318E9 .
+ast-tool references --id 819318E9 .
+ast-tool callees --id 819318E9 .
+```
+
+を検討。
+
+### ポイント
+
+ID は、
+
+```text
+AST node ID
+```
+
+ではなく、
+
+```text
+semantic symbol ID
+```
+
+として扱う。
+
+つまり declaration / definition が同じ symbol なら同じ ID。
+
+### 理想的 trajectory
+
+```text
+search validate
+        ↓
+id=819318E9
+        ↓
+callers --id 819318E9
+```
+
+### 完了条件
+
+Agent が名前解決を何度も試さずに semantic query を完了できる。
+
+---
+
+# Phase 5 — Actionable Error Messages
+
+Phase 3/4 の機能を使って、Agent の recovery cost を下げます。
+
+### 現状
+
+```text
+error: symbol is ambiguous
+```
+
+だけでは Agent が次に何をすべきか分からず、
+
+```text
+find
+search
+help
+symbols
+```
+
+へ迷走する。
+
+### 改善
+
+例えば：
+
+```text
+error: ambiguous symbol 'auth::AuthToken::validate'
+
+Candidates:
+
+1. function
+   src/auth/auth_token.cpp:7
+   id: 819318E9
+
+2. method
+   src/auth/auth_token.h:12
+   id: 819318E9
+
+The declaration and definition resolve to the same semantic symbol.
+
+Try:
+
+  ast-tool callers --id 819318E9 .
+```
+
+のようにする。
+
+### さらに
+
+unknown option：
+
+```text
+unknown option '--foo'
+
+Available options:
+  --json
+  --pretty
+  --id
+
+Example:
+  ast-tool callers --id SYMBOL_ID PATH
+```
+
+など。
+
+### 完了条件
+
+失敗 → 次の tool call までの距離を測定。
+
+目標：
+
+```text
+error
+ ↓
+correct retry
+```
+
+に近づける。
+
+---
+
+# Phase 6 — Agent-facing Command Surface の整理
+
+ここで初めて subcommand の剪定を行います。
+
+いきなり command を削除するのではなく、
+
+```text
+Core
+Support
+Debug/Internal
+Infrastructure
+```
+
+に分類。
+
+## Core
+
+```text
+search
+callers
+references
+callees
+symbols
+```
+
+## Support
+
+```text
+find
+outline
+```
+
+## Debug / Low-level
+
+```text
+parent
+children
+range
+```
+
+## Infrastructure
+
+```text
+cache
+setup
+```
+
+### 重要
+
+**削除ではなく discoverability を下げる**方を第一候補にします。
+
+なぜなら、
+
+```text
+parent
+children
+range
+```
+
+は Agent には不要でも、人間の debugging には便利だからです。
+
+CLI compatibility を壊さない方がいい。
+
+---
+
+# Phase 7 — Trace Analysis / Quantitative Evaluation
+
+最後に、ここまでの変更を全部まとめて測定します。
+
+比較対象：
+
+```text
+Baseline
+    ↓
+Skill improved
+    ↓
+Output improved
+    ↓
+Resolver improved
+    ↓
+Symbol ID
+    ↓
+Error UX
+```
+
+各段階で、
+
+| Metric             | 見るもの                      |
+| ------------------ | ------------------------- |
+| Total tool calls   | 探索全体の長さ                   |
+| AST Tool calls     | 利用量                       |
+| AST Tool failures  | API usability             |
+| AST Tool retries   | recovery cost             |
+| Help calls         | Skill/API discoverability |
+| Grep calls         | semantic tool の代替利用       |
+| Read calls         | 探索コスト                     |
+| JSON output tokens | output efficiency         |
+| Input tokens       | context cost              |
+| Output tokens      | generation cost           |
+| Total tokens       | 最重要                       |
+| Elapsed time       | latency                   |
+| Success rate       | correctness               |
+
+を見る。
+
+---
+
+# 特に重要な「成功」の定義
+
+今回のプロジェクトでは、
+
+```text
+AST Tool calls が増えた
+```
+
+だけでは成功とは言えません。
+
+例えば、
+
+```text
+Before
+
+26 tool calls
+210k tokens
+200 sec
+```
+
+↓
+
+```text
+After
+
+30 tool calls
+180k tokens
+190 sec
+```
+
+なら、**AST Tool の call 数は増えたのに改善**です。
+
+逆に、
+
+```text
+26 calls
+ ↓
+18 calls
+```
+
+になっても、
+
+```text
+tokens ↑
+latency ↑
+success rate ↓
+```
+
+なら失敗。
+
+なので最終的な目的関数は、
+
+```text
+                ┌─ success rate ↑
+                ├─ total tokens ↓
+Agent efficiency├─ latency ↓
+                ├─ recovery cost ↓
+                └─ unnecessary exploration ↓
+```
+
+です。
+
+---
+
+# Coding Agent に渡す単位としては
+
+僕ならさらに、各 Phase を以下のフォーマットにします。
+
+```text
+Phase N
+  Goal
+  Scope
+  Non-goals
+  Implementation
+  Tests
+  Evaluation
+  Acceptance Criteria
+```
+
+そして**1回の Coding Agent 実行では1 Phaseだけ**渡します。
+
+特に、
+
+```text
+Phase 1 Skill.md
+Phase 2 JSON
+Phase 3 Resolver
+Phase 4 Symbol ID
+```
+
+は分離した方がいいです。
+
+Resolver と CLI を同時に触らせると、問題が発生したときに、
+
+> Skill が悪いのか、CLI が悪いのか、Semantic Layer が悪いのか
+
+分からなくなるからです。
+
+---
+
+## 最終的な実装順
+
+かなり端的にすると、
+
+```text
+P0  Trace baseline
+ │
+ ├─ measure only
+ │
+P1  Skill.md
+ │
+ ├─ decision tree
+ ├─ discourage help
+ ├─ discourage pretty
+ │
+P2  Output UX
+ │
+ ├─ compact JSON
+ ├─ reduce unnecessary fields
+ └─ prevent huge default output
+ │
+P3  Semantic Resolver
+ │
+ ├─ declaration/definition identity
+ └─ fix callers/references ambiguity
+ │
+P4  Symbol ID
+ │
+ └─ callers/references/callees --id
+ │
+P5  Error UX
+ │
+ └─ actionable recovery
+ │
+P6  Command Surface
+ │
+ ├─ Core
+ ├─ Support
+ └─ Debug/Infrastructure
+ │
+P7  Evaluation
+ │
+ └─ prove total tokens / trajectory improved
+```
+
+**この順番がかなり重要**です。
+
+特に `subcommand の削除` は後回しにして、まず **「Agent が自然に使う `search → symbol ID → callers` の一本道を作る**」のが良いと思います。
+
+そうすると最終的には Skill.md もかなり短くできます。
+
+```text
+Find a symbol       → search
+Find callers        → callers
+Find references     → references
+Find callees        → callees
+Need exact symbol   → symbols
+Need AST structure  → find
+
+Prefer symbol IDs when available.
+Use compact output.
+Do not use --help unless necessary.
+```
+
+くらいまで圧縮でき、**Skill のトークン削減と Agent の trajectory 短縮を同時に達成**できます。

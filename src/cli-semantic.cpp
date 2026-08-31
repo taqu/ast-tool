@@ -1,4 +1,5 @@
 #include "cli-semantic.h"
+#include "ast-resolver.h"
 #include <cstring>
 #include <print>
 
@@ -49,7 +50,19 @@ std::vector<const WorkspaceSymbol*> resolve_symbol_query(
     bool byFqn = q.find(u8"::") != std::u8string_view::npos;
     for(const WorkspaceSymbol& sym : ws.symbols) {
         if(byFqn ? sym.symbol.fqn == q : sym.symbol.name == q) {
-            matches.push_back(&sym);
+            auto logical = std::find_if(matches.begin(), matches.end(),
+                [&](const WorkspaceSymbol* existing) {
+                    return same_semantic_symbol(*existing, sym);
+                });
+            if(logical == matches.end()) {
+                matches.push_back(&sym);
+            } else if(sym.symbol.isDefinition) {
+                if((*logical)->symbol.isDefinition) {
+                    matches.push_back(&sym);
+                } else {
+                    *logical = &sym;
+                }
+            }
         }
     }
     return matches;
@@ -57,10 +70,7 @@ std::vector<const WorkspaceSymbol*> resolve_symbol_query(
 
 bool is_callable(SymbolKind kind)
 {
-    return kind == SymbolKind::Function
-        || kind == SymbolKind::Method
-        || kind == SymbolKind::Constructor
-        || kind == SymbolKind::Destructor;
+    return is_callable_symbol(kind);
 }
 
 bool with_resolved_symbol(

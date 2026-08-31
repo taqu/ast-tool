@@ -54,6 +54,7 @@ struct Symbol
 {
     std::u8string name; ///< The symbol's unqualified (local) name.
     std::u8string fqn;  ///< The symbol's fully qualified name, including enclosing namespace/type scopes.
+    std::u8string signature; ///< Normalized callable parameter signature; empty for non-callables.
 
     SymbolKind kind = SymbolKind::Function; ///< The declaration category this symbol represents.
     Access access = Access::Unknown;        ///< Access specifier in effect at the declaration, if applicable.
@@ -61,6 +62,7 @@ struct Symbol
     bool isStatic = false;    ///< True if the declaration is marked static.
     bool isConstexpr = false; ///< True if the declaration is marked constexpr.
     bool isInline = false;    ///< True if the declaration is marked inline.
+    bool isDefinition = false; ///< True when this occurrence owns a callable body.
 
     size_t nodeIndex = ast::ExtractorInvalidId; ///< Index of the associated ASTNode within the source AST, or ExtractorInvalidId if none.
     uint32_t line = 0;                          ///< Source line (0-based) where the symbol is declared.

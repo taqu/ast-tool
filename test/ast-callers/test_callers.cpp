@@ -219,22 +219,22 @@ namespace
 
     // -----------------------------------------------------------------------
     // Overloaded functions
-    // The extractor deduplicates overloads by FQN, so only the first ovTarget
-    // survives. The resolver finds exactly that one symbol — 1 caller is returned.
+    // Overloads remain separate logical symbols. A name-only call is ambiguous,
+    // so callers must not arbitrarily attribute it to either overload.
 
     bool test_overloaded()
     {
         bool ok = true;
         Workspace ws = analyze_workspace((const char8_t*)kCalRoot);
 
-        // Extractor keeps only the first overload (dedup by fqn); caller is found.
+        // Both overloads are retained; a name-only call cannot select one.
         const WorkspaceSymbol* ovAny = findByNameInFile(ws, u8"ovTarget", u8"overload");
         ok &= check(ovAny != nullptr, "at least one ovTarget overload found");
         if(ovAny) {
             Callers callers(ws);
             auto sites = callers.find(*ovAny);
-            ok &= check(sites.size() == 1,
-                        "ovTarget (deduplicated) has 1 caller");
+            ok &= check(sites.empty(),
+                        "ambiguous ovTarget call is not arbitrarily resolved");
         }
 
         // Unique function inside a namespace: resolved via class-scope lexical lookup.

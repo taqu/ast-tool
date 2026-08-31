@@ -260,22 +260,22 @@ namespace
 
     // -----------------------------------------------------------------------
     // Overloaded functions
-    // Extractor deduplicates overloads by FQN; the resolver finds the single
-    // kept symbol — 1 callee is returned for the caller.
+    // Overloads remain separate. A call that cannot be disambiguated by the
+    // current name-only resolver is omitted rather than assigned arbitrarily.
 
     bool test_overloaded()
     {
         bool ok = true;
         Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
 
-        // Extractor keeps only the first ovCeTarget overload; callee is found.
+        // Both overloads are retained, so the name-only call is ambiguous.
         const WorkspaceSymbol* ambigCaller = findByName(ws, u8"ovCeAmbig");
         ok &= check(ambigCaller != nullptr, "ovCeAmbig found");
         if(ambigCaller) {
             Callees callees;
             auto sites = callees.find(ws, *ambigCaller);
-            ok &= check(sites.size() == 1,
-                        "ovCeAmbig has 1 callee (deduplicated ovCeTarget)");
+            ok &= check(sites.empty(),
+                        "ovCeAmbig does not select an arbitrary overload");
         }
 
         // Unique: ovCeNsSource calls ovCeNsTarget (no ambiguity within namespace).

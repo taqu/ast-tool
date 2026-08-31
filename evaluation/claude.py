@@ -46,6 +46,7 @@ def run_claude(prompt: str, cwd: Path, timeout: int = 300) -> ExecutionResult:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
+            encoding="utf-8",
         )
         try:
             stdout_data, stderr_data = proc.communicate(timeout=timeout)
