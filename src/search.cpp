@@ -1,10 +1,12 @@
 #include "search.h"
 #include "ast-extractor.h"
+#include "ast-format.h"
 #include "ast-scope.h"
 #include "ast-search.h"
 #include "ast-tool.h"
 #include "ast-workspace.h"
 #include <cstring>
+#include <charconv>
 #include <print>
 
 namespace ast
@@ -15,9 +17,9 @@ namespace
     {
         std::print(" {{\n");
         std::print("  \"kind\": \"{}\",\n", getSymbolKindName(r.symbol.kind));
-        std::print("  \"name\": \"{}\",\n", (const char*)r.symbol.name.c_str());
-        std::print("  \"fqn\": \"{}\",\n", (const char*)r.symbol.fqn.c_str());
-        std::print("  \"file\": \"{}\",\n", (const char*)r.sourceFile.u8string().c_str());
+        std::print("  \"name\": \"{}\",\n", (const char*)json_escape(r.symbol.name).c_str());
+        std::print("  \"fqn\": \"{}\",\n", (const char*)json_escape(r.symbol.fqn).c_str());
+        std::print("  \"file\": \"{}\",\n", (const char*)json_escape(r.sourceFile.u8string()).c_str());
         std::print("  \"line\": {},\n", r.symbol.line + 1);
         std::print("  \"column\": {},\n", r.symbol.column + 1);
         std::print("  \"owning_scope\": \"{}\"\n", getScopeKindName(r.owningScope));
@@ -29,9 +31,9 @@ namespace
     {
         std::print("{{");
         std::print("\"kind\":\"{}\",", getSymbolKindName(r.symbol.kind));
-        std::print("\"name\":\"{}\",", (const char*)r.symbol.name.c_str());
-        std::print("\"fqn\":\"{}\",", (const char*)r.symbol.fqn.c_str());
-        std::print("\"file\":\"{}\",", (const char*)r.sourceFile.u8string().c_str());
+        std::print("\"name\":\"{}\",", (const char*)json_escape(r.symbol.name).c_str());
+        std::print("\"fqn\":\"{}\",", (const char*)json_escape(r.symbol.fqn).c_str());
+        std::print("\"file\":\"{}\",", (const char*)json_escape(r.sourceFile.u8string()).c_str());
         std::print("\"line\":{},", r.symbol.line + 1);
         std::print("\"column\":{},", r.symbol.column + 1);
         std::print("\"owning_scope\":\"{}\"", getScopeKindName(r.owningScope));
@@ -56,6 +58,7 @@ bool parse_search(Arguments& arguments, int32_t argc, const char8_t** argv)
     args.name_regex_ = nullptr;
     args.fqn_regex_ = nullptr;
     args.file_regex_ = nullptr;
+    args.limit_ = 0;
     args.json_ = false;
     args.pretty_ = false;
 
@@ -99,6 +102,14 @@ bool parse_search(Arguments& arguments, int32_t argc, const char8_t** argv)
             args.json_ = true;
             continue;
         }
+        if(STREQUALS(argv[i], "--limit")) {
+            if((i + 1) >= argc) return false;
+            const char* value = reinterpret_cast<const char*>(argv[++i]);
+            const char* end = value + std::strlen(value);
+            auto parsed = std::from_chars(value, end, args.limit_);
+            if(parsed.ec != std::errc{} || parsed.ptr != end) return false;
+            continue;
+        }
         if(STREQUALS(argv[i], "--pretty")) {
             args.pretty_ = true;
             continue;
@@ -132,6 +143,9 @@ bool search(const ArgSearch& arguments)
     ws.ensure_all_loaded();
     SemanticSearchEngine engine(ws);
     std::vector<const WorkspaceSymbol*> results = engine.search(*q);
+    if(arguments.limit_ > 0 && results.size() > arguments.limit_) {
+        results.resize(arguments.limit_);
+    }
 
     if(arguments.json_) {
         std::print("[");

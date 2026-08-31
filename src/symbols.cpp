@@ -1,5 +1,6 @@
 #include "symbols.h"
 #include "ast-extractor.h"
+#include "ast-format.h"
 #include "ast-tool.h"
 #include <print>
 #include <string.h>
@@ -47,8 +48,8 @@ bool symbols(const ArgSymbols& arguments)
             for(size_t i = 0; i < symbols.size(); ++i) {
                 std::print(" {{\n");
                 std::print("  \"kind\": \"{}\",\n", getSymbolKindName(symbols[i].kind));
-                std::print("  \"name\": \"{}\",\n", (const char*)symbols[i].name.c_str());
-                std::print("  \"qualified_name\": \"{}\",\n", (const char*)symbols[i].fqn.c_str());
+                std::print("  \"name\": \"{}\",\n", (const char*)json_escape(symbols[i].name).c_str());
+                std::print("  \"qualified_name\": \"{}\",\n", (const char*)json_escape(symbols[i].fqn).c_str());
                 std::print("  \"access\": \"{}\",\n", getAccessName(symbols[i].access));
                 std::print("  \"static\": \"{}\",\n", symbols[i].isStatic);
                 std::print("  \"constexpr\": \"{}\",\n", symbols[i].isConstexpr);
@@ -67,8 +68,8 @@ bool symbols(const ArgSymbols& arguments)
             for(size_t i = 0; i < symbols.size(); ++i) {
                 std::print("{{");
                 std::print("\"kind\":\"{}\",", getSymbolKindName(symbols[i].kind));
-                std::print("\"name\":\"{}\",", (const char*)symbols[i].name.c_str());
-                std::print("\"qualified_name\":\"{}\",", (const char*)symbols[i].fqn.c_str());
+                std::print("\"name\":\"{}\",", (const char*)json_escape(symbols[i].name).c_str());
+                std::print("\"qualified_name\":\"{}\",", (const char*)json_escape(symbols[i].fqn).c_str());
                 std::print("\"access\":\"{}\",", getAccessName(symbols[i].access));
                 std::print("\"static\":\"{}\",", symbols[i].isStatic);
                 std::print("\"constexpr\":\"{}\",", symbols[i].isConstexpr);

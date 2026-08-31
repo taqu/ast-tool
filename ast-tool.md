@@ -1,753 +1,720 @@
-# Phase 1 — Improve `Skill.md` for Agent Tool Selection
+# Phase 2 — Reduce AST Tool Output and JSON Token Cost
 
 ## Goal
 
-Improve the `semantic-analysis` Skill so that coding agents use `ast-tool` more efficiently and with less trial-and-error.
+Reduce the number of tokens consumed by `ast-tool` output without changing semantic behavior.
 
-This phase should focus only on **agent guidance**.
+Phase 1 improved agent command selection through `Skill.md`.
 
-Do not change:
+Phase 2 should now improve the CLI output itself so that successful AST Tool usage produces less context for the coding agent to consume.
 
-* `ast-tool` implementation
-* semantic resolution
-* CLI behavior
-* subcommands
-* JSON output format
-* error messages
-* cache behavior
-* evaluation task definitions
+The primary objectives are:
 
-The goal is to determine how much improvement can be achieved through better tool-selection guidance alone.
+```text
+smaller command output
+        ↓
+fewer output tokens
+        ↓
+smaller agent context
+        ↓
+lower total token usage
+```
+
+This phase must preserve correctness and existing semantic behavior.
 
 ---
 
-# Background
+# Phase 1 Results
 
-Existing evaluation traces show that agents often enter inefficient exploration loops.
-
-A common pattern looks like:
+Phase 1 preserved evaluation correctness:
 
 ```text
-callers
-  ↓ failure
-
-search
-  ↓
-
-callers
-  ↓ failure
-
-find
-  ↓ failure
-
-search --json --pretty
-  ↓
-
-references
-  ↓ failure
-
-help
-  ↓
-
-symbols
-  ↓
-
-grep
-  ↓
-
-Read
-  ↓
-
-Edit
+validation success:
+37 / 41
 ```
 
-Several recurring behaviors have been observed:
+Token usage improved:
 
-1. `callers` is often attempted before the exact semantic symbol is known.
-2. Failed commands are retried several times with only minor argument changes.
-3. `find` is used as a fallback for semantic symbol resolution.
-4. Agents frequently call `--help`.
-5. Agents tend to prefer `--json --pretty`.
-6. Agents sometimes dump the entire workspace with broad `search` commands.
-7. Generic tools such as Grep are eventually used after several failed AST Tool attempts.
+```text
+Before Phase 1:
+total tokens = 186155
+average tokens/test = 4540.4
 
-The Skill should provide a much clearer default workflow.
+After Phase 1:
+total tokens = 176983
+average tokens/test = 4316.7
+```
+
+This is approximately a 4.9% reduction in total tokens.
+
+AST Tool command selection also became significantly narrower.
+
+Examples:
+
+```text
+callers:
+51 → 23
+
+find:
+27 → 9
+
+references:
+16 → 4
+
+callees:
+16 → 3
+
+search:
+37 → 22
+```
+
+This suggests that Phase 1 successfully reduced unnecessary semantic exploration.
+
+Phase 2 should preserve those gains and focus specifically on reducing the cost of each AST Tool response.
+
+---
+
+# Important: Re-establish the Phase 1 Baseline First
+
+Before modifying AST Tool output behavior, regenerate the Phase 1 analysis from the current evaluation result files.
+
+There appears to be a possible inconsistency between the Phase 1 command table and previously generated aggregate statistics.
+
+For example, the command table indicates substantially fewer AST Tool calls, while some aggregate values appear unchanged from the pre-Phase-1 run.
+
+Do not modify metrics to make them agree manually.
+
+Instead:
+
+1. Run the current `analyze_results.py` against the actual Phase 1 result files.
+2. Regenerate all aggregate metrics.
+3. Save this output as the authoritative Phase 1 baseline.
+4. Record the exact result directory/input used.
+5. Use that same evaluation configuration for the Phase 2 comparison.
+
+Do not change evaluation prompts, repositories, model configuration, or test selection.
 
 ---
 
 # Scope
 
-Update the existing `semantic-analysis` `Skill.md`.
+Phase 2 is limited to AST Tool output efficiency.
 
-The Skill should become primarily a **decision guide for tool selection**, not a long reference manual.
+Focus on:
 
-The Skill should help an agent answer:
+* JSON output formatting
+* default textual output
+* unnecessary fields
+* unnecessarily broad result sets
+* unnecessarily verbose error-independent successful output
 
-```text
-What kind of question am I trying to answer?
-        ↓
-Which ast-tool command should I use first?
-        ↓
-What should I do if that command fails?
-```
+Do NOT change semantic resolution in this phase.
 
-Keep the Skill concise.
+Do NOT fix declaration/definition ambiguity yet.
 
-The objective is not to duplicate `ast-tool --help`.
+That belongs to Phase 3.
 
 ---
 
-# Core Design Principle
+# 1. Preserve Plain Text as the Preferred Agent Output
 
-The Skill should make the common semantic workflow obvious:
+Plain-text output should remain concise and optimized for coding-agent consumption.
 
-```text
-search
-  ↓
-identify exact symbol
-  ↓
-callers / references / callees
-  ↓
-Read only relevant files
-  ↓
-Edit
-```
+For semantic commands, prefer one result per line.
 
-For many tasks, this should be the preferred trajectory.
-
-The Skill should explicitly distinguish:
+Examples:
 
 ```text
-Semantic analysis
-```
-
-from:
-
-```text
-AST structure inspection
-```
-
-These should not be mixed casually.
-
----
-
-# Required Decision Tree
-
-Add a short decision tree near the beginning of the Skill.
-
-Use guidance equivalent to:
-
-```text
-Need to locate a symbol?
-→ search
-
-Need all direct callers of a function?
-→ callers
-
-Need semantic references to a symbol?
-→ references
-
-Need functions called by a function?
-→ callees
-
-Need semantic symbols from one known file?
-→ symbols
-
-Need to inspect AST structure or syntax nodes?
-→ find / outline
-
-Need parent/child AST relationships?
-→ parent / children / range
-```
-
-The exact wording may be adjusted to match the existing Skill style.
-
-The important requirement is that agents can determine the correct first command quickly.
-
----
-
-# Recommended Semantic Workflow
-
-Document the preferred workflow for symbol-based tasks.
-
-Example:
-
-```text
-1. Use `search` to identify the target symbol when its exact identity is uncertain.
-2. Use the fully-qualified symbol name returned by `search`.
-3. Use `callers`, `references`, or `callees` depending on the task.
-4. Read only the files returned by semantic analysis.
-5. Make the required edits.
-```
-
-Example:
-
-```bash
-ast-tool search --name validate .
-ast-tool callers auth::AuthToken::validate .
-```
-
-Avoid adding many examples.
-
-One or two compact examples are sufficient.
-
----
-
-# Guidance for `callers`
-
-Add explicit guidance that `callers` should normally be used after the target symbol is known.
-
-Prefer:
-
-```text
-search
-  ↓
-callers
-```
-
-when the symbol name may be ambiguous.
-
-Do not encourage repeated `callers` invocations with guessed symbol forms.
-
-If `callers` fails because the symbol cannot be resolved or is ambiguous:
-
-```text
-Use `search` or `symbols` to identify the exact target.
-Do not repeatedly retry `callers` with minor command-line variations.
-```
-
-This is important.
-
----
-
-# Guidance for `references`
-
-Clarify that `references` performs semantic reference lookup.
-
-Use it when the task asks for:
-
-* usages
-* references
-* semantic occurrences
-* symbol impact analysis
-
-Do not recommend `find --text` as the primary substitute for semantic references.
-
-If semantic resolution fails, prefer:
-
-```text
-search
+auth::AuthToken::validate src/auth/auth_token.h:9:5
 ```
 
 or:
 
 ```text
-symbols <known-file>
+web::AuthController::handleLogin src/web/auth_controller.cpp:13:9
 ```
 
-before falling back to textual tools.
+Avoid explanatory prose around successful results.
+
+Do not print headers such as:
+
+```text
+Results:
+Found symbols:
+Search results:
+```
+
+unless they materially improve interpretation.
+
+The agent already knows which command it executed.
 
 ---
 
-# Guidance for `find`
+# 2. Keep `--json` Compact by Default
 
-The Skill must explicitly define `find` as an AST-inspection tool.
+`--json` should emit compact JSON.
 
-Add guidance equivalent to:
+Example:
 
-```text
-Use `find` when you need AST nodes, syntax structure, node types, text matches within AST nodes, or node IDs.
-
-Do not use `find` as the default tool for semantic symbol resolution.
+```json
+[{"kind":"Method","fqn":"auth::AuthToken::validate","file":"src/auth/auth_token.h","line":9,"column":5}]
 ```
 
-This distinction should be very clear.
+Do not insert indentation or unnecessary whitespace.
 
-For example:
+Pretty printing should occur only when explicitly requested with:
 
 ```text
-Find the declaration of a semantic symbol
-→ search / symbols
-
-Inspect a function_definition AST node
-→ find
+--pretty
 ```
+
+If the current implementation already behaves this way, preserve it and verify it with tests.
 
 ---
 
-# Guidance for `symbols`
+# 3. `--pretty` Must Remain Explicit
 
-Explain the intended role of `symbols`.
+Do not automatically enable pretty output when `--json` is used.
 
-Use `symbols` when:
-
-```text
-The relevant file is already known and you need the semantic symbols defined or declared in that file.
-```
-
-It is especially useful as a narrow fallback after `search` identifies a likely file.
-
-Do not recommend workspace-wide `symbols` behavior because `symbols` is file-oriented.
-
----
-
-# Avoid Repeated Failed Commands
-
-Add a clear retry rule.
-
-For example:
+These should have clearly different behavior:
 
 ```text
-If an ast-tool command fails, do not repeat the same subcommand with small argument variations unless the error message clearly indicates the required correction.
+--json
 ```
 
-Prefer:
+→ compact machine-readable output
 
 ```text
-failed semantic query
-  ↓
-search / symbols
-  ↓
-identify exact target
-  ↓
-retry once
-```
-
-Avoid:
-
-```text
-callers
-callers
-callers
-callers
-```
-
-with guessed inputs.
-
-The Skill should encourage strategy changes after failure, not blind retries.
-
----
-
-# Help Usage
-
-Reduce unnecessary `--help` calls.
-
-The Skill should contain enough command-selection information that ordinary semantic tasks do not require help lookup.
-
-Add guidance equivalent to:
-
-```text
-Do not call `ast-tool --help` or `<command> --help` for normal command discovery.
-
-Use help only when:
-- a command option or syntax is genuinely unknown, or
-- an error indicates that the command was invoked incorrectly.
-```
-
-Do not completely forbid help.
-
-It should remain available as a fallback.
-
----
-
-# JSON Output Guidance
-
-Agents currently tend to prefer:
-
-```bash
 --json --pretty
 ```
 
-even when plain output is sufficient.
+→ formatted human-readable output
 
-Add explicit guidance:
+Phase 1 already instructs agents to avoid `--pretty` by default.
 
-```text
-Prefer plain-text output for normal interactive exploration.
-
-Use `--json` only when structured fields are required.
-
-Avoid `--pretty` unless human-readable JSON formatting is specifically useful.
-```
-
-Examples where plain output is preferred:
-
-```bash
-ast-tool search --name validate .
-ast-tool callers auth::AuthToken::validate .
-```
-
-Structured JSON may be useful when:
-
-* stable IDs are required
-* multiple fields must be processed programmatically
-* the next step requires machine-readable output
-
-Do not state that JSON is forbidden.
-
-The goal is to avoid unnecessary token-heavy output.
+Phase 2 should make compact JSON genuinely inexpensive enough that structured output remains viable when needed.
 
 ---
 
-# Avoid Workspace-Wide Dumps
+# 4. Audit JSON Fields for Agent Value
 
-Add guidance against broad workspace enumeration unless it is genuinely needed.
+Review JSON output for the core semantic commands:
 
-Avoid patterns such as:
+```text
+search
+symbols
+callers
+references
+callees
+```
+
+Identify fields that are always emitted but rarely useful to coding agents.
+
+For example, current symbol output may contain values such as:
+
+```text
+access
+static
+constexpr
+inline
+owning_scope
+```
+
+Do not remove fields blindly.
+
+For each field determine:
+
+1. Is it required by existing tests or consumers?
+2. Is it required for semantic identification?
+3. Is it useful to the agent in the common navigation workflow?
+4. Can it be omitted from a compact/default representation without breaking compatibility?
+
+Prefer backward compatibility.
+
+If removing existing JSON fields would break the documented schema or likely external consumers, do not remove them in this phase.
+
+Instead document the finding for a future schema/versioning change.
+
+---
+
+# 5. Do Not Introduce a Breaking JSON Schema Change
+
+Existing JSON consumers may depend on the current fields.
+
+Therefore:
+
+* do not rename existing fields
+* do not change their meaning
+* do not change arrays into objects or vice versa
+* do not remove documented fields without explicit compatibility handling
+
+Token reduction is not worth silently breaking the CLI API.
+
+If the existing JSON schema is intrinsically too verbose, document that as a finding rather than performing an incompatible redesign.
+
+---
+
+# 6. Prevent Accidental Workspace-Wide Output Explosion
+
+A major token-cost pattern is broad commands such as:
 
 ```bash
 ast-tool search --json --pretty .
 ```
 
-when the task is about one symbol.
+which can return every symbol in the workspace.
 
-Prefer a narrow query:
+Phase 1 discourages this behavior, but the CLI should also be reasonably safe.
+
+Inspect the current `search` behavior.
+
+If `search` without a filter means "return all symbols", determine whether a safe result limit can be introduced without breaking existing documented behavior.
+
+Possible approaches include:
+
+```text
+default result limit
+```
+
+or:
+
+```text
+explicit --all for unrestricted enumeration
+```
+
+However, compatibility is important.
+
+Do NOT implement a breaking behavior change merely to reduce tokens.
+
+If changing default enumeration would break existing usage, defer the behavior change and document it.
+
+---
+
+# 7. Prefer Narrow Search Results
+
+When filters such as:
+
+```text
+--name
+```
+
+are supplied, ensure `search` only returns matching symbols and does not include unrelated workspace information.
+
+Example:
 
 ```bash
 ast-tool search --name validate .
 ```
 
-or equivalent filters already supported by the CLI.
+should produce only relevant matching symbols.
 
-The Skill should communicate:
+It should not require the agent to process unrelated symbol records.
+
+Review this path carefully because it is part of the preferred Phase 1 workflow:
 
 ```text
-Query narrowly first.
-Expand scope only when necessary.
+search
+  ↓
+exact symbol
+  ↓
+callers / references / callees
 ```
-
-This should apply generally, not only to `search`.
 
 ---
 
-# Prefer Semantic Tools Before Grep
+# 8. Minimize Duplicate Semantic Information
 
-For semantic questions, the Skill should encourage AST Tool usage before generic text search.
+Inspect output for cases where the same information is repeated.
 
-Examples:
+For example, avoid unnecessarily emitting both:
 
 ```text
-"Who calls this function?"
-→ callers
-
-"Where is this symbol referenced?"
-→ references
-
-"Where is this symbol defined?"
-→ search / symbols
+name: AuthToken::validate
+fqn: auth::AuthToken::validate
+qualified_name: auth::AuthToken::validate
 ```
 
-Grep remains a valid fallback when:
+unless those fields are intentionally part of a stable API.
 
-* semantic resolution is unsupported
-* AST Tool fails after a reasonable recovery attempt
-* the task is explicitly textual rather than semantic
+Likewise, avoid repeating file/line information in multiple textual forms.
 
-Do not ban Grep.
+Again, do not break existing JSON compatibility.
 
-The goal is to avoid using it before the semantic tools have had a reasonable opportunity to answer the question.
+Prioritize eliminating duplication in plain-text output first.
 
 ---
 
-# Suggested Skill Structure
+# 9. Keep Error Handling Out of Scope
 
-Keep the Skill compact.
+Do not redesign error messages in this phase.
 
-A recommended structure is:
+Although verbose or non-actionable errors can increase token usage, error recovery is a later phase.
+
+In particular, do NOT yet implement:
+
+* suggested retry commands
+* semantic candidate IDs in errors
+* automatic ambiguity recovery
+* declaration/definition unification
+* resolver changes
+
+Those belong to later phases.
+
+Phase 2 should isolate the effect of successful-output reduction.
+
+---
+
+# 10. Measure Actual Output Size
+
+Add lightweight measurements to tests or evaluation analysis so that output reduction is measurable.
+
+For each AST Tool invocation, if the trace already contains command output, derive at least:
 
 ```text
-# Semantic Analysis with ast-tool
-
-## Use ast-tool when
-
-## Command Decision Tree
-
-## Preferred Workflow
-
-## Failure Recovery
-
-## Output Guidelines
-
-## Command Reference
-
-## Examples
+ast_tool_output_bytes
 ```
 
-The `Command Reference` section should be short.
+and preferably:
+
+```text
+ast_tool_output_chars
+```
+
+per invocation and in aggregate.
+
+Do not introduce tokenizer dependencies.
+
+Character/byte counts are sufficient for Phase 2 output-volume analysis.
+
+If convenient, aggregate by command:
+
+```json
+{
+  "ast_tool_output_by_command": {
+    "search": {
+      "calls": 22,
+      "bytes": 18420
+    },
+    "callers": {
+      "calls": 23,
+      "bytes": 3280
+    }
+  }
+}
+```
+
+This will help determine which subcommands generate the most context.
+
+---
+
+# 11. Measure JSON and Pretty JSON Separately
+
+Using the Phase 0 analyzer infrastructure, report output volume for:
+
+```text
+plain AST Tool calls
+JSON AST Tool calls
+pretty JSON AST Tool calls
+```
+
+Suggested aggregate metrics:
+
+```text
+ast_tool_plain_calls
+ast_tool_json_calls
+ast_tool_pretty_json_calls
+
+ast_tool_plain_output_bytes
+ast_tool_json_output_bytes
+ast_tool_pretty_json_output_bytes
+```
+
+If the analyzer cannot reliably distinguish these today, add the smallest necessary extension.
+
+Do not turn this into a general logging-framework redesign.
+
+---
+
+# 12. Core Commands to Audit
+
+Prioritize:
+
+```text
+search
+callers
+references
+callees
+symbols
+```
+
+These are the primary semantic-agent interface.
+
+Secondary commands:
+
+```text
+find
+outline
+```
+
+may also be reviewed if their output is clearly excessive.
+
+Low-level AST commands do not require optimization unless a trivial improvement is obvious.
+
+---
+
+# 13. Tests
+
+Add or update tests for output behavior.
+
+At minimum cover the following.
+
+## Compact JSON
+
+Command:
+
+```text
+search --json
+```
+
+Verify that output contains no pretty-print indentation/newlines beyond what is structurally necessary.
+
+---
+
+## Pretty JSON
+
+Command:
+
+```text
+search --json --pretty
+```
+
+Verify that formatted JSON is still available.
+
+---
+
+## Plain Search
+
+Command:
+
+```text
+search --name validate
+```
+
+Verify that the output contains only matching results and remains concise.
+
+---
+
+## Callers Plain Output
+
+Verify that each caller is represented compactly without unnecessary descriptive text.
+
+---
+
+## References Plain Output
+
+Verify concise one-reference-per-line output.
+
+---
+
+## Callees Plain Output
+
+Verify concise output.
+
+---
+
+## Symbols Plain Output
+
+Verify concise symbol + identifier output.
+
+---
+
+## JSON Compatibility
+
+Existing JSON-format tests must continue to pass.
+
+If documented JSON fields are retained, explicitly test that they are still present.
+
+---
+
+# 14. Evaluation Procedure
+
+After implementation, rerun exactly the same 41 evaluation tests used for Phase 1.
+
+Do not modify:
+
+* task YAML
+* repositories
+* validation scripts
+* Skill.md
+* agent prompt
+* AST Tool semantic behavior
+
+Compare Phase 1 vs Phase 2.
+
+At minimum report:
+
+```text
+validation success
+
+total tokens
+average tokens per test
+
+total tool calls
+average tool calls per test
+
+ast_tool_calls
+ast_tool_failures
+ast_tool_retries
+
+ast_tool_json_calls
+ast_tool_pretty_json_calls
+
+total AST Tool output bytes
+average AST Tool output bytes per call
+
+output bytes by AST Tool command
+
+elapsed time
+```
+
+---
+
+# 15. Primary Success Criteria
+
+Phase 2 should be considered successful if:
+
+```text
+validation success does not regress
+```
+
+and at least one of:
+
+```text
+total tokens decreases
+AST Tool output volume decreases
+average tokens per test decreases
+```
+
+shows a meaningful improvement.
+
+The most important metric is:
+
+```text
+total tokens
+```
+
+not merely JSON byte count.
+
+Reducing output bytes is useful only if it improves or preserves actual agent efficiency.
+
+---
+
+# 16. Watch for Compensating Behavior
+
+A smaller AST Tool response is not automatically better.
 
 For example:
 
 ```text
-search      Find semantic symbols across the workspace.
-symbols     List semantic symbols in a known file.
-callers     Find direct callers.
-callees     Find direct callees.
-references  Find semantic references.
-find        Inspect AST nodes and syntax structure.
-outline     Show file structure.
+Before:
+search → enough information → edit
 ```
 
-Do not reproduce the full CLI help text.
-
-Low-level commands such as:
+could become:
 
 ```text
-parent
-children
-range
+After:
+search → insufficient information
+      → search
+      → symbols
+      → Read
+      → edit
 ```
 
-may be mentioned briefly under AST inspection but do not need extensive documentation.
+This would reduce per-command output while increasing total exploration.
 
----
-
-# Recommended Guidance Example
-
-The final Skill should communicate a workflow approximately like this:
-
-```text
-For semantic code navigation, prefer ast-tool before Grep.
-
-Start narrow.
-
-Symbol lookup:
-  ast-tool search --name <name> <root>
-
-Known file:
-  ast-tool symbols <file>
-
-Direct callers:
-  ast-tool callers <fqn> <root>
-
-References:
-  ast-tool references <fqn> <root>
-
-Callees:
-  ast-tool callees <fqn> <root>
-
-AST structure:
-  ast-tool find ...
-  ast-tool outline ...
-
-Typical workflow:
-
-  search
-    ↓
-  exact symbol
-    ↓
-  callers / references / callees
-    ↓
-  Read relevant files
-    ↓
-  Edit
-
-If a semantic command fails:
-- do not repeatedly retry it with guessed arguments
-- use search or symbols to identify the target
-- retry after resolving the ambiguity
-
-Prefer plain output.
-Use --json only when structured output is needed.
-Avoid --pretty by default.
-Avoid workspace-wide dumps.
-Use --help only as a fallback.
-```
-
-Do not copy this section mechanically if the existing Skill has a better structure.
-
-Preserve useful existing content while making the decision path substantially clearer.
-
----
-
-# Preserve Useful Existing Guidance
-
-Review the existing `Skill.md` before editing it.
-
-Do not blindly replace the entire file.
-
-Preserve existing guidance that is:
-
-* correct
-* concise
-* useful to coding agents
-* not redundant with the new decision tree
-
-Remove or shorten content that:
-
-* duplicates CLI help
-* over-explains implementation details
-* describes parser internals that agents do not need
-* makes command selection harder
-* encourages broad output unnecessarily
-
-The Skill should describe how to use the semantic interface, not how Tree-sitter or AST internals work.
-
----
-
-# Token Efficiency
-
-One explicit objective of this phase is reducing total token usage.
-
-Optimize the Skill itself for low token cost.
-
-Avoid:
-
-* long prose explanations
-* repeated command descriptions
-* large JSON examples
-* exhaustive option listings
-* internal architecture descriptions
-* multiple examples of the same workflow
-
-Prefer:
-
-```text
-short rules
-small decision tables
-compact examples
-clear fallback behavior
-```
-
-A shorter Skill that reliably directs the agent is preferable to a comprehensive manual.
-
----
-
-# Evaluation
-
-Use the Phase 0 metrics to evaluate Phase 1.
-
-Run the same evaluation cases used for the baseline.
-
-Do not change the test prompts or repositories.
-
-Compare at least:
-
-```text
-success rate
-total tool calls
-ast_tool_calls
-ast_tool_failures
-ast_tool_retries
-ast_tool_help_calls
-ast_tool_json_calls
-ast_tool_pretty_json_calls
-grep_calls
-read_calls
-elapsed_seconds
-input_tokens
-output_tokens
-total_tokens
-```
-
-Also inspect:
+Therefore compare:
 
 ```text
 tool_sequence
 ast_tool_sequence
-recovery distance
+total_tool_calls
+total_tokens
 ```
 
-where available.
+as well as raw output size.
 
----
-
-# Expected Behavioral Improvements
-
-The expected trajectory should move from patterns like:
-
-```text
-callers
-  ↓ fail
-search
-  ↓
-callers
-  ↓ fail
-find
-  ↓
-help
-  ↓
-symbols
-  ↓
-grep
-```
-
-toward:
-
-```text
-search
-  ↓
-callers
-  ↓
-Read
-  ↓
-Edit
-```
-
-For a known unambiguous symbol, an even shorter path may be valid:
-
-```text
-callers
-  ↓
-Read
-  ↓
-Edit
-```
-
-Do not force extra `search` calls when the exact symbol is already known.
-
-The Skill should reduce unnecessary work, not enforce a rigid sequence.
-
----
-
-# Acceptance Criteria
-
-Phase 1 is complete when:
-
-1. The existing `semantic-analysis` Skill has been updated.
-2. The Skill contains a clear command decision tree.
-3. Semantic commands and AST-inspection commands are clearly separated.
-4. `search` is recommended for uncertain symbol identity.
-5. `callers`, `references`, and `callees` are recommended for their corresponding semantic questions.
-6. `symbols` is documented as a file-scoped semantic inspection tool.
-7. `find` is documented primarily as an AST-inspection tool.
-8. Repeated retries after failed commands are explicitly discouraged.
-9. `--help` is described as a fallback rather than a normal workflow step.
-10. Plain output is preferred for normal exploration.
-11. `--json` is used only when structured output is useful.
-12. `--pretty` is discouraged by default.
-13. Narrow queries are preferred over workspace-wide dumps.
-14. Existing useful Skill guidance is preserved where appropriate.
-15. No `ast-tool` implementation or CLI behavior is changed.
-16. Existing evaluation tests are rerun without changing their prompts.
-17. Phase 0 baseline metrics and Phase 1 metrics are compared.
-18. The implementation reports whether help calls, retries, broad JSON usage, tool calls, and total tokens improved or regressed.
+Do not optimize an individual command at the expense of the overall trajectory.
 
 ---
 
 # Non-Goals
 
-Do NOT implement any of the following in Phase 1:
+Do NOT implement:
 
-* declaration/definition symbol unification
-* fixes to `callers`
-* fixes to `references`
-* fixes to `callees`
-* symbol-ID-based queries
-* CLI argument changes
-* CLI command removal
-* CLI command renaming
-* compact JSON implementation
-* JSON field removal
-* output limiting
-* error-message changes
-* automatic command recommendations
-* cache changes
-* workspace performance changes
+* Skill.md changes
+* semantic resolver changes
+* declaration/definition unification
+* `callers` ambiguity fixes
+* `references` ambiguity fixes
+* symbol-ID-based lookup
+* new semantic symbol identity
+* actionable error recommendations
+* subcommand removal
+* CLI restructuring
+* cache performance work
+* workspace analysis changes
 * evaluation task changes
 
-Do not modify `ast-tool` behavior to make the Phase 1 metrics look better.
+Do not proceed to Phase 3.
 
-This phase must isolate the effect of better agent instructions.
+---
+
+# Implementation Strategy
+
+Prefer small, reviewable changes.
+
+Recommended order:
+
+```text
+1. Regenerate authoritative Phase 1 baseline
+2. Audit current output behavior
+3. Measure output size
+4. Verify compact JSON behavior
+5. Reduce obvious plain-text verbosity
+6. Reduce safe redundant output
+7. Preserve JSON compatibility
+8. Run unit tests
+9. Run the same 41 evaluation tests
+10. Compare Phase 1 vs Phase 2
+```
+
+Avoid introducing a generalized output-formatting framework unless the project already has one that should be reused.
+
+---
+
+# Acceptance Criteria
+
+Phase 2 is complete when:
+
+1. The authoritative Phase 1 baseline has been regenerated from the actual result files.
+2. Any discrepancy in the previous Phase 1 aggregate report has been identified or documented.
+3. Core semantic command output has been audited.
+4. `--json` output is compact by default.
+5. `--pretty` remains explicit.
+6. Plain-text output remains concise.
+7. Narrow `search` queries do not return unrelated workspace symbols.
+8. Existing JSON compatibility is preserved.
+9. AST Tool output volume can be measured.
+10. Output volume can be compared by command.
+11. Plain/JSON/pretty-JSON usage can be distinguished where practical.
+12. Existing unit tests continue to pass.
+13. New output-specific tests are added where necessary.
+14. The same 41 evaluation tests are rerun.
+15. Validation success does not regress unexpectedly.
+16. Phase 1 vs Phase 2 token usage is reported.
+17. Phase 1 vs Phase 2 AST Tool output volume is reported.
+18. Any proposed breaking output/schema changes are documented but not implemented.
 
 ---
 
@@ -755,13 +722,15 @@ This phase must isolate the effect of better agent instructions.
 
 Provide:
 
-1. The updated `Skill.md`.
-2. A concise summary of the changes made.
-3. The evaluation results using the same tests as the Phase 0 baseline.
-4. A comparison of Phase 0 vs Phase 1 for the key metrics.
-5. At least one before/after tool trajectory if available.
-6. Any observed cases where the Skill guidance is insufficient because the underlying CLI or semantic resolver prevents an efficient workflow.
+1. The authoritative regenerated Phase 1 baseline.
+2. A short explanation of the apparent previous aggregate-statistics discrepancy, if identified.
+3. The Phase 2 implementation.
+4. Updated/new tests.
+5. Phase 2 evaluation results for the same 41 tests.
+6. A Phase 1 vs Phase 2 comparison table.
+7. AST Tool output-size statistics by command.
+8. Token usage comparison.
+9. At least one representative before/after command output.
+10. Any findings that should be addressed in Phase 3 rather than this phase.
 
-Do not proceed to Phase 2.
-
-If evaluation reveals problems that require CLI or semantic changes, document them as findings for later phases rather than implementing them in this phase.
+Do not proceed to Phase 3.

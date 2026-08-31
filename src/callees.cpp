@@ -1,6 +1,7 @@
 #include "callees.h"
 #include "cli-semantic.h"
 #include "ast-callees.h"
+#include "ast-format.h"
 #include "ast-tool.h"
 #include <algorithm>
 #include <print>
@@ -14,12 +15,12 @@ namespace
         std::print(" {{\n");
         if(s.callee) {
             std::print("  \"callee_kind\": \"{}\",\n", getSymbolKindName(s.callee->symbol.kind));
-            std::print("  \"callee_fqn\": \"{}\",\n", (const char*)s.callee->symbol.fqn.c_str());
+            std::print("  \"callee_fqn\": \"{}\",\n", (const char*)json_escape(s.callee->symbol.fqn).c_str());
         } else {
             std::print("  \"callee_kind\": \"unknown\",\n");
             std::print("  \"callee_fqn\": \"\",\n");
         }
-        std::print("  \"file\": \"{}\",\n", (const char*)s.sourceFile.u8string().c_str());
+        std::print("  \"file\": \"{}\",\n", (const char*)json_escape(s.sourceFile.u8string()).c_str());
         std::print("  \"line\": {},\n", s.line + 1);
         std::print("  \"column\": {}\n", s.column + 1);
         std::print(" }}");
@@ -31,12 +32,12 @@ namespace
         std::print("{{");
         if(s.callee) {
             std::print("\"callee_kind\":\"{}\",", getSymbolKindName(s.callee->symbol.kind));
-            std::print("\"callee_fqn\":\"{}\",", (const char*)s.callee->symbol.fqn.c_str());
+            std::print("\"callee_fqn\":\"{}\",", (const char*)json_escape(s.callee->symbol.fqn).c_str());
         } else {
             std::print("\"callee_kind\":\"unknown\",");
             std::print("\"callee_fqn\":\"\",");
         }
-        std::print("\"file\":\"{}\",", (const char*)s.sourceFile.u8string().c_str());
+        std::print("\"file\":\"{}\",", (const char*)json_escape(s.sourceFile.u8string()).c_str());
         std::print("\"line\":{},", s.line + 1);
         std::print("\"column\":{}", s.column + 1);
         std::print("}}");

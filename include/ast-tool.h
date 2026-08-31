@@ -170,6 +170,7 @@ struct ArgSearch
     const char8_t* name_regex_; ///< --name-regex RE2 pattern, or nullptr if unset.
     const char8_t* fqn_regex_;  ///< --fqn-regex RE2 pattern, or nullptr if unset.
     const char8_t* file_regex_; ///< --file-regex RE2 pattern, or nullptr if unset.
+    uint32_t limit_;            ///< --limit maximum results; zero means unlimited.
     bool json_;                 ///< Output results as JSON when true.
     bool pretty_;               ///< Pretty-print the JSON output when true.
 };

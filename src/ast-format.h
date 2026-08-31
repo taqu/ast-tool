@@ -22,5 +22,8 @@ constexpr size_t PreviewTextMaxLength = 40;
  * trailing "...". Returns an empty string if @p node has no associated source text.
  */
 std::u8string preview_text(const ASTNode& node, size_t maxLength = PreviewTextMaxLength);
+
+/** Return @p text escaped for use between JSON string quotes. */
+std::u8string json_escape(std::u8string_view text);
 } // namespace ast
 #endif // INC_AST_FORMAT_H_
