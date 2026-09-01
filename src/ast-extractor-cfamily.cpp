@@ -2,7 +2,7 @@
 #include "ast-tool.h"
 #include "ast-extractor-common.h"
 #include "ast-ir.h"
-#include <unordered_set>
+#include <unordered_map>
 
 namespace ast
 {
@@ -201,18 +201,33 @@ namespace
                                     const ast::ASTNode& declarator)
     {
         const ast::ASTNode* params = findChild(tree, declarator, ASTNodeType::ParameterList);
-        if(!params) return u8"()";
         std::u8string signature = u8"(";
-        bool first = true;
-        for(uintptr_t id: params->children_) {
-            if(id == ast::InvalidId) continue;
-            const ast::ASTNode& param = tree[static_cast<uint32_t>(id)];
-            if(!param.typeEquals(ASTNodeType::ParameterDeclaration)) continue;
-            if(!first) signature += u8",";
-            appendParameterType(tree, param, signature);
-            first = false;
+        if(params) {
+            bool first = true;
+            for(uintptr_t id: params->children_) {
+                if(id == ast::InvalidId) continue;
+                const ast::ASTNode& param = tree[static_cast<uint32_t>(id)];
+                if(!param.typeEquals(ASTNodeType::ParameterDeclaration)) continue;
+                if(!first) signature += u8",";
+                appendParameterType(tree, param, signature);
+                first = false;
+            }
         }
         signature += u8")";
+
+        // Trailing cv-qualifiers (const/volatile) sit as direct children of the
+        // function_declarator itself, as siblings of parameter_list — not nested
+        // inside it — e.g. "void Foo::run() const". Without this, "run()" and
+        // "run() const" would produce identical signatures and collapse into one
+        // logical symbol, silently dropping the const overload.
+        for(uintptr_t id: declarator.children_) {
+            if(id == ast::InvalidId) continue;
+            const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
+            if(child.typeEquals(ASTNodeType::TypeQualifier)) {
+                signature += u8" ";
+                signature += child.getText();
+            }
+        }
         return signature;
     }
 
@@ -230,12 +245,16 @@ namespace
 std::vector<Symbol> extract_symbols_cfamily(const ast::AST& tree)
 {
     std::vector<Symbol>             result;
-    std::unordered_set<std::u8string> seen;
+    std::unordered_map<std::u8string, size_t> seen;
     std::vector<ScopeFrame>         scopeStack;
     char8_t buffer[BUFFER_SIZE];
 
     // Deduplicate repeated syntax for the same callable while preserving overloads.
+    // When a forward declaration and its later definition share a translation
+    // unit (e.g. a .cpp forward-declaring before defining), prefer the
+    // definition so services that need a function body (callees) still work.
     auto emit = [&](Symbol sym) {
+        if(sym.fqn.empty()) return;
         bool funcLike = sym.kind == SymbolKind::Function
                      || sym.kind == SymbolKind::Method
                      || sym.kind == SymbolKind::Constructor
@@ -243,8 +262,12 @@ std::vector<Symbol> extract_symbols_cfamily(const ast::AST& tree)
         std::u8string key = funcLike
             ? (sym.fqn + sym.signature)
             : (sym.fqn + u8":" + ast::to_string_intermediate(buffer, static_cast<int32_t>(sym.kind)));
-        if(!sym.fqn.empty() && seen.insert(key).second) {
+        auto it = seen.find(key);
+        if(it == seen.end()) {
+            seen.emplace(std::move(key), result.size());
             result.push_back(std::move(sym));
+        } else if(funcLike && sym.isDefinition && !result[it->second].isDefinition) {
+            result[it->second] = std::move(sym);
         }
     };
 

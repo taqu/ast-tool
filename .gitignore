@@ -65,7 +65,8 @@ __pycache__/
 
 /.claude/settings.local.json
 /.codex/config.local.toml
-
+venv/
+.venv/
 /bin
 #/ast-tool.md
 #/roadmap.md

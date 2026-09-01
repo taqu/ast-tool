@@ -211,6 +211,43 @@ bool testForwardDeclarations()
     return ok;
 }
 
+bool testQualifiers()
+{
+    std::cout << "  testCpp_Qualifiers... ";
+    AST tree = parse(u8"test/ast-extractor-cpp/samples/qualifiers.cpp");
+    if(!tree) { std::cerr << "    FAIL: could not parse\n"; return false; }
+    auto syms = extract_symbols(tree);
+    bool ok = true;
+
+    // 3 overloads (run(), run() const, run(int)), each merged across its
+    // in-class declaration and out-of-line definition — 3 entries, not 6.
+    std::vector<const Symbol*> runs;
+    for(const auto& s : syms)
+        if(s.fqn == u8"Foo::run" && s.kind == SymbolKind::Method) runs.push_back(&s);
+    ok &= test::check(runs.size() == 3,
+                      "Foo::run has 3 distinct overloads (const/non-const/int)");
+
+    bool hasPlain = false, hasConst = false, hasInt = false;
+    bool plainIsDefinition = false, constIsDefinition = false, intIsDefinition = false;
+    for(const Symbol* s : runs) {
+        if(s->signature == u8"()") { hasPlain = true; plainIsDefinition = s->isDefinition; }
+        if(s->signature == u8"() const") { hasConst = true; constIsDefinition = s->isDefinition; }
+        if(s->signature == u8"(int)") { hasInt = true; intIsDefinition = s->isDefinition; }
+    }
+    ok &= test::check(hasPlain, "run() signature is \"()\"");
+    ok &= test::check(hasConst, "run() const signature is \"() const\"");
+    ok &= test::check(hasInt,   "run(int) signature is \"(int)\"");
+
+    // Each overload merges its in-class declaration with its out-of-line
+    // definition into a single entry, and that entry is the definition.
+    ok &= test::check(plainIsDefinition, "run() merged entry is the definition");
+    ok &= test::check(constIsDefinition, "run() const merged entry is the definition");
+    ok &= test::check(intIsDefinition,   "run(int) merged entry is the definition");
+
+    std::cout << (ok ? "PASS" : "FAIL") << "\n";
+    return ok;
+}
+
 } // anonymous namespace
 
 bool run_tests_cpp()

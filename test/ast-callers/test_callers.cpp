@@ -254,6 +254,79 @@ namespace
     }
 
     // -----------------------------------------------------------------------
+    // Declaration/definition merge (Phase 3 — Semantic Symbol Resolution)
+    // declFn / DeclClass::declMethod are declared in decl_def.h and defined
+    // out-of-line in decl_def.cpp. Querying with the *declaration* occurrence
+    // must still find callers that were resolved against the definition.
+
+    bool test_decl_def_merge()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCalRoot);
+
+        const WorkspaceSymbol* declSite = findByNameInFile(ws, u8"declFn", u8"decl_def.h");
+        ok &= check(declSite != nullptr, "declFn header declaration found");
+        if(declSite)
+            ok &= check(!declSite->symbol.isDefinition, "declFn header occurrence is a declaration");
+        if(!declSite) return false;
+
+        Callers callers(ws);
+        auto sites = callers.find(*declSite);
+        ok &= check(sites.size() == 1,
+                    "querying via the header declaration finds the one caller");
+        if(!sites.empty() && sites[0].caller)
+            ok &= check(sites[0].caller->symbol.name == u8"declCallerFn",
+                        "declFn caller is declCallerFn");
+
+        const WorkspaceSymbol* declMethod = nullptr;
+        for(const auto& sym : ws.symbols) {
+            if(sym.symbol.fqn == u8"DeclClass::declMethod" && !sym.symbol.isDefinition) {
+                declMethod = &sym;
+                break;
+            }
+        }
+        ok &= check(declMethod != nullptr, "DeclClass::declMethod header declaration found");
+        if(!declMethod) return ok;
+
+        auto methodSites = callers.find(*declMethod);
+        ok &= check(methodSites.size() == 1,
+                    "querying via the header declaration finds DeclClass::declMethod's caller");
+        if(!methodSites.empty() && methodSites[0].caller)
+            ok &= check(methodSites[0].caller->symbol.name == u8"declCallerMethod",
+                        "DeclClass::declMethod caller is declCallerMethod");
+        return ok;
+    }
+
+    // -----------------------------------------------------------------------
+    // const/non-const method overloads must remain distinct logical symbols.
+    // A name-only call site cannot disambiguate between them, so it must be
+    // silently skipped rather than arbitrarily attributed to either overload.
+
+    bool test_const_overload_distinct()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCalRoot);
+
+        std::vector<const WorkspaceSymbol*> coRuns;
+        for(const auto& sym : ws.symbols) {
+            if(sym.symbol.fqn == u8"CoObj::coRun") coRuns.push_back(&sym);
+        }
+        ok &= check(coRuns.size() == 2,
+                    "CoObj::coRun() and CoObj::coRun() const remain 2 distinct symbols");
+        if(coRuns.size() == 2)
+            ok &= check(coRuns[0]->symbol.signature != coRuns[1]->symbol.signature,
+                        "const and non-const overloads have different signatures");
+
+        Callers callers(ws);
+        for(const WorkspaceSymbol* target : coRuns) {
+            auto sites = callers.find(*target);
+            ok &= check(sites.empty(),
+                        "ambiguous coRun call is not arbitrarily attributed to either overload");
+        }
+        return ok;
+    }
+
+    // -----------------------------------------------------------------------
     // Unresolved call — silently skipped, no false positives
 
     bool test_unresolved_call()
@@ -338,6 +411,8 @@ bool run_tests_callers()
         {"namespace-qualified call",                     test_namespace_call},
         {"member function call",                         test_member_call},
         {"overloaded functions",                         test_overloaded},
+        {"decl/def merge: header decl finds def-resolved caller", test_decl_def_merge},
+        {"const/non-const overloads remain distinct",    test_const_overload_distinct},
         {"unresolved call: no false positives",          test_unresolved_call},
         {"cross-file call",                              test_cross_file},
         {"result ordering within file",                  test_result_ordering},

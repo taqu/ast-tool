@@ -80,6 +80,90 @@ namespace
     }
 
     // -----------------------------------------------------------------------
+    // same_semantic_symbol / canonical_symbol — semantic identity
+    // (Phase 3 — Semantic Symbol Resolution)
+
+    bool test_same_semantic_symbol_decl_def_merge()
+    {
+        bool ok = true;
+        WorkspaceSymbol decl;
+        decl.symbol.name         = u8"validate";
+        decl.symbol.fqn          = u8"auth::AuthToken::validate";
+        decl.symbol.kind         = SymbolKind::Method;
+        decl.symbol.signature    = u8"() const";
+        decl.symbol.isDefinition = false;
+        decl.symbol.line         = 10;
+        decl.sourceFile          = "auth_token.h";
+
+        WorkspaceSymbol def = decl;
+        def.symbol.isDefinition = true;
+        def.symbol.line         = 20;
+        def.sourceFile          = "auth_token.cpp";
+
+        ok &= check(same_semantic_symbol(decl, def),
+                    "header declaration and out-of-line definition are one logical symbol");
+
+        const WorkspaceSymbol& canon = canonical_symbol({decl, def});
+        ok &= check(canon.symbol.isDefinition,
+                    "canonical_symbol prefers the definition occurrence");
+
+        const WorkspaceSymbol& canonReversed = canonical_symbol({def, decl});
+        ok &= check(canonReversed.symbol.isDefinition,
+                    "canonical_symbol prefers the definition regardless of order");
+        return ok;
+    }
+
+    bool test_same_semantic_symbol_overload_safety()
+    {
+        bool ok = true;
+        WorkspaceSymbol a, b;
+        a.symbol.fqn = u8"process"; a.symbol.kind = SymbolKind::Function; a.symbol.signature = u8"(int)";
+        b.symbol.fqn = u8"process"; b.symbol.kind = SymbolKind::Function; b.symbol.signature = u8"(std::string)";
+        ok &= check(!same_semantic_symbol(a, b),
+                    "overloads with different signatures are distinct logical symbols");
+
+        // A declaration/definition pair of the SAME overload must still merge.
+        WorkspaceSymbol aDef = a;
+        aDef.symbol.isDefinition = true;
+        ok &= check(same_semantic_symbol(a, aDef),
+                    "declaration/definition pair of the same overload still merges");
+        return ok;
+    }
+
+    bool test_same_semantic_symbol_method_overload_safety()
+    {
+        bool ok = true;
+        WorkspaceSymbol a, b;
+        a.symbol.fqn = u8"Foo::run"; a.symbol.kind = SymbolKind::Method; a.symbol.signature = u8"(int)";
+        b.symbol.fqn = u8"Foo::run"; b.symbol.kind = SymbolKind::Method; b.symbol.signature = u8"(std::string)";
+        ok &= check(!same_semantic_symbol(a, b),
+                    "method overloads with different signatures are distinct logical symbols");
+        return ok;
+    }
+
+    bool test_same_semantic_symbol_const_qualifier()
+    {
+        bool ok = true;
+        WorkspaceSymbol a, b;
+        a.symbol.fqn = u8"Foo::run"; a.symbol.kind = SymbolKind::Method; a.symbol.signature = u8"()";
+        b.symbol.fqn = u8"Foo::run"; b.symbol.kind = SymbolKind::Method; b.symbol.signature = u8"() const";
+        ok &= check(!same_semantic_symbol(a, b),
+                    "const and non-const methods are distinct logical symbols even with identical parameters");
+        return ok;
+    }
+
+    bool test_same_semantic_symbol_namespace_respected()
+    {
+        bool ok = true;
+        WorkspaceSymbol a, b;
+        a.symbol.fqn = u8"auth::validate"; a.symbol.kind = SymbolKind::Function; a.symbol.signature = u8"(Token)";
+        b.symbol.fqn = u8"validate";       b.symbol.kind = SymbolKind::Function; b.symbol.signature = u8"(Token)";
+        ok &= check(!same_semantic_symbol(a, b),
+                    "differing namespace scope means a distinct logical symbol despite the same signature");
+        return ok;
+    }
+
+    // -----------------------------------------------------------------------
     // Per-file resolution — single symbol
 
     bool test_resolve_resolved()
@@ -433,6 +517,12 @@ bool run_tests_resolver()
     static const TestCase cases[] = {
         // ResolutionResult API
         {"result: factories and status",       test_factories},
+        // Semantic identity: same_semantic_symbol / canonical_symbol
+        {"identity: decl/def merge",           test_same_semantic_symbol_decl_def_merge},
+        {"identity: overload safety",          test_same_semantic_symbol_overload_safety},
+        {"identity: method overload safety",   test_same_semantic_symbol_method_overload_safety},
+        {"identity: const qualifier safety",   test_same_semantic_symbol_const_qualifier},
+        {"identity: namespace respected",      test_same_semantic_symbol_namespace_respected},
         // Per-file resolution
         {"resolve: single match → Resolved",   test_resolve_resolved},
         {"resolve: no match → Unresolved",     test_resolve_unresolved},

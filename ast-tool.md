@@ -1,102 +1,469 @@
-# Phase 2-2 — Residual Failure and Agent Trajectory Analysis
+# Phase 3 — Semantic Symbol Resolution
 
 ## Goal
 
-Analyze the evaluation traces after the Phase 2-1 semantic resolution improvements.
+Improve semantic symbol resolution so that declarations and definitions of the same C++ symbol are treated as one logical semantic symbol.
 
-Phase 2-1 significantly reduced `ast-tool` failures, especially for `callers`, `callees`, and `references`, but the reduction in failures did not translate into a comparable reduction in total tool calls or elapsed time.
+The primary objective is to eliminate false ambiguity in semantic queries such as:
 
-The goal of this phase is to identify why.
+```bash
+ast-tool callers auth::AuthToken::validate .
+ast-tool references auth::AuthToken::validate .
+ast-tool callees auth::AuthToken::validate .
+```
 
-Do **not** modify `ast-tool` behavior in this phase.
+A declaration in a header and its corresponding definition in a source file must not be treated as two unrelated candidate symbols.
 
 ---
 
 ## Background
 
-Phase 2-1 improved C++ semantic resolution, especially declaration/definition ambiguity.
+Phase 1 and Phase 2 improved agent behavior and overall efficiency, but semantic query failures remain the main bottleneck.
 
-Observed results:
+Current Phase 2 metrics:
 
-* AST tool failures: `36 -> 12`
-* AST tool failure rate: `51.43% -> 19.05%`
-* AST tool retries: `23 -> 17`
-* Average recovery distance: `2.23 -> 1.70`
-* Total tokens: `162,628 -> 160,530`
+```text
+tests:                       41
+success rate:                90.24%
 
-However:
+total tool calls:            519
+ast-tool calls:              70
+ast-tool failures:           36
+ast-tool failure rate:       51.43%
+ast-tool retries:            23
 
-* Total tool calls: `519 -> 563`
-* Read calls: `254 -> 281`
-* Glob calls: `15 -> 35`
-* Elapsed time: `2100.56s -> 2329.46s`
+average recovery distance:   2.23
+max recovery distance:       5
+```
 
-This suggests that semantic commands are succeeding more often, but the agent may still perform redundant exploration afterward.
+Failures by semantic command:
 
----
+```text
+callers:       21 failures / 21 calls
+callees:        9 failures / 9 calls
+references:     5 failures / 6 calls
+find:           1 failure
+```
 
-## Scope
+Phase 2 already reduced:
 
-Analyze the existing evaluation traces and classify two things:
+```text
+total tool calls
+total tokens
+elapsed time
+grep usage
+read usage
+```
 
-1. Remaining `ast-tool` failures
-2. Tool-call trajectories after successful semantic queries
+without reducing the success rate.
 
-Focus especially on:
+Therefore, do not make further agent-instruction or output-format changes in this phase.
 
-* `callers`
-* `references`
-* `callees`
-* `search`
-
-Also investigate unexpected fallback usage of:
-
-* `Glob`
-* `Grep`
-* `Read`
-* repeated `search`
-* `find`
-* `symbols`
-
----
-
-## Task 1 — Classify Remaining AST Tool Failures
-
-Inspect every remaining failed `ast-tool` invocation from the Phase 2-1 evaluation.
-
-Group failures into meaningful categories, for example:
-
-* unresolved declaration/definition ambiguity
-* overload ambiguity
-* namespace/class resolution issue
-* invalid or overly broad query
-* unsupported symbol form
-* CLI usage error
-* empty result interpreted as failure
-* unrelated parser/semantic issue
-* agent misuse
-
-For each category, report:
-
-* number of occurrences
-* affected commands
-* representative command sequence
-* likely root cause
-* whether the issue belongs to:
-
-  * Semantic Layer
-  * Resolver
-  * CLI/API UX
-  * Skill.md
-  * Agent behavior
-
-Do not fix the failures yet.
+The remaining problem appears to be semantic resolution itself.
 
 ---
 
-## Task 2 — Analyze Post-Success Trajectories
+# Scope
 
-For every successful invocation of:
+Focus on C++ semantic symbol identity and resolution.
+
+Start with:
+
+```text
+function declaration ↔ function definition
+method declaration   ↔ method definition
+```
+
+The semantic layer should recognize these as the same logical symbol when appropriate.
+
+Relevant architecture:
+
+```text
+Tree-sitter
+    ↓
+AST IR
+    ↓
+Semantic Layer
+    ↓
+Symbol Identity
+    ↓
+Resolver
+    ↓
+Semantic Services
+    ├── callers
+    ├── references
+    └── callees
+```
+
+Fix the problem at the semantic identity / resolver layer rather than adding command-specific workarounds.
+
+---
+
+# Non-goals
+
+Do NOT modify the following in this phase unless strictly required for a regression fix:
+
+```text
+Skill.md
+CLI command structure
+JSON output format
+pretty-print behavior
+command discoverability
+error-message UX
+symbol-ID CLI API
+agent-facing command classification
+trace analysis
+evaluation task definitions
+```
+
+In particular:
+
+* Do not add `callers --id`.
+* Do not add `references --id`.
+* Do not add `callees --id`.
+* Do not redesign CLI error messages.
+* Do not remove or rename commands.
+* Do not solve ambiguity by arbitrarily selecting the first candidate.
+* Do not special-case individual evaluation repositories.
+
+Those belong to later phases.
+
+---
+
+# Primary Problem
+
+Consider a C++ class:
+
+```cpp
+// auth_token.h
+
+namespace auth {
+
+class AuthToken {
+public:
+    bool validate() const;
+};
+
+}
+```
+
+and:
+
+```cpp
+// auth_token.cpp
+
+bool auth::AuthToken::validate() const {
+    ...
+}
+```
+
+The declaration and definition represent the same logical semantic symbol.
+
+They must not independently cause:
+
+```text
+error: symbol is ambiguous
+```
+
+for:
+
+```bash
+ast-tool callers auth::AuthToken::validate .
+```
+
+The resolver should resolve the query to one semantic symbol.
+
+---
+
+# Required Investigation
+
+Before changing behavior, inspect the current implementation and determine:
+
+1. How symbols are extracted from AST IR.
+2. How symbol identity is currently constructed.
+3. Whether declarations and definitions currently receive different identities.
+4. Which properties are used for matching:
+
+   * name
+   * fully-qualified name
+   * symbol kind
+   * namespace
+   * class scope
+   * parameter types
+   * qualifiers
+   * return type
+   * file
+   * source range
+5. Where ambiguity is introduced.
+6. Whether `callers`, `references`, and `callees` use a common resolver or separate resolution logic.
+
+Prefer fixing shared semantic infrastructure.
+
+Do not patch each command independently if the same resolver is responsible.
+
+---
+
+# Semantic Identity Requirements
+
+Introduce or improve the concept of a logical semantic symbol.
+
+For compatible declaration/definition pairs:
+
+```text
+declaration
+     │
+     ├── semantic identity
+     │
+definition
+```
+
+Both should resolve to the same logical identity.
+
+The identity must not depend only on:
+
+```text
+file path
+AST node location
+source range
+parser node ID
+```
+
+because declaration and definition naturally differ in those properties.
+
+At minimum, investigate whether C++ symbol identity should include:
+
+```text
+fully-qualified name
+symbol category
+enclosing namespace/class
+parameter signature
+cv/ref qualifiers where relevant
+```
+
+Be conservative.
+
+Do not merge symbols merely because they share the same short name.
+
+---
+
+# Required Cases
+
+At minimum, support and test the following.
+
+## 1. Free function declaration + definition
+
+```cpp
+// foo.h
+void process(int value);
+
+// foo.cpp
+void process(int value) {
+}
+```
+
+These must resolve to one logical symbol.
+
+---
+
+## 2. Class method declaration + definition
+
+```cpp
+class Foo {
+public:
+    void run();
+};
+```
+
+```cpp
+void Foo::run() {
+}
+```
+
+These must resolve to one logical symbol.
+
+---
+
+## 3. Namespace-qualified symbol
+
+```cpp
+namespace auth {
+bool validate(Token token);
+}
+```
+
+and an out-of-line definition.
+
+Namespace identity must be respected.
+
+---
+
+## 4. Overloads
+
+```cpp
+void process(int);
+void process(std::string);
+```
+
+These must remain distinct semantic symbols.
+
+Do not collapse overloads by fully-qualified name alone.
+
+---
+
+## 5. Method overloads
+
+```cpp
+class Foo {
+public:
+    void run(int);
+    void run(std::string);
+};
+```
+
+These must remain distinct.
+
+---
+
+## 6. Qualifiers
+
+Where the current AST IR provides sufficient information, preserve distinctions such as:
+
+```cpp
+void Foo::run();
+void Foo::run() const;
+```
+
+Do not incorrectly merge semantically distinct methods.
+
+If the current IR cannot reliably represent a qualifier, document the limitation rather than introducing unsafe heuristics.
+
+---
+
+## 7. Multiple translation units
+
+A declaration may be visible in multiple translation units while corresponding to one implementation symbol.
+
+Ensure that symbol resolution does not create false ambiguity merely because the same declaration is encountered from multiple files or translation units.
+
+Do not attempt to implement a complete C++ compiler or linker model.
+
+Only implement enough semantic identity to reliably handle the supported AST Tool use cases.
+
+---
+
+# Resolver Behavior
+
+Given:
+
+```bash
+ast-tool callers auth::AuthToken::validate .
+```
+
+if the matching declaration and definition correspond to one logical symbol, the resolver should treat them as a single semantic target.
+
+Expected conceptual behavior:
+
+```text
+query
+  ↓
+candidate declarations / definitions
+  ↓
+semantic identity normalization
+  ↓
+one logical symbol
+  ↓
+callers
+```
+
+Not:
+
+```text
+query
+  ↓
+header declaration
+cpp definition
+  ↓
+two candidates
+  ↓
+ambiguous
+```
+
+True ambiguity must still remain an error.
+
+For example, if multiple overloads match an insufficiently specific query and cannot be safely distinguished, do not silently select one.
+
+---
+
+# Implementation Guidance
+
+Prefer a layered implementation.
+
+A good direction is:
+
+```text
+AST symbol instances
+      ↓
+semantic symbol key / identity
+      ↓
+logical symbol grouping
+      ↓
+resolver
+```
+
+Keep source occurrences separate from logical identity.
+
+For example, conceptually:
+
+```text
+SemanticSymbol
+    identity
+    declarations[]
+    definitions[]
+```
+
+or an equivalent design may be appropriate.
+
+The exact data model should follow the existing architecture rather than forcing this specific structure.
+
+The important invariant is:
+
+> Source locations are occurrences of a symbol, not necessarily separate semantic symbols.
+
+---
+
+# Backward Compatibility
+
+Preserve existing CLI behavior wherever possible.
+
+Existing valid queries must continue to work.
+
+Do not change public output schemas unnecessarily.
+
+Do not change command syntax.
+
+Do not introduce Symbol ID-based public APIs yet.
+
+Internal semantic IDs may be changed or introduced if necessary, but Phase 4 will separately define the stable public Symbol ID workflow.
+
+---
+
+# Tests
+
+Add focused unit and/or integration tests for semantic identity and resolver behavior.
+
+At minimum, add regression coverage for:
+
+```text
+free function declaration + definition
+class method declaration + definition
+namespace-qualified declaration + definition
+free-function overloads
+method overloads
+const/non-const methods where supported
+multiple translation units
+```
+
+Also add command-level regression tests for:
 
 ```text
 callers
@@ -104,212 +471,155 @@ references
 callees
 ```
 
-inspect the following tool calls in the same evaluation task.
+where applicable.
 
-Identify cases such as:
+A declaration/definition pair must not generate false ambiguity.
 
-```text
-search
-→ callers succeeds
-→ Glob
-→ Read
-→ Read
-```
-
-or:
-
-```text
-callers succeeds
-→ search
-→ find
-→ symbols
-```
-
-Determine whether the agent is performing redundant verification after already receiving a usable semantic result.
-
-Classify post-success behavior into categories such as:
-
-* semantic result used directly
-* result followed by required source inspection
-* redundant Glob fallback
-* redundant Grep fallback
-* redundant repeated semantic query
-* result lacked enough information
-* agent did not appear to trust the result
-* task genuinely required additional exploration
+An actual overload ambiguity must not be accidentally removed.
 
 ---
 
-## Task 3 — Measure Post-Success Exploration Cost
+# Evaluation
 
-Add trace-analysis metrics if needed.
+After implementation, run the same evaluation suite used for Phase 1 and Phase 2.
 
-At minimum, report:
+Do not modify the evaluation prompts or repositories in order to improve the result.
 
-```text
-successful semantic queries
-successful semantic queries followed by Glob
-successful semantic queries followed by Grep
-successful semantic queries followed by Read
-successful semantic queries followed by another semantic lookup
-```
-
-Also report, where practical:
+Collect the same metrics:
 
 ```text
-average tool calls after successful semantic query
-average Read calls after successful semantic query
-average fallback calls after successful semantic query
+tests
+successes
+failures
+success rate
+
+total tool calls
+average tool calls per test
+
+ast-tool calls
+ast-tool failures
+ast-tool failure rate
+ast-tool retries
+ast-tool help calls
+
+ast-tool failures by command
+
+bash calls
+read calls
+edit calls
+grep calls
+glob calls
+
+elapsed time
+average elapsed time
+
+input tokens
+output tokens
+total tokens
+average tokens per test
+
+average ast-tool recovery distance
+max ast-tool recovery distance
 ```
 
-A small bounded window such as the next 3–5 tool calls is acceptable, but document the chosen definition.
+Also preserve the AST Tool command sequences where available.
 
 ---
 
-## Task 4 — Validate Trace Analyzer Consistency
+# Primary Evaluation Questions
 
-There are inconsistencies between the command summary table and the JSON statistics.
+Phase 3 should answer:
 
-Examples observed include differing counts for:
+1. Did `callers` failure rate decrease substantially?
+2. Did `references` failure rate decrease substantially?
+3. Did `callees` failure rate decrease substantially?
+4. Did AST Tool retries decrease?
+5. Did recovery distance decrease?
+6. Did overall success rate remain stable or improve?
+7. Did total token usage remain stable or improve?
+8. Did the agent perform less fallback exploration through `grep`, `read`, `find`, or repeated `search` calls?
 
-```text
-search
-callers
-references
-help
-```
+Do not optimize specifically for AST Tool call count.
 
-and an unexpected command entry:
-
-```text
-"2": 1
-```
-
-Investigate the trace parser / command classifier.
-
-Fix the analyzer if necessary, but do not alter `ast-tool` itself.
-
-The table and JSON summary must be generated from the same normalized command classification and must agree.
-
-Unknown or malformed commands should be reported explicitly rather than silently classified as a valid command.
+An increase in successful semantic queries is acceptable if total trajectory cost improves.
 
 ---
 
-## Non-goals
+# Acceptance Criteria
 
-Do not:
+The phase is complete when all of the following are true.
 
-* modify semantic resolution
-* modify CLI output
-* add symbol-ID APIs
-* change `Skill.md`
-* change command behavior
-* remove subcommands
-* optimize performance
-* change evaluation tasks
+### Semantic correctness
 
-This phase is analysis and measurement only, except for fixes to the trace-analysis tooling itself.
-
----
-
-## Deliverables
-
-Produce a report containing:
-
-### 1. Remaining Failure Summary
+A declaration and definition of the same supported C++ function or method resolve to one logical semantic symbol.
 
 Example:
 
-```text
-Category                         Count
---------------------------------------
-overload ambiguity                  3
-references resolution issue         2
-agent CLI misuse                    2
-...
+```bash
+ast-tool callers auth::AuthToken::validate .
 ```
 
-### 2. Post-Success Trajectory Summary
+must not fail solely because one declaration exists in a header and one definition exists in a source file.
 
-Example:
+The same applies to:
 
-```text
-Behavior                                      Count
----------------------------------------------------
-semantic result used directly                   12
-followed by necessary Read                       8
-followed by redundant Glob                       6
-followed by redundant Grep                       2
-followed by repeated semantic lookup             4
+```bash
+ast-tool references auth::AuthToken::validate .
+ast-tool callees auth::AuthToken::validate .
 ```
 
-### 3. Representative Traces
+where semantically applicable.
 
-Include a few short examples showing the exact command trajectory.
+### Overload safety
 
-For example:
+Distinct overloads must remain distinct.
 
-```text
-search validate
-callers auth::AuthToken::validate .
-Glob **/*.cpp
-Read src/auth/auth_token.cpp
-```
+Do not resolve ambiguity by merging unrelated overloads.
 
-Explain whether the additional calls were necessary.
+### Architecture
 
-### 4. Root-Cause Assessment
+The fix belongs primarily in shared semantic identity / resolution infrastructure.
 
-Determine which of these is currently the dominant bottleneck:
+Avoid command-specific hacks.
 
-```text
-A. remaining resolver defects
-B. insufficient semantic command output
-C. Skill.md guidance
-D. redundant agent verification / distrust
-E. trace-analysis artifact
-```
+### Regression safety
 
-Multiple causes may exist, but rank them.
+Existing tests continue to pass, except where an existing test explicitly encoded incorrect declaration/definition ambiguity behavior and must be updated.
 
-### 5. Recommended Next Phase
+### Evaluation
 
-Recommend exactly one primary implementation target for the next phase.
+Run the unchanged evaluation suite and provide a before/after comparison against Phase 2.
 
-Examples:
+The most important expected movement is:
 
 ```text
-Improve remaining resolver cases
+ast-tool semantic failures ↓
+ast-tool retries           ↓
+recovery distance          ↓
 ```
 
-or:
+while maintaining or improving:
 
 ```text
-Improve semantic output so successful callers/references results
-contain enough context to avoid Glob/Read fallback
+success rate
+total tokens
+elapsed time
 ```
-
-or:
-
-```text
-Update Skill.md to explicitly trust successful semantic results
-and avoid redundant filesystem verification
-```
-
-Do not implement that recommendation in this phase.
 
 ---
 
-## Acceptance Criteria
+# Deliverables
 
-This phase is complete when:
+At the end of the phase, report:
 
-1. Every remaining Phase 2-1 `ast-tool` failure is classified.
-2. Successful `callers`, `references`, and `callees` calls have been analyzed for follow-up exploration.
-3. The increase in `Glob` / `Read` usage is explained with trace evidence.
-4. Command-count inconsistencies in the trace analyzer are understood and fixed if they are analyzer bugs.
-5. The report identifies the dominant remaining bottleneck.
-6. One concrete next implementation phase is recommended.
-7. No `ast-tool` behavior has been changed.
+1. Root cause of declaration/definition ambiguity.
+2. Files and components changed.
+3. Semantic identity strategy implemented.
+4. Cases intentionally supported.
+5. Known unsupported or ambiguous C++ cases.
+6. Tests added.
+7. Test results.
+8. Phase 2 vs Phase 3 evaluation metrics.
+9. Examples of semantic command trajectories before and after the change.
 
-The purpose of this phase is to avoid making another implementation change before we know whether the next bottleneck is semantic correctness, output usability, Skill guidance, or redundant agent exploration.
+Do not begin Phase 4 work as part of this implementation.

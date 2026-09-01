@@ -294,6 +294,63 @@ namespace
     }
 
     // -----------------------------------------------------------------------
+    // Declaration/definition merge (Phase 3 — Semantic Symbol Resolution)
+    // ddCeSource is declared in decl_def_callee.h and defined out-of-line in
+    // decl_def_callee.cpp. Querying with the *declaration* occurrence (whose
+    // own nodeIndex has no body) must still find the callee resolved from the
+    // definition's body.
+
+    bool test_decl_def_merge()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+
+        const WorkspaceSymbol* declSite = findByNameInFile(ws, u8"ddCeSource", u8"decl_def_callee.h");
+        ok &= check(declSite != nullptr, "ddCeSource header declaration found");
+        if(declSite)
+            ok &= check(!declSite->symbol.isDefinition, "ddCeSource header occurrence is a declaration");
+        if(!declSite) return false;
+
+        Callees callees;
+        auto sites = callees.find(ws, *declSite);
+        ok &= check(sites.size() == 1,
+                    "querying via the header declaration finds the def-resolved callee");
+        if(!sites.empty() && sites[0].callee)
+            ok &= check(sites[0].callee->symbol.name == u8"ddCeTarget",
+                        "ddCeSource callee is ddCeTarget");
+        return ok;
+    }
+
+    // -----------------------------------------------------------------------
+    // const/non-const method overloads must remain distinct logical symbols.
+
+    bool test_const_overload_distinct()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+
+        std::vector<const WorkspaceSymbol*> coRuns;
+        for(const auto& sym : ws.symbols) {
+            if(sym.symbol.fqn == u8"CoCeObj::coCeRun") coRuns.push_back(&sym);
+        }
+        ok &= check(coRuns.size() == 2,
+                    "CoCeObj::coCeRun() and coCeRun() const remain 2 distinct symbols");
+        if(coRuns.size() == 2)
+            ok &= check(coRuns[0]->symbol.signature != coRuns[1]->symbol.signature,
+                        "const and non-const overloads have different signatures");
+
+        const WorkspaceSymbol* caller = findByFQN(ws, u8"coCeCaller");
+        ok &= check(caller != nullptr, "coCeCaller found");
+        if(caller) {
+            Callees callees;
+            auto sites = callees.find(ws, *caller);
+            ok &= check(sites.empty(),
+                        "ambiguous coCeRun call is not arbitrarily attributed to either overload");
+        }
+        return ok;
+    }
+
+    // -----------------------------------------------------------------------
     // Unresolved call — silently skipped, no false positives
 
     bool test_unresolved_call()
@@ -379,6 +436,8 @@ bool run_tests_callees()
         {"namespace-qualified callee",                      test_namespace_callee},
         {"member function callee",                          test_member_callee},
         {"overloaded functions",                            test_overloaded},
+        {"decl/def merge: header decl finds def-resolved callee", test_decl_def_merge},
+        {"const/non-const overloads remain distinct",       test_const_overload_distinct},
         {"unresolved call: silently skipped",               test_unresolved_call},
         {"cross-file callee",                               test_cross_file_callee},
         {"result ordering within function",                 test_result_ordering},

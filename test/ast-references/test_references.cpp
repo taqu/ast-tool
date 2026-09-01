@@ -265,6 +265,36 @@ namespace
     }
 
     // -----------------------------------------------------------------------
+    // Declaration/definition merge (Phase 3 — Semantic Symbol Resolution)
+    // drRefFn is declared in decl_def_ref.h and defined out-of-line in
+    // decl_def_ref.cpp. Querying with the *declaration* occurrence must still
+    // find the reference in decl_def_ref_use.cpp.
+
+    bool test_decl_def_merge()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kRefRoot);
+
+        const WorkspaceSymbol* declSite = findByNameInFile(ws, u8"drRefFn", u8"decl_def_ref.h");
+        ok &= check(declSite != nullptr, "drRefFn header declaration found");
+        if(declSite)
+            ok &= check(!declSite->symbol.isDefinition, "drRefFn header occurrence is a declaration");
+        if(!declSite) return false;
+
+        FindReferences finder(ws);
+        auto refs = finder.find(*declSite, /*includeDeclaration=*/false);
+
+        ok &= check(refs.size() == 1,
+                    "querying via the header declaration finds the 1 reference");
+        if(!refs.empty()) {
+            std::u8string sourceFile = refs[0].sourceFile.u8string();
+            ok &= check(sourceFile.find(u8"decl_def_ref_use") != std::string::npos,
+                        "reference is in decl_def_ref_use.cpp");
+        }
+        return ok;
+    }
+
+    // -----------------------------------------------------------------------
     // Unresolved identifiers produce no false positives
 
     bool test_no_false_positives_from_unresolved()
@@ -397,6 +427,7 @@ bool run_tests_references()
         {"shadowing: inner decl hides outer",             test_shadowing},
         // Cross-file
         {"cross-file reference",                          test_cross_file},
+        {"decl/def merge: header decl finds def-site reference", test_decl_def_merge},
         // Unresolved identifiers → no false positives
         {"no false positives from unresolved identifiers", test_no_false_positives_from_unresolved},
         // Local variable / parameter (may be skipped)
