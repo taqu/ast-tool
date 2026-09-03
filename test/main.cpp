@@ -25,6 +25,7 @@
 #include "ast-cache-warm/test_cache_warm.h"
 #include "ast-setup/test_setup.h"
 #include "ast-error-ux/test_error_ux.h"
+#include "ast-help/test_help.h"
 #include <cassert>
 #include <iostream>
 
@@ -64,6 +65,7 @@ int main(void)
     all_passed &= run_tests_semantic_diff();
     all_passed &= run_tests_context_export();
     all_passed &= run_tests_error_ux();
+    all_passed &= run_tests_help();
 
     std::cout << "===================================================" << std::endl;
     std::cout << (all_passed ? "ALL TESTS PASSED" : "SOME TESTS FAILED") << std::endl;

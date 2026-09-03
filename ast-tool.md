@@ -1,807 +1,282 @@
-# Phase 5 — Error Recovery UX
+# Phase 6 Regression Analysis
 
-## Goal
+Analyze the Phase 6 regression in the AST Tool / Coding Agent evaluation.
 
-Improve AST Tool error recovery so that a coding agent can recover from failed semantic queries with fewer exploratory tool calls, fewer retries, and fewer tokens.
+Do not modify the implementation yet. First identify the most likely causes from the repository, Skill.md, CLI help text, and evaluation traces.
 
-This phase must improve recovery behavior without attempting to redesign semantic symbol resolution.
+## Context
 
-The desired trajectory is:
+Phase 5 is the current stable baseline.
 
-```text
-semantic command
-      ↓
-failure
-      ↓
-actionable error
-      ↓
-one appropriate fallback
-```
-
-instead of:
+Phase 5:
 
 ```text
-semantic command
-      ↓
-failure
-      ↓
-help
-find
-search
-grep
-read
-retry
-...
+tests                      41
+successes                  37
+success rate               90.24%
+
+total tool calls           518
+AST Tool calls              69
+AST failures                 9
+AST failure rate           13.04%
+AST retries                  9
+
+avg recovery distance       1.44
+max recovery distance          2
+
+grep                         15
+read                        252
+
+total tokens            158,303
+avg tokens/test           3,861
 ```
 
----
-
-# Baseline
-
-Use the accepted Phase 2 implementation as the starting point.
-
-Do NOT use the experimental Phase 3 semantic-resolution implementation.
-
-Phase 2 evaluation:
+Phase 6:
 
 ```text
-tests:                       41
-successes:                   37
-failures:                     4
-success rate:                90.24%
+tests                      41
+successes                  25
+success rate               60.98%
 
-total tool calls:            519
-average tool calls/test:     12.66
+total tool calls           444
+AST Tool calls              15
+AST failures                 4
+AST failure rate           26.67%
+AST retries                  4
 
-ast-tool calls:               70
-ast-tool failures:            36
-ast-tool failure rate:       51.43%
-ast-tool retries:             23
+avg recovery distance       2.25
+max recovery distance          5
 
-average recovery distance:    2.23
-max recovery distance:        5
+grep                         73
+read                        188
 
-grep calls:                   18
-read calls:                  254
-
-elapsed time:             2100.56 sec
-
-total tokens:             162,628
-average tokens/test:        3,966.5
+total tokens            252,242
+avg tokens/test           6,152.2
 ```
 
-Semantic command failures included:
+AST Tool command usage in Phase 6:
 
 ```text
-callers:       21 failures
-callees:        9 failures
-references:     5 failures
-find:           1 failure
+search       4
+callers      2
+references   5
+find         3
+"2"          1
 ```
 
-Despite these failures, the overall task success rate remained 90.24%.
-
-This suggests that fallback behavior works but is unnecessarily expensive.
-
----
-
-# Background
-
-A previous attempt to improve semantic resolution caused a severe end-to-end regression:
+The important regression pattern is:
 
 ```text
-success rate:
-90.24% → 60.98%
-
-total tokens:
-162,628 → 253,785
-
-ast-tool usage:
-70 → 15
-
-grep usage:
-18 → 71
+AST Tool usage: 69 -> 15
+grep:           15 -> 73
+success:        37 -> 25
+tokens:         158k -> 252k
 ```
 
-Therefore:
+This is very similar to the earlier Phase 3 failure mode, where AST Tool usage collapsed and the agent fell back to grep/manual exploration.
 
-> Do not attempt to solve semantic identity or declaration/definition unification in this phase.
+## Phase 6 Intent
 
-The objective is to make failures cheap and recoverable.
+Phase 6 was intended to change only the agent-facing command surface:
 
----
+* help grouping
+* command ordering
+* category headings
+* discoverability
 
-# Scope
+It was not intended to change:
 
-Improve error and empty-result behavior for the commands most commonly used by coding agents:
+* command semantics
+* command syntax
+* semantic resolution
+* Skill.md
+* JSON output
+* Phase 5 error recovery behavior
+
+The intended command classification was approximately:
 
 ```text
-search
-callers
-references
-callees
-find
-symbols
+Primary:
+  search
+  callers
+  references
+  callees
+  find
+  symbols
+
+Secondary:
+  outline
+
+Debug / low-level:
+  parent
+  children
+  range
+
+Infrastructure:
+  cache
+  setup
 ```
 
-Focus especially on:
+## Existing Skill.md Routing Model
+
+The Skill.md already gives the agent a direct task-to-command decision tree similar to:
 
 ```text
-ambiguous symbol
-symbol not found
-no semantic result
-invalid query
-invalid argument
-unknown option
-unsupported query form
+Find symbol       -> search
+Find callers      -> callers
+Find references   -> references
+Find callees      -> callees
+Find file symbols -> symbols
+Need AST structure -> find
 ```
 
----
-
-# Non-goals
-
-Do NOT implement or modify:
+It also tells the agent:
 
 ```text
-declaration/definition semantic unification
-C++ overload resolution architecture
-cross-translation-unit semantic identity
-stable public Symbol IDs
-callers --id
-references --id
-callees --id
-Skill.md
-JSON schema redesign
-command deletion
-command renaming
-evaluation prompts
-evaluation repositories
+Do not retry unchanged failed commands.
+Do not use --pretty by default.
+Do not dump entire workspace.
+Do not use --help for ordinary discovery.
 ```
 
-Do not introduce a new semantic resolver architecture.
+## Main Hypothesis to Investigate
 
-Do not make command-specific semantic hacks whose purpose is to increase success rate.
+Investigate whether Phase 6 introduced a conflict, ambiguity, or competing routing model between:
 
-Do not silently choose an ambiguous candidate.
+1. Skill.md
+2. top-level `ast-tool --help`
+3. per-command help or descriptions
+4. any command metadata exposed to the Coding Agent
 
-Do not automatically run fallback commands internally.
+Do not limit the analysis to literal contradictions.
 
-The tool should provide useful guidance; the agent remains responsible for selecting the next action.
-
----
-
-# Design Principle
-
-Every failure should answer three questions whenever possible:
+A contradiction can also be semantic or behavioral, for example:
 
 ```text
-1. What failed?
-2. What useful information do we already know?
-3. What is the cheapest reasonable next action?
+Skill.md strongly maps an intent to `search`
+but
+CLI help makes `find`, `search`, and generic text search look like overlapping alternatives.
 ```
 
-The response must remain compact.
+This can increase command-selection uncertainty even if no statement is literally contradictory.
 
-Avoid verbose tutorials.
-
-This output will be consumed by an LLM, so optimize for:
+Pay particular attention to why:
 
 ```text
-low token count
-clear structure
-machine readability
-immediate actionability
+search:  30 calls in Phase 5 -> 4 in Phase 6
+callers: 14 calls in Phase 5 -> 2 in Phase 6
 ```
 
----
+while grep increased dramatically.
 
-# Error Categories
+## Tasks
 
-## 1. Symbol Not Found
+1. Inspect the Phase 5 -> Phase 6 diff.
 
-Current behavior may resemble:
+2. Identify every change that can affect what the Coding Agent sees or infers about available commands.
+
+3. Compare the routing model presented by Skill.md with the routing model implied by CLI help.
+
+4. For each primary intent, build a table:
 
 ```text
-error: symbol not found
+Intent | Skill.md recommendation | Phase 6 help implication | Conflict/ambiguity
 ```
 
-Prefer something conceptually like:
+At minimum analyze:
+
+* locate a symbol
+* find callers
+* find references
+* find callees
+* inspect AST structure
+* inspect symbols in a file
+
+5. Look specifically for:
+
+   * duplicated guidance
+   * competing command recommendations
+   * changed wording
+   * changed command ordering
+   * reduced salience of `search`
+   * `search` vs `find` ambiguity
+   * semantic commands appearing less important or more specialized
+   * grouping that may cause the agent to ignore the AST Tool
+   * help text that encourages generic grep/manual inspection
+   * accidental changes outside the intended Phase 6 scope
+
+6. Inspect failed evaluation traces where possible.
+
+Compare successful Phase 5 trajectories with failed Phase 6 trajectories and identify the first meaningful divergence, especially transitions such as:
 
 ```text
-error: symbol not found: AuthToken::validate
+expected:
+search -> callers/references -> edit
 
-next:
-  search "validate"
+actual:
+grep -> read -> grep -> read -> ...
 ```
 
-If a qualified query appears too specific, the tool may suggest searching a shorter symbol name.
+7. Determine whether the regression is primarily:
 
-Example:
+A. Skill.md/help inconsistency
+B. command discoverability/salience regression
+C. accidental command behavior regression
+D. evaluation/tooling artifact
+E. another cause
+
+Rank hypotheses by evidence.
+
+8. Investigate the recurring command classification:
 
 ```text
-error: symbol not found: auth::AuthToken::validate
-
-next:
-  ast-tool search validate .
+"2": 1
 ```
 
-Do not automatically execute the search.
+but keep this separate unless there is evidence that it contributed materially to the Phase 6 regression.
 
----
+## Important Constraints
 
-## 2. Ambiguous Symbol
+Do not implement fixes during this analysis.
 
-If multiple candidates exist, return a bounded candidate list.
+Do not assume that lower AST Tool failure counts indicate an improvement. AST Tool usage itself collapsed.
 
-Example:
+Optimize for Coding Agent end-to-end behavior, not AST Tool-local metrics.
 
-```text
-error: ambiguous symbol: validate
+Phase 5 remains the stable baseline.
 
-candidates:
-  auth::AuthToken::validate
-  auth::Validator::validate
+## Output
 
-next:
-  retry using a fully-qualified name
-```
+Produce:
 
-If source locations are already available cheaply:
+### 1. Executive conclusion
 
-```text
-candidates:
-  auth::AuthToken::validate  src/auth/auth_token.cpp:7
-  auth::Validator::validate  src/auth/validator.cpp:19
-```
+A concise explanation of the most likely cause of the Phase 6 regression.
 
-Do not dump every candidate in a large workspace.
+### 2. Evidence
 
-Use a small bounded number of candidates.
+Reference concrete files, diffs, help text, Skill.md rules, and evaluation traces.
 
-If more exist:
+### 3. Skill.md vs Help comparison
 
-```text
-showing 5 of 18 candidates
-```
+Show conflicting or ambiguous routing guidance explicitly.
 
-is sufficient.
+### 4. Failure trajectory analysis
 
----
+Explain why the agent moved from AST Tool usage toward grep/manual exploration.
 
-# Important Declaration / Definition Case
+### 5. Ranked root-cause hypotheses
 
-Do not attempt to unify a header declaration and source definition in this phase.
+For each hypothesis provide:
 
-If they appear as separate candidates, report them compactly.
+* evidence for
+* evidence against
+* confidence
 
-For example:
+### 6. Minimal remediation recommendation
 
-```text
-error: ambiguous symbol: auth::AuthToken::validate
+Recommend the smallest Phase 6b change likely to restore Phase 5 behavior.
 
-candidates:
-  src/auth/auth_token.h:12
-  src/auth/auth_token.cpp:7
+Prefer restoring Phase 5 discoverability and removing conflicting guidance over adding more instructions.
 
-next:
-  inspect candidates with search or symbols
-```
-
-Do not claim they are the same logical symbol unless the current semantic layer already knows that reliably.
-
-The purpose is recovery, not semantic inference.
-
----
-
-# 3. Empty Semantic Result
-
-Distinguish:
-
-```text
-command succeeded but found no results
-```
-
-from:
-
-```text
-command failed
-```
-
-For example:
-
-```text
-no callers found for: auth::AuthToken::validate
-```
-
-should not automatically be represented as a generic error if the query itself was valid.
-
-Where useful, provide a short fallback:
-
-```text
-next:
-  search for direct references
-```
-
-But only if that recommendation is semantically reasonable.
-
-Avoid suggesting unrelated commands merely to produce guidance.
-
----
-
-# 4. Unknown Option
-
-Example:
-
-```text
-error: unknown option: --foo
-
-available:
-  --json
-  --pretty
-```
-
-If there is an obvious likely correction, it may be shown.
-
-Do not print the entire command help.
-
-Do not instruct the agent to call `--help` unless necessary.
-
-The goal is specifically to reduce help calls.
-
----
-
-# 5. Invalid Arguments
-
-Example:
-
-```text
-error: missing PATH
-
-usage:
-  ast-tool callers SYMBOL PATH
-```
-
-Return the minimal valid invocation shape.
-
-Do not dump the complete CLI documentation.
-
----
-
-# 6. Unsupported Query Form
-
-If a command receives a query type it cannot process, make that explicit.
-
-Example:
-
-```text
-error: callers requires a semantic symbol query
-
-next:
-  use search to resolve the symbol first
-```
-
-Avoid generic parser or internal-error messages where a user-facing classification is available.
-
----
-
-# 7. Internal Errors
-
-Do not hide real internal failures as user mistakes.
-
-Use a clear distinction such as:
-
-```text
-error: internal semantic analysis failure
-```
-
-and preserve enough diagnostic information for debugging.
-
-However, keep normal agent-facing output compact.
-
-If the project already has verbose/debug logging, detailed diagnostics should go there rather than into the default response.
-
----
-
-# Recovery Recommendation Rules
-
-Recommendations should follow a small deterministic decision table.
-
-Prefer rules such as:
-
-```text
-symbol not found
-    → search
-
-ambiguous short name
-    → retry with qualified name
-
-ambiguous qualified name
-    → inspect candidate locations / symbols
-
-invalid syntax
-    → show minimal valid syntax
-
-unknown option
-    → show relevant valid options
-
-valid query with no callers
-    → no error; report zero result
-```
-
-Do not create a complex planner inside AST Tool.
-
-The tool should recommend at most one primary next action in normal cases.
-
-A second alternative is acceptable only when genuinely useful.
-
----
-
-# Output Size Constraints
-
-Error UX must not create a new token problem.
-
-Use:
-
-```text
-short messages
-bounded candidate lists
-compact locations
-minimal examples
-```
-
-Avoid:
-
-```text
-full help output
-large AST dumps
-workspace-wide candidate dumps
-long prose explanations
-repeated field names
-stack traces in normal output
-```
-
-Candidate output should have a configurable or fixed conservative upper bound.
-
-A default such as 3–5 candidates is preferable to returning dozens.
-
-Follow existing project conventions where possible.
-
----
-
-# JSON Behavior
-
-If the command is executed with `--json`, errors should remain structured and compact.
-
-Use the existing JSON architecture if one already exists.
-
-Conceptually, a recoverable error might contain fields equivalent to:
-
-```json
-{
-  "error": "ambiguous_symbol",
-  "query": "validate",
-  "candidates": [
-    {
-      "name": "auth::AuthToken::validate",
-      "file": "src/auth/auth_token.cpp",
-      "line": 7
-    }
-  ],
-  "next": "retry_with_qualified_name"
-}
-```
-
-This is an example of intent, not a required schema.
-
-Do not introduce a major incompatible JSON schema change solely to match this example.
-
-Preserve backwards compatibility wherever practical.
-
----
-
-# Human-readable Output
-
-Plain-text output should remain concise enough for agent consumption.
-
-Prefer:
-
-```text
-error: ambiguous symbol: validate
-candidates:
-  auth::AuthToken::validate  src/auth/auth_token.cpp:7
-  auth::Validator::validate  src/auth/validator.cpp:19
-next: retry with a fully-qualified name
-```
-
-over long explanatory paragraphs.
-
----
-
-# Implementation Guidance
-
-First identify the existing error-generation paths shared by:
-
-```text
-callers
-references
-callees
-search
-find
-symbols
-```
-
-Prefer centralized error classification and rendering where the architecture supports it.
-
-Avoid duplicating recovery-message logic in every command.
-
-A useful conceptual separation is:
-
-```text
-operation
-   ↓
-typed failure/result
-   ↓
-recovery classification
-   ↓
-CLI / JSON rendering
-```
-
-Do not refactor unrelated architecture merely to achieve this separation.
-
-Use the smallest implementation that produces consistent behavior.
-
----
-
-# Tests
-
-Add tests for the following categories.
-
-## Symbol not found
-
-Verify:
-
-```text
-clear error category
-query included
-search recommendation where appropriate
-no full help dump
-```
-
----
-
-## Ambiguous symbol
-
-Verify:
-
-```text
-candidate names included
-candidate count is bounded
-qualified-name recommendation
-no arbitrary candidate selection
-```
-
----
-
-## Large candidate set
-
-Create enough matching symbols to exceed the output bound.
-
-Verify:
-
-```text
-only N candidates shown
-total candidate count may be indicated
-output remains compact
-```
-
----
-
-## Unknown option
-
-Verify:
-
-```text
-bad option identified
-small relevant option set shown
-no entire help text
-```
-
----
-
-## Invalid arguments
-
-Verify that minimal usage information is returned.
-
----
-
-## Empty successful result
-
-Verify that:
-
-```text
-valid query + zero callers
-```
-
-is distinguishable from:
-
-```text
-failed symbol resolution
-```
-
-where the current architecture permits this distinction.
-
----
-
-## JSON errors
-
-Verify JSON output is:
-
-```text
-valid
-compact by default
-machine-readable
-backwards-compatible where required
-```
-
----
-
-# Regression Constraints
-
-The Phase 2 behavior is the regression baseline.
-
-All existing Phase 2 tests should continue to pass except where a test explicitly validates an unhelpful error message that is intentionally being improved.
-
-Do not modify semantic query results merely to satisfy the new tests.
-
-Error UX tests must not require semantic behavior that Phase 2 did not already provide.
-
----
-
-# Evaluation
-
-Run the unchanged 41-test evaluation suite after implementation.
-
-Collect exactly the same metrics as Phase 2:
-
-```text
-tests
-successes
-failures
-success rate
-
-total tool calls
-average tool calls per test
-
-ast-tool calls
-ast-tool failures
-ast-tool failure rate
-ast-tool retries
-ast-tool help calls
-
-ast-tool failures by command
-
-bash calls
-read calls
-edit calls
-grep calls
-glob calls
-
-elapsed time
-average elapsed time
-
-input tokens
-output tokens
-total tokens
-average tokens per test
-
-average ast-tool recovery distance
-max ast-tool recovery distance
-```
-
-Also retain per-test command sequences.
-
----
-
-# Primary Evaluation Metrics
-
-The primary expected improvements are:
-
-```text
-ast-tool retries ↓
-recovery distance ↓
-help calls ↓
-fallback exploration ↓
-```
-
-Secondary expected improvements:
-
-```text
-total tool calls ↓
-grep calls ↓
-read calls ↓
-total tokens ↓
-elapsed time ↓
-```
-
-The success rate must remain approximately stable or improve.
-
----
-
-# Acceptance Criteria
-
-## Required
-
-Phase 5 is acceptable only if:
-
-```text
-success rate does not materially regress from 90.24%
-```
-
-A one-test variation may be investigated individually, but a broad correctness regression is unacceptable.
-
-Additionally, at least one recovery-efficiency metric should improve materially:
-
-```text
-AST retries
-average recovery distance
-max recovery distance
-help calls
-fallback tool calls
-```
-
-without causing substantial token inflation.
-
----
-
-## Preferred
-
-A strong result would look like:
-
-```text
-success rate:              stable or ↑
-total tokens:              ↓
-AST retries:               ↓
-recovery distance:         ↓
-grep/read fallback:        ↓
-elapsed time:              stable or ↓
-```
-
----
-
-# Stop Conditions
-
-Stop and revert the phase if any of the following occurs:
-
-```text
-success rate drops substantially
-total tokens increase substantially
-grep fallback increases substantially
-AST Tool usage collapses unexpectedly
-error messages become significantly larger
-```
-
-Do not continue modifying unrelated components in an attempt to recover the evaluation within the same phase.
-
-Instead report the regression.
-
----
-
-# Deliverables
-
-At completion, provide:
-
-1. Summary of the previous error behavior.
-2. Error categories introduced or improved.
-3. Recovery recommendation rules.
-4. Files/components changed.
-5. Tests added.
-6. Unit/integration test results.
-7. Full unchanged evaluation results.
-8. Phase 2 vs Phase 5 metric comparison.
-9. Representative before/after tool trajectories.
-10. Any error categories intentionally left unchanged.
-11. Any observed cases where recommendations caused unexpected agent behavior.
-
-Do not begin Phase 6 work.
-
-Do not modify Skill.md as part of this phase.
+Do not propose Phase 7 Skill.md compression until Phase 6 behavior is stable again.

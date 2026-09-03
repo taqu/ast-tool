@@ -13,9 +13,10 @@ namespace
 
 enum class CommandCategory
 {
-    ASTInspection,
-    SemanticAnalysis,
-    CacheManagement,
+    Primary,
+    Secondary,
+    DebugLowLevel,
+    Infrastructure,
 };
 
 struct CommandEntry
@@ -796,23 +797,26 @@ static const char8_t kHelpCacheStatus[] =
 // Command metadata tables
 
 static const CommandEntry kCommands[] = {
-    // AST Inspection (internal)
-    {u8"dump",     u8"Print all AST nodes of a source file.",              CommandCategory::ASTInspection,   kHelpDump,     true},
-    // AST Inspection (public)
-    {u8"outline",  u8"Show the structural outline of a source file.",      CommandCategory::ASTInspection,   kHelpOutline,  false},
-    {u8"find",     u8"Find AST nodes by type, text, position, or ID.",     CommandCategory::ASTInspection,   kHelpFind,     false},
-    {u8"range",    u8"Show AST nodes within a source range.",              CommandCategory::ASTInspection,   kHelpRange,    false},
-    {u8"parent",   u8"Show the parent AST node.",                          CommandCategory::ASTInspection,   kHelpParent,   false},
-    {u8"children", u8"Show the child AST nodes.",                          CommandCategory::ASTInspection,   kHelpChildren, false},
-    // Semantic Analysis
-    {u8"symbols",    u8"List symbols in a source file.",                   CommandCategory::SemanticAnalysis, kHelpSymbols,    false},
-    {u8"search",     u8"Search symbols in the workspace.",                 CommandCategory::SemanticAnalysis, kHelpSearch,     false},
-    {u8"references", u8"Find references to a symbol.",                     CommandCategory::SemanticAnalysis, kHelpReferences, false},
-    {u8"callers",    u8"Find direct callers of a function.",               CommandCategory::SemanticAnalysis, kHelpCallers,    false},
-    {u8"callees",    u8"Find direct callees of a function.",               CommandCategory::SemanticAnalysis, kHelpCallees,    false},
-    // Cache Management
-    {u8"cache",        u8"Manage the workspace AST cache (warm / status).", CommandCategory::CacheManagement, kHelpCache,  false},
-    {u8"setup",        u8"Configure coding-agent session-start hooks.",      CommandCategory::CacheManagement, kHelpSetup, false},
+    // Primary — normal semantic exploration workflow (search/callers/references/
+    // callees/find/symbols). This is the small, obvious default surface a coding
+    // agent should reach for first.
+    {u8"search",     u8"Search symbols in the workspace.",                 CommandCategory::Primary, kHelpSearch,     false},
+    {u8"callers",    u8"Find direct callers of a function.",               CommandCategory::Primary, kHelpCallers,    false},
+    {u8"references", u8"Find references to a symbol.",                     CommandCategory::Primary, kHelpReferences, false},
+    {u8"callees",    u8"Find direct callees of a function.",               CommandCategory::Primary, kHelpCallees,    false},
+    {u8"find",       u8"Find AST nodes by type, text, position, or ID.",   CommandCategory::Primary, kHelpFind,       false},
+    {u8"symbols",    u8"List symbols in a source file.",                   CommandCategory::Primary, kHelpSymbols,    false},
+    // Secondary — useful, but not usually necessary for every task.
+    {u8"outline",  u8"Show the structural outline of a source file.",      CommandCategory::Secondary, kHelpOutline,  false},
+    // Debug / Low-level — AST inspection and debugging, not the normal semantic
+    // navigation path. Still fully callable directly.
+    {u8"parent",   u8"Show the parent AST node.",                          CommandCategory::DebugLowLevel, kHelpParent,   false},
+    {u8"children", u8"Show the child AST nodes.",                          CommandCategory::DebugLowLevel, kHelpChildren, false},
+    {u8"range",    u8"Show AST nodes within a source range.",              CommandCategory::DebugLowLevel, kHelpRange,    false},
+    {u8"dump",     u8"Print all AST nodes of a source file.",              CommandCategory::DebugLowLevel, kHelpDump,     true},
+    // Infrastructure — operational commands rather than semantic exploration.
+    {u8"setup",    u8"Configure coding-agent session-start hooks.",        CommandCategory::Infrastructure, kHelpSetup, false},
+    {u8"cache",    u8"Manage the workspace AST cache (warm / status).",    CommandCategory::Infrastructure, kHelpCache, false},
 };
 
 static constexpr int kCommandCount = sizeof(kCommands) / sizeof(kCommands[0]);
@@ -824,9 +828,10 @@ struct CategoryInfo
 };
 
 static const CategoryInfo kCategories[] = {
-    {CommandCategory::ASTInspection,   "AST Inspection"},
-    {CommandCategory::SemanticAnalysis, "Semantic Analysis"},
-    {CommandCategory::CacheManagement,  "Cache Management"},
+    {CommandCategory::Primary,        "Primary"},
+    {CommandCategory::Secondary,      "Secondary"},
+    {CommandCategory::DebugLowLevel,  "Debug / Low-level"},
+    {CommandCategory::Infrastructure, "Infrastructure"},
 };
 
 static constexpr int kCategoryCount = sizeof(kCategories) / sizeof(kCategories[0]);
