@@ -1,8 +1,8 @@
-## AST Tool — Roadmap / Progress Summary
+# AST Tool — Roadmap / Progress Summary
 
-### 目的
+## 目的
 
-最適化対象は AST Tool 単体の sophistication ではなく、Coding Agent 全体の効率。
+最適化対象は AST Tool 単体ではなく、Coding Agent 全体の効率。
 
 ```text
 Agent efficiency
@@ -13,15 +13,18 @@ Agent efficiency
 └─ unnecessary exploration ↓
 ```
 
-AST Tool call 数や failure rate は補助指標であり、それ自体を目的関数にはしない。
-
-特に今回の評価から、
+主要指標の優先順位：
 
 ```text
-AST Tool failure ↓
+1. Success rate
+2. Total tokens
+3. Recovery / unnecessary exploration
+4. Latency
+5. Total tool calls
+6. AST Tool local metrics
 ```
 
-でも Agent が AST Tool を使わなくなって success rate が落ちれば失敗、と確認できた。
+AST Tool call 数や failure rate 単独では評価しない。
 
 ---
 
@@ -46,12 +49,13 @@ P4  Stable Semantic Symbol ID
 P5  Error Recovery UX
  ✓ ACCEPTED
  │
- └─ Current stable baseline
+ └─ Current Stable Baseline
 
 P6  Agent-facing Command Surface
- → CURRENT / NEXT EVALUATION
+ ✗ REJECTED
 
 P7  Skill.md Compression
+ → NEXT
 
 P8  Final Quantitative Evaluation
 
@@ -62,7 +66,7 @@ P9  Optional Semantic Research
 
 # Phase 0 — Baseline / Trace Metrics
 
-### 目的
+## 目的
 
 変更前後を同じ指標で比較可能にする。
 
@@ -92,19 +96,19 @@ recovery distance
 failures by command
 ```
 
-### 状態
+## 状態
 
 **Completed**
 
-以降すべて同じ 41 evaluation tests を基本比較対象としている。
+同じ 41 evaluation tests を基本比較対象として使用。
 
 ---
 
 # Phase 1 — Skill.md Decision Tree
 
-### 目的
+## 目的
 
-Agent の、
+Agent の command selection を一本道にし、
 
 ```text
 help
@@ -114,9 +118,7 @@ help
 
 を減らす。
 
-Skill を説明文中心から decision tree 中心に変更。
-
-基本方針：
+基本 routing：
 
 ```text
 Find symbol       → search
@@ -127,7 +129,7 @@ Find file symbols → symbols
 Need AST structure → find
 ```
 
-加えて、
+追加ルール：
 
 ```text
 Do not retry unchanged failed commands.
@@ -136,9 +138,7 @@ Do not dump entire workspace.
 Do not use --help for ordinary discovery.
 ```
 
-などを明示。
-
-### 結果
+## 結果
 
 ```text
 tests                 41
@@ -152,7 +152,7 @@ total tokens      176,983
 elapsed            2290.81 sec
 ```
 
-### 状態
+## 状態
 
 **Accepted**
 
@@ -160,7 +160,7 @@ elapsed            2290.81 sec
 
 # Phase 2 — Output / JSON UX
 
-### 目的
+## 目的
 
 特に、
 
@@ -169,9 +169,9 @@ elapsed            2290.81 sec
 workspace-wide output
 ```
 
-による token waste を減らす。
+による token waste を削減。
 
-主な考え方：
+方針：
 
 ```text
 compact JSON by default
@@ -181,7 +181,7 @@ avoid huge default output
 preserve compatibility
 ```
 
-### 結果
+## 結果
 
 ```text
 tests                 41
@@ -190,7 +190,7 @@ success rate          90.24%
 total tool calls      519
 AST Tool calls         70
 AST failures           36
-failure rate         51.43%
+AST failure rate      51.43%
 AST retries            23
 
 grep                   18
@@ -207,175 +207,55 @@ elapsed            2100.56 sec
 Phase 1 比：
 
 ```text
+success rate     = maintained
 total tool calls ↓
-tokens           ↓ 約8%
-elapsed          ↓ 約8%
+tokens           ↓ ~8%
+elapsed          ↓ ~8%
 grep             ↓
 read             ↓
-success rate     = 維持
 ```
 
-### 状態
+## 状態
 
 **Accepted**
-
-当時の stable baseline。
 
 ---
 
 # Phase 3 — Semantic Symbol Resolution
 
-### 元の目的
-
-C++ の、
-
-```text
-header declaration
-cpp definition
-```
-
-を同一 logical semantic symbol として扱い、
-
-```text
-callers auth::AuthToken::validate .
-```
-
-などの false ambiguity を解消する。
-
-### 結果
-
-大幅 regression。
-
-```text
-tests                 41
-successes             25
-success rate          60.98%
-
-total tool calls      452
-
-AST Tool calls         15
-AST failures            2
-failure rate         13.33%
-
-grep                   71
-
-total tokens      253,785
-avg tokens/test     6,189.9
-
-elapsed            1347.23 sec
-```
-
-Phase 2 → Phase 3：
-
-```text
-success rate:
-90.24% → 60.98%      ❌
-
-total tokens:
-162,628 → 253,785    ❌ +56%
-
-AST Tool calls:
-70 → 15              ⚠ usage collapse
-
-grep:
-18 → 71              ❌
-```
-
-表面上、
-
-```text
-AST failure rate
-51.43% → 13.33%
-```
-
-まで下がったが、これは semantic tool が改善した証拠ではなかった。
-
-Agent が AST Tool をほとんど使わなくなり、
-
-```text
-AST Tool ↓
-grep fallback ↑
-tokens ↑
-success ↓
-```
-
-となった。
-
-過去にも Semantic Resolver 改善を試みて不安定化した経緯あり。
-
-### 判断
+## 状態
 
 **DEFERRED**
 
-現在の optimization track では declaration/definition unification を追わない。
+Semantic Resolver 強化により AST Tool usage が大幅に低下し、grep fallback・token 使用量・task failure が増加。
 
-重要な知見：
-
-> Lightweight Tree-sitter semantic tool に C++ の完全な logical symbol identity を持たせるコストは、Agent-level benefit に対して高すぎる可能性がある。
+```text
+success rate   90.24% → 60.98%
+AST calls      70 → 15
+grep           18 → 71
+tokens         162,628 → 253,785
+```
 
 ---
 
 # Phase 4 — Stable Semantic Symbol ID
 
-元の案：
-
-```text
-search
-  ↓
-semantic symbol ID
-  ↓
-callers --id
-references --id
-callees --id
-```
-
-しかし stable Symbol ID は、
-
-```text
-reliable semantic identity
-```
-
-が前提。
-
-Phase 3 が deferred になったため Phase 4 も延期。
-
-### 状態
+## 状態
 
 **DEFERRED**
 
-現時点では以下を追加しない。
-
-```text
-callers --id
-references --id
-callees --id
-```
+Reliable semantic identity が前提のため、Phase 3 とともに延期。
 
 ---
 
 # Phase 5 — Error Recovery UX
 
-### 方針転換
+## 目的
 
-Phase 3 の失敗を受けて、
-
-```text
-semantic query を必ず成功させる
-```
-
-ではなく、
+Semantic query を必ず成功させるのではなく、
 
 ```text
-semantic query が失敗しても
-Agent が安く正しい recovery をできるようにする
-```
-
-へ変更。
-
-目標 trajectory：
-
-```text
-semantic command
+semantic query
     ↓
 failure
     ↓
@@ -384,30 +264,7 @@ actionable error
 one useful next action
 ```
 
-悪い trajectory：
-
-```text
-failure
-→ help
-→ find
-→ search
-→ grep
-→ read
-→ retry
-→ ...
-```
-
-### 改善対象
-
-```text
-ambiguous symbol
-symbol not found
-no result
-invalid query
-unknown option
-invalid arguments
-unsupported query
-```
+という安価で predictable な recovery path を作る。
 
 Error message は、
 
@@ -421,100 +278,90 @@ Error message は、
 
 Semantic Resolver 自体は変更しない。
 
-### 結果
+## 結果
 
 ```text
-tests                 41
-successes             37
-success rate          90.24%
+tests                      41
+successes                  37
+success rate              90.24%
 
-total tool calls      518
-AST Tool calls         69
+total tool calls           518
+avg tool calls/test       12.63
 
-AST failures            9
-failure rate         13.04%
+AST Tool calls              69
+AST failures                 9
+AST failure rate          13.04%
+AST retries                  9
 
-AST retries             9
+avg recovery distance      1.44
+max recovery distance         2
 
-avg recovery distance 1.44
-max recovery distance 2
+grep                         15
+read                        252
+glob                         12
 
-grep                   15
-read                  252
-glob                   12
+total tokens            158,303
+avg tokens/test           3,861
 
-total tokens      158,303
-avg tokens/test     3,861.0
-
-elapsed            2224.27 sec
+elapsed                 2224.27 sec
 ```
 
-Phase 2 → Phase 5：
+Phase 2 比：
 
 ```text
 success rate
-90.24% → 90.24%        ✅
+90.24% → 90.24%        maintained
 
 AST calls
-70 → 69                ✅ stable
+70 → 69                stable
 
 AST failures
-36 → 9                 ✅ -75%
+36 → 9                 -75%
 
 AST retries
-23 → 9                 ✅ -61%
+23 → 9                 -61%
 
 avg recovery distance
-2.23 → 1.44            ✅
+2.23 → 1.44
 
 max recovery distance
-5 → 2                  ✅
+5 → 2
 
 grep
-18 → 15                ✅
+18 → 15
 
 total tokens
-162,628 → 158,303      ✅ -2.7%
+162,628 → 158,303      -2.7%
 
 elapsed
-2100.56 → 2224.27      ⚠ +5.9%
+2100.56 → 2224.27      +5.9%
 ```
 
-Phase 3 と違い、
-
-```text
-AST Tool usage ≈ stable
-```
-
-なので failure rate 改善は usage collapse によるものではない。
-
-特に semantic commands：
+Semantic commands も大きく改善。
 
 ```text
 Phase 2:
-callers     21 calls / 21 failures
-callees      9 / 9 failures
-references   6 / 5 failures
+callers     21 / 21 failures
+callees      9 / 9
+references   6 / 5
 
 Phase 5:
 callers     14 / 3 failures
-callees      3 / 1 failure
-references   6 / 1 failure
+callees      3 / 1
+references   6 / 1
 ```
 
-trajectory の揺らぎがあるので直接の同一母集団比較ではないが、全体 recovery metrics と合わせて見ると明確な改善。
-
-### 状態
+## 状態
 
 **ACCEPTED**
 
-現在の **stable baseline**。
+現在の **Stable Baseline**。
 
 ---
 
-# 現在の Stable Baseline
+# Current Stable Baseline — Phase 5
 
-今後の比較基準は Phase 2 ではなく **Phase 5**。
+今後の比較基準：
 
 ```text
 tests                      41
@@ -541,15 +388,15 @@ avg tokens/test           3,861
 elapsed                 2224.27 sec
 ```
 
+Phase 5 が現在の正式 baseline。
+
 ---
 
 # Phase 6 — Agent-facing Command Surface
 
-### 状態
+## 目的
 
-**Current / implementation instructions prepared**
-
-目的は command を削除することではない。
+既存 CLI を壊さず、
 
 ```text
 small obvious agent-facing surface
@@ -559,55 +406,16 @@ full backwards-compatible CLI
 
 を作る。
 
-### 現在の分類案
-
-#### Primary Agent Commands
+変更対象：
 
 ```text
-search
-callers
-references
-callees
-find
-symbols
+help grouping
+ordering
+category headings
+discoverability
 ```
 
-#### Secondary
-
-```text
-outline
-```
-
-#### Debug / Low-level
-
-```text
-parent
-children
-range
-```
-
-#### Infrastructure
-
-```text
-cache
-setup
-```
-
-### `find` について
-
-元々 Support 扱いを検討していたが、Phase 5 では、
-
-```text
-find = 12 calls
-```
-
-とかなり使われている。
-
-そのため architectural purity より実測を優先し、Primary 側に残す。
-
-### Phase 6 の重要制約
-
-やらないこと：
+非対象：
 
 ```text
 command deletion
@@ -620,76 +428,150 @@ JSON redesign
 Phase 5 error UX change
 ```
 
-主に、
+想定 command classification：
 
 ```text
-help grouping
-ordering
-category headings
-discoverability
+Primary:
+  search
+  callers
+  references
+  callees
+  find
+  symbols
+
+Secondary:
+  outline
+
+Debug / Low-level:
+  parent
+  children
+  range
+
+Infrastructure:
+  cache
+  setup
 ```
 
-だけを改善する。
+## Clean re-evaluation
 
-Phase 5 の trajectory を壊さないことが最優先。
-
----
-
-# Phase 6 Acceptance Criteria
-
-Phase 5 と比較して、
+clang++ を更新して環境由来の validation failure を除去した結果：
 
 ```text
-success rate ≈ 90.24% or higher
+tests                      41
+successes                  37
+failures                    4
+success rate              90.24%
 
-AST usage does not collapse
+total tool calls           411
+avg tool calls/test       10.02
 
-AST failures ≈ stable or better
-AST retries ≈ stable or better
-recovery distance ≈ stable or better
+AST Tool calls              22
+AST failures                 5
+AST failure rate          22.73%
+AST retries                  8
+AST help calls               5
 
-tokens ≈ stable or lower
+grep                         64
+read                        181
+edit                         81
+bash                         73
 
-grep/read fallback does not spike
+avg recovery distance      2.60
+max recovery distance         5
+
+total tokens            241,130
+avg tokens/test           5,881.2
+
+elapsed                 1104.85 sec
 ```
 
-であれば採用候補。
-
-Phase 6 は大きな token 改善がなくてもよい。
-
-Command surface が整理され、
+Phase 5 比：
 
 ```text
-Phase 5 performance preserved
+success rate
+90.24% → 90.24%          maintained
+
+AST Tool calls
+69 → 22                  -68%
+
+grep
+15 → 64                  +327%
+
+avg recovery distance
+1.44 → 2.60              worse
+
+max recovery distance
+2 → 5                    worse
+
+total tokens
+158,303 → 241,130        +52%
+
+avg tokens/test
+3,861 → 5,881            +52%
 ```
 
-なら成功とみなす。
+Per-command usage：
+
+```text
+Phase 5       Phase 6
+
+search       30 → 5
+callers      14 → 4
+references    6 → 7
+find         12 → 4
+symbols       1 → 1
+```
+
+特に `search` / `callers` / `find` が大幅に減少。
+
+Agent は correctness を維持しているものの、
+
+```text
+AST semantic path ↓
+grep/manual exploration ↑
+context/token cost ↑
+recovery cost ↑
+```
+
+となっている。
+
+以前疑った Skill.md と CLI help の直接的な矛盾については、解析上は強い証拠なし。
+
+Phase 6 の help はほとんどの trajectory で参照されておらず、Skill.md と Primary command の対応にも明示的な矛盾は確認されなかった。
+
+したがって Phase 6 の問題は、
+
+```text
+helpを読んで混乱した
+```
+
+と断定するより、
+
+```text
+Agent が AST Tool を
+default semantic/context-reduction path として
+選択しなくなった
+```
+
+という agent-level behavior regression と捉える。
+
+## 状態
+
+**REJECTED**
+
+Correctness は baseline を維持したが、AST usage collapse、grep fallback、token +52%、recovery 悪化のため不採用。
+
+Phase 5 に rollback。
 
 ---
 
 # Phase 7 — Skill.md Compression
 
-Phase 6 の command surface が安定した後に実施。
+## 状態
 
-最終的な Skill はかなり短くしたい。
+**NEXT**
 
-目標イメージ：
-
-```text
-Find a symbol        → search
-Find callers         → callers
-Find references      → references
-Find callees         → callees
-Inspect structure    → find
-Inspect file symbols → symbols
-
-If a semantic query fails,
-follow the recovery guidance.
-
-Use compact output.
-Do not retry unchanged failed commands.
-Do not use --help unless necessary.
-```
+Phase 5 に rollback した状態から開始する。
 
 目的：
 
@@ -698,13 +580,92 @@ Skill tokens ↓
 Agent decision complexity ↓
 ```
 
-Phase 1 で Skill を改善した後、CLI/Error UX 側が進化したため、Skill に workaround を大量に持たせる必要が減っている。
+ただし Phase 6 の結果を踏まえ、routing behavior を変えないことを最優先とする。
+
+基本 routing は固定：
+
+```text
+Find symbol       → search
+Find callers      → callers
+Find references   → references
+Find callees      → callees
+Find file symbols → symbols
+Need AST structure → find
+```
+
+Compression では、
+
+```text
+routing semantics
+command recommendation
+fallback policy
+```
+
+を変更しない。
+
+削減候補は、
+
+```text
+redundant explanation
+obsolete workaround
+CLI / error UX 側ですでに担保された説明
+repeated examples
+```
+
+のみ。
+
+## 推奨する進め方
+
+一度に大きく圧縮せず、
+
+```text
+Phase 7a
+Conservative Skill.md Compression
+    ↓
+evaluation
+    ↓
+Phase 7b
+Further Compression
+```
+
+と段階化する。
+
+Phase 7a の目標は大幅な token reduction ではなく、
+
+```text
+Phase 5 behavior preserved
++
+Skill.md smaller
+```
+
+とする。
+
+Acceptance criteria の中心：
+
+```text
+success rate ≈ 90.24% or higher
+AST usage ≈ Phase 5
+grep fallback does not spike
+recovery distance ≈ Phase 5
+total tokens <= Phase 5, ideally
+```
+
+特に、
+
+```text
+search usage
+30 → collapse
+```
+
+のような routing regression が起きないことを確認する。
 
 ---
 
 # Phase 8 — Final Quantitative Evaluation
 
-比較：
+Phase 7 が安定した後に実施。
+
+正式比較：
 
 ```text
 Phase 1
@@ -713,51 +674,42 @@ Phase 2
   ↓
 Phase 5
   ↓
-Phase 6
-  ↓
 Phase 7
 ```
 
-特に Phase 3 は experimental failure として別扱い。
+Phase 3 / Phase 6 は experimental failure として別扱い。
 
-主要指標の優先順位：
+見るべき主要指標：
 
 ```text
-1. Success rate
-2. Total tokens
-3. Recovery / unnecessary exploration
-4. Latency
-5. Total tool calls
-6. AST Tool local metrics
+success rate
+total tokens
+AST Tool usage
+grep/read fallback
+AST failures
+AST retries
+recovery distance
+elapsed time
+total tool calls
+per-command usage
+help calls
 ```
 
-AST Tool failure rate 単独では評価しない。
+最終的には、
+
+```text
+baseline → final
+```
+
+で Agent-level efficiency がどこまで改善したかを評価する。
 
 ---
 
-# Phase 9 — Optional Semantic Research Track
+# Phase 9 — Optional Semantic Research
 
-Semantic Resolver は完全に捨てたわけではない。
+Error UX / Skill / command-routing 改善が plateau した場合のみ再検討。
 
-ただし main optimization track から分離する。
-
-再検討条件：
-
-```text
-1. Error UX / command surface / Skill improvements が plateau
-2. Semantic failures が依然 task failure の主要因
-3. narrow かつ低リスクな改善案が見つかる
-```
-
-再開するとしても、
-
-```text
-general declaration/definition unification
-```
-
-をいきなり再実装しない。
-
-例えば：
+候補：
 
 ```text
 exact qualified lookup
@@ -766,27 +718,30 @@ specific narrow C++ cases
 same-file pairing
 ```
 
-のように局所実験する。
+General declaration/definition unification のような広い semantic resolver 改修には戻らない。
 
 ---
 
-# 現時点での設計上の重要な学び
+# 現時点での重要な設計上の学び
 
-### 1. Semantic sophistication ≠ Agent quality
+## 1. Semantic sophistication ≠ Agent quality
 
-Phase 3 で確認。
+AST Tool 自体の semantic metric が改善しても、
 
 ```text
-local metric improvement
-≠
-end-to-end improvement
+AST usage ↓
+grep fallback ↑
+tokens ↑
+success ↓
 ```
+
+なら Agent-level では regression。
 
 ---
 
-### 2. Failure をゼロにする必要はない
+## 2. Failure をゼロにする必要はない
 
-Phase 5 が重要な証拠。
+Phase 5 から、
 
 ```text
 moderately capable semantic tool
@@ -794,13 +749,13 @@ moderately capable semantic tool
 good actionable recovery
 ```
 
-でも高い task success rate を維持できる。
+でも高い task success rate を維持できることが確認できた。
 
 ---
 
-### 3. Coding Agent には一本道が重要
+## 3. Coding Agent には一本道が重要
 
-理想は、
+理想：
 
 ```text
 search
@@ -808,9 +763,11 @@ search
 semantic query
   ↓
 success
+```
 
-or
+または、
 
+```text
 semantic query
   ↓
 actionable failure
@@ -822,113 +779,112 @@ one cheap recovery
 
 ---
 
-### 4. Command classification は実測を優先
+## 4. AST Tool は context compression mechanism としても重要
 
-例：
-
-```text
-find
-```
-
-は設計上は lower-level に見えるが、Phase 5 で頻繁に利用されている。
-
-したがって、
+Phase 6 では tool call 数自体は減ったにもかかわらず、
 
 ```text
-architecture says support command
+total tool calls
+518 → 411
+
+total tokens
+158k → 241k
 ```
 
-より、
+となった。
+
+Semantic query による targeted result を使わず、
 
 ```text
-evaluation says useful command
+grep
+→ read
+→ manual reasoning
 ```
 
-を優先する。
+へ寄ると、一回あたりの探索コストが大きくなる可能性が高い。
+
+したがって AST Tool の価値は単なる navigation speed ではなく、
+
+```text
+relevant context を小さく取り出す
+```
+
+ことにもある。
 
 ---
 
-### 5. Stable baseline を常に明示する
+## 5. Correctness と Efficiency は分けて評価する
 
-現在：
-
-```text
-Phase 5 = stable baseline
-```
-
-Phase 3 の、
+Phase 6 clean run：
 
 ```text
-13.33% AST failure rate
+Correctness
+  success rate = baseline
+
+Efficiency
+  AST usage ↓
+  grep ↑
+  tokens +52%
+  recovery worse
 ```
 
-は正式 baseline として使わない。
-
-AST usage collapse を伴うため比較基準として misleading。
+Task が成功しただけでは optimization success としない。
 
 ---
 
-# Evaluation 周りの未解決事項
+# Evaluation 周りの補足
 
-trace に継続して、
+以前 trace に出ていた、
 
 ```text
 "2": 1
 ```
 
-という command classification が現れている。
-
-Phase 2、Phase 3、Phase 5 などで観測。
-
-候補：
+は trace parser が、
 
 ```text
-trace parser bug
-stderr redirect "2>"
-positional argument misclassification
-malformed invocation
+which ast-tool 2>/dev/null
 ```
 
-Phase 6 本体には混ぜず、評価ツール側の小さい investigation として切り離すのがよい。
+の `2` を subcommand と誤認したものと確認済み。
+
+実際の AST Tool command ではなく、Phase 6 regression の原因ではない。
+
+今後 parser 側で別途修正可能。
 
 ---
 
-# 次の議論の開始地点
+# 次回の議論の開始地点
 
-次回は基本的に、
-
-```text
-Phase 6 の実装結果
-```
-
-から再開する。
-
-見るべき比較は：
+次回は、
 
 ```text
-Phase 5 → Phase 6
+Phase 5 に rollback 済み
+        ↓
+Phase 7a — Conservative Skill.md Compression
 ```
 
-特に：
+から開始する。
+
+最初に決めるべきこと：
 
 ```text
-success rate
-total tokens
-AST Tool usage
-AST Tool failures
-AST retries
-recovery distance
-grep/read fallback
-per-command usage
-help calls
+1. Phase 5 Skill.md のどの記述を必須 routing contract として固定するか
+
+2. どの説明・workaround・example を安全に削除できるか
+
+3. Phase 7a の target size / compression 方針
+
+4. Phase 7a acceptance criteria
 ```
 
-Phase 6 が安定していれば、
+Phase 7 の原則：
 
 ```text
-Phase 7 — Skill.md Compression
+Do not optimize routing yet.
+
+Preserve Phase 5 routing behavior.
+Reduce instruction volume only.
 ```
 
-へ進む。
-
-Phase 6 で regression が出た場合は command surface をさらに削る方向ではなく、**Phase 5 の discoverability に戻して最小限の grouping だけ残す**のが基本方針です。
+Phase 7a が Phase 5 performance を維持できた場合のみ、追加圧縮または Phase 8 に進む。
