@@ -1,0 +1,64 @@
+{
+  "total_with_ast": 41,
+  "total_without_ast": 41,
+  "total_compared": 41,
+  "unmatched_count": 0,
+  "with_ast_success": 38,
+  "without_ast_success": 37,
+  "improved_with_ast": 1,
+  "regressed_with_ast": 0,
+  "with_ast_avg_seconds": 54.8912,
+  "without_ast_avg_seconds": 54.2505,
+  "with_ast_avg_tokens": 3815.5854,
+  "without_ast_avg_tokens": 3861.0488,
+  "with_ast_avg_tool_calls": 13.2927,
+  "without_ast_avg_tool_calls": 12.6341,
+  "ast_tool_total_calls": 59,
+  "ast_tool_commands": {
+    "search": 25,
+    "callers": 14,
+    "references": 6,
+    "find": 6,
+    "callees": 4,
+    "symbols": 2,
+    "children": 1,
+    "2": 1
+  },
+  "tool_deltas": {
+    "Agent": {
+      "with_avg": 0.4146,
+      "without_avg": 0.3171,
+      "delta": 0.0976
+    },
+    "Bash": {
+      "with_avg": 2.4878,
+      "without_avg": 2.9268,
+      "delta": -0.439
+    },
+    "Edit": {
+      "with_avg": 2.0732,
+      "without_avg": 2.0976,
+      "delta": -0.0244
+    },
+    "Glob": {
+      "with_avg": 0.4634,
+      "without_avg": 0.2927,
+      "delta": 0.1707
+    },
+    "Grep": {
+      "with_avg": 0.7561,
+      "without_avg": 0.3659,
+      "delta": 0.3902
+    },
+    "Read": {
+      "with_avg": 6.7073,
+      "without_avg": 6.1463,
+      "delta": 0.561
+    },
+    "Skill": {
+      "with_avg": 0.3902,
+      "without_avg": 0.4878,
+      "delta": -0.0976
+    }
+  }
+}

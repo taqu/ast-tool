@@ -1,0 +1,8 @@
+level,matched_tasks,with_ast_avg_input_tokens,without_ast_avg_input_tokens,input_delta,with_ast_avg_output_tokens,without_ast_avg_output_tokens,output_delta,with_ast_avg_cache_read_tokens,without_ast_avg_cache_read_tokens,cache_read_delta,with_ast_avg_cache_creation_tokens,without_ast_avg_cache_creation_tokens,cache_creation_delta,with_ast_avg_total_tokens,without_ast_avg_total_tokens,total_delta
+overall,41,72,63,9,3744,3798,-55,0,0,0,0,0,0,3816,3861,-45
+smoke,1,20,19,1,2304,2281,23,0,0,0,0,0,0,2324,2300,24
+level1,8,18,20,-2,1592,1562,30,0,0,0,0,0,0,1611,1582,28
+level2,8,19,19,0,2410,2667,-257,0,0,0,0,0,0,2430,2687,-257
+level3,8,30,22,8,2511,2870,-360,0,0,0,0,0,0,2541,2892,-351
+level4,8,115,66,50,6468,5923,544,0,0,0,0,0,0,6583,5989,594
+level5,8,182,191,-9,5918,6159,-241,0,0,0,0,0,0,6100,6350,-250

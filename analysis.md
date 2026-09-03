@@ -1,247 +1,249 @@
-# Phase 7a — Targeted Trajectory Analysis
+# Phase 7b — Further Skill.md Compression Report
 
 ## 1. Executive Summary
 
-**A. Phase 7a behavior is effectively preserved.**
+The Phase 7b candidate further compresses `skills/semantic-analysis/SKILL.md` while retaining the protected routing and recovery rules.
 
-The aggregate changes initially resemble a routing regression, but the per-test evidence does not connect them to the compressed `Skill.md`:
+The Skill was reduced from approximately 1,546 to 875 tokens, a further 43.4% reduction. Repository tests pass, and the 31 valid evaluation runs show preserved correctness and targeted routing. However, the external Claude account limit interrupted the remaining ten tests before their first tool call, so the required full 41-test comparison is incomplete.
 
-- All recovery distances of 6, 5, and 4 came from `smoke-001`, which did not load the skill in either run.
-- Every test that lost AST Tool usage also stopped invoking the skill entirely. The skill's trigger metadata was unchanged, so its compressed body could not have influenced those trajectories.
-- Most grep/glob/read growth is concentrated in Level 4, especially one test that did not load the skill in either phase.
-- When the compressed skill was loaded, routing remained targeted: `search`, `callers`, `references`, and `callees` retained their intended roles.
-- The six-call decline in `find` consists of benign substitutions plus tests where the skill was never loaded—not evidence that compressed `find` guidance redirected an active skill user to grep.
+**Recommendation: REVISE — evaluation incomplete.**
 
-The data supports normal stochastic variation and localized outliers, not a systematic compression-induced regression.
+No wording restoration is currently indicated. The completed evidence is favorable, but Phase 7b should not be accepted until the ten infrastructure-failed tasks are rerun.
 
-## 2. Phase 5 vs Phase 7a Metric Comparison
+## 2. Textual Diff Summary
 
-| Metric | Phase 5 | Phase 7a | Change |
+Phase 7b removes documentation while retaining decisions:
+
+- Merged the command-selection and per-command sections into one routing table and one syntax block.
+- Removed ordinary command examples and output schemas that duplicate CLI help.
+- Merged shared `references`/`callers`/`callees` boundaries.
+- Condensed flag-validity guidance into one rule list.
+- Replaced the expanded semantic workflow and error table with one five-step recovery sequence.
+- Retained the C++ declaration/definition ambiguity exception.
+- Merged output-volume and fallback policy into two short paragraphs.
+
+The following protected behavior remains explicit:
+
+```text
+Find symbol       → search
+Find callers      → callers
+Find references   → references
+Find callees      → callees
+Find file symbols → symbols
+Need AST structure → find
+```
+
+The candidate also retains:
+
+- AST Tool as the default targeted semantic/structural path.
+- Exact CLI syntax for all routed commands.
+- Directory-root and FQN matching rules.
+- `find`/`search` flag boundaries.
+- No unchanged retries and a maximum of two failed attempts.
+- No routine `--help` or default `--pretty`.
+- Targeted queries instead of broad workspace dumps.
+- Grep only for textual content or the documented unresolved-ambiguity fallback.
+
+## 3. Skill Size
+
+| Metric | Phase 7a | Phase 7b | Reduction |
 |---|---:|---:|---:|
-| Success | 37/41 | 38/41 | +1, +2.44 pp |
-| Total tool calls | 518 | 545 | +27, +5.2% |
-| AST Tool calls | 69 | 60 | -9, -13.0% |
-| AST failures | 9 | 9 | unchanged |
-| AST failure rate | 13.04% | 15.00% | +1.96 pp |
-| AST retries | 9 | 10 | +1 |
-| Grep | 15 | 31 | +16, +106.7% |
-| Glob | 12 | 19 | +7, +58.3% |
-| Read | 252 | 275 | +23, +9.1% |
-| Average recovery distance | 1.44 | 2.56 | +1.12, +77.8% |
-| Maximum recovery distance | 2 | 6 | +4 |
-| Total tokens | 158,303 | 156,439 | -1,864, -1.18% |
-| Average elapsed time | 54.25s | 54.89s | +0.64s, +1.2% |
+| Bytes | 6,195 | 3,503 | 43.5% |
+| Characters | 6,182 | 3,501 | 43.4% |
+| Lines | 144 | 73 | 49.3% |
+| Approximate tokens | 1,546 | 875 | 43.4% |
 
-The headline increases are not broad:
+## 4. Verification
 
-- Level 4 accounts for +12 of the net +16 grep calls.
-- Level 4 accounts for +27 reads, exceeding the overall +23 because other levels decreased.
-- One test, `level4-004`, accounts for nine additional grep calls.
-- Recovery deterioration is entirely attributable to one smoke-test trajectory.
-
-## 3. Long-Recovery Cases
-
-All distances 6, 5, and 4 belong to `smoke-001`; they are overlapping measurements from the same sequence, not three independent pathological tests.
-
-### Phase 7a trajectory
+Repository test result:
 
 ```text
-1  find src/greeter.h greet                     failure
-2  same invalid find + stderr redirect          failure
-3  top-level --help                             cancelled/failure
-4  which ast-tool + top-level --help            success
-5  same invalid find again                      failure
-6  find --help                                  success
-7  find --text greet src/greeter.h              useful recovery
-8  references src/greeter.h 4                   failure
-9  references --help                            success
-10 references greet src/                        useful recovery
-11 Read
-12 Edit
+144 passed, 2 skipped
 ```
 
-The distances are:
+`git diff --check` passes for the modified Skill.
 
-- Sequence 1 → 7: 6
-- Sequence 2 → 7: 5
-- Sequence 3 → 7: 4
-- Sequence 5 → 7: 2
-- Sequence 8 → 10: 2
+## 5. Evaluation Status
 
-The `"2"` command is confirmed as a parser false positive from `which ast-tool 2>&1`. It is not a real AST Tool command.
+The 41-task evaluation produced 31 valid agent runs. The Claude account then reached its usage limit. The following ten tasks exited before any tool call and are infrastructure failures rather than behavioral results:
 
-### Phase 5 comparison
+- `level4-008`
+- `level5-001`
+- `level5-002`
+- `level5-003`
+- `level5-004`
+- `level5-005`
+- `level5-006`
+- `level5-007`
+- `level5-008`
+- `smoke-001`
 
-Phase 5 followed an almost identical erroneous path:
+The CLI reported a reset time of 9:30am JST. These tasks must be rerun before producing a full aggregate recommendation.
 
-```text
-find failure
-→ find failure
-→ which ast-tool
-→ find failure
-→ top-level help
-→ symbols
-→ corrected find
-→ references failure
-→ references help
-→ corrected references
-```
+## 6. Valid 31-Task Aggregate Comparison
 
-Its maximum recovery distance stayed at two because the successful `symbols` call was counted as recovery before the corrected `find`. Phase 7a omitted `symbols`, causing multiple earlier failures to resolve against the later corrected `find` and mechanically inflating three recovery measurements.
-
-The Phase 7a trajectory did contain unnecessary exploration: it repeated the invalid `find`, used help, and corrected its syntax late. However, `smoke-001` invoked the skill zero times in both phases. Compression therefore cannot explain the difference; the behavior predates it and represents stochastic variation in an unassisted trajectory.
-
-## 4. `find` Usage Analysis
-
-Phase 5 used `find` in seven tests:
-
-| Test | Phase 5 → Phase 7a | Classification |
-|---|---|---|
-| `level1-006` | `search → find` became grep/read | C/E, suspicious trajectory but skill not loaded |
-| `level2-001` | `search → search → find` became grep/read | C/E, suspicious trajectory but skill not loaded |
-| `level2-002` | `search → find` became `search → search` | B, equivalent targeted semantic route |
-| `level2-005` | Same `search → callees → search → find` | A |
-| `level3-003` | `search → find` became two reads | C/E, but skill not loaded |
-| `level3-007` | Three `find` calls became two additional scoped `search` calls | B/D, benign |
-| `smoke-001` | Four `find` calls became five | A; more rather than less |
-
-`level2-002` replaced structural lookup with an exact-FQN search and read the same one file. `level3-007` replaced three structural queries with searches for the relevant methods; both runs read the same three files and Phase 7a used seven fewer tokens. These are benign targeted alternatives.
-
-The three genuine AST-to-manual replacements all coincide with the skill not being invoked in Phase 7a. Thus, the 12 → 6 decline does not show that agents consumed compressed `find` guidance and then abandoned `find`.
-
-## 5. `search` Usage Analysis
-
-| Test | Search | Assessment |
-|---|---:|---|
-| `level1-006` | 1 → 0 | Suspicious replacement by grep, but skill invocation also 1 → 0 |
-| `level2-001` | 2 → 0 | Suspicious replacement by grep, but skill invocation also 1 → 0 |
-| `level2-006` | 3 → 1 | Benign: same targeted `callers` route with redundant searches avoided |
-| `level3-001` | 2 → 0 | Suspicious manual route, but skill invocation also 1 → 0 |
-| `level3-003` | 1 → 0 | Manual reads, but skill invocation also 1 → 0 |
-| `level3-005` | 2 → 1 | Benign: `callers → search → callers`; shorter recovery |
-| `level4-003` | 3 → 0 | Most concerning manual replacement, but skill invocation also 1 → 0 |
-
-`level4-003` changed from a skill-guided `search ×3 → callers ×2 → Read ×6` path to reads, grep, a subagent, and further reads. This is clearly worse routing, but the Phase 7a agent never loaded the skill. The description, triggers, name, and language metadata were unchanged, so compression of the body cannot explain the missing invocation.
-
-All five tests that lost AST Tool entirely show the same pattern:
-
-| Test | Skill calls | AST calls |
-|---|---:|---:|
-| `level1-006` | 1 → 0 | 2 → 0 |
-| `level2-001` | 1 → 0 | 3 → 0 |
-| `level3-001` | 1 → 0 | 2 → 0 |
-| `level3-003` | 1 → 0 | 2 → 0 |
-| `level4-003` | 1 → 0 | 5 → 0 |
-
-This supports stochastic skill-selection variation rather than body-content causation.
-
-## 6. grep / glob / read Increase
-
-### Largest increases
-
-| Test | Δ Grep | Δ Glob | Δ Read |
+| Metric | Phase 7a | Phase 7b | Change |
 |---|---:|---:|---:|
-| `level4-004` | +9 | +5 | +2 |
-| `level4-005` | 0 | +2 | +11 |
-| `level4-003` | +1 | 0 | +10 |
-| `level4-008` | +1 | 0 | +5 |
-| `level3-001` | +1 | -1 | +4 |
-| `level1-003` | +2 | -1 | 0 |
-| `level1-008` | +2 | 0 | +1 |
+| Successes | 28/31 | 28/31 | unchanged |
+| Total tool calls | 327 | 315 | -12 |
+| AST Tool calls | 50 | 55 | +5 |
+| Grep | 28 | 23 | -5 |
+| Glob | 14 | 9 | -5 |
+| Read | 126 | 120 | -6 |
+| Total tokens | 100,449 | 118,840 | +18,391 |
+| Skill invocations | 16 | 16 | unchanged |
 
-The main outlier, `level4-004`, changed from `Glob ×3 → Grep → Read ×6` to `Glob ×6 → Grep ×10 → Read ×8`. Neither run loaded `semantic-analysis`. This one test produced 56% of the net grep increase, 71% of the net glob increase, +1,874 tokens, and +28.54 seconds.
+The same three valid tasks failed in both runs:
 
-The largest read increases were also localized:
+- `level4-002`
+- `level4-006`
+- `level4-007`
 
-- `level4-005`: +11 reads; neither run loaded the skill.
-- `level4-003`: +10 reads after the skill was not invoked.
-- `level4-008`: +5 reads; neither run loaded the skill.
-- `level3-001`: +4 reads after the skill was not invoked.
+There is no correctness regression in the completed cohort. Total tool calls and manual exploration decreased, while AST Tool usage increased. Tokens increased substantially, so the instruction-size saving was consumed by trajectory/output variation.
 
-The increase is primarily a localized Level 4 phenomenon, not a broad shift among agents that consumed the compressed skill.
+## 7. Skill Invocation Comparison
 
-## 7. Additional Successful Test
+Sixteen valid Phase 7b tasks loaded the skill, the same number as the corresponding Phase 7a cohort.
 
-The only outcome improvement was `level4-005`.
+Fourteen tests loaded the Skill in both phases. These tests are the primary evidence for effects caused by the compressed body. The other 17 valid tests did not load the skill in one or both runs and are not direct evidence about Phase 7b wording.
 
-Phase 5 did not load the skill or use AST Tool. It edited all seven expected files but compilation failed because `api_handler.h` omitted or lost the `processor_` and `registry_` members still used by `api_handler.cpp`.
+## 8. Same-Skill-Invocation Comparison
 
-Phase 7a also did not load the skill or use AST Tool. It used two globs and 25 reads, inspected related background-processing paths, preserved the members, and passed validation.
+| Metric | Phase 7a | Phase 7b | Change |
+|---|---:|---:|---:|
+| Tests | 14 | 14 | — |
+| Successes | 13 | 13 | unchanged |
+| Total tool calls | 116 | 123 | +7 |
+| AST Tool calls | 42 | 48 | +6 |
+| `search` | 20 | 25 | +5 |
+| `callers` | 14 | 16 | +2 |
+| `references` | 3 | 3 | unchanged |
+| `callees` | 4 | 4 | unchanged |
+| `find` | 1 | 0 | -1 |
+| Grep | 2 | 2 | unchanged |
+| Glob | 1 | 2 | +1 |
+| Read | 25 | 27 | +2 |
+| Tokens | 36,537 | 41,448 | +4,911 |
 
-The successful path cost +11 reads, +637 tokens, and +3.10 seconds. Because neither run loaded the skill, the improvement is stochastic implementation quality rather than evidence for compression. Its correctness is desirable, but the 25-read path is not an efficiency pattern to encourage.
-
-## 8. Skill.md Diff Correlation
-
-| Change | Classification | Trajectory evidence |
-|---|---|---|
-| Merged command table and decision tree | SAFE | Routing remains explicit; callers and references counts are unchanged |
-| Shortened `search` description and examples | LIKELY SAFE | Harmful search losses occurred only where the skill was not loaded |
-| Shortened `find` examples | LIKELY SAFE | Skill-loaded replacements used targeted `search`, not grep/read |
-| Consolidated root/FQN/empty-result rules | SAFE | Relevant semantics remain explicit |
-| Merged ambiguity cases into three bullets | LIKELY SAFE | Failure counts by `callers`/`callees` did not increase |
-| Generalized caller recovery to references/callees | SAFE | Recovery stayed distance one in skill-loaded semantic tasks |
-| Condensed flag-validity guidance | SAFE | No new wrong-flag pattern appeared in skill-loaded tasks |
-| Removed repeated `When to Use` section | POSSIBLE BEHAVIORAL EFFECT in theory | No supporting trace evidence after skill invocation |
-| Removed repeated grep warnings | POSSIBLE BEHAVIORAL EFFECT in theory | Explicit prohibition remains; grep growth occurred mainly without skill loading |
-| Merged Common Mistakes and Best Practices | LIKELY SAFE | No systematic regression among skill-loaded tests |
-| Reduced command examples | LIKELY SAFE | Ordinary semantic syntax remained correct in skill-loaded trajectories |
-| Retained retry/help/fallback rules | SAFE | Violations were confined to the no-skill smoke test |
-
-No suspected regression satisfies the complete causal chain:
+The command trajectories remained semantic and targeted. Representative comparisons include:
 
 ```text
-removed wording
-→ agent consumed compressed wording
-→ changed route
-→ measurable cost
+level1-002
+7a: search → callers → references
+7b: search → callers → references
+
+level2-008
+7a: callers → search → callers
+7b: callers → search → callers
+
+level3-002
+7a: callers → search → callers
+7b: callers → search → callers
+
+level3-008
+7a: search → search → search → callers → callers
+7b: search → search → search → callers → callers
+
+level4-006
+7a: search → callers → references
+7b: search → references → callers
 ```
 
-The harmful cases fail at the second step because the skill was not consumed.
+No comparable test replaced a semantic route with grep plus broad reads. The one lost `find` call in `level2-005` was replaced with scoped `search`; the task read the same two files and passed.
 
-## 9. Token Decomposition
+## 9. Outliers
 
-The skill shrank from approximately 3,263 to 1,546 tokens, saving about 1,717 tokens per full load.
+### `level2-004`
 
-Phase 7a invoked it in 16 tests:
+Phase 7a:
 
 ```text
-1,717 × 16 ≈ 27,472 tokens
+search → callers → references
 ```
 
-This is the best same-invocation estimate of fixed content savings.
-
-Phase 5 invoked the skill in 20 tests. Comparing actual injected bodies gives a larger theoretical difference:
+Phase 7b:
 
 ```text
-Phase 5: 20 × 3,263 ≈ 65,260
-Phase 7a: 16 × 1,546 ≈ 24,736
-difference ≈ 40,524
+callers → search → callers → references → search
 ```
 
-About 13,052 tokens of that difference come from four fewer skill invocations, which should be treated as stochastic routing variation rather than compression savings.
+The Phase 7b route remained semantic but performed two extra AST queries and used approximately 4,480 more tokens. This is the largest same-invocation token outlier. The compressed workflow still says to search first when identity is uncertain, so the callers-first choice is not directly explained by removed guidance. One trajectory is insufficient to infer causality.
 
-Actual reported total tokens fell by only 1,864. Under the same-invocation estimate, non-skill trajectory activity therefore consumed approximately `27,472 - 1,864 ≈ 25,608` additional tokens. Under the raw 20-versus-16 comparison, the offset is about 38,660 tokens.
+### `level4-005`
 
-These are estimates. The result records report only 2,943 input tokens across all Phase 7a tasks, so they do not expose full prompt, cache, and tool-result accounting sufficiently for exact decomposition.
+This task loaded the skill in neither run. Phase 7b again passed, but used 24 reads and 20,848 reported tokens. It is a major aggregate token outlier but provides no evidence about the compressed Skill body.
 
-The defensible conclusions are:
+### `level4-002`, `level4-006`, and `level4-007`
 
-- The smaller skill likely provided substantial fixed savings when loaded.
-- Those savings were mostly consumed by stochastic manual Level 4/5 trajectories.
-- Trajectory efficiency was worse after removing the estimated fixed saving.
-- The traces do not show that compression caused that inefficiency.
+These failed in both Phase 7a and Phase 7b with the same fixture-related compilation state. They do not constitute new correctness regressions.
 
-## 10. Recommendation
+## 10. Token Decomposition
 
-**ACCEPT**
+Let:
 
-Do not restore wording based on this run. The aggregate warning signals are real, but targeted analysis does not connect them to the compressed skill body.
+```text
+S7a = 1,546 approximate tokens
+S7b =   875 approximate tokens
+N   =    14 comparable Skill invocations
+```
 
-The apparent regressions are explained by:
+Estimated fixed saving:
 
-1. A single no-skill smoke trajectory inflating recovery distance.
-2. Five tests not invoking the skill despite unchanged trigger metadata.
-3. One no-skill Level 4 outlier causing most grep/glob growth.
-4. Localized manual exploration in tests that did not consume either version's instructions.
+```text
+(S7a - S7b) × N
+= 671 × 14
+≈ 9,394 tokens
+```
 
-A minor restoration would add instruction volume without addressing the observed cause. Before Phase 7b, a repeat evaluation would be useful for measuring run-to-run variance in skill invocation, but Phase 7b should not be started automatically.
+Observed comparable-group tokens increased by 4,911:
+
+```text
+36,537 → 41,448
+```
+
+After accounting for estimated fixed Skill savings, underlying trajectory/output cost increased by roughly:
+
+```text
+9,394 + 4,911 ≈ 14,305 tokens
+```
+
+This estimate is approximate because the evaluation records do not expose complete prompt, cache, and tool-result accounting. The increase is concentrated in a few stochastic output-heavy runs rather than a systematic move to manual exploration.
+
+## 11. Causal Assessment
+
+The completed traces do not support a causal regression chain of:
+
+```text
+removed guidance
+→ different decision after Skill load
+→ grep/manual replacement
+→ measurable routing cost
+```
+
+Among the 14 directly comparable Skill-loaded tests:
+
+- Correctness was unchanged.
+- AST Tool calls increased.
+- Grep was unchanged.
+- Reads increased by only two.
+- Core relationship-command usage was preserved or increased.
+- No targeted AST route became broad manual exploration.
+
+The token increase warrants further observation, but there is no current evidence tying it to removal of a specific instruction.
+
+## 12. Recommendation
+
+**REVISE — evaluation incomplete.**
+
+The Phase 7b candidate is promising and no wording restoration is currently justified. It is materially smaller, preserves correctness in the completed cohort, and retains targeted routing among tests that loaded both Skill versions.
+
+It cannot be accepted until the ten infrastructure-failed tasks are rerun after the account limit resets. Resume the existing result set with `--retry-failed`, then recompute:
+
+- Full aggregate metrics.
+- Per-command usage.
+- Recovery distances and failures by command.
+- Skill invocation groups.
+- Same-Skill-invocation trajectories.
+- Full token decomposition.
+
+Do not proceed to Phase 8 automatically.

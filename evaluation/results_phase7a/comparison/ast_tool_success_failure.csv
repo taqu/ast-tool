@@ -1,0 +1,9 @@
+command,successful_tasks_using,successful_total_calls,successful_avg_calls,failed_tasks_using,failed_total_calls,failed_avg_calls
+2,1,1,1.00,0,0,
+callees,3,4,1.33,0,0,
+callers,9,13,1.44,1,1,1.00
+children,1,1,1.00,0,0,
+find,2,6,3.00,0,0,
+references,3,5,1.67,1,1,1.00
+search,14,24,1.71,1,1,1.00
+symbols,1,2,2.00,0,0,

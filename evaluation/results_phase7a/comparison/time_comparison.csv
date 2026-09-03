@@ -1,0 +1,8 @@
+level,matched_tasks,with_ast_average_seconds,without_ast_average_seconds,average_delta_seconds,with_ast_median_seconds,without_ast_median_seconds,median_delta_seconds,with_ast_total_seconds,without_ast_total_seconds,total_delta_seconds
+overall,41,54.89,54.25,0.64,55.49,54.60,0.89,2250.54,2224.27,26.27
+smoke,1,83.37,94.97,-11.60,83.37,94.97,-11.60,83.37,94.97,-11.60
+level1,8,27.43,31.69,-4.25,19.73,24.09,-4.36,219.45,253.49,-34.04
+level2,8,44.57,44.35,0.22,44.60,42.33,2.27,356.56,354.83,1.73
+level3,8,50.72,50.03,0.69,48.73,49.58,-0.85,405.76,400.27,5.49
+level4,8,66.84,54.80,12.04,63.25,58.81,4.44,534.76,438.43,96.33
+level5,8,81.33,85.28,-3.95,74.23,83.58,-9.35,650.64,682.28,-31.64
