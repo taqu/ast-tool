@@ -38,16 +38,25 @@ bool parse_references(Arguments& arguments, int32_t argc, const char8_t** argv)
 {
     arguments.sub_ = SubCommand::References;
     ArgReferences& args = arguments.references_;
-    return cli::parse_symbol_root_args(args.symbol_, args.root_, args.json_, args.pretty_, argc, argv);
+    cli::parse_symbol_root_args(args.symbol_, args.root_, args.json_, args.pretty_, args.badOption_, argc, argv);
+    return true; // Defer missing/bad-argument reporting to references() for an actionable diagnostic.
 }
 
 bool references(const ArgReferences& arguments)
 {
-    if(arguments.symbol_ == nullptr || arguments.root_ == nullptr) {
-        std::print(stderr, "error: missing required arguments: <symbol> <root>\n");
+    if(arguments.badOption_ != nullptr) {
+        cli::print_error(
+            cli::make_unknown_option(arguments.badOption_, {u8"--json", u8"--pretty"}),
+            arguments.json_, arguments.pretty_);
         return false;
     }
-    return cli::with_resolved_symbol(arguments.root_, arguments.symbol_,
+    if(arguments.symbol_ == nullptr || arguments.root_ == nullptr) {
+        cli::print_error(
+            cli::make_invalid_arguments(u8"missing required arguments: <symbol> <root>", u8"ast-tool references <symbol> <root>"),
+            arguments.json_, arguments.pretty_);
+        return false;
+    }
+    return cli::with_resolved_symbol(arguments.root_, arguments.symbol_, arguments.json_, arguments.pretty_,
         [&](Workspace& ws, const WorkspaceSymbol& target) {
             FindReferences finder(ws);
             std::vector<ReferenceResult> refs = finder.find(target);
@@ -61,11 +70,17 @@ bool references(const ArgReferences& arguments)
             if(arguments.json_ || arguments.pretty_) {
                 cli::print_json_array(refs, arguments.pretty_, print_ref_json, print_ref_json_pretty);
             } else {
-                for(const ReferenceResult& r : refs) {
-                    std::print("{}:{}:{}\n",
-                               (const char*)r.sourceFile.u8string().c_str(),
-                               r.line + 1,
-                               r.column + 1);
+                if(refs.empty()) {
+                    // A resolved symbol with zero references is a valid empty result,
+                    // not a failure — distinguish it from symbol resolution errors.
+                    std::print(stderr, "note: no references found for: {}\n", (const char*)target.symbol.fqn.c_str());
+                } else {
+                    for(const ReferenceResult& r : refs) {
+                        std::print("{}:{}:{}\n",
+                                   (const char*)r.sourceFile.u8string().c_str(),
+                                   r.line + 1,
+                                   r.column + 1);
+                    }
                 }
             }
             return true;

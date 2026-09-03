@@ -74,6 +74,7 @@ __pycache__/
 /bench/cache
 /.claude
 /.ast-tool
+venv/
 
 # Evaluation runner — generated at runtime
 /evaluation/repositories/

@@ -1,6 +1,7 @@
 #include "symbols.h"
 #include "ast-extractor.h"
 #include "ast-tool.h"
+#include "cli-semantic.h"
 #include <print>
 #include <string.h>
 
@@ -10,13 +11,10 @@ bool parse_symbols(Arguments& arguments, int32_t argc, const char8_t** argv)
 {
 #define STREQUALS(str, literal) (0 == ::strncmp(str, literal, ::strlen(literal)))
     arguments.sub_ = SubCommand::Symbols;
-    if(argc <= 2) {
-        return false;
-    }
     arguments.symbols_.input_ = nullptr;
     arguments.symbols_.json_ = false;
     arguments.symbols_.pretty_ = false;
-    for(int32_t i = 1; i < argc; ++i) {
+    for(int32_t i = 2; i < argc; ++i) {
         if(STREQUALS(reinterpret_cast<const char*>(argv[i]), "--json")) {
             arguments.symbols_.json_ = true;
             continue;
@@ -27,17 +25,23 @@ bool parse_symbols(Arguments& arguments, int32_t argc, const char8_t** argv)
         }
         arguments.symbols_.input_ = argv[i];
     }
-    return true;
+    return true; // Defer a missing FILE to symbols() for an actionable diagnostic.
 #undef STREQUALS
 }
 
 bool symbols(const ArgSymbols& arguments)
 {
     if(nullptr == arguments.input_) {
+        cli::print_error(
+            cli::make_invalid_arguments(u8"missing FILE", u8"ast-tool symbols [--json [--pretty]] <file>"),
+            arguments.json_, arguments.pretty_);
         return false;
     }
     AST ast = parse(arguments.input_);
     if(!ast) {
+        cli::print_error(
+            cli::make_invalid_arguments(u8"could not parse file", u8"ast-tool symbols [--json [--pretty]] <file>"),
+            arguments.json_, arguments.pretty_);
         return false;
     }
     std::vector<ast::Symbol> symbols = ast::extract_symbols(ast);

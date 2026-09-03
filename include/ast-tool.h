@@ -173,6 +173,7 @@ struct ArgSearch
     bool json_;                 ///< Output results as JSON when true.
     bool pretty_;               ///< Pretty-print the JSON output when true.
     uint32_t limit_;            ///< --limit N: cap returned results (0 = unlimited).
+    const char8_t* badOption_;  ///< First unrecognized `--flag` encountered, or nullptr if none.
 };
 
 /** Arguments for the "callees" subcommand. */
@@ -182,6 +183,7 @@ struct ArgCallees
     const char8_t* symbol_; ///< Symbol name or FQN to find callees of.
     bool json_;             ///< Output results as JSON when true.
     bool pretty_;           ///< Pretty-print the JSON output when true.
+    const char8_t* badOption_; ///< First unrecognized `--flag` encountered, or nullptr if none.
 };
 
 /** Arguments for the "callers" subcommand. */
@@ -191,6 +193,7 @@ struct ArgCallers
     const char8_t* symbol_; ///< Symbol name or FQN to find callers of.
     bool json_;             ///< Output results as JSON when true.
     bool pretty_;           ///< Pretty-print the JSON output when true.
+    const char8_t* badOption_; ///< First unrecognized `--flag` encountered, or nullptr if none.
 };
 
 /** Arguments for the "references" subcommand. */
@@ -200,6 +203,7 @@ struct ArgReferences
     const char8_t* symbol_; ///< Symbol name or FQN to find references for.
     bool json_;             ///< Output results as JSON when true.
     bool pretty_;           ///< Pretty-print the JSON output when true.
+    const char8_t* badOption_; ///< First unrecognized `--flag` encountered, or nullptr if none.
 };
 
 /** Arguments for the "find" subcommand. */
@@ -217,6 +221,8 @@ struct ArgFind
     uint32_t column_; ///< --column filter value (1-based), if #hasColumn_.
     bool hasLine_;
     bool hasColumn_;
+
+    const char8_t* badOption_; ///< First unrecognized `--flag` encountered, or nullptr if none.
 };
 
 /** Arguments for the "cache" subcommand (warm / status). */

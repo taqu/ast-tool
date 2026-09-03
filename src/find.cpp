@@ -8,6 +8,7 @@
 #include "ast-format.h"
 #include "ast-node-type.h"
 #include "ast-tool.h"
+#include "cli-semantic.h"
 
 namespace ast
 {
@@ -30,9 +31,6 @@ bool parse_find(Arguments& arguments, int32_t argc, const char8_t** argv)
 {
 #define STREQUALS(str, literal) (0 == ::strcmp(reinterpret_cast<const char*>(str), literal))
     arguments.sub_ = SubCommand::Find;
-    if(argc <= 2) {
-        return false;
-    }
     ArgFind& args = arguments.find_;
     args.input_ = nullptr;
     args.type_ = nullptr;
@@ -44,6 +42,7 @@ bool parse_find(Arguments& arguments, int32_t argc, const char8_t** argv)
     args.column_ = 0;
     args.hasLine_ = false;
     args.hasColumn_ = false;
+    args.badOption_ = nullptr;
 
     for(int32_t i = 2; i < argc; ++i) {
         if(STREQUALS(argv[i], "--type")) {
@@ -88,6 +87,12 @@ bool parse_find(Arguments& arguments, int32_t argc, const char8_t** argv)
             }
             continue;
         }
+        if(cli::looks_like_option(argv[i])) {
+            if(args.badOption_ == nullptr) {
+                args.badOption_ = argv[i];
+            }
+            continue;
+        }
         args.input_ = argv[i];
     }
     return true;
@@ -96,11 +101,23 @@ bool parse_find(Arguments& arguments, int32_t argc, const char8_t** argv)
 
 bool find(const ArgFind& arguments)
 {
+    static const std::vector<std::u8string> kFindOptions = {
+        u8"--type", u8"--grammar", u8"--text", u8"--id", u8"--line", u8"--column",
+    };
+
+    if(arguments.badOption_ != nullptr) {
+        cli::print_error(cli::make_unknown_option(arguments.badOption_, kFindOptions), false, false);
+        return false;
+    }
     if(nullptr == arguments.input_) {
+        cli::print_error(
+            cli::make_invalid_arguments(u8"missing FILE", u8"ast-tool find [options] <file>"),
+            false, false);
         return false;
     }
     AST ast = parse(arguments.input_);
     if(!ast) {
+        cli::print_error(cli::make_invalid_arguments(u8"could not parse file", u8"ast-tool find [options] <file>"), false, false);
         return false;
     }
 

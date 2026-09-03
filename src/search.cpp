@@ -61,6 +61,7 @@ bool parse_search(Arguments& arguments, int32_t argc, const char8_t** argv)
     args.json_ = false;
     args.pretty_ = false;
     args.limit_ = 0;
+    args.badOption_ = nullptr;
 
     for(int32_t i = 2; i < argc; ++i) {
         if(STREQUALS(argv[i], "--name")) {
@@ -117,15 +118,36 @@ bool parse_search(Arguments& arguments, int32_t argc, const char8_t** argv)
             }
             continue;
         }
+        if(cli::looks_like_option(argv[i])) {
+            if(args.badOption_ == nullptr) {
+                args.badOption_ = argv[i];
+            }
+            continue;
+        }
         args.root_ = argv[i];
     }
-    return args.root_ != nullptr;
+    return true; // Defer missing/bad-argument reporting to search() for an actionable diagnostic.
 #undef STREQUALS
 }
 
 bool search(const ArgSearch& arguments)
 {
+    static const std::vector<std::u8string> kSearchOptions = {
+        u8"--name", u8"--fqn", u8"--kind", u8"--file",
+        u8"--name-regex", u8"--fqn-regex", u8"--file-regex",
+        u8"--json", u8"--pretty", u8"--limit",
+    };
+
+    if(arguments.badOption_ != nullptr) {
+        cli::print_error(
+            cli::make_unknown_option(arguments.badOption_, kSearchOptions),
+            arguments.json_, arguments.pretty_);
+        return false;
+    }
     if(nullptr == arguments.root_) {
+        cli::print_error(
+            cli::make_invalid_arguments(u8"missing ROOT", u8"ast-tool search [options] <root>"),
+            arguments.json_, arguments.pretty_);
         return false;
     }
 
@@ -138,12 +160,15 @@ bool search(const ArgSearch& arguments)
         arguments.fqn_regex_,
         arguments.file_regex_);
     if(!q) {
-        std::print(stderr, "error: {}\n", (const char*)q.error().c_str());
+        cli::print_error(cli::make_invalid_query(q.error()), arguments.json_, arguments.pretty_);
         return false;
     }
 
     Workspace ws = open_workspace(arguments.root_);
     ws.ensure_all_loaded();
+    if(!cli::workspace_has_content(ws, arguments.root_, arguments.json_, arguments.pretty_)) {
+        return false;
+    }
     SemanticSearchEngine engine(ws);
     std::vector<const WorkspaceSymbol*> results = engine.search(*q);
 

@@ -82,6 +82,9 @@ set(MAIN_SOURCES
     # Setup command tests
     "${CMAKE_CURRENT_SOURCE_DIR}/ast-setup/test_setup.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/ast-setup/test_setup.cpp"
+    # Error recovery UX tests
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-error-ux/test_error_ux.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ast-error-ux/test_error_ux.cpp"
 )
 
 source_group("include" FILES ${HEADERS})
