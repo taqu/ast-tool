@@ -1,823 +1,748 @@
-# Phase 7c — Semantic-Preserving `SKILL.md` Compression
+# Phase 7c.1 — Targeted Trajectory Restoration
 
 ## Objective
 
-Create a compressed version of the Phase 5 `semantic-analysis/SKILL.md` while preserving its behavioral meaning as closely as possible.
+Improve the current Phase 7c candidate by restoring only the Phase 5 guidance that can be shown to prevent measurable trajectory regressions.
 
-Phase 7c is not a continuation of the Phase 7b text.
+Do **not** restart from Phase 5.
 
-Start from the **Phase 5 stable `SKILL.md`**.
+Use the current Phase 7c `semantic-analysis/SKILL.md` as the working baseline.
 
 The goal is:
 
 ```text
-Preserve every behaviorally meaningful Phase 5 instruction
+Keep Phase 7c improvements
 +
-Remove only non-behavioral redundancy
+restore only behaviorally necessary Phase 5 guidance
 +
-Reduce instruction size conservatively
+reduce structural/manual exploration cost
 ```
 
-The primary requirement is **semantic equivalence**, not maximum compression.
+Phase 7c.1 is not another general compression phase.
+
+It is a **targeted behavioral restoration phase**.
 
 ---
 
 # Background
 
-Phase 8 rejected the Phase 7b candidate as the final agent-level system.
+Phase 7c preserved correctness and recovered most of the semantic-routing behavior lost in Phase 7b.
 
-Correctness remained unchanged, but the final run showed:
-
-```text
-real AST commands    68 → 22
-grep                 15 → 64
-avg recovery         1.44 → 2.60
-max recovery            2 → 5
-total tokens    158,303 → 241,130
-```
-
-The Phase 8 analysis did not prove that the compressed Skill body itself caused the regression, because Skill invocation varied heavily between runs.
-
-However, Phase 7b also did not provide sufficient evidence that the compressed body was behaviorally equivalent to Phase 5.
-
-Therefore Phase 7c must use a stricter methodology.
-
----
-
-# Starting Point
-
-Use the exact Phase 5 version of:
+Phase 5:
 
 ```text
-semantic-analysis/SKILL.md
+tests                      41
+successes                  37
+success rate              90.24%
+
+total tool calls           518
+AST Tool calls              69
+AST failures                 9
+AST failure rate          13.04%
+
+grep                         15
+glob                         12
+read                        252
+
+avg recovery distance      1.44
+max recovery distance         2
+
+total tokens            158,303
+avg tokens/test           3,861
 ```
 
-as the source of truth.
+Phase 7c:
 
-Do not start from Phase 7a or Phase 7b.
+```text
+tests                      41
+successes                  37
+success rate              90.24%
 
-Do not copy their compressed structure unless a specific transformation can be shown to preserve a Phase 5 behavioral rule.
+total tool calls           542
+AST Tool calls              59
+AST failures                 7
+AST failure rate          11.86%
 
-Do not assume that text removed in Phase 7a or Phase 7b was safe merely because previous evaluations did not prove a causal regression.
+grep                         17
+glob                         22
+read                        286
+
+avg recovery distance      1.60
+max recovery distance         4
+
+total tokens            178,116
+avg tokens/test         4,344.3
+```
+
+Phase 7c is therefore not a broad semantic-routing failure.
+
+The remaining regression is narrower:
+
+```text
+find usage         12 → 4
+glob               12 → 22
+read              252 → 286
+tool calls        518 → 542
+tokens        158,303 → 178,116
+```
+
+while several metrics improved:
+
+```text
+AST failures        9 → 7
+AST failure rate 13.04% → 11.86%
+bash               120 → 102
+edit                86 → 82
+elapsed       2224.27 → 2214.34 sec
+```
+
+Phase 7c.1 should preserve these improvements while addressing the localized exploration regressions.
 
 ---
 
 # Core Principle
 
-Use this rule throughout the phase:
+Use this rule throughout:
 
 ```text
-Compress wording,
-not decisions.
+Do not restore Phase 5 text because Phase 5 was better in aggregate.
+
+Restore Phase 5 text only when:
+Phase 5 instruction
+→ was removed or weakened in Phase 7c
+→ changed an agent decision
+→ caused a measurable trajectory cost.
 ```
 
-Every Phase 5 instruction that can influence:
-
-```text
-which command the agent chooses
-when it chooses that command
-how it scopes the query
-what it does after failure
-when it retries
-when it uses help
-when grep is allowed
-how ambiguity is resolved
-how much output it requests
-```
-
-must remain represented in the compressed version.
+Every restoration must have trajectory evidence.
 
 ---
 
-# Definition of Semantic Preservation
+# Primary Investigation Targets
 
-A compressed instruction is acceptable only when an agent following it would be expected to make the same decision as an agent following the corresponding Phase 5 instruction.
+Focus on four areas.
 
-For every behavioral rule:
+## 1. `find` Usage Drop
 
-```text
-Phase 5 rule
-        ↓
-compressed equivalent
-```
-
-must preserve:
+Phase 5:
 
 ```text
-trigger condition
-recommended action
-prohibited action
-fallback condition
-exception
+find = 12
 ```
 
-where applicable.
+Phase 7c:
 
-Do not preserve only the general intent while dropping decision boundaries.
+```text
+find = 4
+```
+
+Identify every test where a Phase 5 `find` call disappeared.
+
+For each test, classify the replacement as:
+
+```text
+A. find → equivalent targeted search
+B. find → symbols or another appropriate AST command
+C. find → no query needed because earlier discovery improved
+D. find → glob/read/manual structural inspection
+E. find → grep/read/manual reasoning
+F. other
+```
+
+Categories A–C may be benign.
+
+Categories D–E are primary candidates for regression analysis.
+
+Do not try to restore the raw count of `find` calls.
+
+The question is whether a targeted structural AST query was replaced by a broader and more expensive path.
 
 ---
 
-# Rule Classification
+## 2. `glob` Increase
 
-Before editing `SKILL.md`, classify the Phase 5 content.
-
-Every meaningful section, paragraph, bullet, or rule should be assigned to one of the following categories.
-
-## A. ROUTING CONTRACT
-
-Instructions that determine which AST Tool command should be used.
-
-Examples include:
+Phase 5:
 
 ```text
-Find symbol       → search
-Find callers      → callers
-Find references   → references
-Find callees      → callees
-Find file symbols → symbols
-Need AST structure → find
+glob = 12
 ```
 
-These are protected.
+Phase 7c:
+
+```text
+glob = 22
+```
+
+Produce a per-test delta ranking:
+
+```text
+task
+Phase 5 glob
+Phase 7c glob
+delta
+```
+
+Inspect the largest contributors.
+
+For each additional glob sequence, determine why the agent used it.
+
+Classify it as:
+
+```text
+necessary repository discovery
+benign alternative
+replacement for AST structural lookup
+replacement for symbol search
+unnecessary broad exploration
+```
+
+Pay particular attention to:
+
+```text
+glob
+→ read
+→ manual inspection
+```
+
+when Phase 5 used `find`, `search`, or another targeted AST query.
 
 ---
 
-## B. BEHAVIORAL DISAMBIGUATION
+## 3. `read` Increase
 
-Instructions that clarify boundaries between commands or constrain how they are used.
-
-Examples may include:
+Phase 5:
 
 ```text
-search vs find
-callers vs references
-directory root selection
-FQN matching
-duplicate C++ declarations/definitions
-query narrowing
-textual lookup vs semantic lookup
+read = 252
 ```
 
-These are also protected.
+Phase 7c:
 
-Do not classify them as redundant explanation merely because they elaborate on the routing table.
+```text
+read = 286
+```
+
+Identify which tests account for the net +34 reads.
+
+Rank tests by:
+
+```text
+Δread
+Δtokens
+Δtool calls
+```
+
+Determine whether the additional reads are:
+
+```text
+implementation-related
+validation-related
+semantic recovery
+manual structural exploration
+broad context gathering
+```
+
+The main target is extra context gathering that replaced a targeted AST Tool result.
 
 ---
 
-## C. RECOVERY CONTRACT
+## 4. Recovery Distance = 4
 
-Instructions controlling behavior after failure.
-
-Examples include:
+Phase 7c recovery distances are:
 
 ```text
-do not retry an unchanged failed command
-use the cheapest error-directed correction
-limit failed attempts
-avoid unnecessary help
-narrow ambiguous queries
-fallback only after semantic attempts fail
+1, 1, 1, 1, 4
 ```
 
-These are protected.
+Identify the task producing distance 4.
+
+Reconstruct the exact sequence:
+
+```text
+failed AST query
+→ intervening actions
+→ useful recovery
+```
+
+Compare it with Phase 5.
+
+Determine:
+
+* which failure occurred;
+* whether the same command was retried unchanged;
+* whether help was used;
+* whether the error already suggested a cheaper correction;
+* whether a Phase 5 recovery rule was weakened in Phase 7c;
+* whether a minimal wording restoration could have shortened the path.
+
+Do not change recovery guidance unless this causal link is visible.
 
 ---
 
-## D. OUTPUT / COST BOUNDARY
+# Secondary Command Analysis
 
-Instructions preventing unnecessarily expensive behavior.
-
-Examples include:
+Also compare:
 
 ```text
-avoid broad workspace dumps
-avoid --pretty by default
-prefer targeted output
-avoid manual grep/read substitution when a semantic query directly applies
+                 Phase 5   Phase 7c
+search              30        25
+callers             14        11
+references           6         6
+callees              3         7
+symbols              1         4
+find                12         4
 ```
 
-These are protected if they affect agent behavior.
+The goal is not to reproduce Phase 5 command counts exactly.
+
+Investigate meaningful substitutions.
+
+Examples:
+
+```text
+find → scoped search
+```
+
+may be acceptable.
+
+```text
+find → glob → several reads
+```
+
+is more suspicious.
+
+Likewise:
+
+```text
+callers → references
+```
+
+may be wrong if the task specifically requires call sites.
+
+Judge semantic appropriateness, not count equality.
 
 ---
 
-## E. BEHAVIORAL EXAMPLE
+# Phase 5 vs Phase 7c Skill Diff
 
-An example that resolves an otherwise ambiguous rule.
+Compare the exact Phase 5 and Phase 7c `SKILL.md` versions.
 
-These may be compressed, but only if the ambiguity remains resolved.
+Focus only on wording relevant to the observed regressions.
 
----
-
-## F. NON-BEHAVIORAL EXPLANATION
-
-Content whose removal would not change the agent's next action.
-
-Typical candidates:
+Search specifically for Phase 5 guidance concerning:
 
 ```text
-background rationale
-why AST Tool is useful
-historical explanation
-restatement of an already explicit rule
-ordinary syntax examples
-output-schema documentation
-implementation details
-```
-
-These are the primary deletion candidates.
-
----
-
-# Required Rule-Equivalence Map
-
-Before producing the final compressed Skill, create an internal mapping of Phase 5 instructions to Phase 7c instructions.
-
-The mapping should conceptually look like:
-
-| Phase 5 rule                                     | Category       | Phase 7c equivalent           | Transformation |
-| ------------------------------------------------ | -------------- | ----------------------------- | -------------- |
-| Symbol lookup uses `search`                      | Routing        | `Symbol/declaration → search` | Shortened      |
-| Never retry unchanged failed command             | Recovery       | Same concise rule             | Shortened      |
-| Narrow duplicate FQNs by root                    | Disambiguation | Equivalent rule retained      | Reworded       |
-| Explanation of why semantic queries save context | Non-behavioral | Removed                       | Deleted        |
-
-Do not delete a Phase 5 rule unless it is classified as non-behavioral or fully subsumed by an explicitly equivalent compressed rule.
-
----
-
-# Protected Routing Contract
-
-At minimum, preserve the following explicitly:
-
-```text
-Find symbol       → search
-Find callers      → callers
-Find references   → references
-Find callees      → callees
-Find file symbols → symbols
-Need AST structure → find
-```
-
-The mappings must remain direct and obvious.
-
-Do not replace them with generic language such as:
-
-```text
-Use the most appropriate semantic command.
-```
-
-Do not rely on the agent to infer command selection from CLI names.
-
----
-
-# Protected Recovery Behavior
-
-Preserve the Phase 5 semantics governing failure and recovery.
-
-At minimum, retain equivalent guidance for:
-
-```text
-Do not retry an unchanged failed command.
-
-Use diagnostics or known information to make the cheapest useful correction.
-
-Avoid ordinary --help discovery.
-
-Do not repeatedly explore command syntax after a targeted failure.
-
-Prefer one useful recovery action over trial-and-error command sequences.
-
-Use textual fallback only when the semantic path remains unresolved under the documented fallback condition.
-```
-
-If Phase 5 contains more precise boundaries, preserve those exact semantics.
-
----
-
-# Protected Semantic Boundaries
-
-Pay particular attention to any Phase 5 wording involving:
-
-```text
-search vs find
-references vs callers
-references vs callees
-FQN matching
-source root
-duplicate symbols
-declaration/definition ambiguity
-C++ semantic ambiguity
-transitive vs direct relationships
-```
-
-These sections may appear verbose, but they are likely to contain decision boundaries.
-
-Do not generalize several distinct cases into one rule unless the resulting rule produces the same action in every original case.
-
----
-
-# Protected Cost Boundaries
-
-Preserve instructions that keep the agent on a targeted path.
-
-Examples include:
-
-```text
-Prefer targeted AST Tool queries when the task maps directly to them.
-
-Do not dump an entire workspace when a scoped query is available.
-
-Do not use --pretty by default.
-
-Do not substitute grep/manual exploration for a direct semantic query.
-
-Use grep for textual content or only under the documented semantic fallback condition.
-```
-
-Do not weaken these into suggestions such as:
-
-```text
-AST Tool can be useful.
-```
-
-The preference ordering must remain explicit.
-
----
-
-# What May Be Compressed
-
-Phase 7c may safely target the following categories.
-
-## 1. Duplicate Restatements
-
-If a Phase 5 rule is repeated in multiple sections, preserve it once.
-
-Before deleting duplicates, confirm that no copy adds a distinct exception or condition.
-
----
-
-## 2. Ordinary Examples
-
-Remove examples that merely demonstrate syntax already defined by a rule.
-
-Keep examples only when they define or clarify a behavioral boundary.
-
----
-
-## 3. CLI Documentation
-
-Remove exhaustive documentation that is available from the CLI and does not alter command selection.
-
-Examples may include:
-
-```text
-complete output field descriptions
-routine flag listings
-ordinary command syntax repeated multiple times
-```
-
-However, retain syntax or flags when misunderstanding them is known to cause agent failures.
-
----
-
-## 4. Rationale
-
-Remove explanations of why a rule exists when the rule itself is already explicit.
-
-For example:
-
-```text
-Rule
-+
-three sentences explaining why targeted output saves context
-```
-
-may become:
-
-```text
-Rule
-```
-
-if the explanation does not change application of the rule.
-
----
-
-## 5. Verbose Wording
-
-Shorten sentences while preserving all conditions.
-
-For example:
-
-```text
-When a command fails, do not invoke the exact same command with the exact same arguments again because doing so will normally produce the same failure.
-```
-
-may become:
-
-```text
-Never retry an unchanged failed command.
-```
-
-This is valid because the decision boundary is unchanged.
-
----
-
-# What Must Not Be Compressed Away
-
-Do not remove text merely because:
-
-```text
-it looks repetitive
-the command name seems self-explanatory
-the CLI also has help
-the model should be able to infer it
-the behavior is obvious to a human
-```
-
-Phase 5 is the behavioral baseline.
-
-If wording plausibly affects command selection or fallback probability, keep it unless an equivalent rule clearly replaces it.
-
----
-
-# Compression Target
-
-Do not optimize for the smallest possible Skill.
-
-Phase 7c should use a moderate target.
-
-Phase 5 is approximately:
-
-```text
-~3263 tokens
-```
-
-A reasonable first target is approximately:
-
-```text
-2200–2600 tokens
-```
-
-or roughly:
-
-```text
-20–30% reduction
-```
-
-This is a guideline, not a hard requirement.
-
-If semantic preservation requires a larger Skill, keep it larger.
-
-Do not force the Skill below the target.
-
-A 15% reduction with strong semantic equivalence is preferable to a 50% reduction with uncertain behavior.
-
----
-
-# Editing Strategy
-
-Use a conservative transformation process.
-
-## Step 1 — Restore Phase 5
-
-Ensure the working Skill matches the accepted Phase 5 version before editing.
-
----
-
-## Step 2 — Inventory Phase 5 Rules
-
-Read the full Skill.
-
-Identify:
-
-```text
-routing rules
-recovery rules
-fallback rules
-scope/output rules
-semantic ambiguity rules
-command-specific boundaries
-examples
-documentation
-rationale
-```
-
----
-
-## Step 3 — Classify Each Rule
-
-Assign each meaningful item to:
-
-```text
-ROUTING CONTRACT
-BEHAVIORAL DISAMBIGUATION
-RECOVERY CONTRACT
-OUTPUT / COST BOUNDARY
-BEHAVIORAL EXAMPLE
-NON-BEHAVIORAL EXPLANATION
-```
-
-Do this before deleting content.
-
----
-
-## Step 4 — Compress Locally
-
-Prefer local transformations:
-
-```text
-delete duplicate
-merge equivalent wording
-shorten sentence
-remove non-behavioral explanation
-replace repeated prose with table
-```
-
-Avoid rewriting the whole document from scratch.
-
----
-
-## Step 5 — Build the Equivalence Map
-
-For every removed or changed behavioral passage, record:
-
-```text
-original meaning
-compressed representation
-why they are equivalent
-```
-
-If equivalence is uncertain, restore the original rule.
-
----
-
-## Step 6 — Review for Semantic Loss
-
-Before evaluation, ask for every Phase 5 rule:
-
-```text
-Can the compressed Skill still answer:
-
-What should the agent do?
-When should it do it?
-When should it not do it?
-What should happen after failure?
-What exception changes the decision?
-```
-
-If any answer is weaker or more ambiguous, revise the Skill before evaluation.
-
----
-
-# Controlled Evaluation
-
-Phase 7c requires a controlled evaluation before the normal 41-task agent-level evaluation.
-
-The purpose is to remove Skill-invocation stochasticity from the body-compression test.
-
-Select a representative subset of tasks covering at least:
-
-```text
-search
-callers
-references
-callees
 find
-symbol ambiguity
-failure recovery
-grep fallback
+AST structure
+node lookup
+search vs find
+file discovery
+workspace discovery
+glob
+manual file inspection
+targeted context
+recovery after find failure
+help usage
 ```
 
-Prefer approximately 15–20 tasks if the existing evaluation set provides enough coverage.
-
-For the controlled comparison:
-
-```text
-Phase 5 Skill
-vs
-Phase 7c Skill
-```
-
-ensure `semantic-analysis` is loaded for both versions before task exploration begins.
-
-Do not change the task itself.
-
-The only controlled variable should be the Skill body.
+Do not conduct another broad rewrite of the entire Skill.
 
 ---
 
-# Controlled Comparison Metrics
+# Causal Standard for Restoration
 
-For every paired task, record:
+A restoration is justified only when the evidence supports:
 
 ```text
-success/failure
+Phase 5 wording
+        ↓
+Phase 7c removed / weakened it
+        ↓
+agent chose a different route
+        ↓
+route became broader or more expensive
+```
+
+For example:
+
+```text
+Phase 5 explicitly says:
+"Use find for AST structure before manual file inspection."
+
+Phase 7c shortens this to:
+"AST structure → find."
+
+Observed:
+Phase 5: find → useful result
+Phase 7c: glob → read → read
+
+Conclusion:
+the removed preference boundary may be behaviorally important
+```
+
+This is a valid restoration candidate.
+
+By contrast:
+
+```text
+find usage decreased
+```
+
+alone is not enough.
+
+---
+
+# Minimal Restoration Rule
+
+When a restoration is justified, restore the smallest wording that recreates the lost decision boundary.
+
+Prefer:
+
+```text
+For AST structure or node lookup, use `find` before manual file inspection.
+```
+
+over restoring an entire Phase 5 section.
+
+Prefer one sentence over a paragraph.
+
+Do not restore examples unless the example itself defines the missing boundary.
+
+---
+
+# Do Not Reintroduce Phase 5 Wholesale
+
+Phase 7c already improves:
+
+```text
+AST failure count
+AST failure rate
+bash usage
+edit usage
+```
+
+Do not discard these gains.
+
+Do not restore Phase 5 text that has no relationship to a measured Phase 7c regression.
+
+The target is:
+
+```text
+Phase 7c
++
+minimal behavioral restoration
+```
+
+not:
+
+```text
+Phase 5 with cosmetic compression
+```
+
+---
+
+# Editing Budget
+
+Keep the restoration deliberately small.
+
+As a guideline:
+
+```text
+prefer 1–5 restored rules
+```
+
+and avoid large increases in Skill size.
+
+There is no strict token limit, but Phase 7c.1 should remain materially smaller than Phase 5 unless the evidence clearly requires otherwise.
+
+Report the exact size increase caused by restoration.
+
+---
+
+# Analysis Before Editing
+
+Do not edit immediately.
+
+First produce a diagnostic table.
+
+For each suspicious test, include:
+
+| Test | Phase 5 route | Phase 7c route | Extra cost | Suspected lost rule | Confidence |
+| ---- | ------------- | -------------- | ---------- | ------------------- | ---------- |
+
+Use confidence values such as:
+
+```text
+HIGH
+MEDIUM
+LOW
+NONE
+```
+
+Only HIGH or well-supported MEDIUM cases should normally lead to restoration.
+
+---
+
+# Candidate Restoration Plan
+
+After analysis, propose the smallest restoration set.
+
+For each candidate rule provide:
+
+```text
+1. Phase 5 wording or meaning
+2. Phase 7c wording
+3. observed trajectory difference
+4. proposed minimal restored wording
+5. expected behavioral effect
+```
+
+Do not add a rule merely because it sounds useful.
+
+---
+
+# Implementation
+
+After identifying justified restorations:
+
+1. Edit the Phase 7c `SKILL.md`.
+2. Change only the minimum necessary wording.
+3. Do not modify AST Tool implementation.
+4. Do not modify evaluation tasks.
+5. Do not modify CLI behavior.
+6. Do not modify metrics logic.
+7. Do not change Skill trigger/frontmatter metadata.
+
+---
+
+# Verification Strategy
+
+Use two stages.
+
+## Stage 1 — Targeted Replay
+
+Before running all 41 tests, rerun the tests directly affected by the restored guidance.
+
+At minimum include:
+
+```text
+tests where find disappeared into glob/read
+the recovery-distance-4 test
+largest read/glob regressions plausibly related to Skill wording
+```
+
+Compare:
+
+```text
+Phase 5
+Phase 7c
+Phase 7c.1
+```
+
+for those tests.
+
+Measure:
+
+```text
+success
+AST sequence
+find usage
+search usage
+grep
+glob
+read
+tool calls
+recovery distance
+tokens
+elapsed
+```
+
+Phase 7c.1 should move the relevant trajectories toward the Phase 5 targeted path without introducing extra exploration elsewhere.
+
+---
+
+## Stage 2 — Full 41-Task Evaluation
+
+Only after targeted replay is favorable, run the unchanged 41-task evaluation.
+
+Collect:
+
+```text
+tests
+successes
+failures
+success rate
+
 total tool calls
+avg tool calls/test
+
 AST Tool calls
+AST failures
+AST failure rate
+AST retries
+AST help calls
+
 search
 callers
 references
 callees
 find
 symbols
-grep
-glob
-read
-AST failures
-AST retries
-help calls
-recovery distance
-tokens
-elapsed time
-AST command sequence
-```
+other AST commands
 
-Also compare the actual trajectory.
-
----
-
-# Controlled Acceptance Criteria
-
-The controlled cohort is the primary semantic-equivalence test.
-
-Reject or revise Phase 7c if the compressed Skill systematically causes:
-
-```text
-direct semantic query
-→ replaced by grep/manual lookup
-
-search-first behavior
-→ replaced by broad discovery
-
-successful narrow recovery
-→ replaced by help/trial-and-error
-
-command-specific behavior
-→ replaced by generic exploration
-```
-
-Exact command counts do not need to match.
-
-Equivalent targeted semantic trajectories are acceptable.
-
-Examples:
-
-```text
-Phase 5:
-search → callers
-
-Phase 7c:
-search → search(refined) → callers
-```
-
-may be acceptable if the second search is justified.
-
-But:
-
-```text
-Phase 5:
-search → callers
-
-Phase 7c:
-grep → read → grep → read
-```
-
-is a likely regression.
-
----
-
-# Rule-Level Causal Analysis
-
-If a controlled trajectory changes materially, identify the exact compressed rule that could explain it.
-
-Require evidence of the form:
-
-```text
-Phase 5 instruction
-        ↓
-compressed/removed wording
-        ↓
-changed agent decision
-        ↓
-changed trajectory
-```
-
-Do not infer causality from aggregate command counts alone.
-
----
-
-# Full 41-Task Evaluation
-
-Only after the controlled evaluation shows acceptable semantic preservation, run the normal unchanged 41-task evaluation.
-
-This measures the full agent-level system, including stochastic Skill invocation.
-
-Collect the same established metrics:
-
-```text
-success rate
-total tool calls
-AST Tool calls
-AST failures
-AST retries
-help calls
 grep
 glob
 read
 bash
 edit
-recovery distance
-elapsed time
+
+recovery distances
+avg recovery distance
+max recovery distance
+
+elapsed
 tokens
-per-command usage
+per-test metrics
 Skill invocation
 ```
 
 ---
 
-# Separate Two Questions
+# Primary Comparison
 
-Phase 7c must report two different conclusions.
-
-## Question A — Body Equivalence
+Compare Phase 7c.1 primarily against both:
 
 ```text
-When both agents load the Skill,
-does the compressed body preserve Phase 5 behavior?
+Phase 5
+and
+Phase 7c
 ```
 
-Answer from the controlled cohort.
+Phase 5 answers:
+
+```text
+Did we recover the efficient baseline behavior?
+```
+
+Phase 7c answers:
+
+```text
+Did we preserve the improvements already gained?
+```
+
+Do not compare only against Phase 5.
 
 ---
 
-## Question B — Agent-Level Result
+# Desired Direction
+
+Phase 7c.1 should ideally preserve:
 
 ```text
-Under normal agent behavior,
-does the full system retain Phase 5 routing and efficiency?
+successes              >= 37
+AST failures           <= 7–9
+grep                    near 15–17
+bash                    <= Phase 7c
+edit                    <= Phase 5/7c range
+elapsed                 <= Phase 5
 ```
 
-Answer from the 41-task run.
+while improving:
 
-Do not merge these two conclusions.
+```text
+find-related targeted routing
+glob
+read
+total tool calls
+recovery distance
+tokens
+```
 
-A Skill body may be semantically equivalent even if stochastic Skill invocation differs.
-
-Likewise, a good aggregate run does not prove body equivalence.
+These are directional goals, not hard command-count requirements.
 
 ---
 
-# Token Evaluation
+# Strong Success Case
 
-Do not optimize Phase 7c based solely on total reported tokens.
+A strong Phase 7c.1 result would look approximately like:
+
+```text
+success rate          >= 90.24%
+AST failures          <= Phase 5
+grep                  ~ Phase 5
+glob                  ~ Phase 5
+read                  <= Phase 5
+recovery avg          <= Phase 5
+total tool calls      < Phase 5
+tokens                < Phase 5
+elapsed               <= Phase 5
+```
+
+Exact equality is not required.
+
+The real target is a cheaper targeted trajectory.
+
+---
+
+# Per-Test Analysis
+
+For every test where Phase 7c.1 differs materially from Phase 7c, record:
+
+```text
+what changed
+which restored rule plausibly caused it
+whether the change was desirable
+cost delta
+```
+
+This is especially important if aggregate metrics improve.
+
+Do not accept a result solely because totals look better.
+
+---
+
+# Token Analysis
+
+Phase 7c used:
+
+```text
+178,116 total tokens
+```
+
+versus Phase 5:
+
+```text
+158,303
+```
+
+Identify whether token reduction in Phase 7c.1 comes from:
+
+```text
+fewer broad reads
+fewer glob/read chains
+shorter recovery
+fewer redundant semantic queries
+smaller context gathered
+```
+
+Use per-test token deltas.
 
 Report:
 
 ```text
-Skill size reduction
-fixed approximate Skill saving
-total tokens
-median per-test tokens
+median delta
 p75
 p90
-paired token deltas
+largest regressions
+largest improvements
+top outlier contribution
 ```
 
-For the controlled cohort, compare token deltas directly because Skill invocation is held constant.
-
-This is more informative than aggregate totals alone.
+Do not rely only on aggregate total tokens.
 
 ---
 
-# Final Deliverables
-
-Provide:
-
-1. The Phase 7c `SKILL.md`.
-2. Phase 5 → Phase 7c textual diff summary.
-3. Rule-classification summary.
-4. Phase 5 → Phase 7c rule-equivalence map.
-5. Skill size comparison:
-
-   * lines
-   * characters
-   * bytes
-   * approximate tokens
-   * percentage reduction.
-6. Controlled evaluation task list.
-7. Controlled Phase 5 vs Phase 7c metrics.
-8. Controlled trajectory comparison.
-9. Any rule-level semantic regressions found.
-10. Full 41-task evaluation metrics, if controlled evaluation passes.
-11. Separate conclusions for:
-
-    * body semantic equivalence
-    * full agent-level behavior.
-12. Final recommendation.
-
----
-
-# Final Recommendation Values
+# Acceptance Decision
 
 Choose one:
 
@@ -825,7 +750,7 @@ Choose one:
 ACCEPT
 ACCEPT WITH CAVEATS
 REVISE
-REJECT
+REVERT TO PHASE 7C
 ```
 
 ## ACCEPT
@@ -833,62 +758,80 @@ REJECT
 Use when:
 
 ```text
-meaningful size reduction
+Phase 7c improvements are preserved
 +
-controlled Skill-loaded behavior preserved
+targeted structural routing improves
 +
-no systematic routing/recovery regression
+manual exploration decreases
 +
-full evaluation acceptable
+no new correctness/recovery regression appears
 ```
+
+Ideally the result should outperform Phase 5 on agent-level efficiency.
+
+---
 
 ## ACCEPT WITH CAVEATS
 
-Use when semantic preservation is strong but the normal full run contains clearly stochastic or measurement-related uncertainty.
+Use when the targeted restoration clearly improves the intended trajectories but aggregate results contain plausible stochastic noise.
+
+---
 
 ## REVISE
 
-Use when a small number of specific compressed rules weaken Phase 5 behavior and can be restored without abandoning the approach.
-
-## REJECT
-
-Use when compression removes decision boundaries broadly enough that Phase 5 behavior cannot be reproduced.
+Use when the right regression was identified but the restored wording is too broad or introduces a new behavioral cost.
 
 ---
 
-# Do Not Proceed Automatically
+## REVERT TO PHASE 7C
 
-Do not proceed to Phase 8 or Phase 9 automatically.
+Use when the restoration does not improve the targeted trajectories or causes broader regression.
 
-Do not commit the Phase 7c candidate solely because it is smaller.
+Phase 7c remains the fallback candidate.
 
-Do not replace Phase 5 as the stable baseline until both:
-
-```text
-controlled semantic equivalence
-AND
-acceptable full agent-level behavior
-```
-
-have been demonstrated.
+Do not automatically revert all the way to Phase 5.
 
 ---
 
-# Final Standard
+# Deliverables
 
-The success criterion is not:
+Provide:
+
+1. Phase 5 vs Phase 7c trajectory diagnosis.
+2. Per-test `find` disappearance analysis.
+3. Per-test glob/read regression ranking.
+4. Recovery-distance-4 analysis.
+5. Phase 5 vs Phase 7c relevant Skill diff.
+6. Causal restoration candidates.
+7. Final minimal restoration set.
+8. Modified Phase 7c.1 `SKILL.md`.
+9. Skill size before/after restoration.
+10. Targeted replay results.
+11. Full 41-task evaluation results.
+12. Phase 5 vs Phase 7c vs Phase 7c.1 comparison.
+13. Per-test token/outlier analysis.
+14. Final recommendation.
+
+---
+
+# Final Principle
+
+Do not try to make Phase 7c.1 look like Phase 5.
+
+Instead:
 
 ```text
-The compressed Skill contains the same major topics.
+Keep what Phase 7c improved.
+Restore only what Phase 7c accidentally weakened.
 ```
 
-It is:
+The final question is:
 
 ```text
-For every behaviorally meaningful Phase 5 instruction,
-the compressed Skill contains an equivalent decision rule,
-and controlled agent trajectories demonstrate that those
-rules preserve the intended semantic-routing behavior.
+Can a very small restoration of Phase 5 decision cues
+eliminate Phase 7c's extra structural/manual exploration
+without giving up Phase 7c's lower AST failure rate and
+other efficiency gains?
 ```
 
-Phase 7c should optimize only the instruction volume that is genuinely non-essential to that behavior.
+Phase 7c.1 succeeds only if the answer is supported by trajectory evidence.

@@ -1,0 +1,74 @@
+{
+  "task_id": "level3-004",
+  "task_level": 3,
+  "agent": "claude",
+  "repository": "repositories/level3-order",
+  "success": true,
+  "validation_success": true,
+  "elapsed_seconds": 94.69,
+  "total_tool_calls": 14,
+  "tools": {
+    "Skill": 1,
+    "Bash": 9,
+    "Glob": 1,
+    "Read": 2,
+    "Edit": 1
+  },
+  "bash_calls": 9,
+  "read_calls": 2,
+  "edit_calls": 1,
+  "grep_calls": 0,
+  "glob_calls": 1,
+  "skill_calls": 1,
+  "ast_tool_calls": 9,
+  "ast_tool_successes": 8,
+  "ast_tool_failures": 1,
+  "ast_tool_retries": 3,
+  "ast_tool_help_calls": 0,
+  "ast_tool_json_calls": 1,
+  "ast_tool_pretty_json_calls": 0,
+  "ast_tool_commands": {
+    "callees": 4,
+    "search": 3,
+    "symbols": 2
+  },
+  "ast_tool_failures_by_command": {
+    "callees": 1
+  },
+  "tool_sequence": [
+    "Skill",
+    "ast-tool:callees",
+    "ast-tool:search",
+    "ast-tool:callees",
+    "ast-tool:search",
+    "Glob",
+    "ast-tool:callees",
+    "ast-tool:symbols",
+    "ast-tool:callees",
+    "Read",
+    "ast-tool:search",
+    "ast-tool:symbols",
+    "Read",
+    "Edit"
+  ],
+  "ast_tool_sequence": [
+    "callees",
+    "search",
+    "callees",
+    "search",
+    "callees",
+    "symbols",
+    "callees",
+    "search",
+    "symbols"
+  ],
+  "ast_tool_recovery_distances": [
+    1
+  ],
+  "average_ast_tool_recovery_distance": 1,
+  "max_ast_tool_recovery_distance": 1,
+  "consecutive_ast_tool_retries": 0,
+  "input_tokens": 31,
+  "output_tokens": 3083,
+  "total_tokens": 3114
+}
