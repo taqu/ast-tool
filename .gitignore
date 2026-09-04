@@ -85,5 +85,6 @@ venv/
 /evaluation/tests3/
 /evaluation/tests4/
 /evaluation/tests5/
+/evaluation/final_analysis/
 
 *.db

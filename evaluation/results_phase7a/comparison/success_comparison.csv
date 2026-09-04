@@ -1,8 +1,0 @@
-level,total_compared,both_success,both_failure,improved_with_ast,regressed_with_ast,with_ast_success_rate,without_ast_success_rate,success_rate_delta
-overall,41,37,3,1,0,92.7,90.2,2.4
-smoke,1,1,0,0,0,100.0,100.0,0.0
-level1,8,8,0,0,0,100.0,100.0,0.0
-level2,8,8,0,0,0,100.0,100.0,0.0
-level3,8,8,0,0,0,100.0,100.0,0.0
-level4,8,4,3,1,0,62.5,50.0,12.5
-level5,8,8,0,0,0,100.0,100.0,0.0

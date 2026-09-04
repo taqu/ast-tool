@@ -1,8 +1,0 @@
-level,with_ast_average_workflow_length,without_ast_average_workflow_length,workflow_length_delta
-overall,13.29,12.63,0.66
-smoke,12.00,12.00,0.00
-level1,6.00,6.25,-0.25
-level2,7.38,7.62,-0.25
-level3,8.62,8.50,0.12
-level4,20.88,16.00,4.88
-level5,23.75,24.88,-1.12

@@ -1,109 +1,88 @@
-# Phase 7b — Further Skill.md Compression
+# Phase 8 — Final Quantitative Evaluation
 
 ## Objective
 
-Further compress `Skill.md` beyond the accepted Phase 7a version while preserving the routing and recovery behavior established by Phase 5 and retained in Phase 7a.
+Perform the final quantitative evaluation of the accepted Phase 7b state.
 
-Phase 7a demonstrated that a substantial reduction in instruction size is possible without evidence of a systematic regression among trajectories that actually loaded the skill.
+Phase 8 is **not an optimization phase**.
 
-Phase 7b should therefore explore **additional compression**, but must remain behavior-preserving.
+Do not modify:
 
-The objective is:
+* `SKILL.md`
+* AST Tool implementation
+* semantic resolution
+* CLI behavior
+* evaluation tasks
+* recovery behavior
+* metrics collection logic, unless a clearly identified metrics bug prevents valid comparison
+
+The purpose of this phase is to determine whether the final Phase 7b system is measurably better than the established stable baseline at the **Coding Agent level**.
+
+The primary comparison is:
 
 ```text
-Phase 7a behavior preserved
-+
-Skill.md smaller
-+
-No measurable degradation in skill-guided trajectories
+Phase 5 stable baseline
+        ↓
+Phase 7b final candidate
 ```
 
-This phase is still an instruction-design optimization.
-
-Do not modify AST Tool itself.
+Intermediate phases may be included for context, but Phase 5 is the formal behavioral baseline.
 
 ---
 
-# Starting Point
+# Evaluation Principle
 
-Use the committed Phase 7a version of `Skill.md` as the baseline.
+The optimization target is not AST Tool in isolation.
 
-Do not restart from Phase 5.
-
-Phase 7a is now the accepted behavioral and textual baseline for this phase.
-
-The Phase 7a evaluation result was:
+The optimization target is:
 
 ```text
-tests                      41
-successes                  38
-failures                    3
-success rate              92.68%
-
-total tool calls           545
-AST Tool calls              60
-AST failures                 9
-AST failure rate          15.00%
-AST retries                 10
-
-grep                         31
-glob                         19
-read                        275
-
-avg recovery distance      2.56
-max recovery distance         6
-
-total tokens            156,439
-avg tokens/test         3,815.6
+Coding Agent efficiency
 ```
 
-Phase 7a reduced the Skill from approximately:
+Evaluate the final system across:
 
 ```text
-~3263 tokens
+correctness
+targeted semantic routing
+manual exploration cost
+recovery behavior
+tool-use efficiency
+latency
+token efficiency
+```
+
+Do not declare success or failure based on one metric alone.
+
+In particular:
+
+```text
+lower AST calls != automatically better
+higher AST calls != automatically worse
+
+lower tool calls != automatically better
+higher total tokens != automatically worse without trajectory analysis
+```
+
+Always interpret metrics together.
+
+---
+
+# Final Candidate
+
+Use the committed Phase 7b state.
+
+Do not modify it before or during the final evaluation.
+
+Phase 7b reduced the accepted Phase 7a Skill from approximately:
+
+```text
+1546 tokens
 →
-~1546 tokens
+809 tokens
 ```
 
-The Phase 7a trajectory analysis found no convincing evidence that the compressed Skill body caused routing regression when the Skill was actually loaded.
-
-That result allows Phase 7b to attempt further compression.
-
----
-
-# Important Lesson from Phase 7a
-
-Do not evaluate Phase 7b using total tokens alone.
-
-Phase 7a showed that instruction compression can provide a large fixed token saving while unrelated or stochastic manual exploration consumes some of that saving.
-
-Therefore distinguish:
-
-```text
-instruction-size efficiency
-```
-
-from:
-
-```text
-agent-trajectory efficiency
-```
-
-A smaller Skill.md is not automatically better if it causes:
-
-```text
-AST Tool usage ↓
-grep/read exploration ↑
-recovery complexity ↑
-```
-
-among tests that consumed the Skill.
-
----
-
-# Protected Routing Contract
-
-The following routing contract must remain obvious:
+while preserving the explicit routing contract:
 
 ```text
 Find symbol       → search
@@ -114,356 +93,362 @@ Find file symbols → symbols
 Need AST structure → find
 ```
 
-These mappings may be expressed more compactly, but their meaning must not become weaker or ambiguous.
-
-Do not replace this explicit routing with prose such as:
-
-```text
-Use the appropriate semantic command when useful.
-```
-
-The agent should not need to infer which command corresponds to each task.
+and the intended recovery/fallback rules.
 
 ---
 
-# Protected Behavioral Contract
+# Formal Baseline
 
-Preserve the semantics of the current Phase 7a rules governing:
+Use Phase 5 as the stable baseline.
 
-```text
-command selection
-targeted semantic queries
-fallback behavior
-failed-command retry
-help usage
-large-output avoidance
-grep/manual fallback
-failure recovery
-```
-
-In particular, retain the equivalent of:
+Phase 5 metrics:
 
 ```text
-Do not retry an unchanged failed command.
+tests                      41
+successes                  37
+failures                    4
+success rate              90.24%
 
-Do not use --help for ordinary discovery.
+total tool calls           518
+avg tool calls/test       12.63
 
-Do not use --pretty by default.
+AST Tool calls              69
+AST failures                 9
+AST failure rate          13.04%
+AST retries                  9
 
-Do not dump broad workspace output when a targeted query is available.
+avg recovery distance      1.44
+max recovery distance         2
 
-Prefer AST Tool semantic/structural queries over grep/manual exploration
-when the requested operation directly maps to an AST Tool command.
+grep                         15
+read                        252
+glob                         12
+
+total tokens            158,303
+avg tokens/test           3,861
+
+elapsed                 2224.27 sec
 ```
 
-The exact wording may change.
-
-The behavioral meaning must not.
+Use this as the main comparison point.
 
 ---
 
-# Phase 7b Compression Scope
+# Contextual Phases
 
-Phase 7b may be more aggressive than Phase 7a in the following areas.
-
-## 1. Merge closely related rules
-
-If multiple rules express one decision boundary, merge them.
-
-For example, separate sections for:
+For historical context, include:
 
 ```text
-command choice
-when to use the command
-examples of using the command
+Phase 1
+Phase 2
+Phase 5
+Phase 7a
+Phase 7b
 ```
 
-may be reducible to a compact routing table plus only the exceptions that matter.
-
----
-
-## 2. Remove examples that no longer disambiguate behavior
-
-Phase 7a retained examples conservatively.
-
-Re-evaluate them.
-
-An example may be removed if:
+Treat:
 
 ```text
-the rule is already unambiguous
-AND
-the example introduces no additional routing or recovery information
+Phase 3
+Phase 6
 ```
 
-Prefer zero or one example per important exceptional case.
+as rejected experimental branches.
 
-Do not keep examples merely for completeness.
+Do not mix their results into the main success criterion.
 
----
-
-## 3. Compress repeated recovery guidance
-
-If `search`, `callers`, `references`, and `callees` share the same recovery principle, express the common rule once rather than repeating it for every command.
-
-For example:
+They may be cited only to illustrate known failure modes such as:
 
 ```text
-If a targeted semantic query fails,
-use the error's cheapest suggested correction or refine the symbol,
-rather than retrying the same command unchanged.
+AST usage collapse
+grep fallback increase
+token increase
+routing regression
 ```
 
-Then retain command-specific recovery text only where behavior genuinely differs.
+---
+
+# Evaluation Dataset
+
+Run the same 41 evaluation tasks used for the previous phases.
+
+Do not change prompts, repositories, expected files, validators, or timeout rules.
+
+Ensure the environment is valid before starting the run, including required compiler/tool availability.
+
+Infrastructure failures must not be counted as agent failures.
+
+If an infrastructure failure occurs:
+
+1. identify it explicitly;
+2. fix only the environment issue;
+3. rerun the affected task;
+4. retain enough information to distinguish the invalid run from the valid rerun.
+
+The final comparison must contain 41 valid results.
 
 ---
 
-## 4. Remove documentation-like material
+# Metrics to Collect
 
-`Skill.md` is agent guidance, not full CLI documentation.
+Collect all previously established metrics.
 
-Remove content whose primary purpose is to document commands rather than affect agent decisions.
-
-Candidates include:
-
-```text
-exhaustive flag lists
-obvious syntax explanations
-descriptions repeated by CLI help
-implementation details
-background rationale
-examples covering ordinary syntax
-```
-
-Keep only what changes agent behavior.
-
----
-
-## 5. Convert prose into compact decision rules
-
-Prefer:
-
-```text
-Need callers → callers
-Need references → references
-```
-
-over several sentences explaining why each command exists.
-
-Prefer:
-
-```text
-Failed unchanged command → do not retry
-```
-
-over explanatory prose unless the explanation prevents a known mistake.
-
----
-
-## 6. Eliminate duplicate warnings
-
-If the same warning appears in:
-
-```text
-command guidance
-common mistakes
-best practices
-fallback section
-```
-
-keep it once in the location where it most strongly affects the decision.
-
----
-
-# What Phase 7b Must Not Do
-
-Do not:
-
-* change command names;
-* change CLI syntax;
-* change AST Tool implementation;
-* change semantic resolution;
-* modify Phase 5 error UX;
-* redesign JSON output;
-* modify evaluation tasks;
-* change Skill trigger metadata unless explicitly required by the task;
-* add new routing behavior;
-* broaden grep fallback;
-* add speculative workarounds;
-* optimize for fewer AST calls;
-* optimize individual AST metrics independently.
-
-Do not intentionally change Skill invocation behavior.
-
-Phase 7b concerns the Skill body.
-
----
-
-# Special Attention: Skill Invocation
-
-Phase 7a showed substantial run-to-run variation in whether some tests loaded the Skill at all.
-
-Do not incorrectly attribute a missing Skill invocation to compressed body text.
-
-For any Phase 7b regression, distinguish:
-
-```text
-Skill not invoked
-```
-
-from:
-
-```text
-Skill invoked, but compressed guidance changed behavior
-```
-
-Only the second is direct evidence against the Phase 7b compression.
-
-Record Skill invocation per test during evaluation.
-
----
-
-# Recommended Editing Process
-
-Use a conservative iterative approach.
-
-## Step 1 — Inspect Phase 7a
-
-Identify every remaining section of Phase 7a `Skill.md`.
-
-Classify each piece as:
-
-```text
-ROUTING CONTRACT
-RECOVERY CONTRACT
-IMPORTANT EXCEPTION
-REDUNDANT EXPLANATION
-DOCUMENTATION
-EXAMPLE
-RATIONALE
-```
-
-The first three categories are protected.
-
-The remaining categories are primary compression candidates.
-
----
-
-## Step 2 — Produce a proposed compressed version
-
-Do not rewrite semantics from memory.
-
-Compress the existing Phase 7a text directly.
-
-Prefer structural merging and deletion over semantic rewriting.
-
----
-
-## Step 3 — Diff the behavioral contract
-
-Before evaluation, compare Phase 7a and Phase 7b.
-
-For each removed or merged section, answer:
-
-```text
-What agent decision did this text influence?
-Is that decision still represented?
-Could its removal make grep/manual exploration more attractive?
-Could its removal make command choice ambiguous?
-Could its removal weaken recovery guidance?
-```
-
-If uncertain, restore the smallest necessary wording.
-
----
-
-## Step 4 — Measure Skill size
-
-Report before/after:
-
-```text
-lines
-characters or bytes
-approximate tokens
-percentage reduction
-```
-
-Use Phase 7a as the size baseline.
-
----
-
-## Step 5 — Run the same 41-test evaluation
-
-Do not change the test set.
-
-Collect the same metrics used previously.
-
----
-
-# Evaluation Metrics
-
-Collect at least:
+## Correctness
 
 ```text
 tests
 successes
 failures
 success rate
+```
 
+---
+
+## Tool Usage
+
+```text
 total tool calls
 average tool calls/test
 
 AST Tool calls
 AST Tool failures
 AST Tool failure rate
-AST retries
-AST help calls
+AST Tool retries
+AST Tool help calls
 
 grep
 glob
 read
 bash
 edit
+```
 
-elapsed time
+---
 
+## AST Tool Commands
+
+Collect per-command usage:
+
+```text
+search
+callers
+references
+callees
+find
+symbols
+outline
+children
+parent
+range
+other parsed commands
+```
+
+Also collect:
+
+```text
+AST failures by command
+```
+
+Identify parser false positives separately.
+
+Do not count known shell-redirection artifacts such as:
+
+```text
+which ast-tool 2>/dev/null
+```
+
+as real AST Tool commands.
+
+---
+
+## Recovery
+
+Collect:
+
+```text
+all recovery distances
+average recovery distance
+maximum recovery distance
+```
+
+For unusually long recovery cases, retain the task ID and trajectory.
+
+---
+
+## Time
+
+Collect:
+
+```text
+total elapsed time
+average elapsed time/test
+```
+
+---
+
+## Tokens
+
+Collect:
+
+```text
 input tokens
 output tokens
 total tokens
 average tokens/test
-
-AST Tool command usage
-failures by command
-recovery distances
-
-Skill invocation count
-Skill invocation per test
 ```
+
+Do not stop at aggregate token totals.
+
+Phase 8 must also compute per-test token distributions.
 
 ---
 
-# Additional Phase 7b Analysis
+# Required Per-Test Metrics
 
-In addition to aggregate metrics, compute metrics separately for:
-
-```text
-A. tests that loaded the Skill in both Phase 7a and Phase 7b
-
-B. tests that did not load the Skill in one or both runs
-```
-
-Group A is the primary evidence for whether compression changed agent behavior.
-
-Do not let Group B dominate the conclusion about the Skill body.
-
----
-
-# Same-Skill-Invocation Comparison
-
-For tests that loaded the Skill in both runs, compare:
+For every task, produce at least:
 
 ```text
+task ID
 success/failure
+total tool calls
+AST Tool calls
+grep
+glob
+read
+tokens
+elapsed time
+skill invocation count
+AST command sequence
+```
+
+This data is required for outlier analysis.
+
+---
+
+# Three-Layer Evaluation
+
+Phase 8 must evaluate the result at three different levels.
+
+---
+
+## Layer 1 — Full 41-Task Aggregate
+
+This is the primary Agent-level result.
+
+Compare Phase 5 and Phase 7b across the full 41-task set.
+
+Answer:
+
+```text
+Did the final system become better overall?
+```
+
+Evaluate:
+
+```text
+success rate
+tool calls
+manual exploration
+AST Tool usage
+recovery
+elapsed time
+tokens
+```
+
+Do not interpret any one metric in isolation.
+
+---
+
+## Layer 2 — Per-Test Delta Analysis
+
+Aggregate averages can be distorted by a few stochastic outliers.
+
+For every task, compute:
+
+```text
+Phase 7b - Phase 5
+```
+
+for at least:
+
+```text
+tokens
+tool calls
+AST calls
+grep
+read
+elapsed time
+```
+
+Then report the distribution.
+
+For token deltas, include:
+
+```text
+median
+p75
+p90
+minimum
+maximum
+```
+
+Also report:
+
+```text
+number of tests improved
+number approximately unchanged
+number worsened
+```
+
+Use a clearly stated tolerance when defining "approximately unchanged".
+
+The purpose is to distinguish:
+
+```text
+broad regression
+```
+
+from:
+
+```text
+a few high-cost outliers
+```
+
+For example:
+
+```text
+30 tests near zero
+3 tests extremely expensive
+```
+
+must not be interpreted the same way as:
+
+```text
+30 tests moderately worse
+```
+
+even if the aggregate token total is similar.
+
+---
+
+## Layer 3 — Skill-Invocation Cohorts
+
+Skill invocation varies stochastically between runs.
+
+Therefore separate tests into:
+
+```text
+A. Skill loaded in both Phase 5 and Phase 7b
+B. Skill loaded in only one run
+C. Skill loaded in neither run
+```
+
+Group A is the strongest evidence for whether the final compressed Skill body preserves routing behavior.
+
+For Group A, compare:
+
+```text
+success
 AST Tool calls
 search
 callers
@@ -473,275 +458,517 @@ find
 grep
 glob
 read
-recovery distance
-total tool calls
+recovery
 tokens
+tool calls
+elapsed time
 ```
 
-Look specifically for transitions such as:
+Look for trajectory changes such as:
 
 ```text
-Phase 7a:
-search → callers → Read
+Phase 5:
+search → callers → targeted reads
 
 Phase 7b:
-grep → Read → Grep → Read
+grep → broad reads → manual reasoning
 ```
 
-or:
+A systematic change of this form would be evidence of routing degradation.
 
-```text
-Phase 7a:
-find → targeted result
-
-Phase 7b:
-manual file inspection
-```
-
-These would be stronger evidence of a compression-induced regression than aggregate AST-call changes.
+A difference that occurs only when the Skill was not loaded must not be blamed on Skill body compression.
 
 ---
 
-# Token Decomposition
+# Routing Quality Analysis
 
-Estimate the fixed instruction saving separately from trajectory cost.
+Do not use raw AST Tool call count as the main quality metric.
+
+Evaluate whether trajectories remain targeted.
+
+Good examples:
+
+```text
+search → callers
+search → references
+search → find
+callers → refined search → callers
+```
+
+Potential regressions:
+
+```text
+grep → read many files → grep → read
+
+broad workspace dump
+
+repeated unchanged failed AST command
+
+routine help exploration
+
+semantic query skipped despite an obvious direct mapping
+```
+
+Classify observed changes as:
+
+```text
+BENIGN
+SUSPICIOUS
+REGRESSION
+```
+
+Require trajectory evidence before labeling a change as regression.
+
+---
+
+# Manual Exploration Analysis
+
+Compare:
+
+```text
+grep
+glob
+read
+```
+
+both in aggregate and per test.
+
+Identify the tests responsible for the largest increases.
+
+For each major outlier, determine whether the increase came from:
+
+```text
+AST Tool avoidance
+semantic recovery
+implementation work
+fixture inspection
+unrelated stochastic reasoning
+```
+
+Do not assume all grep/read usage is bad.
+
+The issue is whether broad manual exploration replaced a cheaper targeted semantic path.
+
+---
+
+# Recovery Analysis
+
+Compare Phase 5 and Phase 7b recovery behavior.
+
+Report:
+
+```text
+average recovery distance
+maximum recovery distance
+recovery-distance distribution
+```
+
+Inspect all unusually long recovery paths.
+
+For each, answer:
+
+```text
+What failed?
+What was tried next?
+Was an unchanged command retried?
+Was help used unnecessarily?
+Did the error message lead to a cheap correction?
+Was the Skill loaded at the time?
+```
+
+Distinguish tool/recovery regressions from runs where the Skill was never invoked.
+
+---
+
+# Token Analysis
+
+Token analysis must be more robust than aggregate total-token comparison.
+
+Phase 8 must report:
+
+```text
+total tokens
+average tokens/test
+median tokens/test
+p75
+p90
+max
+```
+
+Also compute per-test token deltas between Phase 5 and Phase 7b.
+
+Identify how much of the aggregate difference is caused by the largest outliers.
+
+For example, report:
+
+```text
+Top 1 outlier contribution
+Top 3 outlier contribution
+Top 5 outlier contribution
+```
+
+to the total token delta.
+
+---
+
+# Skill Compression Cost Adjustment
+
+Estimate the fixed prompt saving produced by the smaller Phase 7b Skill.
 
 Let:
 
 ```text
-S7a = Phase 7a Skill token count
-S7b = Phase 7b Skill token count
-N   = number of comparable Skill invocations
+S5  = approximate Phase 5 Skill tokens
+S7b = approximate Phase 7b Skill tokens
+N   = comparable Skill invocations
 ```
 
 Estimate:
 
 ```text
-fixed compression saving
+fixed Skill saving
 ≈
-(S7a - S7b) × N
+(S5 - S7b) × N
 ```
 
-Then compare this with the observed token delta.
+If Phase 5 Skill size is not readily available, use Phase 7a or another known reference and clearly state the limitation.
 
-Use this to estimate whether trajectory behavior became:
+This estimate is secondary.
+
+Do not over-interpret it because prompt caching and runtime accounting may make exact attribution impossible.
+
+The purpose is only to distinguish:
 
 ```text
-more efficient
-neutral
-or less efficient
+instruction cost
 ```
 
-after accounting for the smaller Skill.
-
-Exact accounting may not be possible because prompt/cache/tool-result tokens may not all be exposed.
-
-Clearly label any estimate.
-
----
-
-# Acceptance Criteria
-
-Phase 7b should not require exact equality with Phase 7a because agent trajectories are stochastic.
-
-Use the following hierarchy.
-
-## 1. Correctness
-
-Success rate must remain approximately Phase 7a / Phase 5 level.
-
-A one-test fluctuation should be investigated rather than automatically accepted or rejected.
-
-A broad correctness decline is a rejection signal.
-
----
-
-## 2. Skill-loaded routing behavior
-
-Among tests that loaded the Skill in both runs:
+from:
 
 ```text
-search/callers/references/callees/find routing
-```
-
-must remain targeted.
-
-Reject if compression systematically replaces targeted AST queries with:
-
-```text
-grep
-glob
-broad reads
-manual exploration
+trajectory/output cost
 ```
 
 ---
 
-## 3. Recovery behavior
+# Token Accounting Consistency Check
 
-Do not require identical recovery-distance aggregates.
-
-Instead inspect new long-recovery trajectories.
-
-A regression matters when:
+Phase 7 results showed cases where:
 
 ```text
-Skill was loaded
-AND
-Phase 7b guidance plausibly caused the longer recovery
+tool calls ↓
+reads ↓
+elapsed time ↓
+but reported output tokens ↑ sharply
 ```
+
+Therefore explicitly check whether token reporting is comparable between runs.
+
+Inspect:
+
+```text
+input/output token accounting
+model/runtime configuration
+cache behavior if observable
+log format/version
+evaluation harness version
+```
+
+Do not modify the harness merely to force metrics to match.
+
+If token accounting is not fully comparable, report that limitation and rely more heavily on:
+
+```text
+paired per-test deltas
+median behavior
+trajectory evidence
+tool-use metrics
+elapsed time
+```
+
+Do not silently treat incompatible token accounting as precise efficiency evidence.
 
 ---
 
-## 4. Token efficiency
+# Correctness Analysis
 
-Phase 7b should provide a meaningful additional Skill-size reduction.
+For every Phase 7b failure:
 
-Total tokens should ideally improve.
+1. identify the task;
+2. identify the validator failure;
+3. compare with Phase 5;
+4. determine whether it is:
 
-However, evaluate total-token changes together with normalized trajectory behavior.
+   * a new agent regression,
+   * an existing task/fixture defect,
+   * stochastic implementation failure,
+   * infrastructure failure.
 
-Do not accept a large trajectory regression merely because fixed prompt savings hide it.
+Do not count known baseline fixture defects as evidence against Phase 7b unless the final system introduced or exposed them differently.
+
+Also inspect improvements:
+
+```text
+Phase 5 failure
+→
+Phase 7b success
+```
+
+and determine whether they are likely systematic or stochastic.
 
 ---
 
-## 5. Manual exploration
+# Statistical Interpretation
 
-A large increase in grep/read/glob among comparable Skill-loaded tests is suspicious.
+There are only 41 tasks.
 
-Localized outliers or tests without Skill invocation should be analyzed separately.
-
----
-
-# Suggested Decision Threshold
-
-Phase 7b should produce one of:
-
-```text
-ACCEPT
-ACCEPT WITH MINOR RESTORATION
-REVISE
-REJECT
-```
-
-### ACCEPT
-
-Use when:
-
-```text
-Skill is materially smaller
-AND
-correctness is preserved
-AND
-skill-loaded routing is effectively preserved
-AND
-no systematic recovery/manual-exploration regression appears
-```
-
-### ACCEPT WITH MINOR RESTORATION
-
-Use when one narrowly identifiable removed instruction causes a localized regression and restoring a very small rule fixes the ambiguity.
-
-### REVISE
-
-Use when several compressed sections appear too aggressive but the overall approach remains viable.
-
-### REJECT
-
-Use when further compression causes broad routing degradation, increased manual exploration, or correctness loss among Skill-loaded trajectories.
-
----
-
-# Do Not Optimize Toward Command Counts
-
-Do not attempt to preserve:
-
-```text
-search = exactly 25
-find = exactly 6
-AST calls = exactly 60
-```
-
-Those are observations, not targets.
-
-The actual target is:
-
-```text
-cheap targeted trajectory
-```
+Do not overstate small differences.
 
 For example:
 
 ```text
-search → callers → edit
+37/41 vs 38/41
 ```
 
-and:
+should be treated as a one-task difference requiring trajectory inspection, not automatically as proof of improvement or regression.
+
+Prefer language such as:
 
 ```text
-search → find → edit
+preserved
+likely improved
+localized regression
+outlier-driven
+inconclusive
 ```
 
-may both be good depending on the task.
+unless the evidence is strong.
 
-Similarly, fewer AST calls can be an improvement when redundant queries disappear.
-
-Judge trajectory quality, not raw command count.
+Do not manufacture statistical significance from this small sample.
 
 ---
 
-# Deliverables
+# Final Comparison Table
 
-Provide:
+Produce a main table containing:
 
-1. Modified Phase 7b `Skill.md`.
-2. Phase 7a → Phase 7b textual diff summary.
-3. Skill size comparison:
+```text
+Metric
+Phase 5
+Phase 7b
+Absolute change
+Relative change
+Assessment
+```
 
-   * lines
-   * characters/bytes
-   * approximate tokens
-   * percentage reduction.
-4. Full 41-test evaluation results.
-5. Phase 7a vs Phase 7b aggregate comparison.
-6. Per-command AST Tool comparison.
-7. Skill invocation comparison.
-8. Same-Skill-invocation trajectory comparison.
-9. Outlier analysis.
-10. Token decomposition estimate.
-11. Any suspected causal link between removed guidance and trajectory changes.
-12. Final recommendation:
+Include at least:
 
-    * `ACCEPT`
-    * `ACCEPT WITH MINOR RESTORATION`
-    * `REVISE`
-    * `REJECT`
-
-Do not modify the accepted Phase 7a commit if Phase 7b fails.
-
-Do not proceed to Phase 8 automatically.
+```text
+success rate
+total tool calls
+AST Tool calls
+AST failures
+AST retries
+grep
+glob
+read
+average recovery distance
+maximum recovery distance
+elapsed time
+total tokens
+median tokens/test
+p90 tokens/test
+```
 
 ---
 
-# Guiding Principle
+# Historical Trend Table
 
-Use this principle throughout Phase 7b:
-
-```text
-Compress documentation,
-not decisions.
-```
-
-And evaluate success at the agent level:
+Also provide a compact historical table for:
 
 ```text
-smaller instructions
-+
-preserved targeted routing
-+
-preserved correctness
-+
-no hidden trajectory cost
+Phase 1
+Phase 2
+Phase 5
+Phase 7a
+Phase 7b
 ```
 
-Phase 7b succeeds only when additional compression is genuinely cheaper for the Coding Agent as a whole.
+Include only the core metrics:
+
+```text
+success rate
+total tool calls
+AST Tool calls
+grep
+read
+total tokens
+elapsed time
+```
+
+Do not force comparisons where metrics were collected differently.
+
+Clearly mark unavailable or non-comparable values.
+
+---
+
+# Final Decision
+
+Choose exactly one:
+
+```text
+ACCEPT FINAL
+ACCEPT WITH CAVEATS
+REVISE
+REJECT
+```
+
+---
+
+## ACCEPT FINAL
+
+Use when the evidence supports:
+
+```text
+correctness preserved
++
+targeted routing preserved
++
+manual exploration acceptable
++
+recovery acceptable
++
+agent-level efficiency improved or clearly not worse
+```
+
+Minor stochastic differences are acceptable.
+
+---
+
+## ACCEPT WITH CAVEATS
+
+Use when the final system is still preferable overall, but one metric—such as token accounting—cannot be compared reliably.
+
+State the caveat precisely.
+
+---
+
+## REVISE
+
+Use when the overall direction is promising but a localized, reproducible issue should be corrected before declaring the final state.
+
+Do not propose unrelated feature work.
+
+---
+
+## REJECT
+
+Use when Phase 7b produces a systematic regression such as:
+
+```text
+targeted AST routing collapse
+manual exploration broadly increases
+correctness materially drops
+recovery consistently worsens
+agent-level cost increases across many tests
+```
+
+Do not reject based solely on one aggregate token outlier.
+
+---
+
+# Final Report Structure
+
+Produce the final report in this order:
+
+## 1. Executive Summary
+
+State the final decision and the main evidence.
+
+## 2. Final Phase 5 vs Phase 7b Comparison
+
+Main quantitative table.
+
+## 3. Correctness
+
+Failures, improvements, and causal classification.
+
+## 4. Routing Behavior
+
+AST Tool usage and targeted semantic trajectories.
+
+## 5. Manual Exploration
+
+grep/glob/read analysis and major contributors.
+
+## 6. Recovery
+
+Recovery-distance comparison and notable trajectories.
+
+## 7. Tool and Latency Efficiency
+
+Tool-call and elapsed-time comparison.
+
+## 8. Token Analysis
+
+Aggregate, median, percentiles, per-test deltas, and outlier contribution.
+
+## 9. Skill-Invocation Cohort Analysis
+
+Especially tests loading the Skill in both runs.
+
+## 10. Historical Trend
+
+Phase 1 → Phase 2 → Phase 5 → Phase 7a → Phase 7b.
+
+## 11. Limitations
+
+Include stochasticity, fixture defects, token-accounting limitations, and any unavailable paired traces.
+
+## 12. Final Recommendation
+
+Choose:
+
+```text
+ACCEPT FINAL
+ACCEPT WITH CAVEATS
+REVISE
+REJECT
+```
+
+and explain why.
+
+---
+
+# Do Not Make Further Changes
+
+Phase 8 is an evaluation phase.
+
+Do not modify the final candidate in response to minor metric differences during this task.
+
+If a real regression is discovered:
+
+```text
+identify it
+demonstrate the causal trajectory
+recommend the smallest follow-up
+```
+
+but leave the committed Phase 7b state unchanged.
+
+Do not begin Phase 9 automatically.
+
+---
+
+# Final Question
+
+The report must ultimately answer:
+
+```text
+Compared with the Phase 5 stable baseline,
+does the committed Phase 7b system provide a better
+Coding Agent overall without sacrificing the targeted
+semantic-routing behavior that AST Tool is intended to provide?
+```
+
+Judge the final system at the agent level, not by Skill size or AST Tool metrics alone.
