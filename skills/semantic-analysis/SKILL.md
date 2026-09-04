@@ -19,337 +19,117 @@ languages: [c, cpp, csharp, python, javascript, typescript, tsx, go, rust, java,
 
 # Semantic Analysis Skill
 
-## Purpose
+Use `ast-tool` to discover symbols, locate declarations or AST nodes, find semantic usages, and trace direct call relationships without building the project.
 
-Discover matching symbols, locate specific declarations, find all usages of a symbol, and trace direct call relationships across a workspace — without needing to build the project.
+## Route the Request
 
-## Commands
+| Need | Command | Boundary |
+|---|---|---|
+| Find a symbol/declaration across the workspace | `search` | Use when its file is unknown or when matching symbols by name, FQN, kind, or path. |
+| Find a node by text, type, ID, or position in a known file | `find` | File-scoped structural lookup, not workspace symbol discovery. |
+| Find every semantic usage of a symbol | `references` | Excludes the declaration; differs from callers because results are not limited to call sites. |
+| Find functions that directly call a target | `callers` | Direct, semantically resolved call sites only. |
+| Find functions directly called by a target | `callees` | Direct calls in the target body only. |
+| List symbols declared in a known file | `symbols` | File inventory, not cross-workspace discovery. |
 
-| Command      | Role                                                       |
-|--------------|------------------------------------------------------------|
-| `search`     | Discover symbols matching a name, kind, or path pattern    |
-| `find`       | Locate AST nodes by type, text, or position in a file      |
-| `references` | Find all locations where a symbol is referenced            |
-| `callers`    | Find functions that directly call a target function        |
-| `callees`    | Find functions directly called by a target function        |
+Prefer these direct semantic routes over grep/manual exploration whenever the request maps to one. Use Grep for textual content—comments, TODO/FIXME, string literals, logs, documentation, or configuration—or after the documented semantic fallback condition is met.
 
-## Command Selection Guide
+## Essential Syntax and Scope
 
 ```text
-Need to discover matching symbols across the workspace
-        ↓
-      search
-
-Need to locate a node by text, type, or position in a known file
-        ↓
-       find
-
-Need to find all usages of a symbol
-        ↓
-    references
-
-Need to know who directly calls a function
-        ↓
-      callers
-
-Need to know what a function directly calls
-        ↓
-      callees
-```
-
----
-
-### `search` — Symbol discovery across the workspace
-
-Use when the exact declaration file is not known, or when enumerating all symbols matching a pattern.
-
-```
 ast-tool search [--name <name>] [--fqn <fqn>] [--kind <kind>] [--file <path>]
-               [--name-regex <re>] [--fqn-regex <re>] [--file-regex <re>]
-               [--json [--pretty]] <root>
-```
-
-Multiple filters are ANDed together. Output (default): `<kind> <fqn> <file>:<line>:<col>`.
-
-Examples:
-```
-ast-tool search --kind function src/
-ast-tool search --name parse src/
-ast-tool search --fqn-regex '^ast::' src/
-ast-tool search --kind class --file-regex '\.hpp$' include/
-ast-tool search --json src/
-```
-
-Cache `--json` output for large workspaces and query with `jq` rather than re-running.
-
----
-
-### `find` — Locate nodes in a known file
-
-Use when the file is already identified and you need to locate a node by type, text content, source position, or node ID.
-
-```
+                [--name-regex <re>] [--fqn-regex <re>] [--file-regex <re>]
+                [--json [--pretty]] <root>
 ast-tool find [--type <type>] [--text <text>] [--id <hex>]
-              [--line <n>] [--column <n>] <file>
-```
-
-`--line` and `--column` must be supplied together to filter by position.
-
-Examples:
-```
-ast-tool find --type function_definition src/parser.cpp
-ast-tool find --text parse src/parser.cpp
-ast-tool find --line 42 --column 17 src/parser.cpp
-ast-tool find --type identifier --text process src/main.cpp
-```
-
-Use `search` for cross-workspace symbol lookup; use `find` for targeted node lookup within a specific file.
-
----
-
-### `references` — Find usages of a symbol
-
-Find every location in the workspace where a specific symbol is referenced. Resolution is semantic: only genuine uses of the target declaration are reported.
-
-```
+              [--line <n> --column <n>] <file>
 ast-tool references [--json [--pretty]] <symbol> <root>
+ast-tool callers    [--json [--pretty]] <symbol> <root>
+ast-tool callees    [--json [--pretty]] <symbol> <root>
+ast-tool symbols <file>
 ```
 
-Resolution: if `<symbol>` contains `::`, it is matched against fully-qualified names; otherwise against unqualified names. If the query matches more than one symbol, the command fails and lists candidates — see [Ambiguity Recovery](#ambiguity-recovery) below.
+`search` filters are ANDed. Use `--kind` to reduce volume and `--fqn`/`--fqn-regex` to scope a namespace or class. Use `search --name <name> <root>` before `callers` or `references` to confirm an exact FQN.
 
-- The declaration site is excluded from results by default.
-- A valid symbol with no references produces an empty result (not an error).
-- Output sorted by file, line, column.
+Typical targeted forms:
 
-Examples:
-```
-ast-tool references parse src/
+```text
+ast-tool search --name parse src/
+ast-tool search --kind class --file-regex '\.hpp$' include/
+ast-tool find --type function_definition src/parser.cpp
+ast-tool find --line 42 --column 17 src/parser.cpp
 ast-tool references ast::parse src/
-ast-tool references --json parse src/
-```
-
----
-
-### `callers` — Find direct callers
-
-Find every call site in the workspace where a specific function is directly called. Only direct calls resolvable by the semantic resolver are reported — indirect calls through function pointers or virtual dispatch are not included.
-
-The target must be a function, method, constructor, or destructor.
-
-```
-ast-tool callers [--json [--pretty]] <symbol> <root>
-```
-
-`<root>` must be a **directory** path. Passing a file path causes the error "workspace is empty or could not be analyzed".
-
-Output (default): `<caller_fqn> <file>:<line>:<col>`, or `<file_scope>` when the call is at file scope.
-
-- A valid function with no callers produces an empty result (not an error).
-- Output sorted by file, caller FQN, line, column.
-
-Examples:
-```
-ast-tool callers parse src/
 ast-tool callers ast::parse src/
-```
-
----
-
-### `callees` — Find direct callees
-
-Find every function directly called within a specific function's body. Only direct calls resolvable by the semantic resolver are reported.
-
-The target must be a function, method, constructor, or destructor.
-
-```
-ast-tool callees [--json [--pretty]] <symbol> <root>
-```
-
-`<root>` must be a **directory** path.
-
-Output (default): `<callee_fqn> <file>:<line>:<col>`.
-
-Examples:
-```
-ast-tool callees parse src/
 ast-tool callees ast::parse src/
 ```
 
----
+For `references`, `callers`, and `callees`, `<root>` must be a directory. A file root produces “workspace is empty or could not be analyzed”; retry with the containing directory. A symbol containing `::` matches FQNs; otherwise it matches unqualified names.
 
-## Flags That Exist Only on `find`
+`find`'s `--line` and `--column` must be supplied together. `--line` and `--column` are only for `find`; `--kind`, `--file`, and `--name` are only for `search`; `--id` is only for `find`, `parent`, and `children`. Never pass these filters to `callers`, `callees`, or `references`.
 
-The following flags are valid **only** on `find`. They do not exist on `callers`, `callees`, or `references`. Passing them to those commands fails with "symbol '--flag' not found":
+## Semantic Boundaries
 
-| Flag | Valid on |
-|------|----------|
-| `--id <hex>` | `find`, `parent`, `children` only |
-| `--line <n>` | `find` only |
-| `--column <n>` | `find` only |
-| `--kind <kind>` | `search` only |
-| `--file <path>` | `search` only |
-| `--name <name>` | `search` only |
+- `references` returns genuine semantic uses, not textual matches. A valid target with no references exits successfully with empty output.
+- `references` excludes the declaration site and sorts results by file, line, and column.
+- `callers` targets a function, method, constructor, or destructor. It reports direct calls only, excluding unresolved indirect calls through function pointers or virtual dispatch. Plain output is `<caller_fqn> <file>:<line>:<col>` or `<file_scope>` for file-scope calls. A valid target may have no callers; recurse over discovered callers only when a transitive graph is requested.
+- `callees` has the same callable-target and direct-resolution limits, but reports calls made inside the target rather than calls to it.
+- Empty output with exit 0 is not a failure. The symbol can be unused, or calls may be indirect and therefore outside semantic resolution.
+- Do not use grep for declarations or callers when a semantic command applies: text matches include comments, strings, forward declarations, and unrelated occurrences.
 
----
+## Error-Directed Recovery
 
-## Error Quick Reference
+Never retry an unchanged failed command. Use the diagnostic and known results to make the cheapest useful correction. Each retry must change the FQN, root, or command in a way that addresses the failure; `--pretty`, redirection, path-format changes, and similar variations do not fix semantic errors.
 
-| Error message | Cause | Action |
+Avoid routine `--help` discovery and repeated syntax exploration after a targeted failure. Use help only when the required syntax is not stated here and the error does not supply it. Prefer one error-directed recovery action over trial-and-error sequences.
+
+| Result | Meaning | Next action |
 |---|---|---|
-| `symbol 'X' not found in workspace` | Wrong namespace, misspelled, or missing qualifier | Run `search --name X <root>` to find the correct FQN |
-| `symbol 'X' is ambiguous (N matches)` | Multiple symbols match the query | Read the candidate list; see [Ambiguity Recovery](#ambiguity-recovery) |
-| `workspace at 'X' is empty or could not be analyzed` | `<root>` is a file, not a directory | Pass a directory path as `<root>` |
-| Empty output, exit 0 | Symbol exists but has no callers/references | Correct — function may be unused or only called indirectly |
+| `symbol 'X' not found in workspace` | Misspelling, wrong namespace, or missing qualifier | Run `search --name X <root>`, choose the returned FQN, and retry once. |
+| `symbol 'X' is ambiguous (N matches)` | More than one declaration matches | Read the candidates and apply the ambiguity cases below. |
+| `workspace ... is empty or could not be analyzed` | A file was passed as `<root>` | Use its containing directory. |
+| Empty output, exit 0 | Valid symbol with no resolved results | Accept it; do not recover or retry. |
 
----
+Stop after two failed attempts on the same semantic command. Do not substitute grep after the first correctable error; fall back only when ambiguity remains unresolved after the recovery rules below or after two meaningfully different semantic attempts fail.
 
 ## Ambiguity Recovery
 
-When `callers`, `callees`, or `references` fails with "is ambiguous (N matches)", the error lists each candidate with its kind and file:
+For ambiguous `callers`, `callees`, or `references`, distinguish these cases from the candidate list.
 
-```
-error: symbol 'X' is ambiguous (2 matches); use a fully-qualified name (::) to disambiguate:
-  Function auth::AuthToken::validate .\src\auth\auth_token.cpp:7
-  Method auth::AuthToken::validate .\src\auth\auth_token.h:5
-```
+The diagnostic lists each candidate's kind, FQN, and file. Inspect that list before choosing a recovery; do not assume the query will auto-resolve.
 
-Identify which case applies:
+### Different namespaces or unrelated classes
 
-### Case 1 — Different namespaces or unrelated classes
+Run `search --name X <root>` if needed, select the intended declaration, and retry with its exact, more-qualified FQN.
 
-The candidates have different FQNs. Add more namespace qualifiers:
-```
-ast-tool callers auth::AuthToken::validate src/
-```
+### C++ declaration/definition pair with the same FQN
 
-### Case 2 — C++ declaration/definition pair (same FQN, .h and .cpp)
+A header declaration and implementation definition can share an FQN. Adding qualifiers cannot resolve this, and `callers`, `callees`, and `references` have no `--kind` or `--file` filters.
 
-The candidates share the same FQN but appear in different files — one in a header (kind `method` or `function`) and one in an implementation file (kind `function`). This is the most common ambiguity in C++ codebases.
+1. Run `search --fqn <FQN> <root>` and inspect candidate paths.
+2. If header and implementation are in separate directories, narrow `<root>` to the implementation directory and retry.
+3. If they share a directory, or the narrowed semantic attempt is still ambiguous, use Grep for implementation call sites instead of repeating the command.
 
-**The disambiguation hint in the error message does not apply here** — the FQN is already fully qualified. `callers`, `callees`, and `references` have no `--kind` or `--file` filter to select between declaration and definition.
+Do not run the same FQN against the same root more than twice. After two failures, proceed directly to Grep.
 
-**Resolution strategy:**
+### Same unqualified name, unrelated symbols
 
-Step 1 — Check whether the header and implementation are in separate directories:
-```
-ast-tool search --fqn auth::AuthToken::validate src/
-```
-Look at the `file` column in the results. If `.h` and `.cpp` files are in separate subdirectories, narrow `<root>` to the implementation directory:
-```
-ast-tool callers auth::AuthToken::validate src/impl/
-```
+Run `search --name X <root>`, select the correct candidate, and retry using its exact FQN.
 
-Step 2 — If they share the same directory, fall back to text search. Use Grep rather than retrying `callers`:
-```
-# Find call sites in implementation files
-grep -rn "\bvalidate\s*(" src/ --include="*.cpp"
-```
+## Call-Site Workflow
 
-Do not retry `callers` with the same FQN more than twice against the same `<root>`. If it fails twice, proceed directly to the Grep fallback.
+For callers of `Foo::bar`:
 
-### Case 3 — Multiple unrelated symbols with the same unqualified name
+1. Confirm the FQN with `search --name bar <root>`.
+2. Run `callers Foo::bar <root>`.
+3. On “not found,” correct the FQN from search output and retry once.
+4. On ambiguity, apply the appropriate case above.
+5. After two meaningfully different failed callers attempts, use a scoped Grep for `bar(` in implementation files.
 
-Run `search --name X <root>` to see all matches, identify the correct one, and supply its exact FQN:
-```
-ast-tool search --name validate src/
-# → pick the correct FQN from the output, e.g. auth::TokenValidator::validate
-ast-tool callers auth::TokenValidator::validate src/
-```
+Use the equivalent sequence for `references` or `callees`; do not replace the requested relationship with `callers` merely because all three accept a symbol and root.
 
----
+## Output and Cost Boundaries
 
-## Recommended Workflow for Call-Site Analysis
+Plain text is the default and is preferred for quick inspection or file:line locations. Use `--json` only for programmatic processing. Do not use `--pretty` by default; large pretty JSON wastes context. For repeated analysis of a large workspace, cache one necessary `search --json` result and query it locally rather than rerunning broad searches.
 
-When asked to find callers of a function named `Foo::bar`:
+Scope name, kind, FQN, file, and root as narrowly as available evidence allows. Do not dump the whole workspace when a targeted query can answer the request. Read only the returned locations needed for the task.
 
-```text
-1. Search to confirm the FQN
-   ast-tool search --name bar src/
-
-2. If FQN is unambiguous → callers
-   ast-tool callers Foo::bar src/
-
-3. If callers fails with "not found" → fix the FQN from search output, retry once
-
-4. If callers fails with "ambiguous" → apply Case 2 or Case 3 above
-
-5. If two callers attempts both fail → Grep fallback
-   grep -rn "\bbar\s*(" src/ --include="*.cpp"
-```
-
-Stop after two failed attempts on the same command. Each retry should use a meaningfully different approach, not a trivial variation.
-
----
-
-## Output Formats
-
-All commands support:
-- Plain text (default)
-- JSON (`--json`)
-- Pretty-printed JSON (`--pretty`, implies `--json`)
-
-Use plain text for quick inspection. Use `--json` only when you need to process results programmatically. Large `--json --pretty` output consumes significant context; prefer plain text when you only need file:line locations.
-
----
-
-## When to Use This Skill
-
-- Finding where a symbol is declared anywhere in the project (`search`).
-- Enumerating all symbols of a given kind (`search --kind`).
-- Locating a node by text, type, or cursor position in a known file (`find`).
-- Finding all usages of a symbol for impact analysis or refactoring (`references`).
-- Understanding which functions call a target function (`callers`).
-- Understanding what a function depends on (`callees`).
-
-## Tool Selection
-
-### Use `ast-tool` semantic commands when
-
-- Finding where a specific symbol is declared
-- Enumerating all symbols of a given kind across the project
-- Finding usages, callers, or callees of a symbol
-- Locating a node at a specific source position
-
-### Use text search (Grep) when
-
-- Finding TODO or FIXME comments
-- Locating string literals or log messages
-- Searching documentation or configuration files
-- `callers`/`references` failed twice with an unresolvable ambiguity
-
----
-
-## Common Mistakes
-
-**Using grep to find symbol declarations.**
-`grep "class Foo"` matches occurrences in comments, strings, and forward declarations. Use `search --name "Foo" --kind class` for authoritative results.
-
-**Using grep to find callers.**
-Text search matches all occurrences of the function name — in strings, comments, and forward declarations — not just call sites. Use `callers` for accurate call-site enumeration when the symbol is unambiguous.
-
-**Passing a file path as `<root>`.**
-`callers`, `callees`, and `references` require a directory as `<root>`. The error "workspace is empty or could not be analyzed" means `<root>` is a file. Pass the containing directory instead.
-
-**Assuming an ambiguous query will auto-resolve.**
-If a command reports multiple candidates, do not retry with the same FQN. Read the candidate list and apply the [Ambiguity Recovery](#ambiguity-recovery) strategy.
-
-**Using `--id`, `--line`, or `--column` with `callers`, `callees`, or `references`.**
-These flags exist only on `find`. They cause the error "symbol '--flag' not found" when used with other commands.
-
-**Treating `callers` as a transitive call graph.**
-`callers` reports only direct call sites. To understand indirect callers, apply `callers` recursively to each discovered caller.
-
-**Retrying the same failing command with minor variations.**
-If `callers` fails twice with the same error for the same symbol, switch strategy. Repeating with `--pretty`, adding `2>&1`, or changing the path format will not resolve a structural ambiguity or a wrong FQN.
-
----
-
-## Best Practices
-
-- Run `search --name <name> <root>` before `callers`/`references` to confirm the exact FQN and avoid "not found" failures.
-- Use `search --kind <kind>` to filter early and reduce result volume.
-- Use `--fqn` or `--fqn-regex` to scope queries to a specific namespace or class.
-- Cache `search --json` for large workspaces; query with `jq` rather than re-running.
-- For symbol ambiguity between unrelated classes, use the fully-qualified name.
-- For C++ declaration/definition ambiguity (same FQN in .h and .cpp), narrow `<root>` to the implementation directory, or fall back to Grep after two failures.
-- Prefer plain text output over `--json --pretty` unless you need to process results programmatically.
+Default output is intentionally compact: `search` emits `<kind> <fqn> <file>:<line>:<col>`, callers/callees emit the related FQN and location, and references emit source locations. Results are deterministically sorted. Request structured output only when downstream processing requires it.

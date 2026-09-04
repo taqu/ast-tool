@@ -1,119 +1,581 @@
-# Phase 5 — Error Recovery UX
+# Phase 7c — Semantic-Preserving `SKILL.md` Compression
 
-## Goal
+## Objective
 
-Improve AST Tool error recovery so that a coding agent can recover from failed semantic queries with fewer exploratory tool calls, fewer retries, and fewer tokens.
+Create a compressed version of the Phase 5 `semantic-analysis/SKILL.md` while preserving its behavioral meaning as closely as possible.
 
-This phase must improve recovery behavior without attempting to redesign semantic symbol resolution.
+Phase 7c is not a continuation of the Phase 7b text.
 
-The desired trajectory is:
+Start from the **Phase 5 stable `SKILL.md`**.
 
-```text
-semantic command
-      ↓
-failure
-      ↓
-actionable error
-      ↓
-one appropriate fallback
-```
-
-instead of:
+The goal is:
 
 ```text
-semantic command
-      ↓
-failure
-      ↓
-help
-find
-search
-grep
-read
-retry
-...
+Preserve every behaviorally meaningful Phase 5 instruction
++
+Remove only non-behavioral redundancy
++
+Reduce instruction size conservatively
 ```
 
----
-
-# Baseline
-
-Use the accepted Phase 2 implementation as the starting point.
-
-Do NOT use the experimental Phase 3 semantic-resolution implementation.
-
-Phase 2 evaluation:
-
-```text
-tests:                       41
-successes:                   37
-failures:                     4
-success rate:                90.24%
-
-total tool calls:            519
-average tool calls/test:     12.66
-
-ast-tool calls:               70
-ast-tool failures:            36
-ast-tool failure rate:       51.43%
-ast-tool retries:             23
-
-average recovery distance:    2.23
-max recovery distance:        5
-
-grep calls:                   18
-read calls:                  254
-
-elapsed time:             2100.56 sec
-
-total tokens:             162,628
-average tokens/test:        3,966.5
-```
-
-Semantic command failures included:
-
-```text
-callers:       21 failures
-callees:        9 failures
-references:     5 failures
-find:           1 failure
-```
-
-Despite these failures, the overall task success rate remained 90.24%.
-
-This suggests that fallback behavior works but is unnecessarily expensive.
+The primary requirement is **semantic equivalence**, not maximum compression.
 
 ---
 
 # Background
 
-A previous attempt to improve semantic resolution caused a severe end-to-end regression:
+Phase 8 rejected the Phase 7b candidate as the final agent-level system.
+
+Correctness remained unchanged, but the final run showed:
 
 ```text
-success rate:
-90.24% → 60.98%
-
-total tokens:
-162,628 → 253,785
-
-ast-tool usage:
-70 → 15
-
-grep usage:
-18 → 71
+real AST commands    68 → 22
+grep                 15 → 64
+avg recovery         1.44 → 2.60
+max recovery            2 → 5
+total tokens    158,303 → 241,130
 ```
 
-Therefore:
+The Phase 8 analysis did not prove that the compressed Skill body itself caused the regression, because Skill invocation varied heavily between runs.
 
-> Do not attempt to solve semantic identity or declaration/definition unification in this phase.
+However, Phase 7b also did not provide sufficient evidence that the compressed body was behaviorally equivalent to Phase 5.
 
-The objective is to make failures cheap and recoverable.
+Therefore Phase 7c must use a stricter methodology.
 
 ---
 
-# Scope
+# Starting Point
 
-Improve error and empty-result behavior for the commands most commonly used by coding agents:
+Use the exact Phase 5 version of:
+
+```text
+semantic-analysis/SKILL.md
+```
+
+as the source of truth.
+
+Do not start from Phase 7a or Phase 7b.
+
+Do not copy their compressed structure unless a specific transformation can be shown to preserve a Phase 5 behavioral rule.
+
+Do not assume that text removed in Phase 7a or Phase 7b was safe merely because previous evaluations did not prove a causal regression.
+
+---
+
+# Core Principle
+
+Use this rule throughout the phase:
+
+```text
+Compress wording,
+not decisions.
+```
+
+Every Phase 5 instruction that can influence:
+
+```text
+which command the agent chooses
+when it chooses that command
+how it scopes the query
+what it does after failure
+when it retries
+when it uses help
+when grep is allowed
+how ambiguity is resolved
+how much output it requests
+```
+
+must remain represented in the compressed version.
+
+---
+
+# Definition of Semantic Preservation
+
+A compressed instruction is acceptable only when an agent following it would be expected to make the same decision as an agent following the corresponding Phase 5 instruction.
+
+For every behavioral rule:
+
+```text
+Phase 5 rule
+        ↓
+compressed equivalent
+```
+
+must preserve:
+
+```text
+trigger condition
+recommended action
+prohibited action
+fallback condition
+exception
+```
+
+where applicable.
+
+Do not preserve only the general intent while dropping decision boundaries.
+
+---
+
+# Rule Classification
+
+Before editing `SKILL.md`, classify the Phase 5 content.
+
+Every meaningful section, paragraph, bullet, or rule should be assigned to one of the following categories.
+
+## A. ROUTING CONTRACT
+
+Instructions that determine which AST Tool command should be used.
+
+Examples include:
+
+```text
+Find symbol       → search
+Find callers      → callers
+Find references   → references
+Find callees      → callees
+Find file symbols → symbols
+Need AST structure → find
+```
+
+These are protected.
+
+---
+
+## B. BEHAVIORAL DISAMBIGUATION
+
+Instructions that clarify boundaries between commands or constrain how they are used.
+
+Examples may include:
+
+```text
+search vs find
+callers vs references
+directory root selection
+FQN matching
+duplicate C++ declarations/definitions
+query narrowing
+textual lookup vs semantic lookup
+```
+
+These are also protected.
+
+Do not classify them as redundant explanation merely because they elaborate on the routing table.
+
+---
+
+## C. RECOVERY CONTRACT
+
+Instructions controlling behavior after failure.
+
+Examples include:
+
+```text
+do not retry an unchanged failed command
+use the cheapest error-directed correction
+limit failed attempts
+avoid unnecessary help
+narrow ambiguous queries
+fallback only after semantic attempts fail
+```
+
+These are protected.
+
+---
+
+## D. OUTPUT / COST BOUNDARY
+
+Instructions preventing unnecessarily expensive behavior.
+
+Examples include:
+
+```text
+avoid broad workspace dumps
+avoid --pretty by default
+prefer targeted output
+avoid manual grep/read substitution when a semantic query directly applies
+```
+
+These are protected if they affect agent behavior.
+
+---
+
+## E. BEHAVIORAL EXAMPLE
+
+An example that resolves an otherwise ambiguous rule.
+
+These may be compressed, but only if the ambiguity remains resolved.
+
+---
+
+## F. NON-BEHAVIORAL EXPLANATION
+
+Content whose removal would not change the agent's next action.
+
+Typical candidates:
+
+```text
+background rationale
+why AST Tool is useful
+historical explanation
+restatement of an already explicit rule
+ordinary syntax examples
+output-schema documentation
+implementation details
+```
+
+These are the primary deletion candidates.
+
+---
+
+# Required Rule-Equivalence Map
+
+Before producing the final compressed Skill, create an internal mapping of Phase 5 instructions to Phase 7c instructions.
+
+The mapping should conceptually look like:
+
+| Phase 5 rule                                     | Category       | Phase 7c equivalent           | Transformation |
+| ------------------------------------------------ | -------------- | ----------------------------- | -------------- |
+| Symbol lookup uses `search`                      | Routing        | `Symbol/declaration → search` | Shortened      |
+| Never retry unchanged failed command             | Recovery       | Same concise rule             | Shortened      |
+| Narrow duplicate FQNs by root                    | Disambiguation | Equivalent rule retained      | Reworded       |
+| Explanation of why semantic queries save context | Non-behavioral | Removed                       | Deleted        |
+
+Do not delete a Phase 5 rule unless it is classified as non-behavioral or fully subsumed by an explicitly equivalent compressed rule.
+
+---
+
+# Protected Routing Contract
+
+At minimum, preserve the following explicitly:
+
+```text
+Find symbol       → search
+Find callers      → callers
+Find references   → references
+Find callees      → callees
+Find file symbols → symbols
+Need AST structure → find
+```
+
+The mappings must remain direct and obvious.
+
+Do not replace them with generic language such as:
+
+```text
+Use the most appropriate semantic command.
+```
+
+Do not rely on the agent to infer command selection from CLI names.
+
+---
+
+# Protected Recovery Behavior
+
+Preserve the Phase 5 semantics governing failure and recovery.
+
+At minimum, retain equivalent guidance for:
+
+```text
+Do not retry an unchanged failed command.
+
+Use diagnostics or known information to make the cheapest useful correction.
+
+Avoid ordinary --help discovery.
+
+Do not repeatedly explore command syntax after a targeted failure.
+
+Prefer one useful recovery action over trial-and-error command sequences.
+
+Use textual fallback only when the semantic path remains unresolved under the documented fallback condition.
+```
+
+If Phase 5 contains more precise boundaries, preserve those exact semantics.
+
+---
+
+# Protected Semantic Boundaries
+
+Pay particular attention to any Phase 5 wording involving:
+
+```text
+search vs find
+references vs callers
+references vs callees
+FQN matching
+source root
+duplicate symbols
+declaration/definition ambiguity
+C++ semantic ambiguity
+transitive vs direct relationships
+```
+
+These sections may appear verbose, but they are likely to contain decision boundaries.
+
+Do not generalize several distinct cases into one rule unless the resulting rule produces the same action in every original case.
+
+---
+
+# Protected Cost Boundaries
+
+Preserve instructions that keep the agent on a targeted path.
+
+Examples include:
+
+```text
+Prefer targeted AST Tool queries when the task maps directly to them.
+
+Do not dump an entire workspace when a scoped query is available.
+
+Do not use --pretty by default.
+
+Do not substitute grep/manual exploration for a direct semantic query.
+
+Use grep for textual content or only under the documented semantic fallback condition.
+```
+
+Do not weaken these into suggestions such as:
+
+```text
+AST Tool can be useful.
+```
+
+The preference ordering must remain explicit.
+
+---
+
+# What May Be Compressed
+
+Phase 7c may safely target the following categories.
+
+## 1. Duplicate Restatements
+
+If a Phase 5 rule is repeated in multiple sections, preserve it once.
+
+Before deleting duplicates, confirm that no copy adds a distinct exception or condition.
+
+---
+
+## 2. Ordinary Examples
+
+Remove examples that merely demonstrate syntax already defined by a rule.
+
+Keep examples only when they define or clarify a behavioral boundary.
+
+---
+
+## 3. CLI Documentation
+
+Remove exhaustive documentation that is available from the CLI and does not alter command selection.
+
+Examples may include:
+
+```text
+complete output field descriptions
+routine flag listings
+ordinary command syntax repeated multiple times
+```
+
+However, retain syntax or flags when misunderstanding them is known to cause agent failures.
+
+---
+
+## 4. Rationale
+
+Remove explanations of why a rule exists when the rule itself is already explicit.
+
+For example:
+
+```text
+Rule
++
+three sentences explaining why targeted output saves context
+```
+
+may become:
+
+```text
+Rule
+```
+
+if the explanation does not change application of the rule.
+
+---
+
+## 5. Verbose Wording
+
+Shorten sentences while preserving all conditions.
+
+For example:
+
+```text
+When a command fails, do not invoke the exact same command with the exact same arguments again because doing so will normally produce the same failure.
+```
+
+may become:
+
+```text
+Never retry an unchanged failed command.
+```
+
+This is valid because the decision boundary is unchanged.
+
+---
+
+# What Must Not Be Compressed Away
+
+Do not remove text merely because:
+
+```text
+it looks repetitive
+the command name seems self-explanatory
+the CLI also has help
+the model should be able to infer it
+the behavior is obvious to a human
+```
+
+Phase 5 is the behavioral baseline.
+
+If wording plausibly affects command selection or fallback probability, keep it unless an equivalent rule clearly replaces it.
+
+---
+
+# Compression Target
+
+Do not optimize for the smallest possible Skill.
+
+Phase 7c should use a moderate target.
+
+Phase 5 is approximately:
+
+```text
+~3263 tokens
+```
+
+A reasonable first target is approximately:
+
+```text
+2200–2600 tokens
+```
+
+or roughly:
+
+```text
+20–30% reduction
+```
+
+This is a guideline, not a hard requirement.
+
+If semantic preservation requires a larger Skill, keep it larger.
+
+Do not force the Skill below the target.
+
+A 15% reduction with strong semantic equivalence is preferable to a 50% reduction with uncertain behavior.
+
+---
+
+# Editing Strategy
+
+Use a conservative transformation process.
+
+## Step 1 — Restore Phase 5
+
+Ensure the working Skill matches the accepted Phase 5 version before editing.
+
+---
+
+## Step 2 — Inventory Phase 5 Rules
+
+Read the full Skill.
+
+Identify:
+
+```text
+routing rules
+recovery rules
+fallback rules
+scope/output rules
+semantic ambiguity rules
+command-specific boundaries
+examples
+documentation
+rationale
+```
+
+---
+
+## Step 3 — Classify Each Rule
+
+Assign each meaningful item to:
+
+```text
+ROUTING CONTRACT
+BEHAVIORAL DISAMBIGUATION
+RECOVERY CONTRACT
+OUTPUT / COST BOUNDARY
+BEHAVIORAL EXAMPLE
+NON-BEHAVIORAL EXPLANATION
+```
+
+Do this before deleting content.
+
+---
+
+## Step 4 — Compress Locally
+
+Prefer local transformations:
+
+```text
+delete duplicate
+merge equivalent wording
+shorten sentence
+remove non-behavioral explanation
+replace repeated prose with table
+```
+
+Avoid rewriting the whole document from scratch.
+
+---
+
+## Step 5 — Build the Equivalence Map
+
+For every removed or changed behavioral passage, record:
+
+```text
+original meaning
+compressed representation
+why they are equivalent
+```
+
+If equivalence is uncertain, restore the original rule.
+
+---
+
+## Step 6 — Review for Semantic Loss
+
+Before evaluation, ask for every Phase 5 rule:
+
+```text
+Can the compressed Skill still answer:
+
+What should the agent do?
+When should it do it?
+When should it not do it?
+What should happen after failure?
+What exception changes the decision?
+```
+
+If any answer is weaker or more ambiguous, revise the Skill before evaluation.
+
+---
+
+# Controlled Evaluation
+
+Phase 7c requires a controlled evaluation before the normal 41-task agent-level evaluation.
+
+The purpose is to remove Skill-invocation stochasticity from the body-compression test.
+
+Select a representative subset of tasks covering at least:
 
 ```text
 search
@@ -121,687 +583,312 @@ callers
 references
 callees
 find
-symbols
+symbol ambiguity
+failure recovery
+grep fallback
 ```
 
-Focus especially on:
+Prefer approximately 15–20 tasks if the existing evaluation set provides enough coverage.
+
+For the controlled comparison:
 
 ```text
-ambiguous symbol
-symbol not found
-no semantic result
-invalid query
-invalid argument
-unknown option
-unsupported query form
+Phase 5 Skill
+vs
+Phase 7c Skill
 ```
+
+ensure `semantic-analysis` is loaded for both versions before task exploration begins.
+
+Do not change the task itself.
+
+The only controlled variable should be the Skill body.
 
 ---
 
-# Non-goals
+# Controlled Comparison Metrics
 
-Do NOT implement or modify:
-
-```text
-declaration/definition semantic unification
-C++ overload resolution architecture
-cross-translation-unit semantic identity
-stable public Symbol IDs
-callers --id
-references --id
-callees --id
-Skill.md
-JSON schema redesign
-command deletion
-command renaming
-evaluation prompts
-evaluation repositories
-```
-
-Do not introduce a new semantic resolver architecture.
-
-Do not make command-specific semantic hacks whose purpose is to increase success rate.
-
-Do not silently choose an ambiguous candidate.
-
-Do not automatically run fallback commands internally.
-
-The tool should provide useful guidance; the agent remains responsible for selecting the next action.
-
----
-
-# Design Principle
-
-Every failure should answer three questions whenever possible:
+For every paired task, record:
 
 ```text
-1. What failed?
-2. What useful information do we already know?
-3. What is the cheapest reasonable next action?
-```
-
-The response must remain compact.
-
-Avoid verbose tutorials.
-
-This output will be consumed by an LLM, so optimize for:
-
-```text
-low token count
-clear structure
-machine readability
-immediate actionability
-```
-
----
-
-# Error Categories
-
-## 1. Symbol Not Found
-
-Current behavior may resemble:
-
-```text
-error: symbol not found
-```
-
-Prefer something conceptually like:
-
-```text
-error: symbol not found: AuthToken::validate
-
-next:
-  search "validate"
-```
-
-If a qualified query appears too specific, the tool may suggest searching a shorter symbol name.
-
-Example:
-
-```text
-error: symbol not found: auth::AuthToken::validate
-
-next:
-  ast-tool search validate .
-```
-
-Do not automatically execute the search.
-
----
-
-## 2. Ambiguous Symbol
-
-If multiple candidates exist, return a bounded candidate list.
-
-Example:
-
-```text
-error: ambiguous symbol: validate
-
-candidates:
-  auth::AuthToken::validate
-  auth::Validator::validate
-
-next:
-  retry using a fully-qualified name
-```
-
-If source locations are already available cheaply:
-
-```text
-candidates:
-  auth::AuthToken::validate  src/auth/auth_token.cpp:7
-  auth::Validator::validate  src/auth/validator.cpp:19
-```
-
-Do not dump every candidate in a large workspace.
-
-Use a small bounded number of candidates.
-
-If more exist:
-
-```text
-showing 5 of 18 candidates
-```
-
-is sufficient.
-
----
-
-# Important Declaration / Definition Case
-
-Do not attempt to unify a header declaration and source definition in this phase.
-
-If they appear as separate candidates, report them compactly.
-
-For example:
-
-```text
-error: ambiguous symbol: auth::AuthToken::validate
-
-candidates:
-  src/auth/auth_token.h:12
-  src/auth/auth_token.cpp:7
-
-next:
-  inspect candidates with search or symbols
-```
-
-Do not claim they are the same logical symbol unless the current semantic layer already knows that reliably.
-
-The purpose is recovery, not semantic inference.
-
----
-
-# 3. Empty Semantic Result
-
-Distinguish:
-
-```text
-command succeeded but found no results
-```
-
-from:
-
-```text
-command failed
-```
-
-For example:
-
-```text
-no callers found for: auth::AuthToken::validate
-```
-
-should not automatically be represented as a generic error if the query itself was valid.
-
-Where useful, provide a short fallback:
-
-```text
-next:
-  search for direct references
-```
-
-But only if that recommendation is semantically reasonable.
-
-Avoid suggesting unrelated commands merely to produce guidance.
-
----
-
-# 4. Unknown Option
-
-Example:
-
-```text
-error: unknown option: --foo
-
-available:
-  --json
-  --pretty
-```
-
-If there is an obvious likely correction, it may be shown.
-
-Do not print the entire command help.
-
-Do not instruct the agent to call `--help` unless necessary.
-
-The goal is specifically to reduce help calls.
-
----
-
-# 5. Invalid Arguments
-
-Example:
-
-```text
-error: missing PATH
-
-usage:
-  ast-tool callers SYMBOL PATH
-```
-
-Return the minimal valid invocation shape.
-
-Do not dump the complete CLI documentation.
-
----
-
-# 6. Unsupported Query Form
-
-If a command receives a query type it cannot process, make that explicit.
-
-Example:
-
-```text
-error: callers requires a semantic symbol query
-
-next:
-  use search to resolve the symbol first
-```
-
-Avoid generic parser or internal-error messages where a user-facing classification is available.
-
----
-
-# 7. Internal Errors
-
-Do not hide real internal failures as user mistakes.
-
-Use a clear distinction such as:
-
-```text
-error: internal semantic analysis failure
-```
-
-and preserve enough diagnostic information for debugging.
-
-However, keep normal agent-facing output compact.
-
-If the project already has verbose/debug logging, detailed diagnostics should go there rather than into the default response.
-
----
-
-# Recovery Recommendation Rules
-
-Recommendations should follow a small deterministic decision table.
-
-Prefer rules such as:
-
-```text
-symbol not found
-    → search
-
-ambiguous short name
-    → retry with qualified name
-
-ambiguous qualified name
-    → inspect candidate locations / symbols
-
-invalid syntax
-    → show minimal valid syntax
-
-unknown option
-    → show relevant valid options
-
-valid query with no callers
-    → no error; report zero result
-```
-
-Do not create a complex planner inside AST Tool.
-
-The tool should recommend at most one primary next action in normal cases.
-
-A second alternative is acceptable only when genuinely useful.
-
----
-
-# Output Size Constraints
-
-Error UX must not create a new token problem.
-
-Use:
-
-```text
-short messages
-bounded candidate lists
-compact locations
-minimal examples
-```
-
-Avoid:
-
-```text
-full help output
-large AST dumps
-workspace-wide candidate dumps
-long prose explanations
-repeated field names
-stack traces in normal output
-```
-
-Candidate output should have a configurable or fixed conservative upper bound.
-
-A default such as 3–5 candidates is preferable to returning dozens.
-
-Follow existing project conventions where possible.
-
----
-
-# JSON Behavior
-
-If the command is executed with `--json`, errors should remain structured and compact.
-
-Use the existing JSON architecture if one already exists.
-
-Conceptually, a recoverable error might contain fields equivalent to:
-
-```json
-{
-  "error": "ambiguous_symbol",
-  "query": "validate",
-  "candidates": [
-    {
-      "name": "auth::AuthToken::validate",
-      "file": "src/auth/auth_token.cpp",
-      "line": 7
-    }
-  ],
-  "next": "retry_with_qualified_name"
-}
-```
-
-This is an example of intent, not a required schema.
-
-Do not introduce a major incompatible JSON schema change solely to match this example.
-
-Preserve backwards compatibility wherever practical.
-
----
-
-# Human-readable Output
-
-Plain-text output should remain concise enough for agent consumption.
-
-Prefer:
-
-```text
-error: ambiguous symbol: validate
-candidates:
-  auth::AuthToken::validate  src/auth/auth_token.cpp:7
-  auth::Validator::validate  src/auth/validator.cpp:19
-next: retry with a fully-qualified name
-```
-
-over long explanatory paragraphs.
-
----
-
-# Implementation Guidance
-
-First identify the existing error-generation paths shared by:
-
-```text
-callers
-references
-callees
-search
-find
-symbols
-```
-
-Prefer centralized error classification and rendering where the architecture supports it.
-
-Avoid duplicating recovery-message logic in every command.
-
-A useful conceptual separation is:
-
-```text
-operation
-   ↓
-typed failure/result
-   ↓
-recovery classification
-   ↓
-CLI / JSON rendering
-```
-
-Do not refactor unrelated architecture merely to achieve this separation.
-
-Use the smallest implementation that produces consistent behavior.
-
----
-
-# Tests
-
-Add tests for the following categories.
-
-## Symbol not found
-
-Verify:
-
-```text
-clear error category
-query included
-search recommendation where appropriate
-no full help dump
-```
-
----
-
-## Ambiguous symbol
-
-Verify:
-
-```text
-candidate names included
-candidate count is bounded
-qualified-name recommendation
-no arbitrary candidate selection
-```
-
----
-
-## Large candidate set
-
-Create enough matching symbols to exceed the output bound.
-
-Verify:
-
-```text
-only N candidates shown
-total candidate count may be indicated
-output remains compact
-```
-
----
-
-## Unknown option
-
-Verify:
-
-```text
-bad option identified
-small relevant option set shown
-no entire help text
-```
-
----
-
-## Invalid arguments
-
-Verify that minimal usage information is returned.
-
----
-
-## Empty successful result
-
-Verify that:
-
-```text
-valid query + zero callers
-```
-
-is distinguishable from:
-
-```text
-failed symbol resolution
-```
-
-where the current architecture permits this distinction.
-
----
-
-## JSON errors
-
-Verify JSON output is:
-
-```text
-valid
-compact by default
-machine-readable
-backwards-compatible where required
-```
-
----
-
-# Regression Constraints
-
-The Phase 2 behavior is the regression baseline.
-
-All existing Phase 2 tests should continue to pass except where a test explicitly validates an unhelpful error message that is intentionally being improved.
-
-Do not modify semantic query results merely to satisfy the new tests.
-
-Error UX tests must not require semantic behavior that Phase 2 did not already provide.
-
----
-
-# Evaluation
-
-Run the unchanged 41-test evaluation suite after implementation.
-
-Collect exactly the same metrics as Phase 2:
-
-```text
-tests
-successes
-failures
-success rate
-
+success/failure
 total tool calls
-average tool calls per test
-
-ast-tool calls
-ast-tool failures
-ast-tool failure rate
-ast-tool retries
-ast-tool help calls
-
-ast-tool failures by command
-
-bash calls
-read calls
-edit calls
-grep calls
-glob calls
-
-elapsed time
-average elapsed time
-
-input tokens
-output tokens
-total tokens
-average tokens per test
-
-average ast-tool recovery distance
-max ast-tool recovery distance
-```
-
-Also retain per-test command sequences.
-
----
-
-# Primary Evaluation Metrics
-
-The primary expected improvements are:
-
-```text
-ast-tool retries ↓
-recovery distance ↓
-help calls ↓
-fallback exploration ↓
-```
-
-Secondary expected improvements:
-
-```text
-total tool calls ↓
-grep calls ↓
-read calls ↓
-total tokens ↓
-elapsed time ↓
-```
-
-The success rate must remain approximately stable or improve.
-
----
-
-# Acceptance Criteria
-
-## Required
-
-Phase 5 is acceptable only if:
-
-```text
-success rate does not materially regress from 90.24%
-```
-
-A one-test variation may be investigated individually, but a broad correctness regression is unacceptable.
-
-Additionally, at least one recovery-efficiency metric should improve materially:
-
-```text
+AST Tool calls
+search
+callers
+references
+callees
+find
+symbols
+grep
+glob
+read
+AST failures
 AST retries
-average recovery distance
-max recovery distance
 help calls
-fallback tool calls
+recovery distance
+tokens
+elapsed time
+AST command sequence
 ```
 
-without causing substantial token inflation.
+Also compare the actual trajectory.
 
 ---
 
-## Preferred
+# Controlled Acceptance Criteria
 
-A strong result would look like:
+The controlled cohort is the primary semantic-equivalence test.
+
+Reject or revise Phase 7c if the compressed Skill systematically causes:
 
 ```text
-success rate:              stable or ↑
-total tokens:              ↓
-AST retries:               ↓
-recovery distance:         ↓
-grep/read fallback:        ↓
-elapsed time:              stable or ↓
+direct semantic query
+→ replaced by grep/manual lookup
+
+search-first behavior
+→ replaced by broad discovery
+
+successful narrow recovery
+→ replaced by help/trial-and-error
+
+command-specific behavior
+→ replaced by generic exploration
 ```
 
----
+Exact command counts do not need to match.
 
-# Stop Conditions
+Equivalent targeted semantic trajectories are acceptable.
 
-Stop and revert the phase if any of the following occurs:
+Examples:
 
 ```text
-success rate drops substantially
-total tokens increase substantially
-grep fallback increases substantially
-AST Tool usage collapses unexpectedly
-error messages become significantly larger
+Phase 5:
+search → callers
+
+Phase 7c:
+search → search(refined) → callers
 ```
 
-Do not continue modifying unrelated components in an attempt to recover the evaluation within the same phase.
+may be acceptable if the second search is justified.
 
-Instead report the regression.
+But:
+
+```text
+Phase 5:
+search → callers
+
+Phase 7c:
+grep → read → grep → read
+```
+
+is a likely regression.
 
 ---
 
-# Deliverables
+# Rule-Level Causal Analysis
 
-At completion, provide:
+If a controlled trajectory changes materially, identify the exact compressed rule that could explain it.
 
-1. Summary of the previous error behavior.
-2. Error categories introduced or improved.
-3. Recovery recommendation rules.
-4. Files/components changed.
-5. Tests added.
-6. Unit/integration test results.
-7. Full unchanged evaluation results.
-8. Phase 2 vs Phase 5 metric comparison.
-9. Representative before/after tool trajectories.
-10. Any error categories intentionally left unchanged.
-11. Any observed cases where recommendations caused unexpected agent behavior.
+Require evidence of the form:
 
-Do not begin Phase 6 work.
+```text
+Phase 5 instruction
+        ↓
+compressed/removed wording
+        ↓
+changed agent decision
+        ↓
+changed trajectory
+```
 
-Do not modify Skill.md as part of this phase.
+Do not infer causality from aggregate command counts alone.
+
+---
+
+# Full 41-Task Evaluation
+
+Only after the controlled evaluation shows acceptable semantic preservation, run the normal unchanged 41-task evaluation.
+
+This measures the full agent-level system, including stochastic Skill invocation.
+
+Collect the same established metrics:
+
+```text
+success rate
+total tool calls
+AST Tool calls
+AST failures
+AST retries
+help calls
+grep
+glob
+read
+bash
+edit
+recovery distance
+elapsed time
+tokens
+per-command usage
+Skill invocation
+```
+
+---
+
+# Separate Two Questions
+
+Phase 7c must report two different conclusions.
+
+## Question A — Body Equivalence
+
+```text
+When both agents load the Skill,
+does the compressed body preserve Phase 5 behavior?
+```
+
+Answer from the controlled cohort.
+
+---
+
+## Question B — Agent-Level Result
+
+```text
+Under normal agent behavior,
+does the full system retain Phase 5 routing and efficiency?
+```
+
+Answer from the 41-task run.
+
+Do not merge these two conclusions.
+
+A Skill body may be semantically equivalent even if stochastic Skill invocation differs.
+
+Likewise, a good aggregate run does not prove body equivalence.
+
+---
+
+# Token Evaluation
+
+Do not optimize Phase 7c based solely on total reported tokens.
+
+Report:
+
+```text
+Skill size reduction
+fixed approximate Skill saving
+total tokens
+median per-test tokens
+p75
+p90
+paired token deltas
+```
+
+For the controlled cohort, compare token deltas directly because Skill invocation is held constant.
+
+This is more informative than aggregate totals alone.
+
+---
+
+# Final Deliverables
+
+Provide:
+
+1. The Phase 7c `SKILL.md`.
+2. Phase 5 → Phase 7c textual diff summary.
+3. Rule-classification summary.
+4. Phase 5 → Phase 7c rule-equivalence map.
+5. Skill size comparison:
+
+   * lines
+   * characters
+   * bytes
+   * approximate tokens
+   * percentage reduction.
+6. Controlled evaluation task list.
+7. Controlled Phase 5 vs Phase 7c metrics.
+8. Controlled trajectory comparison.
+9. Any rule-level semantic regressions found.
+10. Full 41-task evaluation metrics, if controlled evaluation passes.
+11. Separate conclusions for:
+
+    * body semantic equivalence
+    * full agent-level behavior.
+12. Final recommendation.
+
+---
+
+# Final Recommendation Values
+
+Choose one:
+
+```text
+ACCEPT
+ACCEPT WITH CAVEATS
+REVISE
+REJECT
+```
+
+## ACCEPT
+
+Use when:
+
+```text
+meaningful size reduction
++
+controlled Skill-loaded behavior preserved
++
+no systematic routing/recovery regression
++
+full evaluation acceptable
+```
+
+## ACCEPT WITH CAVEATS
+
+Use when semantic preservation is strong but the normal full run contains clearly stochastic or measurement-related uncertainty.
+
+## REVISE
+
+Use when a small number of specific compressed rules weaken Phase 5 behavior and can be restored without abandoning the approach.
+
+## REJECT
+
+Use when compression removes decision boundaries broadly enough that Phase 5 behavior cannot be reproduced.
+
+---
+
+# Do Not Proceed Automatically
+
+Do not proceed to Phase 8 or Phase 9 automatically.
+
+Do not commit the Phase 7c candidate solely because it is smaller.
+
+Do not replace Phase 5 as the stable baseline until both:
+
+```text
+controlled semantic equivalence
+AND
+acceptable full agent-level behavior
+```
+
+have been demonstrated.
+
+---
+
+# Final Standard
+
+The success criterion is not:
+
+```text
+The compressed Skill contains the same major topics.
+```
+
+It is:
+
+```text
+For every behaviorally meaningful Phase 5 instruction,
+the compressed Skill contains an equivalent decision rule,
+and controlled agent trajectories demonstrate that those
+rules preserve the intended semantic-routing behavior.
+```
+
+Phase 7c should optimize only the instruction volume that is genuinely non-essential to that behavior.
