@@ -19,54 +19,49 @@ languages: [c, cpp, csharp, python, javascript, typescript, tsx, go, rust, java,
 
 # Semantic Analysis Skill
 
-Use AST Tool as the default targeted semantic/structural path instead of grep, broad reads, or workspace dumps.
+Prefer AST Tool when the request maps directly to a targeted semantic or structural query. Do not substitute grep, manual exploration, or broad workspace output.
 
-## Routing
+## Route
 
-| Need | Command |
+| Task | Command |
 |---|---|
-| Symbol/declaration across the workspace | `search` |
-| References/usages | `references` |
-| Direct callers | `callers` |
-| Direct callees | `callees` |
-| All symbols in one known file | `symbols` (ast-inspection skill) |
-| AST nodes/structure in one known file | `find` |
+| Find a symbol/declaration across the workspace | `search` |
+| Find references/usages | `references` |
+| Find direct callers | `callers` |
+| Find direct callees | `callees` |
+| Find a node by text, type, position, or ID in a known file; inspect AST structure | `find` |
+| List every symbol declared in a known file | `symbols` from **ast-inspection** |
 
-Do not use `find` for cross-workspace symbol resolution.
+Use `search`, not `find`, when the declaration file is unknown.
 
-## Syntax and Boundaries
+## Target queries
+
+Scope `search` early with `--name`, `--fqn`, `--kind`, `--file`, or their regex forms; filters are ANDed.
 
 ```text
-ast-tool search [--name <name>] [--fqn <fqn>] [--kind <kind>] [--file <path>]
-                [--name-regex <re>] [--fqn-regex <re>] [--file-regex <re>]
-                [--json [--pretty]] <root>
-ast-tool find [--type <type>] [--text <text>] [--id <hex>]
-              [--line <n>] [--column <n>] <file>
-ast-tool references [--json [--pretty]] <symbol> <root>
-ast-tool callers [--json [--pretty]] <symbol> <root>
-ast-tool callees [--json [--pretty]] <symbol> <root>
+ast-tool search --name <name> <root>
+ast-tool find (--type <type> | --text <text> | --id <hex> | --line <n> --column <n>) <file>
+ast-tool references <symbol> <root>
+ast-tool callers <symbol> <root>
+ast-tool callees <symbol> <root>
 ```
 
-- `search` filters are ANDed; scope early by name, kind, FQN, file, or regex.
-- `find --line` and `--column` must be supplied together.
-- `--id` applies to `find`/`parent`/`children`; `--line`/`--column` to `find`; `--kind`/`--file`/`--name` to `search`.
-- `references`/`callers`/`callees` require a directory `<root>`; `callers`/`callees` require a function-like target and report direct resolved calls only.
-- A symbol containing `::` matches FQNs; otherwise it matches unqualified names. A valid target with no results succeeds with empty output.
+For relationship commands, `<root>` must be a directory. Prefer an exact FQN from `search`; `::` selects FQN matching, otherwise matching is unqualified. `callers`/`callees` report direct resolved calls, not a transitive graph. Empty output with exit 0 is a valid zero-result answer.
 
-## Workflow and Recovery
+## Recovery
 
-For a semantic relationship query:
+For a relationship query, confirm the symbol/FQN with `search` when needed, then run the mapped command.
 
-1. If identity is uncertain, run `search --name <name> <root>` and select the exact FQN.
-2. Run `references`, `callers`, or `callees` for the requested relationship.
-3. On `not found`, correct the FQN from targeted `search` output.
-4. On ambiguity between unrelated symbols, select the listed candidate's exact FQN.
-5. On a C++ declaration/definition pair with the same FQN, narrow `<root>` to an implementation-only directory. If impossible, use grep after at most two failed semantic attempts.
+- Not found: `search --name <name> <root>`, then retry with the corrected FQN.
+- Ambiguous unrelated symbols: select the candidate's exact FQN.
+- Duplicate C++ declaration/definition with one FQN: narrow the root to the implementation directory. If both remain in one directory, use grep.
+- Empty/unanalysable workspace: pass a directory as the root.
 
-Never retry an unchanged failed command. Every retry must change the FQN, root, or strategy meaningfully; stop after two failures. Do not use `--help` for ordinary discovery. A file passed as semantic `<root>` causes `workspace ... empty`; pass its containing directory. Empty output with exit 0 is not a failure.
+Never retry an unchanged failure: change the FQN, root, or strategy using the error's cheapest useful correction. After two unresolved semantic attempts, use grep. Do not use `--help` for ordinary discovery.
 
-## Output and Fallback
+## Boundaries
 
-Use plain text by default. Use `--json` only for programmatic processing, cache large results instead of rerunning, and do not use `--pretty` by default.
-
-Use text search for comments, literals, documentation, configuration, or the unresolved-ambiguity fallback above. When a requested operation maps to the routing table, do not replace its AST Tool query with grep/manual exploration.
+- `--id` applies to `find`, `parent`, and `children`; `--line` and `--column` apply together to `find`; `--name`, `--kind`, and `--file` apply to `search`, not relationship commands.
+- Use plain output. Use `--json` only for programmatic processing; do not use `--pretty` by default. Cache large results rather than rerunning them.
+- Use text search for comments, strings, documentation, configuration, or the fallback above—not for declarations, usages, callers, or callees when a targeted command applies.
+- Recurse over returned callers/callees only when a transitive graph is required.
