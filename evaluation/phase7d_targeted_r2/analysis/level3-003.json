@@ -1,0 +1,49 @@
+{
+  "task_id": "level3-003",
+  "task_level": 3,
+  "agent": "claude",
+  "repository": "repositories/level3-order",
+  "success": true,
+  "validation_success": true,
+  "elapsed_seconds": 27.49,
+  "total_tool_calls": 4,
+  "tools": {
+    "Skill": 1,
+    "Bash": 1,
+    "Read": 1,
+    "Edit": 1
+  },
+  "bash_calls": 1,
+  "read_calls": 1,
+  "edit_calls": 1,
+  "grep_calls": 0,
+  "glob_calls": 0,
+  "skill_calls": 1,
+  "ast_tool_calls": 1,
+  "ast_tool_successes": 1,
+  "ast_tool_failures": 0,
+  "ast_tool_retries": 0,
+  "ast_tool_help_calls": 0,
+  "ast_tool_json_calls": 0,
+  "ast_tool_pretty_json_calls": 0,
+  "ast_tool_commands": {
+    "search": 1
+  },
+  "ast_tool_failures_by_command": {},
+  "tool_sequence": [
+    "Skill",
+    "ast-tool:search",
+    "Read",
+    "Edit"
+  ],
+  "ast_tool_sequence": [
+    "search"
+  ],
+  "ast_tool_recovery_distances": [],
+  "average_ast_tool_recovery_distance": null,
+  "max_ast_tool_recovery_distance": null,
+  "consecutive_ast_tool_retries": 0,
+  "input_tokens": 14,
+  "output_tokens": 1092,
+  "total_tokens": 1106
+}
