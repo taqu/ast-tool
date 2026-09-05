@@ -1,606 +1,101 @@
-# Phase 7d — Selective Backport of Phase 7c Improvements
+# Phase 7d.1 — Repeated Controlled Guard Validation
 
 ## Objective
 
-Create a new `semantic-analysis/SKILL.md` candidate starting from the **Phase 5 stable Skill**, and selectively backport only the Phase 7c changes that have demonstrated measurable behavioral value.
+Determine whether the guard-regression signals observed in Phase 7d are systematic consequences of the Phase 7d Skill change or ordinary run-to-run stochastic variation.
 
-Phase 7d is not a compression experiment.
+Phase 7d.1 is an evaluation-only phase.
+
+Do not modify the Phase 7d candidate.
+
+Do not add new Skill wording.
+
+Do not revert the existing Phase 7d backport.
 
 The goal is:
 
 ```text
-Phase 5 routing/recovery stability
+Hold Phase 7d constant
 +
-Phase 7c evidence-backed efficiency improvements
+repeat the same controlled guard tasks
++
+measure trajectory distributions
++
+decide whether the observed regressions are systematic
 ```
 
-Instruction-size reduction is secondary.
+The central question is:
 
-Do not optimize for a smaller Skill at the expense of behavioral salience.
+```text
+Does Phase 7d reliably produce worse relationship/recovery behavior
+than Phase 5 on the guard cohort,
+or were the previous Phase 7d runs unlucky samples?
+```
 
 ---
 
-# Starting Point
+# Background
 
-Use the exact Phase 5 `semantic-analysis/SKILL.md` as the base.
-
-Do not start from Phase 7c.
-
-Phase 5 remains the behavioral reference because it showed:
+Phase 7d starts from the exact Phase 5 Skill and adds only one narrow rule:
 
 ```text
-tests                      41
-successes                  37
-success rate              90.24%
-
-total tool calls           518
-AST Tool calls              69
-AST failures                 9
-AST failure rate          13.04%
-
-grep                         15
-glob                         12
-read                        252
-
-avg recovery distance      1.44
-max recovery distance         2
-
-total tokens            158,303
-avg tokens/test           3,861
-
-elapsed                 2224.27 sec
+If a refined `search` already identifies the exact symbol or member needed,
+do not add a redundant `find` solely to locate it; use `find` when AST
+structure or node detail is required.
 ```
 
-Phase 7d should preserve the properties that made this baseline stable.
+This change reproducibly improved the intended structural-lookup behavior.
 
----
-
-# Why Phase 7d Exists
-
-Phase 7c demonstrated that some changes were beneficial, but the compressed Skill did not outperform Phase 5 overall under controlled comparison.
-
-In the controlled Phase 5 vs Phase 7c evaluation:
+For example, `level3-007` changed from:
 
 ```text
-correctness:
-17/18 → 17/18
-
-total tools:
-162 → 173
-
-AST calls:
-57 → 64
-
-AST failures:
-5 → 8
-
-AST retries:
-4 → 8
-
-help calls:
-0 → 2
-
-tokens:
-54,344 → 59,440
-
-elapsed:
-912.59s → 970.03s
-```
-
-However, Phase 7c also contained clear local improvements.
-
-The strongest example was:
-
-```text
-level3-007
-
 Phase 5:
 search ×3 → find ×6
-
-Phase 7c:
-search ×4
 ```
 
-The Phase 7c trajectory:
+to:
 
 ```text
-preserved correctness
-preserved relevant context
-used 5 fewer AST calls
-used 4 fewer tools
-saved 2,494 tokens
-saved 21.42 seconds
+Phase 7d:
+search ×3 or ×4
 ```
 
-This is the type of improvement Phase 7d should selectively backport.
+while preserving correctness and reducing redundant AST work.
 
----
+However, the targeted Phase 7d guard cohort showed more AST failures than Phase 5.
 
-# Core Principle
-
-Use this rule throughout Phase 7d:
+Previous targeted results:
 
 ```text
-Start with Phase 5 behavior.
-
-Add only Phase 7c changes that have positive trajectory evidence.
-```
-
-Do not import Phase 7c wording merely because it is shorter or cleaner.
-
-Every backported change must answer:
-
-```text
-What Phase 5 behavior does this change?
-
-What controlled trajectory shows that the change is beneficial?
-
-Does it preserve semantic targeting?
-
-Does it avoid weakening recovery or command-selection salience?
-```
-
-If there is no clear evidence, do not backport it.
-
----
-
-# Explicit Non-Goal
-
-Do not attempt to recreate Phase 7c in a larger form.
-
-Do not attempt to merge Phase 5 and Phase 7c mechanically.
-
-Do not use:
-
-```text
-Phase 5 text
-+
-all Phase 7c wording that seems useful
-```
-
-Instead use:
-
-```text
-Phase 5
-+
-small evidence-backed behavioral improvements
-```
-
----
-
-# Protected Phase 5 Behavior
-
-Preserve the Phase 5 semantics governing:
-
-## Routing
-
-```text
-Find symbol       → search
-Find callers      → callers
-Find references   → references
-Find callees      → callees
-Find file symbols → symbols
-Need AST structure → find
-```
-
-These should remain explicit and salient.
-
----
-
-## Identity Discovery
-
-Preserve Phase 5's preference for discovering symbol identity before relationship queries when identity is uncertain.
-
-The controlled Phase 7c run showed several cases where relationship commands were attempted too early:
-
-```text
-level2-006
-level2-008
-level3-008
-```
-
-These trajectories used an under-qualified relationship target first and then recovered through `search`.
-
-Phase 7d must not weaken Phase 5's search-first behavior.
-
----
-
-## Recovery
-
-Preserve Phase 5 recovery behavior, including:
-
-```text
-diagnostic-first correction
-no unchanged failed-command retry
-restricted help usage
-cheap targeted recovery
-limited trial-and-error
-```
-
-Do not import compressed Phase 7c recovery wording unless it demonstrably improves behavior.
-
----
-
-## Help Behavior
-
-Phase 5 produced zero help calls in the controlled cohort.
-
-Phase 7c produced two.
-
-Preserve the stronger Phase 5 help restriction.
-
-`--help` should remain exceptional, not an ordinary discovery or recovery step.
-
----
-
-## Semantic vs Manual Exploration
-
-Preserve the Phase 5 preference for semantic commands over:
-
-```text
-grep
-glob
-broad reads
-manual structural reasoning
-```
-
-when a direct AST Tool operation exists.
-
----
-
-# Candidate Phase 7c Improvements
-
-Review Phase 7c controlled trajectories and identify only improvements with positive evidence.
-
-The following is the strongest known candidate.
-
----
-
-## Candidate A — Allow Targeted `search` Refinement to Replace Redundant `find`
-
-Phase 7c demonstrated that `find` is not always necessary after `search` when refined semantic search already retrieves the needed symbol or member.
-
-Known evidence:
-
-```text
-level3-007
-
 Phase 5:
-search ×3 → find ×6
+AST failures = 3
 
-Phase 7c:
-search ×4
+Phase 7d run 1:
+AST failures = 5
+
+Phase 7d run 2:
+AST failures = 6
 ```
 
-The Phase 7c path was substantially cheaper while remaining targeted.
-
-Also:
+The problematic trajectories were mainly:
 
 ```text
-level1-001
-level3-003
-```
-
-used refined `search` instead of `search → find` without broad manual exploration.
-
-Investigate whether Phase 5 wording can be minimally adjusted so that:
-
-```text
-find
-```
-
-remains the preferred route for actual AST structure/node lookup,
-
-while:
-
-```text
-refined search
-```
-
-is acceptable when the task only requires locating the exact semantic target.
-
-Do not weaken the rule into:
-
-```text
-search can replace find
-```
-
-The distinction must remain:
-
-```text
-Need exact symbol/member identity
-→ refined search may be sufficient
-
-Need AST structure/node relationship
-→ find
-```
-
----
-
-# Backport Candidate Standard
-
-For every Phase 7c change considered for Phase 7d, classify it as:
-
-```text
-BACKPORT
-DO NOT BACKPORT
-INCONCLUSIVE
-```
-
-Use the following evidence standard.
-
-## BACKPORT
-
-Only when:
-
-```text
-controlled Phase 7c trajectory
-→ clearly cheaper or more direct
-→ correctness preserved
-→ semantic targeting preserved
-→ no recovery/manual exploration regression
-```
-
----
-
-## DO NOT BACKPORT
-
-When the Phase 7c change is associated with:
-
-```text
-under-qualified relationship queries
-extra AST failures
-extra retries
-extra help
-longer recovery
-broader exploration
-```
-
-or when Phase 5 is clearly better.
-
----
-
-## INCONCLUSIVE
-
-When the difference is likely stochastic or cannot be tied to Skill wording.
-
-Do not backport inconclusive changes.
-
----
-
-# Known Phase 7c Behaviors Not to Backport Automatically
-
-Do not import wording associated with the following controlled regressions unless new evidence proves otherwise.
-
-## Relationship-before-search behavior
-
-Observed in:
-
-```text
-level2-006
-level2-008
-level3-008
-```
-
-Pattern:
-
-```text
-under-qualified callers/callees/references
-→ failure
-→ search
-→ corrected relationship query
-```
-
-Phase 5's identity-first guidance is preferable.
-
----
-
-## Weaker recovery/help adherence
-
-Especially:
-
-```text
-smoke-001
-```
-
-Phase 7c produced:
-
-```text
-relationship misuse
-→ help
-→ ambiguous retry
-→ search/recovery
-```
-
-with recovery distance 4.
-
-Phase 5 recovery was shorter.
-
-Do not weaken Phase 5 recovery wording.
-
----
-
-# Investigation Before Editing
-
-Before modifying the Skill, create a Phase 7c improvement inventory.
-
-For every controlled task where Phase 7c was materially cheaper than Phase 5, report:
-
-| Task | Phase 5 route | Phase 7c route | Tool delta | Token delta | Time delta | Candidate rule |
-| ---- | ------------- | -------------- | ---------: | ----------: | ---------: | -------------- |
-
-Focus first on:
-
-```text
-level3-007
-level1-002
-```
-
-and any other clear improvement.
-
-Do not treat small token differences as behavioral improvements unless the trajectory also supports the conclusion.
-
----
-
-# Rule-Level Diff Analysis
-
-Compare Phase 5 and Phase 7c Skill text only for candidate improvements.
-
-For each candidate:
-
-1. Identify the exact Phase 5 rule.
-2. Identify the Phase 7c equivalent or changed wording.
-3. Determine what decision boundary changed.
-4. Determine whether that boundary caused the better controlled trajectory.
-5. Propose the smallest Phase 5 modification that captures the benefit.
-
-Do not broadly rewrite nearby sections.
-
----
-
-# Minimal Change Principle
-
-Prefer one sentence or one bullet.
-
-For example, if supported by evidence:
-
-```text
-Use `find` for AST structure or node lookup. If a refined `search`
-already identifies the exact symbol/member needed, do not add a
-redundant `find`.
-```
-
-is preferable to replacing the entire `search` / `find` guidance.
-
-This is only an example.
-
-Use the actual Phase 5 wording and evidence to determine the final text.
-
----
-
-# Do Not Optimize Skill Size
-
-Phase 7d has no compression target.
-
-Report Skill size before and after, but do not treat a larger Skill as failure if the behavioral result improves.
-
-Likewise, do not delete unrelated Phase 5 text merely to offset newly added wording.
-
-The target is Agent efficiency, not instruction length.
-
----
-
-# Change Budget
-
-Keep Phase 7d deliberately narrow.
-
-As a guideline:
-
-```text
-1–3 behavioral modifications
-```
-
-should be sufficient unless the evidence clearly supports more.
-
-If analysis identifies many candidate changes, stop and reconsider whether the phase is becoming an uncontrolled rewrite.
-
----
-
-# Stage 1 — Targeted Controlled Replay
-
-After implementing Phase 7d, first run a small controlled replay.
-
-Force `semantic-analysis` to load first exactly as in Phase 8c.
-
-Include:
-
-```text
-level3-007
-level1-001
-level3-003
-```
-
-for the refined-search / find behavior.
-
-Also include regression guards:
-
-```text
-level2-006
 level2-008
 level3-008
 smoke-001
 ```
 
-to verify that Phase 5's relationship/recovery behavior was not weakened.
+but these behaviors are not causally explained by the new `find` rule.
 
-Add any task directly affected by another backported rule.
-
----
-
-# Targeted Replay Comparison
-
-Compare:
-
-```text
-Phase 5
-Phase 7c
-Phase 7d
-```
-
-for:
-
-```text
-success
-tool calls
-AST calls
-AST failures
-retries
-help
-search
-find
-callers
-references
-callees
-grep
-glob
-read
-recovery
-tokens
-elapsed
-```
-
-and the exact command trajectory.
+Phase 7d.1 must determine whether this difference is reproducible.
 
 ---
 
-# Targeted Acceptance Criteria
+# Experimental Principle
 
-Phase 7d should preserve the Phase 7c improvement on intended tasks.
+Do not change anything except the Skill version being compared.
 
-For example, for the `level3-007` class:
-
-```text
-avoid redundant structural queries
-while preserving targeted semantic discovery
-```
-
-At the same time, regression-guard tasks should remain Phase 5-like:
-
-```text
-identity discovery before relationship queries
-short diagnostic-driven recovery
-minimal help usage
-```
-
-If the backport improves the target but weakens guards, revise it.
-
----
-
-# Stage 2 — Full Controlled Cohort
-
-If the targeted replay succeeds, rerun the same 18-task controlled cohort used in Phase 8c.
-
-The experiment should be:
+The experiment must compare:
 
 ```text
 Phase 5 Skill
@@ -608,336 +103,842 @@ vs
 Phase 7d Skill
 ```
 
-with forced first-call Skill invocation.
+under the same controlled conditions.
 
-Use the same:
+Hold constant:
 
 ```text
-tasks
-fixtures
-AST Tool
-harness
-environment
+task
+fixture
+AST Tool implementation
+evaluation harness
 permissions
 timeouts
+environment
+model/runtime configuration where observable
+Skill invocation timing
+```
+
+For every run:
+
+```text
+semantic-analysis must be loaded exactly once
+as the first tool action before repository exploration
+```
+
+If the Skill is not invoked first, mark the run invalid and rerun it.
+
+---
+
+# Guard Cohort
+
+Use the following guard tasks:
+
+```text
+level2-006
+level2-008
+level3-008
+smoke-001
+```
+
+These are the primary cohort.
+
+They cover:
+
+```text
+identity discovery before relationship queries
+under-qualified callers/references recovery
+relationship-query ordering
+error-directed semantic recovery
+help behavior
+retry behavior
+```
+
+Do not add unrelated tasks unless needed to diagnose a discovered anomaly.
+
+---
+
+# Optional Positive Control
+
+Also include:
+
+```text
+level3-007
+```
+
+as a positive-control task.
+
+The purpose is to confirm that the intended Phase 7d improvement remains present while the guard behavior is being measured.
+
+Do not include its metrics in the primary guard-regression decision unless explicitly separated.
+
+The expected positive-control property is:
+
+```text
+Phase 7d should avoid redundant `find`
+after refined `search` has already identified the exact targets.
 ```
 
 ---
 
-# Controlled Success Criteria
+# Number of Repeats
 
-Phase 7d should aim to outperform Phase 5, not merely match Phase 7c.
+Run each guard task multiple times for both Skill versions.
 
-Primary requirements:
-
-```text
-correctness >= Phase 5
-
-AST failures <= Phase 5
-
-retries <= Phase 5 or approximately equal
-
-help <= Phase 5 or approximately equal
-
-recovery approximately Phase 5 or better
-
-no systematic AST → grep/manual regression
-```
-
-Efficiency should improve in at least one meaningful dimension:
+Preferred:
 
 ```text
-fewer redundant AST calls
-fewer total tools
-lower median paired token cost
-lower elapsed time
+5 runs per task per Skill version
 ```
 
-without meaningful regression elsewhere.
+This gives:
+
+```text
+4 guard tasks
+× 2 Skill versions
+× 5 repeats
+= 40 primary runs
+```
+
+If resource constraints are significant, use a minimum of:
+
+```text
+3 runs per task per Skill version
+```
+
+but prefer 5 because the previous Phase 7d runs already showed substantial within-version variation.
+
+Do not compare one Phase 5 run against many Phase 7d runs.
+
+Both arms must be repeated.
 
 ---
 
-# Strong Controlled Target
+# Run Ordering
 
-A strong result would look conceptually like:
+Reduce temporal/runtime bias.
 
-```text
-Phase 5 correctness
-+
-Phase 5 recovery stability
-+
-Phase 7c targeted-search efficiency
-```
+Do not run all Phase 5 samples first and all Phase 7d samples later if avoidable.
 
-For example:
+Prefer interleaving:
 
 ```text
-success          >= 17/18
-AST failures     <= 5
-retries          <= 4
-help             ~0
-grep             <= Phase 5
-recovery max     <= Phase 5 or close
-tools            < 162
-tokens           < 54,344
-elapsed          < 912.59s
+task A / Phase 5
+task A / Phase 7d
+task A / Phase 5
+task A / Phase 7d
+...
 ```
 
-These are directional targets, not rigid thresholds.
+or alternate the starting arm:
 
-Trajectory quality takes priority over exact counts.
+```text
+repeat 1: Phase 5 → Phase 7d
+repeat 2: Phase 7d → Phase 5
+```
+
+The exact schedule is less important than avoiding a strong systematic ordering bias.
+
+Record the execution order.
 
 ---
 
-# Stage 3 — Full 41-Task Evaluation
+# Environment Recording
 
-Only after the controlled cohort is favorable, run the unchanged 41-task evaluation.
-
-Compare:
+For every run, record if observable:
 
 ```text
-Phase 5
-Phase 7c
-Phase 7d
+timestamp
+model identifier
+runtime/version
+repository revision
+AST Tool revision
+evaluation harness revision
+Skill version/hash
 ```
 
-Collect:
+If any of these cannot be recorded, state that limitation.
+
+If the model/runtime changes during the experiment, do not silently combine those runs.
+
+Separate or invalidate them as appropriate.
+
+---
+
+# Metrics Per Run
+
+Collect for every run:
 
 ```text
-success rate
-total tools
-AST calls
+task ID
+Skill version
+repeat number
+success/failure
+
+total tool calls
+
+AST Tool calls
 AST failures
-failure rate
-retries
-help
+AST retries
+AST help calls
+
 search
 callers
 references
 callees
 find
 symbols
+other AST commands
+
 grep
 glob
 read
 bash
 edit
-recovery
-elapsed
+
+all recovery distances
+maximum recovery distance
+
 tokens
-Skill invocation
+elapsed time
+
+AST command sequence
+relevant trajectory
 ```
 
 ---
 
-# Agent-Level Goal
+# Primary Metrics
 
-The desired Phase 7d full-run behavior is:
+The primary purpose is to characterize guard behavior.
+
+Prioritize:
 
 ```text
-Phase 5 semantic routing stability
-+
-Phase 7c lower AST failure / Bash / Edit tendencies
-+
-reduced redundant structural work
+AST failures
+AST retries
+AST help calls
+recovery distance
+relationship-command ordering
 ```
 
-Do not require the AST command distribution to match Phase 5 exactly.
-
-A lower `find` count is acceptable when it reflects a cheaper targeted semantic path rather than manual fallback.
-
----
-
-# Per-Test Analysis
-
-For every meaningful difference between Phase 5 and Phase 7d, classify:
+Secondary metrics:
 
 ```text
-IMPROVEMENT
-BENIGN DIFFERENCE
-REGRESSION
-INCONCLUSIVE
+tool calls
+AST calls
+tokens
+elapsed
 ```
 
-Require trajectory evidence for improvement or regression.
-
-Pay special attention to:
-
-```text
-find → refined search
-relationship command ordering
-recovery after semantic failure
-help usage
-grep/glob/read substitution
-```
+Do not reject Phase 7d merely because token totals are noisy if routing/recovery behavior is equivalent.
 
 ---
 
-# Token Analysis
+# Per-Task Trajectory Classification
 
-Report:
+For every run classify the trajectory.
 
-```text
-total tokens
-mean
-median
-p75
-p90
-paired deltas
-top outlier contributions
-```
+## `level2-006`
 
-Because token variance has been substantial in previous runs, do not accept or reject based solely on total tokens.
-
-Prefer paired trajectory evidence and distributional metrics.
-
----
-
-# Skill Size
-
-Report:
-
-```text
-Phase 5 lines / chars / bytes / approximate tokens
-Phase 7d lines / chars / bytes / approximate tokens
-delta
-```
-
-Skill size is informational only.
-
-A small increase over Phase 5 is acceptable if agent-level efficiency measurably improves.
-
----
-
-# Final Decision
-
-Choose exactly one:
-
-```text
-ACCEPT
-ACCEPT WITH CAVEATS
-REVISE
-REVERT TO PHASE 5
-```
-
----
-
-## ACCEPT
-
-Use when Phase 7d demonstrates:
-
-```text
-Phase 5-level correctness
-+
-Phase 5-level routing/recovery stability
-+
-at least one reproducible Phase 7c-derived efficiency improvement
-+
-no meaningful new regression
-```
-
----
-
-## ACCEPT WITH CAVEATS
-
-Use when the intended backport works but stochastic metrics prevent a strong aggregate conclusion.
-
----
-
-## REVISE
-
-Use when the candidate improvement is valid but its wording is too broad and causes localized side effects.
-
-Recommend the smallest narrowing change.
-
----
-
-## REVERT TO PHASE 5
-
-Use when the backported changes do not reproduce the Phase 7c improvement or weaken Phase 5's stable behavior.
-
-Do not fall back to Phase 7c automatically.
-
----
-
-# Deliverables
-
-Provide:
-
-1. Phase 7c improvement inventory.
-2. Backport / do-not-backport classification.
-3. Phase 5 → Phase 7d Skill diff.
-4. Evidence for every behavioral change.
-5. Modified Phase 7d `SKILL.md`.
-6. Skill-size comparison.
-7. Targeted controlled replay results.
-8. Phase 5 vs Phase 7c vs Phase 7d targeted trajectory comparison.
-9. Full 18-task controlled comparison.
-10. Full 41-task evaluation, if the controlled result passes.
-11. Per-test regression/improvement analysis.
-12. Token distribution analysis.
-13. Final recommendation.
-
----
-
-# Phase 9 Preparation
-
-Phase 7d should also identify inefficiencies shared by Phase 5 and Phase 7d.
-
-Do not fix them during this phase.
-
-Record repeated patterns such as:
+Preferred pattern:
 
 ```text
 search
-→ ambiguity
-→ extra search/read
-
-callers
-→ refinement
 → callers
-
-find
-→ read for missing structural context
-
-references
-→ ambiguity
-→ manual disambiguation
 ```
 
-These shared inefficiencies are candidates for Phase 9 semantic-capability research.
+Potential regression:
 
-Do not propose a new AST Tool command unless the trajectory evidence shows that the existing command set cannot express the needed operation cleanly.
+```text
+under-qualified callers
+→ failure
+→ search
+→ callers
+```
+
+Classify each run as:
+
+```text
+IDENTITY_FIRST
+RELATIONSHIP_FIRST_RECOVERED
+OTHER
+```
 
 ---
 
-# Final Principle
+## `level2-008`
 
-Phase 7d is not:
-
-```text
-make Phase 5 smaller
-```
-
-and not:
+Use the same core classification:
 
 ```text
-merge Phase 5 and Phase 7c
+IDENTITY_FIRST
+RELATIONSHIP_FIRST_RECOVERED
+OTHER
 ```
 
-It is:
+Track:
 
 ```text
-keep Phase 5 where Phase 5 wins
-+
-backport Phase 7c only where Phase 7c demonstrably wins
+number of failures before successful callers
+number of retries
 ```
 
-The final question is:
+This task is especially important because both prior Phase 7d runs showed:
 
 ```text
-Can the stable Phase 5 Skill adopt a small number of
-Phase 7c's proven targeted-efficiency improvements and
-thereby outperform Phase 5 without sacrificing its
-routing and recovery stability?
+callers → search → callers
 ```
+
+while the reference Phase 5 run used:
+
+```text
+search → callers
+```
+
+---
+
+## `level3-008`
+
+Classify as:
+
+```text
+IDENTITY_FIRST
+RELATIONSHIP_FIRST_RECOVERED
+EXTRA_SEMANTIC_EXPLORATION
+OTHER
+```
+
+Track whether the run begins with an under-qualified relationship query.
+
+Also record any use of:
+
+```text
+symbols
+extra search
+extra callers/callees
+```
+
+---
+
+## `smoke-001`
+
+This task should be analyzed separately because it has shown high stochasticity.
+
+Track the complete failure/recovery sequence.
+
+Specifically record:
+
+```text
+initial malformed find handling
+references argument choice
+callers argument choice
+help usage
+unchanged retry
+search-based disambiguation
+recovery distance
+```
+
+Classify each run as:
+
+```text
+SHORT_RECOVERY
+MODERATE_RECOVERY
+LONG_RECOVERY
+```
+
+Use an explicit definition, for example:
+
+```text
+SHORT      max recovery distance <= 2
+MODERATE   max recovery distance 3
+LONG       max recovery distance >= 4
+```
+
+---
+
+# Do Not Use Aggregate Failure Count Alone
+
+A total such as:
+
+```text
+Phase 5 failures = 12
+Phase 7d failures = 15
+```
+
+is not sufficient by itself.
+
+Analyze where the failures occur.
+
+The important distinction is:
+
+```text
+same task repeatedly worse under Phase 7d
+```
+
+versus:
+
+```text
+failures distributed inconsistently across both versions
+```
+
+Systematic evidence requires consistency.
+
+---
+
+# Per-Task Distribution Report
+
+For each task and Skill version report:
+
+```text
+runs
+successes
+
+mean AST failures
+median AST failures
+failure-count range
+
+mean retries
+median retries
+
+help-call frequency
+
+mean recovery distance
+max recovery distance
+
+trajectory-class frequencies
+```
+
+For example:
+
+```text
+level2-008
+
+Phase 5:
+IDENTITY_FIRST                4/5
+RELATIONSHIP_FIRST_RECOVERED  1/5
+
+Phase 7d:
+IDENTITY_FIRST                1/5
+RELATIONSHIP_FIRST_RECOVERED  4/5
+```
+
+would be meaningful evidence.
+
+In contrast:
+
+```text
+Phase 5:
+3/5 vs 2/5
+
+Phase 7d:
+2/5 vs 3/5
+```
+
+would be much weaker evidence.
+
+---
+
+# Paired Comparison
+
+Where practical, compare repeat pairs run under similar temporal conditions.
+
+For each pair record:
+
+```text
+Δ failures
+Δ retries
+Δ recovery distance
+Δ tool calls
+Δ tokens
+Δ elapsed
+```
+
+Do not require exact deterministic pairing, but use it to identify broad runtime drift.
+
+---
+
+# Systematic Regression Standard
+
+Classify a Phase 7d guard regression as **SYSTEMATIC** only when the evidence shows a repeated directional difference.
+
+Examples of strong evidence:
+
+```text
+Phase 5 repeatedly chooses search-first
+while Phase 7d repeatedly chooses relationship-first
+```
+
+or:
+
+```text
+Phase 5 consistently recovers in <=2 steps
+while Phase 7d repeatedly reaches >=4
+```
+
+or:
+
+```text
+Phase 7d consistently adds failures/retries on the same task
+across most repeated runs
+```
+
+One or two outlier runs are not enough.
+
+---
+
+# Stochastic Variation Standard
+
+Classify the difference as **STOCHASTIC / NOT SYSTEMATIC** when:
+
+```text
+both versions show the same trajectory variants
+```
+
+and their frequencies overlap substantially.
+
+Also favor this conclusion when:
+
+```text
+within-version variance
+≈ or >
+between-version difference
+```
+
+For example:
+
+```text
+Phase 7d smoke failures:
+3, 5, 2, 4, 2
+
+Phase 5:
+2, 4, 3, 2, 4
+```
+
+would not support a meaningful Phase 7d regression.
+
+---
+
+# Possible Interaction
+
+Use **POSSIBLE INTERACTION** when:
+
+```text
+Phase 7d appears directionally worse
+```
+
+but the sample is not strong enough to distinguish a true Skill interaction from stochastic variation.
+
+Do not add new wording during this phase.
+
+Record the possible interaction for a later narrow experiment.
+
+---
+
+# Positive-Control Analysis
+
+For `level3-007`, verify that Phase 7d continues to show the intended benefit.
+
+Report per version:
+
+```text
+find calls
+search calls
+AST calls
+total tools
+tokens
+elapsed
+correctness
+```
+
+A strong result is:
+
+```text
+Phase 7d repeatedly avoids redundant find calls
+without introducing manual fallback or failures.
+```
+
+This establishes that the known benefit remains reproducible.
+
+---
+
+# Statistical Treatment
+
+Do not overstate formal significance from a small sample.
+
+Simple descriptive statistics are sufficient.
+
+Report:
+
+```text
+mean
+median
+range
+frequency / proportion
+```
+
+If convenient, confidence intervals or simple non-parametric comparisons may be included, but they are not required.
+
+Do not manufacture a p-value threshold as the acceptance criterion.
+
+Trajectory consistency matters more.
+
+---
+
+# Decision Matrix
+
+After repeated runs, choose one of four conclusions.
+
+## A. GUARD BEHAVIOR PRESERVED
+
+Use when:
+
+```text
+Phase 5 and Phase 7d trajectory distributions are substantially similar
+```
+
+and the previous 5/6 vs 3 failure difference is not reproducible.
+
+Then:
+
+```text
+Phase 7d's known efficiency backport is supported
+and the previous guard failure should be treated as sampling variance.
+```
+
+Recommend proceeding to the full 18-task controlled cohort.
+
+---
+
+## B. MINOR STOCHASTIC DIFFERENCE
+
+Use when Phase 7d is slightly worse in one metric but:
+
+```text
+trajectory distributions overlap
+no repeated command-order regression is clear
+recovery remains broadly Phase 5-like
+```
+
+If the positive-control improvement remains strong, recommend proceeding to the 18-task cohort with a caveat.
+
+---
+
+## C. SYSTEMATIC GUARD REGRESSION
+
+Use when Phase 7d repeatedly produces:
+
+```text
+relationship-before-identity
+extra failures/retries
+longer recovery
+```
+
+relative to Phase 5 on the same tasks.
+
+Do not proceed to the 18-task cohort.
+
+Do not immediately add generic wording.
+
+Instead identify the smallest reproducible interaction and design a separate narrowly controlled follow-up.
+
+---
+
+## D. INCONCLUSIVE
+
+Use when runtime/model variation or sample variance remains too high.
+
+Recommend additional repeats or a stricter runtime-controlled experiment.
+
+Do not modify the Skill.
+
+---
+
+# Phase 7d Acceptance Gate
+
+Proceed to the full 18-task controlled evaluation when:
+
+```text
+positive-control improvement is reproduced
+AND
+guard behavior is classified as
+GUARD BEHAVIOR PRESERVED
+or
+MINOR STOCHASTIC DIFFERENCE
+```
+
+Do not require Phase 7d's raw AST failure count to be numerically identical to Phase 5 in every repeat.
+
+The gate should be based on repeated trajectory distributions, not one aggregate sample.
+
+---
+
+# If the Gate Passes
+
+Do not run the 41-task full evaluation immediately unless the existing Phase 7d plan explicitly requires it.
+
+First proceed to:
+
+```text
+full 18-task controlled Phase 5 vs Phase 7d comparison
+```
+
+using the same controlled Skill invocation.
+
+This confirms that the backport does not introduce regressions outside the guard cohort.
+
+Only after that result is favorable should the normal 41-task evaluation be considered.
+
+---
+
+# Required Report
+
+Produce the report in this order.
+
+## 1. Executive Summary
+
+Choose:
+
+```text
+GUARD BEHAVIOR PRESERVED
+MINOR STOCHASTIC DIFFERENCE
+SYSTEMATIC GUARD REGRESSION
+INCONCLUSIVE
+```
+
+State whether Phase 7d may proceed.
+
+---
+
+## 2. Experimental Setup
+
+Document:
+
+```text
+tasks
+repeat count
+run ordering
+Skill hashes
+tool/runtime versions
+forced Skill invocation
+```
+
+---
+
+## 3. Aggregate Guard Metrics
+
+Compare Phase 5 and Phase 7d across all repeated guard runs.
+
+Include:
+
+```text
+success
+AST calls
+AST failures
+retries
+help
+recovery
+tools
+tokens
+elapsed
+```
+
+---
+
+## 4. Per-Task Distribution
+
+For every guard task report:
+
+```text
+failure distributions
+retry distributions
+recovery distributions
+trajectory-class frequencies
+```
+
+---
+
+## 5. Relationship-Ordering Analysis
+
+Focus on:
+
+```text
+level2-006
+level2-008
+level3-008
+```
+
+Answer:
+
+```text
+Does Phase 7d actually make relationship-first behavior more likely?
+```
+
+---
+
+## 6. `smoke-001` Variance Analysis
+
+Compare the full recovery distribution.
+
+Answer:
+
+```text
+Is Phase 7d systematically worse,
+or is smoke-001 intrinsically high-variance?
+```
+
+---
+
+## 7. Positive-Control Result
+
+Report whether the `level3-007` improvement remains reproducible.
+
+---
+
+## 8. Between-Version vs Within-Version Variance
+
+Summarize whether observed differences are larger than ordinary run-to-run variation.
+
+---
+
+## 9. Final Decision
+
+Choose:
+
+```text
+PROCEED TO 18-TASK CONTROLLED EVALUATION
+PROCEED WITH CAVEAT
+DO NOT PROCEED
+REPEAT WITH STRONGER CONTROL
+```
+
+---
+
+# Do Not Modify Anything
+
+During Phase 7d.1:
+
+```text
+Do not edit SKILL.md.
+Do not add relationship-order wording.
+Do not change recovery wording.
+Do not modify AST Tool.
+Do not modify evaluation tasks.
+```
+
+This phase exists specifically to avoid reacting to stochastic samples with unnecessary instruction changes.
+
+---
+
+# Final Question
+
+The report must answer:
+
+```text
+When Phase 5 and Phase 7d are each sampled repeatedly
+under the same forced-Skill conditions,
+is the apparent Phase 7d guard regression reproducible,
+or is it ordinary trajectory variance?
+```
+
+If the regression is not reproducible while the targeted `find` improvement is reproducible, Phase 7d has stronger evidence that it genuinely improves Phase 5.
