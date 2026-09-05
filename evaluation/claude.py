@@ -30,7 +30,17 @@ def run_claude(prompt: str, cwd: Path, timeout: int = 300) -> ExecutionResult:
     env["CI"] = "true"
     env["PYTHONUNBUFFERED"] = "1"
 
-    command = [exe, "--dangerously-skip-permissions", "-p", prompt]
+    command = [exe, "--dangerously-skip-permissions"]
+    if os.environ.get("AST_TOOL_CONTROLLED_SKILL") == "1":
+        command.extend([
+            "--append-system-prompt",
+            (
+                "Before any task exploration, invoke the semantic-analysis "
+                "skill exactly once using the Skill tool, then follow that "
+                "skill while completing the unchanged user task."
+            ),
+        ])
+    command.extend(["-p", prompt])
 
     start = time.time()
     timed_out = False
