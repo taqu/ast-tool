@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. The diagnostic line is now the first statement in `InventoryService::update` at `src/service/inventory_service.cpp:12`.\n",
+  "fresh_logs": 1
+}

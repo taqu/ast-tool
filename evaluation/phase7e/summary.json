@@ -1,0 +1,2882 @@
+{
+  "tasks": [
+    {
+      "task": "level1-001",
+      "runs": 5,
+      "invoked": 0,
+      "rate": 0.0,
+      "wilson_95": [
+        0.0,
+        0.43449149475208104
+      ],
+      "classification": "B",
+      "mean_position": null,
+      "loaded": null,
+      "absent": {
+        "runs": 5,
+        "means": {
+          "success": 1.0,
+          "total_tool_calls": 4.8,
+          "ast_tool_calls": 0.0,
+          "ast_tool_failures": 0.0,
+          "ast_tool_retries": 0.0,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 2.6,
+          "glob_calls": 0.0,
+          "read_calls": 1.0,
+          "bash_calls": 0.0,
+          "edit_calls": 1.2,
+          "total_tokens": 1158.2,
+          "elapsed_seconds": 17.364
+        },
+        "medians": {
+          "success": 1.0,
+          "total_tool_calls": 5.0,
+          "ast_tool_calls": 0.0,
+          "ast_tool_failures": 0.0,
+          "ast_tool_retries": 0.0,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 3.0,
+          "glob_calls": 0.0,
+          "read_calls": 1.0,
+          "bash_calls": 0.0,
+          "edit_calls": 1.0,
+          "total_tokens": 1236.0,
+          "elapsed_seconds": 16.61
+        },
+        "ranges": {
+          "success": [
+            true,
+            true
+          ],
+          "total_tool_calls": [
+            3,
+            6
+          ],
+          "ast_tool_calls": [
+            0,
+            0
+          ],
+          "ast_tool_failures": [
+            0,
+            0
+          ],
+          "ast_tool_retries": [
+            0,
+            0
+          ],
+          "ast_tool_help_calls": [
+            0,
+            0
+          ],
+          "grep_calls": [
+            1,
+            3
+          ],
+          "glob_calls": [
+            0,
+            0
+          ],
+          "read_calls": [
+            1,
+            1
+          ],
+          "bash_calls": [
+            0,
+            0
+          ],
+          "edit_calls": [
+            1,
+            2
+          ],
+          "total_tokens": [
+            622,
+            1358
+          ],
+          "elapsed_seconds": [
+            13.71,
+            21.68
+          ]
+        },
+        "totals": {
+          "success": 5,
+          "total_tool_calls": 24,
+          "ast_tool_calls": 0,
+          "ast_tool_failures": 0,
+          "ast_tool_retries": 0,
+          "ast_tool_help_calls": 0,
+          "grep_calls": 13,
+          "glob_calls": 0,
+          "read_calls": 5,
+          "bash_calls": 0,
+          "edit_calls": 6,
+          "total_tokens": 5791,
+          "elapsed_seconds": 86.82
+        },
+        "recovery_distances": [],
+        "recovery_mean": null,
+        "recovery_max": null
+      },
+      "trajectories": [
+        {
+          "arm": "r1",
+          "invoked": false,
+          "sequence": [
+            "Grep",
+            "Grep",
+            "Grep",
+            "Read",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r2",
+          "invoked": false,
+          "sequence": [
+            "Grep",
+            "Grep",
+            "Grep",
+            "Edit",
+            "Read",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r3",
+          "invoked": false,
+          "sequence": [
+            "Grep",
+            "Grep",
+            "Grep",
+            "Read",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r4",
+          "invoked": false,
+          "sequence": [
+            "Grep",
+            "Grep",
+            "Grep",
+            "Read",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r5",
+          "invoked": false,
+          "sequence": [
+            "Grep",
+            "Read",
+            "Edit"
+          ]
+        }
+      ]
+    },
+    {
+      "task": "level2-006",
+      "runs": 5,
+      "invoked": 5,
+      "rate": 1.0,
+      "wilson_95": [
+        0.5655085052479191,
+        1.0
+      ],
+      "classification": "A",
+      "mean_position": 1,
+      "loaded": {
+        "runs": 5,
+        "means": {
+          "success": 1.0,
+          "total_tool_calls": 11.0,
+          "ast_tool_calls": 2.0,
+          "ast_tool_failures": 0.0,
+          "ast_tool_retries": 0.0,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 0.0,
+          "glob_calls": 0.0,
+          "read_calls": 4.0,
+          "bash_calls": 2.0,
+          "edit_calls": 4.0,
+          "total_tokens": 4836.0,
+          "elapsed_seconds": 44.288000000000004
+        },
+        "medians": {
+          "success": 1.0,
+          "total_tool_calls": 11.0,
+          "ast_tool_calls": 2.0,
+          "ast_tool_failures": 0.0,
+          "ast_tool_retries": 0.0,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 0.0,
+          "glob_calls": 0.0,
+          "read_calls": 4.0,
+          "bash_calls": 2.0,
+          "edit_calls": 4.0,
+          "total_tokens": 4604.0,
+          "elapsed_seconds": 41.17
+        },
+        "ranges": {
+          "success": [
+            true,
+            true
+          ],
+          "total_tool_calls": [
+            11,
+            11
+          ],
+          "ast_tool_calls": [
+            2,
+            2
+          ],
+          "ast_tool_failures": [
+            0,
+            0
+          ],
+          "ast_tool_retries": [
+            0,
+            0
+          ],
+          "ast_tool_help_calls": [
+            0,
+            0
+          ],
+          "grep_calls": [
+            0,
+            0
+          ],
+          "glob_calls": [
+            0,
+            0
+          ],
+          "read_calls": [
+            4,
+            4
+          ],
+          "bash_calls": [
+            2,
+            2
+          ],
+          "edit_calls": [
+            4,
+            4
+          ],
+          "total_tokens": [
+            4560,
+            5627
+          ],
+          "elapsed_seconds": [
+            40.32,
+            54.14
+          ]
+        },
+        "totals": {
+          "success": 5,
+          "total_tool_calls": 55,
+          "ast_tool_calls": 10,
+          "ast_tool_failures": 0,
+          "ast_tool_retries": 0,
+          "ast_tool_help_calls": 0,
+          "grep_calls": 0,
+          "glob_calls": 0,
+          "read_calls": 20,
+          "bash_calls": 10,
+          "edit_calls": 20,
+          "total_tokens": 24180,
+          "elapsed_seconds": 221.44
+        },
+        "recovery_distances": [],
+        "recovery_mean": null,
+        "recovery_max": null
+      },
+      "absent": null,
+      "trajectories": [
+        {
+          "arm": "r1",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:callers",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r2",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:callers",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r3",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:callers",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r4",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:callers",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r5",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:callers",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        }
+      ]
+    },
+    {
+      "task": "level2-008",
+      "runs": 5,
+      "invoked": 5,
+      "rate": 1.0,
+      "wilson_95": [
+        0.5655085052479191,
+        1.0
+      ],
+      "classification": "A",
+      "mean_position": 1,
+      "loaded": {
+        "runs": 5,
+        "means": {
+          "success": 1.0,
+          "total_tool_calls": 5.0,
+          "ast_tool_calls": 2.0,
+          "ast_tool_failures": 0.2,
+          "ast_tool_retries": 0.2,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 0.0,
+          "glob_calls": 0.0,
+          "read_calls": 1.0,
+          "bash_calls": 2.0,
+          "edit_calls": 1.0,
+          "total_tokens": 1272.6,
+          "elapsed_seconds": 37.014
+        },
+        "medians": {
+          "success": 1.0,
+          "total_tool_calls": 5.0,
+          "ast_tool_calls": 2.0,
+          "ast_tool_failures": 0.0,
+          "ast_tool_retries": 0.0,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 0.0,
+          "glob_calls": 0.0,
+          "read_calls": 1.0,
+          "bash_calls": 2.0,
+          "edit_calls": 1.0,
+          "total_tokens": 1269.0,
+          "elapsed_seconds": 35.93
+        },
+        "ranges": {
+          "success": [
+            true,
+            true
+          ],
+          "total_tool_calls": [
+            4,
+            6
+          ],
+          "ast_tool_calls": [
+            1,
+            3
+          ],
+          "ast_tool_failures": [
+            0,
+            1
+          ],
+          "ast_tool_retries": [
+            0,
+            1
+          ],
+          "ast_tool_help_calls": [
+            0,
+            0
+          ],
+          "grep_calls": [
+            0,
+            0
+          ],
+          "glob_calls": [
+            0,
+            0
+          ],
+          "read_calls": [
+            1,
+            1
+          ],
+          "bash_calls": [
+            1,
+            3
+          ],
+          "edit_calls": [
+            1,
+            1
+          ],
+          "total_tokens": [
+            1021,
+            1448
+          ],
+          "elapsed_seconds": [
+            29.42,
+            46.96
+          ]
+        },
+        "totals": {
+          "success": 5,
+          "total_tool_calls": 25,
+          "ast_tool_calls": 10,
+          "ast_tool_failures": 1,
+          "ast_tool_retries": 1,
+          "ast_tool_help_calls": 0,
+          "grep_calls": 0,
+          "glob_calls": 0,
+          "read_calls": 5,
+          "bash_calls": 10,
+          "edit_calls": 5,
+          "total_tokens": 6363,
+          "elapsed_seconds": 185.07
+        },
+        "recovery_distances": [
+          1
+        ],
+        "recovery_mean": 1,
+        "recovery_max": 1
+      },
+      "absent": null,
+      "trajectories": [
+        {
+          "arm": "r1",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:callers",
+            "ast-tool:search",
+            "ast-tool:callers",
+            "Read",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r2",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:callers",
+            "Read",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r3",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:callers",
+            "Read",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r4",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:callers",
+            "Read",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r5",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:callers",
+            "Read",
+            "Edit"
+          ]
+        }
+      ]
+    },
+    {
+      "task": "level3-003",
+      "runs": 5,
+      "invoked": 5,
+      "rate": 1.0,
+      "wilson_95": [
+        0.5655085052479191,
+        1.0
+      ],
+      "classification": "A",
+      "mean_position": 1,
+      "loaded": {
+        "runs": 5,
+        "means": {
+          "success": 1.0,
+          "total_tool_calls": 4.8,
+          "ast_tool_calls": 1.6,
+          "ast_tool_failures": 0.0,
+          "ast_tool_retries": 0.0,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 0.0,
+          "glob_calls": 0.2,
+          "read_calls": 1.0,
+          "bash_calls": 1.6,
+          "edit_calls": 1.0,
+          "total_tokens": 1176.0,
+          "elapsed_seconds": 32.938
+        },
+        "medians": {
+          "success": 1.0,
+          "total_tool_calls": 5.0,
+          "ast_tool_calls": 2.0,
+          "ast_tool_failures": 0.0,
+          "ast_tool_retries": 0.0,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 0.0,
+          "glob_calls": 0.0,
+          "read_calls": 1.0,
+          "bash_calls": 2.0,
+          "edit_calls": 1.0,
+          "total_tokens": 1183.0,
+          "elapsed_seconds": 34.32
+        },
+        "ranges": {
+          "success": [
+            true,
+            true
+          ],
+          "total_tool_calls": [
+            4,
+            5
+          ],
+          "ast_tool_calls": [
+            1,
+            2
+          ],
+          "ast_tool_failures": [
+            0,
+            0
+          ],
+          "ast_tool_retries": [
+            0,
+            0
+          ],
+          "ast_tool_help_calls": [
+            0,
+            0
+          ],
+          "grep_calls": [
+            0,
+            0
+          ],
+          "glob_calls": [
+            0,
+            1
+          ],
+          "read_calls": [
+            1,
+            1
+          ],
+          "bash_calls": [
+            1,
+            2
+          ],
+          "edit_calls": [
+            1,
+            1
+          ],
+          "total_tokens": [
+            940,
+            1385
+          ],
+          "elapsed_seconds": [
+            28.75,
+            37.01
+          ]
+        },
+        "totals": {
+          "success": 5,
+          "total_tool_calls": 24,
+          "ast_tool_calls": 8,
+          "ast_tool_failures": 0,
+          "ast_tool_retries": 0,
+          "ast_tool_help_calls": 0,
+          "grep_calls": 0,
+          "glob_calls": 1,
+          "read_calls": 5,
+          "bash_calls": 8,
+          "edit_calls": 5,
+          "total_tokens": 5880,
+          "elapsed_seconds": 164.69
+        },
+        "recovery_distances": [],
+        "recovery_mean": null,
+        "recovery_max": null
+      },
+      "absent": null,
+      "trajectories": [
+        {
+          "arm": "r1",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "Read",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r2",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:find",
+            "Read",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r3",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:search",
+            "Read",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r4",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:find",
+            "Read",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r5",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "Glob",
+            "Read",
+            "Edit"
+          ]
+        }
+      ]
+    },
+    {
+      "task": "level3-007",
+      "runs": 10,
+      "invoked": 6,
+      "rate": 0.6,
+      "wilson_95": [
+        0.3126695474501864,
+        0.8318224187964902
+      ],
+      "classification": "C",
+      "mean_position": 1,
+      "loaded": {
+        "runs": 6,
+        "means": {
+          "success": 1.0,
+          "total_tool_calls": 13.666666666666666,
+          "ast_tool_calls": 5.333333333333333,
+          "ast_tool_failures": 0.0,
+          "ast_tool_retries": 0.0,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 0.0,
+          "glob_calls": 0.6666666666666666,
+          "read_calls": 3.3333333333333335,
+          "bash_calls": 5.666666666666667,
+          "edit_calls": 3.0,
+          "total_tokens": 7191.833333333333,
+          "elapsed_seconds": 61.980000000000004
+        },
+        "medians": {
+          "success": 1.0,
+          "total_tool_calls": 14.0,
+          "ast_tool_calls": 5.0,
+          "ast_tool_failures": 0.0,
+          "ast_tool_retries": 0.0,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 0.0,
+          "glob_calls": 1.0,
+          "read_calls": 3.0,
+          "bash_calls": 5.0,
+          "edit_calls": 3.0,
+          "total_tokens": 6647.0,
+          "elapsed_seconds": 60.695
+        },
+        "ranges": {
+          "success": [
+            true,
+            true
+          ],
+          "total_tool_calls": [
+            11,
+            16
+          ],
+          "ast_tool_calls": [
+            4,
+            7
+          ],
+          "ast_tool_failures": [
+            0,
+            0
+          ],
+          "ast_tool_retries": [
+            0,
+            0
+          ],
+          "ast_tool_help_calls": [
+            0,
+            0
+          ],
+          "grep_calls": [
+            0,
+            0
+          ],
+          "glob_calls": [
+            0,
+            1
+          ],
+          "read_calls": [
+            3,
+            5
+          ],
+          "bash_calls": [
+            4,
+            9
+          ],
+          "edit_calls": [
+            3,
+            3
+          ],
+          "total_tokens": [
+            5155,
+            9966
+          ],
+          "elapsed_seconds": [
+            49.54,
+            79.41
+          ]
+        },
+        "totals": {
+          "success": 6,
+          "total_tool_calls": 82,
+          "ast_tool_calls": 32,
+          "ast_tool_failures": 0,
+          "ast_tool_retries": 0,
+          "ast_tool_help_calls": 0,
+          "grep_calls": 0,
+          "glob_calls": 4,
+          "read_calls": 20,
+          "bash_calls": 34,
+          "edit_calls": 18,
+          "total_tokens": 43151,
+          "elapsed_seconds": 371.88
+        },
+        "recovery_distances": [],
+        "recovery_mean": null,
+        "recovery_max": null
+      },
+      "absent": {
+        "runs": 4,
+        "means": {
+          "success": 1.0,
+          "total_tool_calls": 12.75,
+          "ast_tool_calls": 0.0,
+          "ast_tool_failures": 0.0,
+          "ast_tool_retries": 0.0,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 0.25,
+          "glob_calls": 0.5,
+          "read_calls": 6.75,
+          "bash_calls": 1.25,
+          "edit_calls": 3.0,
+          "total_tokens": 3930.25,
+          "elapsed_seconds": 45.165
+        },
+        "medians": {
+          "success": 1.0,
+          "total_tool_calls": 12.0,
+          "ast_tool_calls": 0.0,
+          "ast_tool_failures": 0.0,
+          "ast_tool_retries": 0.0,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 0.0,
+          "glob_calls": 0.5,
+          "read_calls": 6.0,
+          "bash_calls": 1.0,
+          "edit_calls": 3.0,
+          "total_tokens": 4236.0,
+          "elapsed_seconds": 44.985
+        },
+        "ranges": {
+          "success": [
+            true,
+            true
+          ],
+          "total_tool_calls": [
+            11,
+            16
+          ],
+          "ast_tool_calls": [
+            0,
+            0
+          ],
+          "ast_tool_failures": [
+            0,
+            0
+          ],
+          "ast_tool_retries": [
+            0,
+            0
+          ],
+          "ast_tool_help_calls": [
+            0,
+            0
+          ],
+          "grep_calls": [
+            0,
+            1
+          ],
+          "glob_calls": [
+            0,
+            1
+          ],
+          "read_calls": [
+            6,
+            9
+          ],
+          "bash_calls": [
+            1,
+            2
+          ],
+          "edit_calls": [
+            3,
+            3
+          ],
+          "total_tokens": [
+            2569,
+            4680
+          ],
+          "elapsed_seconds": [
+            39.94,
+            50.75
+          ]
+        },
+        "totals": {
+          "success": 4,
+          "total_tool_calls": 51,
+          "ast_tool_calls": 0,
+          "ast_tool_failures": 0,
+          "ast_tool_retries": 0,
+          "ast_tool_help_calls": 0,
+          "grep_calls": 1,
+          "glob_calls": 2,
+          "read_calls": 27,
+          "bash_calls": 5,
+          "edit_calls": 12,
+          "total_tokens": 15721,
+          "elapsed_seconds": 180.66
+        },
+        "recovery_distances": [],
+        "recovery_mean": null,
+        "recovery_max": null
+      },
+      "trajectories": [
+        {
+          "arm": "r1",
+          "invoked": false,
+          "sequence": [
+            "Agent",
+            "Glob",
+            "Bash",
+            "Grep",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r10",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:search",
+            "ast-tool:search",
+            "ast-tool:search",
+            "Read",
+            "Read",
+            "ast-tool:search",
+            "Glob",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r2",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:search",
+            "ast-tool:search",
+            "ast-tool:search",
+            "Bash",
+            "ast-tool:find",
+            "ast-tool:find",
+            "Bash",
+            "ast-tool:find",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r3",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:search",
+            "ast-tool:search",
+            "ast-tool:search",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r4",
+          "invoked": false,
+          "sequence": [
+            "Agent",
+            "Bash",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Glob",
+            "Bash",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r5",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:search",
+            "ast-tool:search",
+            "ast-tool:search",
+            "Glob",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r6",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:search",
+            "ast-tool:search",
+            "ast-tool:search",
+            "Glob",
+            "ast-tool:find",
+            "ast-tool:find",
+            "ast-tool:find",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r7",
+          "invoked": false,
+          "sequence": [
+            "Agent",
+            "Bash",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r8",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "ast-tool:search",
+            "ast-tool:search",
+            "Read",
+            "ast-tool:find",
+            "ast-tool:find",
+            "Read",
+            "Read",
+            "Glob",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r9",
+          "invoked": false,
+          "sequence": [
+            "Agent",
+            "Bash",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        }
+      ]
+    },
+    {
+      "task": "level3-008",
+      "runs": 5,
+      "invoked": 5,
+      "rate": 1.0,
+      "wilson_95": [
+        0.5655085052479191,
+        1.0
+      ],
+      "classification": "A",
+      "mean_position": 1,
+      "loaded": {
+        "runs": 5,
+        "means": {
+          "success": 1.0,
+          "total_tool_calls": 9.0,
+          "ast_tool_calls": 2.2,
+          "ast_tool_failures": 0.4,
+          "ast_tool_retries": 0.4,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 0.0,
+          "glob_calls": 0.0,
+          "read_calls": 2.2,
+          "bash_calls": 3.8,
+          "edit_calls": 2.0,
+          "total_tokens": 3483.0,
+          "elapsed_seconds": 53.18
+        },
+        "medians": {
+          "success": 1.0,
+          "total_tool_calls": 9.0,
+          "ast_tool_calls": 3.0,
+          "ast_tool_failures": 0.0,
+          "ast_tool_retries": 0.0,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 0.0,
+          "glob_calls": 0.0,
+          "read_calls": 2.0,
+          "bash_calls": 4.0,
+          "edit_calls": 2.0,
+          "total_tokens": 3504.0,
+          "elapsed_seconds": 55.61
+        },
+        "ranges": {
+          "success": [
+            true,
+            true
+          ],
+          "total_tool_calls": [
+            8,
+            10
+          ],
+          "ast_tool_calls": [
+            0,
+            4
+          ],
+          "ast_tool_failures": [
+            0,
+            1
+          ],
+          "ast_tool_retries": [
+            0,
+            1
+          ],
+          "ast_tool_help_calls": [
+            0,
+            0
+          ],
+          "grep_calls": [
+            0,
+            0
+          ],
+          "glob_calls": [
+            0,
+            0
+          ],
+          "read_calls": [
+            2,
+            3
+          ],
+          "bash_calls": [
+            3,
+            5
+          ],
+          "edit_calls": [
+            2,
+            2
+          ],
+          "total_tokens": [
+            3056,
+            3701
+          ],
+          "elapsed_seconds": [
+            42.25,
+            59.88
+          ]
+        },
+        "totals": {
+          "success": 5,
+          "total_tool_calls": 45,
+          "ast_tool_calls": 11,
+          "ast_tool_failures": 2,
+          "ast_tool_retries": 2,
+          "ast_tool_help_calls": 0,
+          "grep_calls": 0,
+          "glob_calls": 0,
+          "read_calls": 11,
+          "bash_calls": 19,
+          "edit_calls": 10,
+          "total_tokens": 17415,
+          "elapsed_seconds": 265.9
+        },
+        "recovery_distances": [
+          1,
+          1
+        ],
+        "recovery_mean": 1,
+        "recovery_max": 1
+      },
+      "absent": null,
+      "trajectories": [
+        {
+          "arm": "r1",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "Bash",
+            "ast-tool:search",
+            "ast-tool:callers",
+            "ast-tool:callers",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r2",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "Bash",
+            "ast-tool:callers",
+            "ast-tool:search",
+            "ast-tool:callers",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r3",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "Bash",
+            "ast-tool:callers",
+            "ast-tool:search",
+            "ast-tool:callers",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r4",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "Bash",
+            "Bash",
+            "Bash",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r5",
+          "invoked": true,
+          "sequence": [
+            "Skill",
+            "ast-tool:search",
+            "Bash",
+            "Bash",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit"
+          ]
+        }
+      ]
+    },
+    {
+      "task": "level4-003",
+      "runs": 5,
+      "invoked": 0,
+      "rate": 0.0,
+      "wilson_95": [
+        0.0,
+        0.43449149475208104
+      ],
+      "classification": "B",
+      "mean_position": null,
+      "loaded": null,
+      "absent": {
+        "runs": 5,
+        "means": {
+          "success": 1.0,
+          "total_tool_calls": 27.6,
+          "ast_tool_calls": 0.0,
+          "ast_tool_failures": 0.0,
+          "ast_tool_retries": 0.0,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 3.8,
+          "glob_calls": 1.8,
+          "read_calls": 14.8,
+          "bash_calls": 0.2,
+          "edit_calls": 6.0,
+          "total_tokens": 12094.8,
+          "elapsed_seconds": 54.42
+        },
+        "medians": {
+          "success": 1.0,
+          "total_tool_calls": 28.0,
+          "ast_tool_calls": 0.0,
+          "ast_tool_failures": 0.0,
+          "ast_tool_retries": 0.0,
+          "ast_tool_help_calls": 0.0,
+          "grep_calls": 4.0,
+          "glob_calls": 1.0,
+          "read_calls": 14.0,
+          "bash_calls": 0.0,
+          "edit_calls": 6.0,
+          "total_tokens": 13647.0,
+          "elapsed_seconds": 55.15
+        },
+        "ranges": {
+          "success": [
+            true,
+            true
+          ],
+          "total_tool_calls": [
+            24,
+            30
+          ],
+          "ast_tool_calls": [
+            0,
+            0
+          ],
+          "ast_tool_failures": [
+            0,
+            0
+          ],
+          "ast_tool_retries": [
+            0,
+            0
+          ],
+          "ast_tool_help_calls": [
+            0,
+            0
+          ],
+          "grep_calls": [
+            2,
+            6
+          ],
+          "glob_calls": [
+            0,
+            6
+          ],
+          "read_calls": [
+            12,
+            19
+          ],
+          "bash_calls": [
+            0,
+            1
+          ],
+          "edit_calls": [
+            6,
+            6
+          ],
+          "total_tokens": [
+            4906,
+            14270
+          ],
+          "elapsed_seconds": [
+            45.92,
+            59.79
+          ]
+        },
+        "totals": {
+          "success": 5,
+          "total_tool_calls": 138,
+          "ast_tool_calls": 0,
+          "ast_tool_failures": 0,
+          "ast_tool_retries": 0,
+          "ast_tool_help_calls": 0,
+          "grep_calls": 19,
+          "glob_calls": 9,
+          "read_calls": 74,
+          "bash_calls": 1,
+          "edit_calls": 30,
+          "total_tokens": 60474,
+          "elapsed_seconds": 272.1
+        },
+        "recovery_distances": [],
+        "recovery_mean": null,
+        "recovery_max": null
+      },
+      "trajectories": [
+        {
+          "arm": "r1",
+          "invoked": false,
+          "sequence": [
+            "Agent",
+            "Glob",
+            "Grep",
+            "Grep",
+            "Grep",
+            "Grep",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r2",
+          "invoked": false,
+          "sequence": [
+            "Agent",
+            "Bash",
+            "Grep",
+            "Grep",
+            "Grep",
+            "Grep",
+            "Grep",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r3",
+          "invoked": false,
+          "sequence": [
+            "Agent",
+            "Grep",
+            "Glob",
+            "Grep",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r4",
+          "invoked": false,
+          "sequence": [
+            "Agent",
+            "Glob",
+            "Glob",
+            "Glob",
+            "Glob",
+            "Glob",
+            "Grep",
+            "Grep",
+            "Glob",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r5",
+          "invoked": false,
+          "sequence": [
+            "Agent",
+            "Grep",
+            "Grep",
+            "Grep",
+            "Grep",
+            "Grep",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Glob",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Grep",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit",
+            "Edit"
+          ]
+        }
+      ]
+    },
+    {
+      "task": "smoke-001",
+      "runs": 5,
+      "invoked": 0,
+      "rate": 0.0,
+      "wilson_95": [
+        0.0,
+        0.43449149475208104
+      ],
+      "classification": "B",
+      "mean_position": null,
+      "loaded": null,
+      "absent": {
+        "runs": 5,
+        "means": {
+          "success": 1.0,
+          "total_tool_calls": 13.8,
+          "ast_tool_calls": 8.8,
+          "ast_tool_failures": 3.6,
+          "ast_tool_retries": 5.8,
+          "ast_tool_help_calls": 3.0,
+          "grep_calls": 0.0,
+          "glob_calls": 0.0,
+          "read_calls": 3.0,
+          "bash_calls": 9.8,
+          "edit_calls": 0.6,
+          "total_tokens": 6312.6,
+          "elapsed_seconds": 109.876
+        },
+        "medians": {
+          "success": 1.0,
+          "total_tool_calls": 13.0,
+          "ast_tool_calls": 9.0,
+          "ast_tool_failures": 3.0,
+          "ast_tool_retries": 6.0,
+          "ast_tool_help_calls": 3.0,
+          "grep_calls": 0.0,
+          "glob_calls": 0.0,
+          "read_calls": 3.0,
+          "bash_calls": 9.0,
+          "edit_calls": 1.0,
+          "total_tokens": 6210.0,
+          "elapsed_seconds": 102.92
+        },
+        "ranges": {
+          "success": [
+            true,
+            true
+          ],
+          "total_tool_calls": [
+            11,
+            16
+          ],
+          "ast_tool_calls": [
+            7,
+            11
+          ],
+          "ast_tool_failures": [
+            3,
+            6
+          ],
+          "ast_tool_retries": [
+            4,
+            8
+          ],
+          "ast_tool_help_calls": [
+            3,
+            3
+          ],
+          "grep_calls": [
+            0,
+            0
+          ],
+          "glob_calls": [
+            0,
+            0
+          ],
+          "read_calls": [
+            1,
+            4
+          ],
+          "bash_calls": [
+            7,
+            14
+          ],
+          "edit_calls": [
+            0,
+            1
+          ],
+          "total_tokens": [
+            5177,
+            7963
+          ],
+          "elapsed_seconds": [
+            83.45,
+            145.78
+          ]
+        },
+        "totals": {
+          "success": 5,
+          "total_tool_calls": 69,
+          "ast_tool_calls": 44,
+          "ast_tool_failures": 18,
+          "ast_tool_retries": 29,
+          "ast_tool_help_calls": 15,
+          "grep_calls": 0,
+          "glob_calls": 0,
+          "read_calls": 15,
+          "bash_calls": 49,
+          "edit_calls": 3,
+          "total_tokens": 31563,
+          "elapsed_seconds": 549.38
+        },
+        "recovery_distances": [
+          3,
+          3,
+          1,
+          4,
+          4,
+          2,
+          4,
+          4,
+          3,
+          1,
+          4,
+          5,
+          2
+        ],
+        "recovery_mean": 3.076923076923077,
+        "recovery_max": 5
+      },
+      "trajectories": [
+        {
+          "arm": "r1",
+          "invoked": false,
+          "sequence": [
+            "ast-tool:find",
+            "Bash",
+            "ast-tool:find",
+            "ast-tool:find",
+            "ast-tool:references",
+            "ast-tool:references",
+            "ast-tool:references",
+            "ast-tool:references",
+            "ast-tool:references",
+            "Bash",
+            "Read",
+            "Write",
+            "Bash",
+            "Bash",
+            "Bash",
+            "Bash"
+          ]
+        },
+        {
+          "arm": "r2",
+          "invoked": false,
+          "sequence": [
+            "ast-tool:find",
+            "Read",
+            "Bash",
+            "ast-tool:find",
+            "ast-tool:find",
+            "Read",
+            "ast-tool:references",
+            "ast-tool:references",
+            "ast-tool:references",
+            "Read",
+            "ast-tool:references",
+            "ast-tool:references",
+            "ast-tool:references",
+            "ast-tool:references",
+            "Read",
+            "Edit"
+          ]
+        },
+        {
+          "arm": "r3",
+          "invoked": false,
+          "sequence": [
+            "ast-tool:find",
+            "Read",
+            "Bash",
+            "ast-tool:find",
+            "ast-tool:find",
+            "Read",
+            "ast-tool:references",
+            "ast-tool:references",
+            "ast-tool:references",
+            "Edit",
+            "Read"
+          ]
+        },
+        {
+          "arm": "r4",
+          "invoked": false,
+          "sequence": [
+            "ast-tool:find",
+            "Read",
+            "ast-tool:find",
+            "ast-tool:find",
+            "ast-tool:find",
+            "Read",
+            "ast-tool:references",
+            "ast-tool:references",
+            "ast-tool:references",
+            "ast-tool:symbols",
+            "ast-tool:references",
+            "Edit",
+            "Read"
+          ]
+        },
+        {
+          "arm": "r5",
+          "invoked": false,
+          "sequence": [
+            "ast-tool:find",
+            "Read",
+            "Bash",
+            "ast-tool:find",
+            "ast-tool:find",
+            "ast-tool:references",
+            "Read",
+            "ast-tool:references",
+            "ast-tool:references",
+            "Read",
+            "ast-tool:references",
+            "Read",
+            "Write"
+          ]
+        }
+      ]
+    }
+  ],
+  "aggregate": {
+    "runs": 45,
+    "means": {
+      "success": 1.0,
+      "total_tool_calls": 11.4,
+      "ast_tool_calls": 2.5555555555555554,
+      "ast_tool_failures": 0.4666666666666667,
+      "ast_tool_retries": 0.7111111111111111,
+      "ast_tool_help_calls": 0.3333333333333333,
+      "grep_calls": 0.7333333333333333,
+      "glob_calls": 0.35555555555555557,
+      "read_calls": 4.044444444444444,
+      "bash_calls": 3.022222222222222,
+      "edit_calls": 2.422222222222222,
+      "total_tokens": 4678.622222222222,
+      "elapsed_seconds": 51.065333333333335
+    },
+    "medians": {
+      "success": 1.0,
+      "total_tool_calls": 11.0,
+      "ast_tool_calls": 2.0,
+      "ast_tool_failures": 0.0,
+      "ast_tool_retries": 0.0,
+      "ast_tool_help_calls": 0.0,
+      "grep_calls": 0.0,
+      "glob_calls": 0.0,
+      "read_calls": 3.0,
+      "bash_calls": 2.0,
+      "edit_calls": 2.0,
+      "total_tokens": 4420.0,
+      "elapsed_seconds": 45.94
+    },
+    "ranges": {
+      "success": [
+        true,
+        true
+      ],
+      "total_tool_calls": [
+        3,
+        30
+      ],
+      "ast_tool_calls": [
+        0,
+        11
+      ],
+      "ast_tool_failures": [
+        0,
+        6
+      ],
+      "ast_tool_retries": [
+        0,
+        8
+      ],
+      "ast_tool_help_calls": [
+        0,
+        3
+      ],
+      "grep_calls": [
+        0,
+        6
+      ],
+      "glob_calls": [
+        0,
+        6
+      ],
+      "read_calls": [
+        1,
+        19
+      ],
+      "bash_calls": [
+        0,
+        14
+      ],
+      "edit_calls": [
+        0,
+        6
+      ],
+      "total_tokens": [
+        622,
+        14270
+      ],
+      "elapsed_seconds": [
+        13.71,
+        145.78
+      ]
+    },
+    "totals": {
+      "success": 45,
+      "total_tool_calls": 513,
+      "ast_tool_calls": 115,
+      "ast_tool_failures": 21,
+      "ast_tool_retries": 32,
+      "ast_tool_help_calls": 15,
+      "grep_calls": 33,
+      "glob_calls": 16,
+      "read_calls": 182,
+      "bash_calls": 136,
+      "edit_calls": 109,
+      "total_tokens": 210538,
+      "elapsed_seconds": 2297.94
+    },
+    "recovery_distances": [
+      1,
+      3,
+      3,
+      1,
+      1,
+      4,
+      4,
+      2,
+      1,
+      4,
+      4,
+      3,
+      1,
+      4,
+      5,
+      2
+    ],
+    "recovery_mean": 2.6875,
+    "recovery_max": 5
+  },
+  "loaded": {
+    "runs": 26,
+    "means": {
+      "success": 1.0,
+      "total_tool_calls": 8.884615384615385,
+      "ast_tool_calls": 2.730769230769231,
+      "ast_tool_failures": 0.11538461538461539,
+      "ast_tool_retries": 0.11538461538461539,
+      "ast_tool_help_calls": 0.0,
+      "grep_calls": 0.0,
+      "glob_calls": 0.19230769230769232,
+      "read_calls": 2.3461538461538463,
+      "bash_calls": 3.1153846153846154,
+      "edit_calls": 2.230769230769231,
+      "total_tokens": 3730.346153846154,
+      "elapsed_seconds": 46.49923076923077
+    },
+    "medians": {
+      "success": 1.0,
+      "total_tool_calls": 9.0,
+      "ast_tool_calls": 2.0,
+      "ast_tool_failures": 0.0,
+      "ast_tool_retries": 0.0,
+      "ast_tool_help_calls": 0.0,
+      "grep_calls": 0.0,
+      "glob_calls": 0.0,
+      "read_calls": 2.0,
+      "bash_calls": 2.0,
+      "edit_calls": 2.0,
+      "total_tokens": 3595.5,
+      "elapsed_seconds": 43.805
+    },
+    "ranges": {
+      "success": [
+        true,
+        true
+      ],
+      "total_tool_calls": [
+        4,
+        16
+      ],
+      "ast_tool_calls": [
+        0,
+        7
+      ],
+      "ast_tool_failures": [
+        0,
+        1
+      ],
+      "ast_tool_retries": [
+        0,
+        1
+      ],
+      "ast_tool_help_calls": [
+        0,
+        0
+      ],
+      "grep_calls": [
+        0,
+        0
+      ],
+      "glob_calls": [
+        0,
+        1
+      ],
+      "read_calls": [
+        1,
+        5
+      ],
+      "bash_calls": [
+        1,
+        9
+      ],
+      "edit_calls": [
+        1,
+        4
+      ],
+      "total_tokens": [
+        940,
+        9966
+      ],
+      "elapsed_seconds": [
+        28.75,
+        79.41
+      ]
+    },
+    "totals": {
+      "success": 26,
+      "total_tool_calls": 231,
+      "ast_tool_calls": 71,
+      "ast_tool_failures": 3,
+      "ast_tool_retries": 3,
+      "ast_tool_help_calls": 0,
+      "grep_calls": 0,
+      "glob_calls": 5,
+      "read_calls": 61,
+      "bash_calls": 81,
+      "edit_calls": 58,
+      "total_tokens": 96989,
+      "elapsed_seconds": 1208.98
+    },
+    "recovery_distances": [
+      1,
+      1,
+      1
+    ],
+    "recovery_mean": 1,
+    "recovery_max": 1
+  },
+  "absent": {
+    "runs": 19,
+    "means": {
+      "success": 1.0,
+      "total_tool_calls": 14.842105263157896,
+      "ast_tool_calls": 2.3157894736842106,
+      "ast_tool_failures": 0.9473684210526315,
+      "ast_tool_retries": 1.5263157894736843,
+      "ast_tool_help_calls": 0.7894736842105263,
+      "grep_calls": 1.736842105263158,
+      "glob_calls": 0.5789473684210527,
+      "read_calls": 6.368421052631579,
+      "bash_calls": 2.8947368421052633,
+      "edit_calls": 2.6842105263157894,
+      "total_tokens": 5976.263157894737,
+      "elapsed_seconds": 57.31368421052632
+    },
+    "medians": {
+      "success": 1.0,
+      "total_tool_calls": 13.0,
+      "ast_tool_calls": 0.0,
+      "ast_tool_failures": 0.0,
+      "ast_tool_retries": 0.0,
+      "ast_tool_help_calls": 0.0,
+      "grep_calls": 1.0,
+      "glob_calls": 0.0,
+      "read_calls": 4.0,
+      "bash_calls": 1.0,
+      "edit_calls": 2.0,
+      "total_tokens": 4906.0,
+      "elapsed_seconds": 50.75
+    },
+    "ranges": {
+      "success": [
+        true,
+        true
+      ],
+      "total_tool_calls": [
+        3,
+        30
+      ],
+      "ast_tool_calls": [
+        0,
+        11
+      ],
+      "ast_tool_failures": [
+        0,
+        6
+      ],
+      "ast_tool_retries": [
+        0,
+        8
+      ],
+      "ast_tool_help_calls": [
+        0,
+        3
+      ],
+      "grep_calls": [
+        0,
+        6
+      ],
+      "glob_calls": [
+        0,
+        6
+      ],
+      "read_calls": [
+        1,
+        19
+      ],
+      "bash_calls": [
+        0,
+        14
+      ],
+      "edit_calls": [
+        0,
+        6
+      ],
+      "total_tokens": [
+        622,
+        14270
+      ],
+      "elapsed_seconds": [
+        13.71,
+        145.78
+      ]
+    },
+    "totals": {
+      "success": 19,
+      "total_tool_calls": 282,
+      "ast_tool_calls": 44,
+      "ast_tool_failures": 18,
+      "ast_tool_retries": 29,
+      "ast_tool_help_calls": 15,
+      "grep_calls": 33,
+      "glob_calls": 11,
+      "read_calls": 121,
+      "bash_calls": 55,
+      "edit_calls": 51,
+      "total_tokens": 113549,
+      "elapsed_seconds": 1088.96
+    },
+    "recovery_distances": [
+      3,
+      3,
+      1,
+      4,
+      4,
+      2,
+      4,
+      4,
+      3,
+      1,
+      4,
+      5,
+      2
+    ],
+    "recovery_mean": 3.076923076923077,
+    "recovery_max": 5
+  },
+  "historical_invocation": {
+    "None": {
+      "runs": 1,
+      "invoked": 0
+    },
+    "1": {
+      "runs": 8,
+      "invoked": 2
+    },
+    "2": {
+      "runs": 8,
+      "invoked": 7
+    },
+    "3": {
+      "runs": 8,
+      "invoked": 7
+    },
+    "4": {
+      "runs": 8,
+      "invoked": 0
+    },
+    "5": {
+      "runs": 8,
+      "invoked": 0
+    }
+  },
+  "same_task_mean_deltas_loaded_minus_absent": {
+    "success": 0.0,
+    "total_tool_calls": 0.9166666666666661,
+    "ast_tool_calls": 5.333333333333333,
+    "ast_tool_failures": 0.0,
+    "ast_tool_retries": 0.0,
+    "ast_tool_help_calls": 0.0,
+    "grep_calls": -0.25,
+    "glob_calls": 0.16666666666666663,
+    "read_calls": -3.4166666666666665,
+    "bash_calls": 4.416666666666667,
+    "edit_calls": 0.0,
+    "total_tokens": 3261.583333333333,
+    "elapsed_seconds": 16.815000000000005
+  },
+  "first_actions": {
+    "Grep": 5,
+    "Skill": 26,
+    "Agent": 9,
+    "ast-tool:find": 5
+  },
+  "skill_types": {
+    "semantic-analysis": 26
+  },
+  "no_skill_at_all": {
+    "runs": 19,
+    "means": {
+      "success": 1.0,
+      "total_tool_calls": 14.842105263157896,
+      "ast_tool_calls": 2.3157894736842106,
+      "ast_tool_failures": 0.9473684210526315,
+      "ast_tool_retries": 1.5263157894736843,
+      "ast_tool_help_calls": 0.7894736842105263,
+      "grep_calls": 1.736842105263158,
+      "glob_calls": 0.5789473684210527,
+      "read_calls": 6.368421052631579,
+      "bash_calls": 2.8947368421052633,
+      "edit_calls": 2.6842105263157894,
+      "total_tokens": 5976.263157894737,
+      "elapsed_seconds": 57.31368421052632
+    },
+    "medians": {
+      "success": 1.0,
+      "total_tool_calls": 13.0,
+      "ast_tool_calls": 0.0,
+      "ast_tool_failures": 0.0,
+      "ast_tool_retries": 0.0,
+      "ast_tool_help_calls": 0.0,
+      "grep_calls": 1.0,
+      "glob_calls": 0.0,
+      "read_calls": 4.0,
+      "bash_calls": 1.0,
+      "edit_calls": 2.0,
+      "total_tokens": 4906.0,
+      "elapsed_seconds": 50.75
+    },
+    "ranges": {
+      "success": [
+        true,
+        true
+      ],
+      "total_tool_calls": [
+        3,
+        30
+      ],
+      "ast_tool_calls": [
+        0,
+        11
+      ],
+      "ast_tool_failures": [
+        0,
+        6
+      ],
+      "ast_tool_retries": [
+        0,
+        8
+      ],
+      "ast_tool_help_calls": [
+        0,
+        3
+      ],
+      "grep_calls": [
+        0,
+        6
+      ],
+      "glob_calls": [
+        0,
+        6
+      ],
+      "read_calls": [
+        1,
+        19
+      ],
+      "bash_calls": [
+        0,
+        14
+      ],
+      "edit_calls": [
+        0,
+        6
+      ],
+      "total_tokens": [
+        622,
+        14270
+      ],
+      "elapsed_seconds": [
+        13.71,
+        145.78
+      ]
+    },
+    "totals": {
+      "success": 19,
+      "total_tool_calls": 282,
+      "ast_tool_calls": 44,
+      "ast_tool_failures": 18,
+      "ast_tool_retries": 29,
+      "ast_tool_help_calls": 15,
+      "grep_calls": 33,
+      "glob_calls": 11,
+      "read_calls": 121,
+      "bash_calls": 55,
+      "edit_calls": 51,
+      "total_tokens": 113549,
+      "elapsed_seconds": 1088.96
+    },
+    "recovery_distances": [
+      3,
+      3,
+      1,
+      4,
+      4,
+      2,
+      4,
+      4,
+      3,
+      1,
+      4,
+      5,
+      2
+    ],
+    "recovery_mean": 3.076923076923077,
+    "recovery_max": 5
+  },
+  "other_skill_only": null,
+  "baseline_aggregate": {
+    "runs": 40,
+    "means": {
+      "success": 1.0,
+      "total_tool_calls": 11.2,
+      "ast_tool_calls": 2.45,
+      "ast_tool_failures": 0.525,
+      "ast_tool_retries": 0.8,
+      "ast_tool_help_calls": 0.375,
+      "grep_calls": 0.825,
+      "glob_calls": 0.325,
+      "read_calls": 3.975,
+      "bash_calls": 2.925,
+      "edit_calls": 2.35,
+      "total_tokens": 4549.475,
+      "elapsed_seconds": 50.52075
+    },
+    "medians": {
+      "success": 1.0,
+      "total_tool_calls": 10.5,
+      "ast_tool_calls": 2.0,
+      "ast_tool_failures": 0.0,
+      "ast_tool_retries": 0.0,
+      "ast_tool_help_calls": 0.0,
+      "grep_calls": 0.0,
+      "glob_calls": 0.0,
+      "read_calls": 2.5,
+      "bash_calls": 2.0,
+      "edit_calls": 2.0,
+      "total_tokens": 4060.5,
+      "elapsed_seconds": 45.64
+    },
+    "ranges": {
+      "success": [
+        true,
+        true
+      ],
+      "total_tool_calls": [
+        3,
+        30
+      ],
+      "ast_tool_calls": [
+        0,
+        11
+      ],
+      "ast_tool_failures": [
+        0,
+        6
+      ],
+      "ast_tool_retries": [
+        0,
+        8
+      ],
+      "ast_tool_help_calls": [
+        0,
+        3
+      ],
+      "grep_calls": [
+        0,
+        6
+      ],
+      "glob_calls": [
+        0,
+        6
+      ],
+      "read_calls": [
+        1,
+        19
+      ],
+      "bash_calls": [
+        0,
+        14
+      ],
+      "edit_calls": [
+        0,
+        6
+      ],
+      "total_tokens": [
+        622,
+        14270
+      ],
+      "elapsed_seconds": [
+        13.71,
+        145.78
+      ]
+    },
+    "totals": {
+      "success": 40,
+      "total_tool_calls": 448,
+      "ast_tool_calls": 98,
+      "ast_tool_failures": 21,
+      "ast_tool_retries": 32,
+      "ast_tool_help_calls": 15,
+      "grep_calls": 33,
+      "glob_calls": 13,
+      "read_calls": 159,
+      "bash_calls": 117,
+      "edit_calls": 94,
+      "total_tokens": 181979,
+      "elapsed_seconds": 2020.83
+    },
+    "recovery_distances": [
+      1,
+      3,
+      3,
+      1,
+      1,
+      4,
+      4,
+      2,
+      1,
+      4,
+      4,
+      3,
+      1,
+      4,
+      5,
+      2
+    ],
+    "recovery_mean": 2.6875,
+    "recovery_max": 5
+  },
+  "extension_aggregate": {
+    "runs": 5,
+    "means": {
+      "success": 1.0,
+      "total_tool_calls": 13.0,
+      "ast_tool_calls": 3.4,
+      "ast_tool_failures": 0.0,
+      "ast_tool_retries": 0.0,
+      "ast_tool_help_calls": 0.0,
+      "grep_calls": 0.0,
+      "glob_calls": 0.6,
+      "read_calls": 4.6,
+      "bash_calls": 3.8,
+      "edit_calls": 3.0,
+      "total_tokens": 5711.8,
+      "elapsed_seconds": 55.422
+    },
+    "medians": {
+      "success": 1.0,
+      "total_tool_calls": 13.0,
+      "ast_tool_calls": 5.0,
+      "ast_tool_failures": 0.0,
+      "ast_tool_retries": 0.0,
+      "ast_tool_help_calls": 0.0,
+      "grep_calls": 0.0,
+      "glob_calls": 1.0,
+      "read_calls": 5.0,
+      "bash_calls": 5.0,
+      "edit_calls": 3.0,
+      "total_tokens": 6150.0,
+      "elapsed_seconds": 57.86
+    },
+    "ranges": {
+      "success": [
+        true,
+        true
+      ],
+      "total_tool_calls": [
+        11,
+        15
+      ],
+      "ast_tool_calls": [
+        0,
+        7
+      ],
+      "ast_tool_failures": [
+        0,
+        0
+      ],
+      "ast_tool_retries": [
+        0,
+        0
+      ],
+      "ast_tool_help_calls": [
+        0,
+        0
+      ],
+      "grep_calls": [
+        0,
+        0
+      ],
+      "glob_calls": [
+        0,
+        1
+      ],
+      "read_calls": [
+        3,
+        6
+      ],
+      "bash_calls": [
+        1,
+        7
+      ],
+      "edit_calls": [
+        3,
+        3
+      ],
+      "total_tokens": [
+        2569,
+        8644
+      ],
+      "elapsed_seconds": [
+        39.94,
+        69.84
+      ]
+    },
+    "totals": {
+      "success": 5,
+      "total_tool_calls": 65,
+      "ast_tool_calls": 17,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "grep_calls": 0,
+      "glob_calls": 3,
+      "read_calls": 23,
+      "bash_calls": 19,
+      "edit_calls": 15,
+      "total_tokens": 28559,
+      "elapsed_seconds": 277.11
+    },
+    "recovery_distances": [],
+    "recovery_mean": null,
+    "recovery_max": null
+  },
+  "invocation_positions": {
+    "1": 26
+  },
+  "category_correlations": {
+    "None": {
+      "runs": 5,
+      "invoked": 0
+    },
+    "api-evolution": {
+      "runs": 5,
+      "invoked": 0
+    },
+    "distributed-workflow": {
+      "runs": 10,
+      "invoked": 6
+    },
+    "mixed": {
+      "runs": 5,
+      "invoked": 5
+    },
+    "multi-file": {
+      "runs": 5,
+      "invoked": 0
+    },
+    "multi-level-callees": {
+      "runs": 5,
+      "invoked": 5
+    },
+    "multi-level-callers": {
+      "runs": 5,
+      "invoked": 5
+    },
+    "references": {
+      "runs": 5,
+      "invoked": 5
+    }
+  },
+  "capability_correlations": {
+    "callees": {
+      "runs": 15,
+      "invoked": 11
+    },
+    "callers": {
+      "runs": 15,
+      "invoked": 10
+    },
+    "find": {
+      "runs": 25,
+      "invoked": 16
+    },
+    "references": {
+      "runs": 20,
+      "invoked": 15
+    },
+    "search": {
+      "runs": 5,
+      "invoked": 0
+    },
+    "symbols": {
+      "runs": 5,
+      "invoked": 0
+    }
+  },
+  "historical_cohorts": {
+    "invoked": {
+      "both": {
+        "tasks": [
+          "level1-002",
+          "level1-005",
+          "level2-001",
+          "level2-002",
+          "level2-004",
+          "level2-005",
+          "level2-006",
+          "level2-007",
+          "level2-008",
+          "level3-002",
+          "level3-003",
+          "level3-004",
+          "level3-005",
+          "level3-007",
+          "level3-008"
+        ],
+        "deltas": {
+          "success": 0,
+          "total_tool_calls": -1,
+          "ast_tool_calls": 0,
+          "ast_tool_failures": 1,
+          "ast_tool_retries": 5,
+          "ast_tool_help_calls": 0,
+          "grep_calls": 1,
+          "glob_calls": 2,
+          "read_calls": -2,
+          "bash_calls": -2,
+          "edit_calls": 0,
+          "total_tokens": 1239,
+          "elapsed_seconds": -5.360000000000028
+        }
+      },
+      "neither": {
+        "tasks": [
+          "level1-001",
+          "level1-003",
+          "level1-004",
+          "level1-007",
+          "level1-008",
+          "level2-003",
+          "level4-001",
+          "level4-002",
+          "level4-004",
+          "level4-005",
+          "level4-007",
+          "level4-008",
+          "level5-001",
+          "level5-002",
+          "level5-003",
+          "level5-004",
+          "level5-005",
+          "level5-006",
+          "level5-007",
+          "level5-008",
+          "smoke-001"
+        ],
+        "deltas": {
+          "success": 0,
+          "total_tool_calls": 26,
+          "ast_tool_calls": 10,
+          "ast_tool_failures": 3,
+          "ast_tool_retries": 3,
+          "ast_tool_help_calls": 1,
+          "grep_calls": 6,
+          "glob_calls": 14,
+          "read_calls": 0,
+          "bash_calls": 4,
+          "edit_calls": 0,
+          "total_tokens": -1007,
+          "elapsed_seconds": 80.36999999999999
+        }
+      },
+      "mismatch": {
+        "tasks": [
+          "level1-006",
+          "level3-001",
+          "level3-006",
+          "level4-003",
+          "level4-006"
+        ],
+        "deltas": {
+          "success": 0,
+          "total_tool_calls": 15,
+          "ast_tool_calls": -5,
+          "ast_tool_failures": 1,
+          "ast_tool_retries": 2,
+          "ast_tool_help_calls": 0,
+          "grep_calls": 8,
+          "glob_calls": 1,
+          "read_calls": 13,
+          "bash_calls": -5,
+          "edit_calls": -1,
+          "total_tokens": 5712,
+          "elapsed_seconds": -28.229999999999997
+        }
+      }
+    },
+    "invoked_skills": {
+      "both": {
+        "tasks": [
+          "level1-002",
+          "level1-005",
+          "level2-001",
+          "level2-002",
+          "level2-004",
+          "level2-005",
+          "level2-006",
+          "level2-007",
+          "level2-008",
+          "level3-002",
+          "level3-003",
+          "level3-004",
+          "level3-005",
+          "level3-006",
+          "level3-007",
+          "level3-008",
+          "level4-006"
+        ],
+        "deltas": {
+          "success": 0,
+          "total_tool_calls": 2,
+          "ast_tool_calls": 4,
+          "ast_tool_failures": 2,
+          "ast_tool_retries": 7,
+          "ast_tool_help_calls": 0,
+          "grep_calls": 2,
+          "glob_calls": 3,
+          "read_calls": -3,
+          "bash_calls": 0,
+          "edit_calls": 0,
+          "total_tokens": 525,
+          "elapsed_seconds": 7.179999999999971
+        }
+      },
+      "neither": {
+        "tasks": [
+          "level1-001",
+          "level1-003",
+          "level1-004",
+          "level1-007",
+          "level1-008",
+          "level4-001",
+          "level4-002",
+          "level4-004",
+          "level4-005",
+          "level4-007",
+          "level4-008",
+          "level5-001",
+          "level5-002",
+          "level5-003",
+          "level5-004",
+          "level5-005",
+          "level5-006",
+          "level5-007",
+          "level5-008"
+        ],
+        "deltas": {
+          "success": 0,
+          "total_tool_calls": 13,
+          "ast_tool_calls": 0,
+          "ast_tool_failures": 0,
+          "ast_tool_retries": 0,
+          "ast_tool_help_calls": 0,
+          "grep_calls": 6,
+          "glob_calls": 14,
+          "read_calls": -1,
+          "bash_calls": -6,
+          "edit_calls": 0,
+          "total_tokens": -8506,
+          "elapsed_seconds": -24.500000000000007
+        }
+      },
+      "mismatch": {
+        "tasks": [
+          "level1-006",
+          "level2-003",
+          "level3-001",
+          "level4-003",
+          "smoke-001"
+        ],
+        "deltas": {
+          "success": 0,
+          "total_tool_calls": 25,
+          "ast_tool_calls": 1,
+          "ast_tool_failures": 3,
+          "ast_tool_retries": 3,
+          "ast_tool_help_calls": 1,
+          "grep_calls": 7,
+          "glob_calls": 0,
+          "read_calls": 15,
+          "bash_calls": 3,
+          "edit_calls": -1,
+          "total_tokens": 13925,
+          "elapsed_seconds": 64.1
+        }
+      }
+    }
+  }
+}

@@ -1,42 +1,30 @@
-# Phase 7d.1 — Repeated Controlled Guard Validation
+# Phase 7e — Skill Invocation Reliability Investigation
 
 ## Objective
 
-Determine whether the guard-regression signals observed in Phase 7d are systematic consequences of the Phase 7d Skill change or ordinary run-to-run stochastic variation.
+Investigate why the `semantic-analysis` Skill is invoked inconsistently during normal agent runs, and determine whether Skill invocation can be made more reliable without changing the validated Phase 7d Skill body.
 
-Phase 7d.1 is an evaluation-only phase.
+Phase 7e is **not** a Skill-content optimization phase.
 
-Do not modify the Phase 7d candidate.
+The Phase 7d Skill body has already passed controlled validation. The main unresolved problem is that normal agent-level evaluation is heavily affected by whether the Skill is invoked at all.
 
-Do not add new Skill wording.
-
-Do not revert the existing Phase 7d backport.
-
-The goal is:
-
-```text
-Hold Phase 7d constant
-+
-repeat the same controlled guard tasks
-+
-measure trajectory distributions
-+
-decide whether the observed regressions are systematic
-```
-
-The central question is:
-
-```text
-Does Phase 7d reliably produce worse relationship/recovery behavior
-than Phase 5 on the guard cohort,
-or were the previous Phase 7d runs unlucky samples?
-```
+The optimization target remains the **Coding Agent as a whole**, but this phase isolates Skill invocation as a separate behavioral variable.
 
 ---
 
-# Background
+## Current Baseline
 
-Phase 7d starts from the exact Phase 5 Skill and adds only one narrow rule:
+Use the current Phase 7e branch as the working branch.
+
+The semantic-analysis Skill must initially remain exactly equivalent to the accepted Phase 7d version:
+
+```text
+Phase 5 Skill
++
+one refined-search / redundant-find rule
+```
+
+The added Phase 7d rule is:
 
 ```text
 If a refined `search` already identifies the exact symbol or member needed,
@@ -44,901 +32,800 @@ do not add a redundant `find` solely to locate it; use `find` when AST
 structure or node detail is required.
 ```
 
-This change reproducibly improved the intended structural-lookup behavior.
-
-For example, `level3-007` changed from:
-
-```text
-Phase 5:
-search ×3 → find ×6
-```
-
-to:
-
-```text
-Phase 7d:
-search ×3 or ×4
-```
-
-while preserving correctness and reducing redundant AST work.
-
-However, the targeted Phase 7d guard cohort showed more AST failures than Phase 5.
-
-Previous targeted results:
-
-```text
-Phase 5:
-AST failures = 3
-
-Phase 7d run 1:
-AST failures = 5
-
-Phase 7d run 2:
-AST failures = 6
-```
-
-The problematic trajectories were mainly:
-
-```text
-level2-008
-level3-008
-smoke-001
-```
-
-but these behaviors are not causally explained by the new `find` rule.
-
-Phase 7d.1 must determine whether this difference is reproducible.
+Do not modify this Skill body unless Phase 7e evidence specifically demonstrates that invocation behavior depends on content inside the Skill.
 
 ---
 
-# Experimental Principle
+## Background
 
-Do not change anything except the Skill version being compared.
+Phase 7d.2 produced two different results.
 
-The experiment must compare:
+### Controlled 18-task evaluation
+
+When `semantic-analysis` was forced to be:
 
 ```text
-Phase 5 Skill
-vs
-Phase 7d Skill
+exactly once
+and
+the first tool action
 ```
 
-under the same controlled conditions.
+Phase 7d clearly passed the controlled gate.
 
-Hold constant:
+Compared with Phase 5:
+
+```text
+success            17/18 → 17/18
+tools                 170 → 155
+AST calls              58 → 53
+AST failures            8 → 4
+retries                 7 → 4
+tokens             58,968 → 53,525
+elapsed           1035.94 → 922.91 sec
+recovery mean/max    1.67/4 → 1.00/1
+```
+
+Semantic routing remained targeted and no systematic regression was found.
+
+### Normal 41-task evaluation
+
+In the normal run, however:
+
+```text
+semantic-analysis invocation
+Phase 7d: 19/41
+```
+
+The normal Phase 7d aggregate was worse than Phase 5 in several metrics:
+
+```text
+tools
+AST failures
+retries
+grep
+glob
+recovery
+elapsed
+tokens
+```
+
+Cohort analysis showed that invocation mismatch dominated the regression.
+
+In particular:
+
+```text
+Skill loaded in both:
+    Δtokens +525
+
+Skill absent in both:
+    Δtokens -8,506
+
+Invocation mismatch:
+    Δtokens +13,925
+```
+
+The mismatch cohort alone was larger than the total token regression.
+
+Therefore:
+
+```text
+Skill body quality
+!=
+Skill invocation reliability
+```
+
+Phase 7e must investigate the second problem without reopening the first one.
+
+---
+
+# Primary Questions
+
+Answer the following questions with evidence.
+
+## 1. When is the Skill invoked?
+
+Determine which task characteristics correlate with invocation of `semantic-analysis`.
+
+Possible dimensions include:
+
+```text
+task level
+requested operation
+symbol lookup
+relationship queries
+cross-file work
+structural lookup
+ambiguity
+repository size
+prompt wording
+task complexity
+first agent action
+early tool selection
+```
+
+Do not assume any of these are causal.
+
+Measure them.
+
+---
+
+## 2. Is invocation deterministic?
+
+For representative tasks, repeat normal runs without forcing the Skill.
+
+Determine whether invocation is:
+
+```text
+stable per task
+mostly stable
+strongly stochastic
+```
+
+For example, distinguish:
+
+```text
+task A:
+    Skill invoked 10/10
+
+task B:
+    Skill invoked 0/10
+```
+
+from:
+
+```text
+task C:
+    Skill invoked 4/10
+```
+
+The third case is especially important because it indicates within-task behavioral variance rather than task classification alone.
+
+---
+
+## 3. What happens before invocation?
+
+Inspect the trajectory before the Skill is loaded.
+
+Record:
+
+```text
+first tool/action
+second tool/action
+whether repository exploration already started
+whether grep/glob/read occurred first
+whether AST Tool was attempted first
+whether Skill invocation happened after failure
+```
+
+We need to know whether late invocation is useful or whether missing the Skill at the first decision point effectively determines the rest of the trajectory.
+
+---
+
+## 4. What happens when the Skill is not invoked?
+
+Compare:
+
+```text
+Skill-loaded runs
+vs
+no-Skill runs
+```
+
+for the same tasks where possible.
+
+Measure:
+
+```text
+correctness
+AST usage
+grep
+glob
+read
+tool count
+tokens
+recovery
+elapsed
+```
+
+The purpose is to quantify the actual agent-level cost of invocation failure.
+
+Do not infer this only from the existing 41-task aggregate.
+
+Use paired or repeated evidence.
+
+---
+
+## 5. Is invocation affected by Skill body wording?
+
+This is a secondary question only.
+
+Do **not** begin by changing the Skill.
+
+First establish invocation behavior using the current Phase 7d body.
+
+Only if evidence suggests that Skill description, metadata, naming, or visible introductory wording affects discovery/invocation should a minimal controlled experiment be considered.
+
+Do not rewrite the semantic decision tree.
+
+---
+
+# Constraints
+
+## Do not optimize the semantic Skill body
+
+Phase 7e must not add generic guidance such as:
+
+```text
+Always use semantic-analysis.
+Prefer AST Tool.
+Do not use grep.
+```
+
+unless a specific experiment explicitly tests invocation behavior.
+
+Do not respond to no-Skill trajectories by adding semantic routing rules inside the existing Skill.
+
+Those instructions cannot affect runs in which the Skill was never loaded.
+
+---
+
+## Change one invocation-related variable at a time
+
+If experiments modify invocation-facing configuration, modify only one factor per experiment.
+
+Possible factors may include, if present in the system:
+
+```text
+Skill name
+Skill description
+Skill metadata
+trigger wording
+discovery text
+registration mechanism
+available-Skill presentation
+```
+
+Do not change several simultaneously.
+
+For every change:
+
+```text
+baseline
+→ one modification
+→ repeated comparison
+```
+
+---
+
+## Preserve the Phase 7d body
+
+Before and after each experiment, verify that the semantic Skill body has not changed unintentionally.
+
+Record a hash when practical.
+
+---
+
+## Do not force invocation in the main Phase 7e experiment
+
+Forced invocation was already used in Phase 7d.2 to isolate Skill-body behavior.
+
+Phase 7e must primarily observe **normal invocation behavior**.
+
+Forced runs may be used only as a control arm.
+
+---
+
+# Suggested Evaluation Design
+
+## Stage 1 — Instrument Existing Behavior
+
+Before changing anything, collect invocation data from the current Phase 7e branch.
+
+For every run record at least:
 
 ```text
 task
-fixture
-AST Tool implementation
-evaluation harness
-permissions
-timeouts
-environment
-model/runtime configuration where observable
-Skill invocation timing
-```
-
-For every run:
-
-```text
-semantic-analysis must be loaded exactly once
-as the first tool action before repository exploration
-```
-
-If the Skill is not invoked first, mark the run invalid and rerun it.
-
----
-
-# Guard Cohort
-
-Use the following guard tasks:
-
-```text
-level2-006
-level2-008
-level3-008
-smoke-001
-```
-
-These are the primary cohort.
-
-They cover:
-
-```text
-identity discovery before relationship queries
-under-qualified callers/references recovery
-relationship-query ordering
-error-directed semantic recovery
-help behavior
-retry behavior
-```
-
-Do not add unrelated tasks unless needed to diagnose a discovered anomaly.
-
----
-
-# Optional Positive Control
-
-Also include:
-
-```text
-level3-007
-```
-
-as a positive-control task.
-
-The purpose is to confirm that the intended Phase 7d improvement remains present while the guard behavior is being measured.
-
-Do not include its metrics in the primary guard-regression decision unless explicitly separated.
-
-The expected positive-control property is:
-
-```text
-Phase 7d should avoid redundant `find`
-after refined `search` has already identified the exact targets.
-```
-
----
-
-# Number of Repeats
-
-Run each guard task multiple times for both Skill versions.
-
-Preferred:
-
-```text
-5 runs per task per Skill version
-```
-
-This gives:
-
-```text
-4 guard tasks
-× 2 Skill versions
-× 5 repeats
-= 40 primary runs
-```
-
-If resource constraints are significant, use a minimum of:
-
-```text
-3 runs per task per Skill version
-```
-
-but prefer 5 because the previous Phase 7d runs already showed substantial within-version variation.
-
-Do not compare one Phase 5 run against many Phase 7d runs.
-
-Both arms must be repeated.
-
----
-
-# Run Ordering
-
-Reduce temporal/runtime bias.
-
-Do not run all Phase 5 samples first and all Phase 7d samples later if avoidable.
-
-Prefer interleaving:
-
-```text
-task A / Phase 5
-task A / Phase 7d
-task A / Phase 5
-task A / Phase 7d
-...
-```
-
-or alternate the starting arm:
-
-```text
-repeat 1: Phase 5 → Phase 7d
-repeat 2: Phase 7d → Phase 5
-```
-
-The exact schedule is less important than avoiding a strong systematic ordering bias.
-
-Record the execution order.
-
----
-
-# Environment Recording
-
-For every run, record if observable:
-
-```text
-timestamp
-model identifier
-runtime/version
-repository revision
-AST Tool revision
-evaluation harness revision
-Skill version/hash
-```
-
-If any of these cannot be recorded, state that limitation.
-
-If the model/runtime changes during the experiment, do not silently combine those runs.
-
-Separate or invalidate them as appropriate.
-
----
-
-# Metrics Per Run
-
-Collect for every run:
-
-```text
-task ID
-Skill version
-repeat number
-success/failure
-
-total tool calls
-
-AST Tool calls
+success
+Skill invoked?
+Skill invocation index
+first action
+tools before Skill invocation
+AST calls
 AST failures
-AST retries
-AST help calls
-
-search
-callers
-references
-callees
-find
-symbols
-other AST commands
-
+retries
+help
 grep
 glob
 read
 bash
 edit
-
-all recovery distances
-maximum recovery distance
-
-tokens
-elapsed time
-
-AST command sequence
-relevant trajectory
-```
-
----
-
-# Primary Metrics
-
-The primary purpose is to characterize guard behavior.
-
-Prioritize:
-
-```text
-AST failures
-AST retries
-AST help calls
-recovery distance
-relationship-command ordering
-```
-
-Secondary metrics:
-
-```text
-tool calls
-AST calls
+total tools
 tokens
 elapsed
-```
-
-Do not reject Phase 7d merely because token totals are noisy if routing/recovery behavior is equivalent.
-
----
-
-# Per-Task Trajectory Classification
-
-For every run classify the trajectory.
-
-## `level2-006`
-
-Preferred pattern:
-
-```text
-search
-→ callers
-```
-
-Potential regression:
-
-```text
-under-qualified callers
-→ failure
-→ search
-→ callers
-```
-
-Classify each run as:
-
-```text
-IDENTITY_FIRST
-RELATIONSHIP_FIRST_RECOVERED
-OTHER
-```
-
----
-
-## `level2-008`
-
-Use the same core classification:
-
-```text
-IDENTITY_FIRST
-RELATIONSHIP_FIRST_RECOVERED
-OTHER
-```
-
-Track:
-
-```text
-number of failures before successful callers
-number of retries
-```
-
-This task is especially important because both prior Phase 7d runs showed:
-
-```text
-callers → search → callers
-```
-
-while the reference Phase 5 run used:
-
-```text
-search → callers
-```
-
----
-
-## `level3-008`
-
-Classify as:
-
-```text
-IDENTITY_FIRST
-RELATIONSHIP_FIRST_RECOVERED
-EXTRA_SEMANTIC_EXPLORATION
-OTHER
-```
-
-Track whether the run begins with an under-qualified relationship query.
-
-Also record any use of:
-
-```text
-symbols
-extra search
-extra callers/callees
-```
-
----
-
-## `smoke-001`
-
-This task should be analyzed separately because it has shown high stochasticity.
-
-Track the complete failure/recovery sequence.
-
-Specifically record:
-
-```text
-initial malformed find handling
-references argument choice
-callers argument choice
-help usage
-unchanged retry
-search-based disambiguation
 recovery distance
 ```
 
-Classify each run as:
-
-```text
-SHORT_RECOVERY
-MODERATE_RECOVERY
-LONG_RECOVERY
-```
-
-Use an explicit definition, for example:
-
-```text
-SHORT      max recovery distance <= 2
-MODERATE   max recovery distance 3
-LONG       max recovery distance >= 4
-```
+If available, also record the exact Skill invocation timestamp or event sequence.
 
 ---
 
-# Do Not Use Aggregate Failure Count Alone
+## Stage 2 — Select an Invocation Probe Cohort
 
-A total such as:
+Choose a small representative cohort from the existing evaluation tasks.
+
+Include at minimum:
 
 ```text
-Phase 5 failures = 12
-Phase 7d failures = 15
+tasks that consistently use semantic routing
+tasks that previously showed invocation mismatch
+relationship-query tasks
+search/find tasks
+one recovery-sensitive task
+one higher-level task
 ```
 
-is not sufficient by itself.
+Prefer approximately 6–10 tasks.
 
-Analyze where the failures occur.
+Do not create new tasks unless the existing suite cannot expose invocation behavior.
 
-The important distinction is:
+---
+
+## Stage 3 — Repeat Normal Runs
+
+Run each probe task multiple times without forced Skill invocation.
+
+Recommended minimum:
 
 ```text
-same task repeatedly worse under Phase 7d
+5 runs per task
+```
+
+Use more repetitions for tasks showing mixed invocation behavior.
+
+Record invocation frequency:
+
+```text
+invoked / total
+```
+
+Example:
+
+```text
+level3-003    5/5
+level3-007    3/5
+level4-003    1/5
+```
+
+Do not interpret single-run differences as causal.
+
+---
+
+## Stage 4 — Classify Tasks
+
+Classify each probe task as:
+
+```text
+A. Stable invocation
+B. Stable non-invocation
+C. Stochastic invocation
+```
+
+Suggested initial thresholds:
+
+```text
+A: 80–100% invoked
+B: 0–20% invoked
+C: 21–79% invoked
+```
+
+The exact thresholds are not important; the observed distributions are.
+
+---
+
+## Stage 5 — Compare Same-Task Trajectories
+
+For tasks in category C, compare runs where the Skill was invoked with runs where it was not.
+
+This is the most valuable cohort because the task itself is held constant.
+
+Ask:
+
+```text
+Does Skill invocation change semantic routing?
+
+Does no-Skill execution increase grep/glob/read?
+
+Does invocation reduce recovery?
+
+Does invocation affect correctness?
+
+Does invocation reduce token/tool cost?
+```
+
+This comparison is stronger than comparing unrelated tasks.
+
+---
+
+## Stage 6 — Identify the Earliest Divergence
+
+For stochastic tasks, find the first meaningful difference between:
+
+```text
+Skill-loaded trajectory
+and
+no-Skill trajectory
+```
+
+Examples:
+
+```text
+Skill
+→ search
+→ callers
 ```
 
 versus:
 
 ```text
-failures distributed inconsistently across both versions
-```
-
-Systematic evidence requires consistency.
-
----
-
-# Per-Task Distribution Report
-
-For each task and Skill version report:
-
-```text
-runs
-successes
-
-mean AST failures
-median AST failures
-failure-count range
-
-mean retries
-median retries
-
-help-call frequency
-
-mean recovery distance
-max recovery distance
-
-trajectory-class frequencies
-```
-
-For example:
-
-```text
-level2-008
-
-Phase 5:
-IDENTITY_FIRST                4/5
-RELATIONSHIP_FIRST_RECOVERED  1/5
-
-Phase 7d:
-IDENTITY_FIRST                1/5
-RELATIONSHIP_FIRST_RECOVERED  4/5
-```
-
-would be meaningful evidence.
-
-In contrast:
-
-```text
-Phase 5:
-3/5 vs 2/5
-
-Phase 7d:
-2/5 vs 3/5
-```
-
-would be much weaker evidence.
-
----
-
-# Paired Comparison
-
-Where practical, compare repeat pairs run under similar temporal conditions.
-
-For each pair record:
-
-```text
-Δ failures
-Δ retries
-Δ recovery distance
-Δ tool calls
-Δ tokens
-Δ elapsed
-```
-
-Do not require exact deterministic pairing, but use it to identify broad runtime drift.
-
----
-
-# Systematic Regression Standard
-
-Classify a Phase 7d guard regression as **SYSTEMATIC** only when the evidence shows a repeated directional difference.
-
-Examples of strong evidence:
-
-```text
-Phase 5 repeatedly chooses search-first
-while Phase 7d repeatedly chooses relationship-first
+Grep
+→ Glob
+→ Read
+→ manual reasoning
 ```
 
 or:
 
 ```text
-Phase 5 consistently recovers in <=2 steps
-while Phase 7d repeatedly reaches >=4
+Read
+→ Skill
+→ search
 ```
 
-or:
+Determine whether invocation is:
 
 ```text
-Phase 7d consistently adds failures/retries on the same task
-across most repeated runs
+a first-decision routing mechanism
 ```
 
-One or two outlier runs are not enough.
+or merely:
+
+```text
+late contextual assistance
+```
+
+This distinction matters for any later fix.
 
 ---
 
-# Stochastic Variation Standard
+# Optional Controlled Invocation Experiments
 
-Classify the difference as **STOCHASTIC / NOT SYSTEMATIC** when:
+Only perform these after the baseline behavior has been characterized.
+
+If the invocation mechanism exposes a meaningful invocation-facing field, test the smallest possible modification.
+
+Possible experiment types:
 
 ```text
-both versions show the same trajectory variants
+description-only change
+name/description salience change
+trigger metadata change
+Skill-list presentation change
 ```
 
-and their frequencies overlap substantially.
+Do not change the semantic body at the same time.
 
-Also favor this conclusion when:
+For each candidate:
 
 ```text
-within-version variance
-≈ or >
-between-version difference
+current Phase 7d invocation surface
+vs
+one modified invocation surface
 ```
 
-For example:
+Run repeated normal executions on the same probe cohort.
+
+Measure:
 
 ```text
-Phase 7d smoke failures:
-3, 5, 2, 4, 2
-
-Phase 5:
-2, 4, 3, 2, 4
-```
-
-would not support a meaningful Phase 7d regression.
-
----
-
-# Possible Interaction
-
-Use **POSSIBLE INTERACTION** when:
-
-```text
-Phase 7d appears directionally worse
-```
-
-but the sample is not strong enough to distinguish a true Skill interaction from stochastic variation.
-
-Do not add new wording during this phase.
-
-Record the possible interaction for a later narrow experiment.
-
----
-
-# Positive-Control Analysis
-
-For `level3-007`, verify that Phase 7d continues to show the intended benefit.
-
-Report per version:
-
-```text
-find calls
-search calls
-AST calls
-total tools
-tokens
-elapsed
+invocation rate
 correctness
+semantic routing
+tools
+tokens
+recovery
 ```
 
-A strong result is:
+A higher invocation rate is not automatically better.
+
+The goal is:
 
 ```text
-Phase 7d repeatedly avoids redundant find calls
-without introducing manual fallback or failures.
+appropriate invocation
 ```
 
-This establishes that the known benefit remains reproducible.
+not:
+
+```text
+maximum invocation
+```
+
+Tasks that do not need semantic analysis should not be forced through the Skill merely to improve an invocation metric.
 
 ---
 
-# Statistical Treatment
+# Important Failure Modes to Avoid
 
-Do not overstate formal significance from a small sample.
+## 1. Optimizing invocation rate in isolation
 
-Simple descriptive statistics are sufficient.
-
-Report:
+Do not optimize for:
 
 ```text
-mean
-median
-range
-frequency / proportion
+Skill invocation = 100%
 ```
 
-If convenient, confidence intervals or simple non-parametric comparisons may be included, but they are not required.
+The system-level objective remains:
 
-Do not manufacture a p-value threshold as the acceptance criterion.
+```text
+correctness
++
+targeted semantic routing
++
+efficient context use
++
+low recovery cost
+```
 
-Trajectory consistency matters more.
+Invocation is only useful when it improves those outcomes.
 
 ---
 
-# Decision Matrix
+## 2. Confusing correlation with causation
 
-After repeated runs, choose one of four conclusions.
-
-## A. GUARD BEHAVIOR PRESERVED
-
-Use when:
+For example:
 
 ```text
-Phase 5 and Phase 7d trajectory distributions are substantially similar
+Skill-loaded runs have fewer tokens
 ```
 
-and the previous 5/6 vs 3 failure difference is not reproducible.
-
-Then:
+does not prove:
 
 ```text
-Phase 7d's known efficiency backport is supported
-and the previous guard failure should be treated as sampling variance.
+Skill invocation caused lower token use
 ```
 
-Recommend proceeding to the full 18-task controlled cohort.
+unless same-task repeated comparisons support that conclusion.
 
 ---
 
-## B. MINOR STOCHASTIC DIFFERENCE
+## 3. Fixing no-Skill behavior inside SKILL.md
 
-Use when Phase 7d is slightly worse in one metric but:
+If the Skill was not loaded, changes inside its body cannot explain or fix the trajectory.
+
+Treat this as an invocation-layer problem unless evidence shows otherwise.
+
+---
+
+## 4. Reacting to one stochastic run
+
+Phase 7d already showed that within-version variance can be as large as version differences.
+
+Do not make changes from one run.
+
+Require repetition.
+
+---
+
+## 5. Reopening Phase 7d semantic optimization
+
+Do not use this phase to revisit:
 
 ```text
-trajectory distributions overlap
-no repeated command-order regression is clear
-recovery remains broadly Phase 5-like
+search vs find wording
+relationship ordering
+help restrictions
+general compression
 ```
 
-If the positive-control improvement remains strong, recommend proceeding to the 18-task cohort with a caveat.
+unless invocation experiments produce direct evidence that those contents affect Skill discovery.
+
+Those belong to separate investigations.
 
 ---
 
-## C. SYSTEMATIC GUARD REGRESSION
+# Analysis Requirements
 
-Use when Phase 7d repeatedly produces:
+Produce both aggregate and task-level analysis.
+
+At minimum include:
+
+## Invocation table
 
 ```text
-relationship-before-identity
-extra failures/retries
-longer recovery
+task
+runs
+invoked
+invocation rate
+mean invocation position
 ```
 
-relative to Phase 5 on the same tasks.
-
-Do not proceed to the 18-task cohort.
-
-Do not immediately add generic wording.
-
-Instead identify the smallest reproducible interaction and design a separate narrowly controlled follow-up.
-
----
-
-## D. INCONCLUSIVE
-
-Use when runtime/model variation or sample variance remains too high.
-
-Recommend additional repeats or a stricter runtime-controlled experiment.
-
-Do not modify the Skill.
-
----
-
-# Phase 7d Acceptance Gate
-
-Proceed to the full 18-task controlled evaluation when:
-
-```text
-positive-control improvement is reproduced
-AND
-guard behavior is classified as
-GUARD BEHAVIOR PRESERVED
-or
-MINOR STOCHASTIC DIFFERENCE
-```
-
-Do not require Phase 7d's raw AST failure count to be numerically identical to Phase 5 in every repeat.
-
-The gate should be based on repeated trajectory distributions, not one aggregate sample.
-
----
-
-# If the Gate Passes
-
-Do not run the 41-task full evaluation immediately unless the existing Phase 7d plan explicitly requires it.
-
-First proceed to:
-
-```text
-full 18-task controlled Phase 5 vs Phase 7d comparison
-```
-
-using the same controlled Skill invocation.
-
-This confirms that the backport does not introduce regressions outside the guard cohort.
-
-Only after that result is favorable should the normal 41-task evaluation be considered.
-
----
-
-# Required Report
-
-Produce the report in this order.
-
-## 1. Executive Summary
-
-Choose:
-
-```text
-GUARD BEHAVIOR PRESERVED
-MINOR STOCHASTIC DIFFERENCE
-SYSTEMATIC GUARD REGRESSION
-INCONCLUSIVE
-```
-
-State whether Phase 7d may proceed.
-
----
-
-## 2. Experimental Setup
-
-Document:
-
-```text
-tasks
-repeat count
-run ordering
-Skill hashes
-tool/runtime versions
-forced Skill invocation
-```
-
----
-
-## 3. Aggregate Guard Metrics
-
-Compare Phase 5 and Phase 7d across all repeated guard runs.
-
-Include:
+## Loaded vs no-Skill comparison
 
 ```text
 success
+tools
 AST calls
 AST failures
-retries
-help
-recovery
-tools
+grep
+glob
+read
 tokens
 elapsed
+recovery
 ```
 
----
+## Trajectory examples
 
-## 4. Per-Task Distribution
-
-For every guard task report:
+Show representative paired trajectories for:
 
 ```text
-failure distributions
-retry distributions
-recovery distributions
-trajectory-class frequencies
+stable invocation
+stable non-invocation
+stochastic invocation
 ```
+
+## Earliest-divergence analysis
+
+For mixed tasks, identify where the trajectories first diverge.
 
 ---
 
-## 5. Relationship-Ordering Analysis
+# Decision Criteria
 
-Focus on:
+At the end of Phase 7e, choose one of the following.
+
+## INVOCATION IS RELIABLE ENOUGH
+
+Use this if:
 
 ```text
-level2-006
-level2-008
-level3-008
+invocation behavior is mostly stable
+and
+mismatch observed in Phase 7d.2 appears to be ordinary model variance
+and
+normal agent-level results are not systematically harmed
 ```
 
-Answer:
+Then proceed to repeat normal Phase 7d evaluation or move to the final baseline decision.
+
+---
+
+## INVOCATION SURFACE IMPROVEMENT FOUND
+
+Use this if:
 
 ```text
-Does Phase 7d actually make relationship-first behavior more likely?
+one narrow invocation-facing change
+reproducibly improves appropriate Skill invocation
+and
+preserves correctness
+and
+improves or preserves agent-level routing/cost
 ```
+
+Keep the semantic Phase 7d body unchanged.
+
+Validate the change on the full normal evaluation suite.
 
 ---
 
-## 6. `smoke-001` Variance Analysis
+## INVOCATION PROBLEM CONFIRMED, NO SAFE FIX YET
 
-Compare the full recovery distribution.
-
-Answer:
+Use this if:
 
 ```text
-Is Phase 7d systematically worse,
-or is smoke-001 intrinsically high-variance?
+invocation is materially stochastic or systematically missed
+but
+no narrow causal change has been validated
 ```
 
----
+Document the limitation.
 
-## 7. Positive-Control Result
-
-Report whether the `level3-007` improvement remains reproducible.
+Do not compensate by expanding SKILL.md.
 
 ---
 
-## 8. Between-Version vs Within-Version Variance
+## NO MEANINGFUL INVOCATION EFFECT
 
-Summarize whether observed differences are larger than ordinary run-to-run variation.
-
----
-
-## 9. Final Decision
-
-Choose:
+Use this if:
 
 ```text
-PROCEED TO 18-TASK CONTROLLED EVALUATION
-PROCEED WITH CAVEAT
-DO NOT PROCEED
-REPEAT WITH STRONGER CONTROL
+same-task Skill-loaded and no-Skill trajectories
+do not show meaningful agent-level differences
 ```
+
+In that case the Phase 7d normal-run variance should not be attributed primarily to invocation, and another source of variance must be investigated.
 
 ---
 
-# Do Not Modify Anything
+# Deliverables
 
-During Phase 7d.1:
+Produce a final Phase 7e report containing:
 
 ```text
-Do not edit SKILL.md.
-Do not add relationship-order wording.
-Do not change recovery wording.
-Do not modify AST Tool.
-Do not modify evaluation tasks.
+1. Environment and revisions
+
+2. Exact Phase 7d Skill verification
+
+3. Probe cohort
+
+4. Number of repeated runs
+
+5. Skill invocation frequency per task
+
+6. Invocation position / first-action analysis
+
+7. Same-task loaded vs no-Skill comparison
+
+8. Aggregate tool/token/recovery metrics
+
+9. Representative paired trajectories
+
+10. Earliest-divergence analysis
+
+11. Any invocation-facing experiment performed
+
+12. Causal assessment
+
+13. Final decision
+
+14. Recommendation for the next phase
 ```
 
-This phase exists specifically to avoid reacting to stochastic samples with unnecessary instruction changes.
+Keep raw measurements separate from interpretation.
 
 ---
 
-# Final Question
+# Expected Phase 7e Outcome
 
-The report must answer:
+The desired output is not necessarily a code change.
+
+A successful Phase 7e may simply establish:
 
 ```text
-When Phase 5 and Phase 7d are each sampled repeatedly
-under the same forced-Skill conditions,
-is the apparent Phase 7d guard regression reproducible,
-or is it ordinary trajectory variance?
+where Skill invocation variance comes from
+how large its system-level cost is
+whether it is task-dependent or stochastic
+and whether a narrow intervention is justified
 ```
 
-If the regression is not reproducible while the targeted `find` improvement is reproducible, Phase 7d has stronger evidence that it genuinely improves Phase 5.
+Do not modify the system merely to produce a Phase 7e patch.
+
+Evidence is the deliverable.
+
+---
+
+# Working Principle
+
+Use the methodology established during Phase 7:
+
+```text
+stable baseline
+→ identify one reproducible behavior
+→ isolate the variable
+→ repeat under controlled conditions
+→ compare same-task trajectories
+→ make one narrow change only if causally justified
+→ validate at agent level
+```
+
+For Phase 7e, the isolated variable is:
+
+```text
+Skill invocation reliability
+```
+
+not:
+
+```text
+SKILL.md semantic content
+```

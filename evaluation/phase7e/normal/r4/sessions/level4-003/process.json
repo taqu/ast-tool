@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All 6 files updated. The diagnostics are clang treating `.h` files as C (not a real issue for C++ code). `BillingGateway::charge` and `refund` remain unchanged.\n",
+  "fresh_logs": 2
+}

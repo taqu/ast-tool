@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[trace] checkout pipeline\\n\";` as the first line of each method body:\n\n- `WebCheckoutHandler::handle` \u2014 `web_checkout_handler.cpp:11`\n- `CheckoutService::process` \u2014 `checkout_service.cpp:12`\n- `OrderService::submit` \u2014 `order_service.cpp:17`\n",
+  "fresh_logs": 2
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. Two edits made:\n\n- **`sync_job.cpp:24`** (`SyncJob::execute`) \u2014 `std::cerr` line inserted before `store_.save(data)`, which triggers the audit logger via `DataStore::save`.\n- **`cleanup_job.cpp:13`** (`CleanupJob::execute`) \u2014 `std::cerr` line inserted before `store_.purge()`, which triggers the audit logger via `DataStore::purge`.\n\n`report_job.cpp` was not touched \u2014 it reads from the store without triggering audit logging.\n",
+  "fresh_logs": 1
+}

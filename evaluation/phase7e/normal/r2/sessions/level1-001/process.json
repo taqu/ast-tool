@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Diagnostic line added at `inventory_service.cpp:12`, before any existing logic in the `update` method body.\n",
+  "fresh_logs": 1
+}

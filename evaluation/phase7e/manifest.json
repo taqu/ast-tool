@@ -1,0 +1,28 @@
+{
+  "revision": "4927b0caa055ee26f4c1e4a663f9383c38c82627",
+  "cohort": [
+    "level1-001",
+    "level2-006",
+    "level2-008",
+    "level3-003",
+    "level3-007",
+    "level3-008",
+    "level4-003",
+    "smoke-001"
+  ],
+  "forced": false,
+  "before": {
+    "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+    "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+  },
+  "checks": [
+    {
+      "repeat": 1,
+      "task": "level1-001",
+      "after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      }
+    }
+  ]
+}

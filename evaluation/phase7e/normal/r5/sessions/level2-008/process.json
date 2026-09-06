@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. The log line was added at `auth_controller.cpp:21`, immediately before `token_.expire(token_str)` in `handleLogout`. The refresh-flow caller in `auth_service.cpp:18` is unchanged.\n",
+  "fresh_logs": 1
+}

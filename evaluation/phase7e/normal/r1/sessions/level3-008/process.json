@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. Two files modified:\n\n- **`sync_job.cpp:24`** \u2014 `std::cerr` added before `store_.save(data)` in `SyncJob::execute`\n- **`cleanup_job.cpp:13`** \u2014 `std::cerr` added before `store_.purge()` in `CleanupJob::execute`\n\n`ReportJob` (which calls `store_.query`) was left untouched as it doesn't trigger audit logging.\n",
+  "fresh_logs": 1
+}

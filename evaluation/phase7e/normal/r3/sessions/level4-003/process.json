@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All 6 files updated. The diagnostics are spurious clang-c flags unrelated to our changes. `BillingGateway::charge` and `PaymentGateway::refund` were left untouched.\n",
+  "fresh_logs": 2
+}
