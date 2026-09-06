@@ -1,831 +1,1005 @@
-# Phase 7e — Skill Invocation Reliability Investigation
+# Phase 7f — Semantic Routing Value and Toolset Cost Audit
 
 ## Objective
 
-Investigate why the `semantic-analysis` Skill is invoked inconsistently during normal agent runs, and determine whether Skill invocation can be made more reliable without changing the validated Phase 7d Skill body.
+Determine **when semantic routing provides real agent-level value** and identify where the current semantic-analysis toolset introduces unnecessary cost, retries, or decision overhead.
 
-Phase 7e is **not** a Skill-content optimization phase.
+Phase 7f must not optimize Skill invocation rate in isolation.
 
-The Phase 7d Skill body has already passed controlled validation. The main unresolved problem is that normal agent-level evaluation is heavily affected by whether the Skill is invoked at all.
+The main questions are:
 
-The optimization target remains the **Coding Agent as a whole**, but this phase isolates Skill invocation as a separate behavioral variable.
+```text
+1. For which task classes is semantic routing better
+   than manual repository exploration?
+
+2. When semantic routing is more expensive,
+   where does the extra cost come from?
+
+3. Which semantic calls provide unique useful information?
+
+4. Which calls are resolution, retry, structural, or context-fetch overhead?
+
+5. Can existing command semantics be improved
+   before adding new commands or changing Skill guidance?
+```
+
+The output of Phase 7f should be an evidence-backed semantic toolset assessment, not necessarily a code change.
 
 ---
 
-## Current Baseline
+# Background
 
-Use the current Phase 7e branch as the working branch.
+Phase 7e established several important facts.
 
-The semantic-analysis Skill must initially remain exactly equivalent to the accepted Phase 7d version:
+## Invocation is task-dependent
 
-```text
-Phase 5 Skill
-+
-one refined-search / redundant-find rule
-```
+Some relationship-oriented tasks consistently selected `semantic-analysis`, while other task classes consistently did not.
 
-The added Phase 7d rule is:
+## Invocation is also stochastic
 
-```text
-If a refined `search` already identifies the exact symbol or member needed,
-do not add a redundant `find` solely to locate it; use `find` when AST
-structure or node detail is required.
-```
+At least one unchanged task, `level3-007`, selected semantic routing in some runs and manual exploration in others.
 
-Do not modify this Skill body unless Phase 7e evidence specifically demonstrates that invocation behavior depends on content inside the Skill.
+## Invocation is an initial routing decision
 
----
+When `semantic-analysis` was invoked, it was always the first action.
 
-## Background
-
-Phase 7d.2 produced two different results.
-
-### Controlled 18-task evaluation
-
-When `semantic-analysis` was forced to be:
-
-```text
-exactly once
-and
-the first tool action
-```
-
-Phase 7d clearly passed the controlled gate.
-
-Compared with Phase 5:
-
-```text
-success            17/18 → 17/18
-tools                 170 → 155
-AST calls              58 → 53
-AST failures            8 → 4
-retries                 7 → 4
-tokens             58,968 → 53,525
-elapsed           1035.94 → 922.91 sec
-recovery mean/max    1.67/4 → 1.00/1
-```
-
-Semantic routing remained targeted and no systematic regression was found.
-
-### Normal 41-task evaluation
-
-In the normal run, however:
-
-```text
-semantic-analysis invocation
-Phase 7d: 19/41
-```
-
-The normal Phase 7d aggregate was worse than Phase 5 in several metrics:
-
-```text
-tools
-AST failures
-retries
-grep
-glob
-recovery
-elapsed
-tokens
-```
-
-Cohort analysis showed that invocation mismatch dominated the regression.
-
-In particular:
-
-```text
-Skill loaded in both:
-    Δtokens +525
-
-Skill absent in both:
-    Δtokens -8,506
-
-Invocation mismatch:
-    Δtokens +13,925
-```
-
-The mismatch cohort alone was larger than the total token regression.
+No observed trajectory began with exploration and loaded the Skill later.
 
 Therefore:
 
 ```text
-Skill body quality
-!=
-Skill invocation reliability
+SKILL.md body changes cannot fix a trajectory
+in which the Skill was never selected.
 ```
 
-Phase 7e must investigate the second problem without reopening the first one.
+## More semantic routing is not automatically better
+
+For `level3-007`, Skill-loaded runs:
+
+```text
+used targeted AST queries
+used fewer Reads
+used almost no Grep
+```
+
+but also:
+
+```text
+used more AST/Bash work
+used more tokens
+took more elapsed time
+```
+
+with unchanged correctness.
+
+Therefore Phase 7f must not assume:
+
+```text
+semantic routing
+=
+lower agent-level cost
+```
+
+The goal is to determine where semantic routing is beneficial, neutral, or unnecessarily expensive.
+
+---
+
+# Baseline
+
+Use the accepted Phase 7d semantic-analysis Skill body unchanged.
+
+Do not change:
+
+```text
+Skill body
+Skill description
+Skill name
+Skill metadata
+Skill registration
+AST Tool command behavior
+```
+
+during the initial audit.
+
+Record hashes before and after evaluation when practical.
+
+Phase 7f begins as an **observational and analytical phase**.
 
 ---
 
 # Primary Questions
 
-Answer the following questions with evidence.
+## 1. Which tasks benefit from semantic routing?
 
-## 1. When is the Skill invoked?
-
-Determine which task characteristics correlate with invocation of `semantic-analysis`.
-
-Possible dimensions include:
-
-```text
-task level
-requested operation
-symbol lookup
-relationship queries
-cross-file work
-structural lookup
-ambiguity
-repository size
-prompt wording
-task complexity
-first agent action
-early tool selection
-```
-
-Do not assume any of these are causal.
-
-Measure them.
-
----
-
-## 2. Is invocation deterministic?
-
-For representative tasks, repeat normal runs without forcing the Skill.
-
-Determine whether invocation is:
-
-```text
-stable per task
-mostly stable
-strongly stochastic
-```
-
-For example, distinguish:
-
-```text
-task A:
-    Skill invoked 10/10
-
-task B:
-    Skill invoked 0/10
-```
-
-from:
-
-```text
-task C:
-    Skill invoked 4/10
-```
-
-The third case is especially important because it indicates within-task behavioral variance rather than task classification alone.
-
----
-
-## 3. What happens before invocation?
-
-Inspect the trajectory before the Skill is loaded.
-
-Record:
-
-```text
-first tool/action
-second tool/action
-whether repository exploration already started
-whether grep/glob/read occurred first
-whether AST Tool was attempted first
-whether Skill invocation happened after failure
-```
-
-We need to know whether late invocation is useful or whether missing the Skill at the first decision point effectively determines the rest of the trajectory.
-
----
-
-## 4. What happens when the Skill is not invoked?
-
-Compare:
-
-```text
-Skill-loaded runs
-vs
-no-Skill runs
-```
-
-for the same tasks where possible.
-
-Measure:
+Identify task classes where semantic routing produces measurable improvement in one or more of:
 
 ```text
 correctness
-AST usage
-grep
-glob
-read
-tool count
-tokens
+semantic precision
 recovery
-elapsed
+tool count
+Read count
+token usage
+elapsed time
+manual exploration
 ```
 
-The purpose is to quantify the actual agent-level cost of invocation failure.
+Do not require every metric to improve.
 
-Do not infer this only from the existing 41-task aggregate.
-
-Use paired or repeated evidence.
+A semantic route may be valuable if it significantly reduces broad exploration or ambiguity even when total tool count remains similar.
 
 ---
 
-## 5. Is invocation affected by Skill body wording?
+## 2. Which tasks do not benefit?
 
-This is a secondary question only.
+Identify cases where:
 
-Do **not** begin by changing the Skill.
+```text
+manual exploration is cheaper
+or
+semantic routing adds calls without improving correctness
+or
+semantic routing only replaces Reads with AST/Bash overhead
+```
 
-First establish invocation behavior using the current Phase 7d body.
+Do not classify these as failures automatically.
 
-Only if evidence suggests that Skill description, metadata, naming, or visible introductory wording affects discovery/invocation should a minimal controlled experiment be considered.
-
-Do not rewrite the semantic decision tree.
+The goal is to understand whether semantic routing is unnecessary for that task class or whether the semantic toolset is inefficient.
 
 ---
 
-# Constraints
+## 3. Where does semantic cost come from?
 
-## Do not optimize the semantic Skill body
+For every semantic trajectory, classify each AST call by purpose.
 
-Phase 7e must not add generic guidance such as:
-
-```text
-Always use semantic-analysis.
-Prefer AST Tool.
-Do not use grep.
-```
-
-unless a specific experiment explicitly tests invocation behavior.
-
-Do not respond to no-Skill trajectories by adding semantic routing rules inside the existing Skill.
-
-Those instructions cannot affect runs in which the Skill was never loaded.
-
----
-
-## Change one invocation-related variable at a time
-
-If experiments modify invocation-facing configuration, modify only one factor per experiment.
-
-Possible factors may include, if present in the system:
+Use at least these categories:
 
 ```text
-Skill name
-Skill description
-Skill metadata
-trigger wording
-discovery text
-registration mechanism
-available-Skill presentation
-```
-
-Do not change several simultaneously.
-
-For every change:
-
-```text
-baseline
-→ one modification
-→ repeated comparison
-```
-
----
-
-## Preserve the Phase 7d body
-
-Before and after each experiment, verify that the semantic Skill body has not changed unintentionally.
-
-Record a hash when practical.
-
----
-
-## Do not force invocation in the main Phase 7e experiment
-
-Forced invocation was already used in Phase 7d.2 to isolate Skill-body behavior.
-
-Phase 7e must primarily observe **normal invocation behavior**.
-
-Forced runs may be used only as a control arm.
-
----
-
-# Suggested Evaluation Design
-
-## Stage 1 — Instrument Existing Behavior
-
-Before changing anything, collect invocation data from the current Phase 7e branch.
-
-For every run record at least:
-
-```text
-task
-success
-Skill invoked?
-Skill invocation index
-first action
-tools before Skill invocation
-AST calls
-AST failures
-retries
-help
-grep
-glob
-read
-bash
-edit
-total tools
-tokens
-elapsed
-recovery distance
-```
-
-If available, also record the exact Skill invocation timestamp or event sequence.
-
----
-
-## Stage 2 — Select an Invocation Probe Cohort
-
-Choose a small representative cohort from the existing evaluation tasks.
-
-Include at minimum:
-
-```text
-tasks that consistently use semantic routing
-tasks that previously showed invocation mismatch
-relationship-query tasks
-search/find tasks
-one recovery-sensitive task
-one higher-level task
-```
-
-Prefer approximately 6–10 tasks.
-
-Do not create new tasks unless the existing suite cannot expose invocation behavior.
-
----
-
-## Stage 3 — Repeat Normal Runs
-
-Run each probe task multiple times without forced Skill invocation.
-
-Recommended minimum:
-
-```text
-5 runs per task
-```
-
-Use more repetitions for tasks showing mixed invocation behavior.
-
-Record invocation frequency:
-
-```text
-invoked / total
-```
-
-Example:
-
-```text
-level3-003    5/5
-level3-007    3/5
-level4-003    1/5
-```
-
-Do not interpret single-run differences as causal.
-
----
-
-## Stage 4 — Classify Tasks
-
-Classify each probe task as:
-
-```text
-A. Stable invocation
-B. Stable non-invocation
-C. Stochastic invocation
-```
-
-Suggested initial thresholds:
-
-```text
-A: 80–100% invoked
-B: 0–20% invoked
-C: 21–79% invoked
-```
-
-The exact thresholds are not important; the observed distributions are.
-
----
-
-## Stage 5 — Compare Same-Task Trajectories
-
-For tasks in category C, compare runs where the Skill was invoked with runs where it was not.
-
-This is the most valuable cohort because the task itself is held constant.
-
-Ask:
-
-```text
-Does Skill invocation change semantic routing?
-
-Does no-Skill execution increase grep/glob/read?
-
-Does invocation reduce recovery?
-
-Does invocation affect correctness?
-
-Does invocation reduce token/tool cost?
-```
-
-This comparison is stronger than comparing unrelated tasks.
-
----
-
-## Stage 6 — Identify the Earliest Divergence
-
-For stochastic tasks, find the first meaningful difference between:
-
-```text
-Skill-loaded trajectory
-and
-no-Skill trajectory
+A. Necessary semantic query
+B. Identity / resolution overhead
+C. Relationship retry overhead
+D. Redundant structural lookup
+E. Context-fetch overhead
+F. Recovery / error-handling overhead
 ```
 
 Examples:
 
 ```text
-Skill
+search exact target needed by task
+    → A
+
+search only because callers could not resolve an under-qualified name
+    → B
+
+callers
+→ ambiguity/failure
 → search
 → callers
+    → B + C
+
+refined search already identifies target
+→ find only to locate it
+    → D
+
+find
+→ immediate Read of same implementation
+    → possible E
 ```
 
-versus:
+The exact classification may evolve if the evidence requires additional categories.
+
+---
+
+## 4. Are command boundaries causing extra agent decisions?
+
+Investigate whether the agent must perform multi-step protocols that could reasonably be handled by one existing semantic command.
+
+Examples:
 
 ```text
-Grep
-→ Glob
+search
+→ callers
+
+search
+→ references
+
+search
+→ callees
+
+search
+→ find
 → Read
-→ manual reasoning
+```
+
+For each repeated pattern, ask:
+
+```text
+Was each step semantically necessary?
+
+Did the later command require information
+that the earlier command could have returned?
+
+Could an existing command safely absorb
+the resolution or context step?
+```
+
+Do not implement changes yet.
+
+---
+
+## 5. Are new commands actually needed?
+
+A new semantic command must not be proposed merely because a trajectory is long.
+
+First determine whether the inefficiency can be fixed by:
+
+```text
+better input resolution
+better result metadata
+better declaration/definition discrimination
+better context in existing output
+better ambiguity handling
+```
+
+Only recommend a new command if repeated evidence shows that the current command set cannot express the required operation cleanly.
+
+---
+
+# Evaluation Design
+
+## Stage 1 — Build a Semantic-Value Probe Cohort
+
+Select existing tasks representing at least the following categories:
+
+```text
+direct symbol lookup
+references
+callers
+callees
+ambiguous identity
+multi-level relationships
+distributed workflow
+structural lookup
+API evolution / broad modification
+recovery-sensitive case
+```
+
+Prefer existing Phase 7 / Phase 7e tasks.
+
+Do not create new fixtures unless a specific semantic inefficiency cannot be represented by the current suite.
+
+Target approximately:
+
+```text
+8–12 tasks
+```
+
+---
+
+## Stage 2 — Obtain Paired Routing Evidence
+
+For each selected task, obtain both:
+
+```text
+semantic route
+and
+non-semantic/manual route
+```
+
+when possible.
+
+Preferred evidence order:
+
+```text
+1. Naturally stochastic same-task runs
+2. Historical same-task traces
+3. Controlled runs with semantic routing forced
+4. Manual/non-Skill control runs
+```
+
+Same-task comparisons are strongly preferred over unrelated-task aggregates.
+
+Do not treat routing mode as randomized unless it actually is.
+
+---
+
+## Stage 3 — Repeat Where Variance Is Material
+
+For tasks whose route or cost varies strongly, run repeated trials.
+
+Recommended minimum:
+
+```text
+5 runs per routing condition
+```
+
+For highly stochastic tasks:
+
+```text
+10 runs per condition or observed state
+```
+
+Do not make a semantic-tool recommendation from one trace.
+
+---
+
+# Metrics
+
+For every run record:
+
+```text
+task
+success
+routing mode
+Skill invoked?
+first action
+tools
+AST calls
+AST failures
+retries
+help
+search
+find
+callers
+callees
+references
+symbols
+grep
+glob
+read
+bash
+edit
+tokens
+elapsed
+recovery mean/max
+```
+
+Also record the ordered AST trajectory.
+
+Example:
+
+```text
+search
+→ callers
+→ references
 ```
 
 or:
 
 ```text
-Read
-→ Skill
+callers
 → search
+→ callers
 ```
-
-Determine whether invocation is:
-
-```text
-a first-decision routing mechanism
-```
-
-or merely:
-
-```text
-late contextual assistance
-```
-
-This distinction matters for any later fix.
 
 ---
 
-# Optional Controlled Invocation Experiments
+# Semantic Call Annotation
 
-Only perform these after the baseline behavior has been characterized.
-
-If the invocation mechanism exposes a meaningful invocation-facing field, test the smallest possible modification.
-
-Possible experiment types:
+For each AST call in the probe cohort, annotate:
 
 ```text
-description-only change
-name/description salience change
-trigger metadata change
-Skill-list presentation change
+command
+target
+success/failure
+information gained
+reason for call
+next action
+classification
 ```
 
-Do not change the semantic body at the same time.
-
-For each candidate:
+Example:
 
 ```text
-current Phase 7d invocation surface
-vs
-one modified invocation surface
+command:
+    find
+
+reason:
+    locate implementation after exact search
+
+information gained:
+    no new identity information
+
+next action:
+    Read same source region
+
+classification:
+    redundant structural lookup
 ```
 
-Run repeated normal executions on the same probe cohort.
+The annotation must distinguish:
+
+```text
+call was unnecessary in hindsight
+```
+
+from:
+
+```text
+call was reasonable but command semantics
+forced an extra step
+```
+
+This distinction is important.
+
+---
+
+# Required Pattern Analysis
+
+At minimum investigate the following known patterns.
+
+## Pattern 1 — Relationship target resolution
+
+```text
+under-qualified callers/callees/references
+→ failure or ambiguity
+→ search
+→ relationship retry
+```
 
 Measure:
 
 ```text
-invocation rate
-correctness
-semantic routing
-tools
-tokens
-recovery
+frequency
+token/tool cost
+recovery cost
+whether search uniquely resolved identity
+whether relationship command could resolve internally
 ```
 
-A higher invocation rate is not automatically better.
-
-The goal is:
+Question:
 
 ```text
-appropriate invocation
+Should callers/callees/references perform
+built-in target resolution?
 ```
 
-not:
-
-```text
-maximum invocation
-```
-
-Tasks that do not need semantic analysis should not be forced through the Skill merely to improve an invocation metric.
+Do not answer until repeated traces support it.
 
 ---
 
-# Important Failure Modes to Avoid
-
-## 1. Optimizing invocation rate in isolation
-
-Do not optimize for:
+## Pattern 2 — Search followed by redundant find
 
 ```text
-Skill invocation = 100%
+refined search
+→ exact target identified
+→ find
 ```
 
-The system-level objective remains:
+Phase 7d already showed that some of these calls are redundant.
+
+Measure whether any remaining occurrences are:
 
 ```text
-correctness
-+
-targeted semantic routing
-+
-efficient context use
-+
-low recovery cost
+necessary structural lookup
+or
+location-only overhead
 ```
 
-Invocation is only useful when it improves those outcomes.
+Do not remove structural `find` use.
 
 ---
 
-## 2. Confusing correlation with causation
-
-For example:
+## Pattern 3 — Declaration versus definition
 
 ```text
-Skill-loaded runs have fewer tokens
+search finds declaration
+→ second search/find/read needed
+→ implementation located
 ```
 
-does not prove:
+Measure how often this occurs.
+
+Ask whether `search` result metadata should make declaration/definition roles clearer.
+
+Possible useful fields may include:
 
 ```text
-Skill invocation caused lower token use
+declaration
+definition
+qualified name
+file
+range
+symbol kind
+canonical identity
 ```
 
-unless same-task repeated comparisons support that conclusion.
+Do not add fields without evidence that they reduce downstream work.
 
 ---
 
-## 3. Fixing no-Skill behavior inside SKILL.md
+## Pattern 4 — Find followed by Read
 
-If the Skill was not loaded, changes inside its body cannot explain or fix the trajectory.
+```text
+find
+→ Read
+```
 
-Treat this as an invocation-layer problem unless evidence shows otherwise.
+Determine why Read is still required.
+
+Possible reasons:
+
+```text
+find provides node identity only
+body context missing
+surrounding class/function context missing
+agent needs editable source text
+output too structural
+```
+
+Measure whether this pattern is frequent and costly.
+
+Do not assume that embedding more source in `find` is automatically better; larger output may increase context cost.
 
 ---
 
-## 4. Reacting to one stochastic run
+## Pattern 5 — Repeated relationship calls
 
-Phase 7d already showed that within-version variance can be as large as version differences.
+Examples:
 
-Do not make changes from one run.
+```text
+callers×2
+callees×2
+references×2
+```
 
-Require repetition.
+Determine whether repetition comes from:
+
+```text
+pagination
+ambiguity
+partial results
+wrong identity
+different target forms
+agent uncertainty
+```
+
+Separate legitimate repeated queries from avoidable retries.
 
 ---
 
-## 5. Reopening Phase 7d semantic optimization
+# Semantic Value Classification
 
-Do not use this phase to revisit:
+For each task classify semantic routing into one of:
 
 ```text
-search vs find wording
-relationship ordering
-help restrictions
-general compression
+A. Clearly beneficial
+B. Beneficial with tradeoffs
+C. Roughly neutral
+D. More expensive but semantically useful
+E. Unnecessary / inferior for this task
+F. Inconclusive due to variance
 ```
 
-unless invocation experiments produce direct evidence that those contents affect Skill discovery.
+Base the classification on task-level evidence, not aggregate preference.
 
-Those belong to separate investigations.
+Include the reasoning.
 
 ---
 
-# Analysis Requirements
+# Tool-Level Efficiency Classification
 
-Produce both aggregate and task-level analysis.
+For each command, summarize observed roles.
 
-At minimum include:
-
-## Invocation table
+Example format:
 
 ```text
-task
-runs
-invoked
-invocation rate
-mean invocation position
+search
+    essential:
+        exact symbol resolution
+        identity disambiguation
+
+    overhead:
+        repeated refinement
+        declaration/definition rediscovery
+
+find
+    essential:
+        AST structure
+        node detail
+
+    overhead:
+        simple location after exact search
+
+callers
+    essential:
+        relationship discovery
+
+    overhead:
+        under-qualified target recovery
 ```
 
-## Loaded vs no-Skill comparison
+Do this for:
 
 ```text
-success
-tools
-AST calls
-AST failures
-grep
-glob
-read
-tokens
-elapsed
-recovery
+search
+find
+callers
+callees
+references
+symbols
 ```
 
-## Trajectory examples
+where evidence exists.
 
-Show representative paired trajectories for:
-
-```text
-stable invocation
-stable non-invocation
-stochastic invocation
-```
-
-## Earliest-divergence analysis
-
-For mixed tasks, identify where the trajectories first diverge.
+Do not infer behavior for commands not represented in the traces.
 
 ---
 
-# Decision Criteria
+# Command-Boundary Analysis
 
-At the end of Phase 7e, choose one of the following.
-
-## INVOCATION IS RELIABLE ENOUGH
-
-Use this if:
+For every repeated multi-call semantic pattern, evaluate three possible explanations:
 
 ```text
-invocation behavior is mostly stable
+1. Correct decomposition
+   Each command represents a genuinely separate question.
+
+2. Agent protocol overhead
+   Existing commands can answer the task,
+   but the agent must manually coordinate them.
+
+3. Semantic API limitation
+   Existing commands do not expose enough information
+   to express the operation efficiently.
+```
+
+This classification is central to Phase 7f.
+
+---
+
+# Candidate Improvement Generation
+
+Only after the audit, propose candidate improvements.
+
+Candidates must be narrow and evidence-backed.
+
+Preferred order:
+
+```text
+1. Improve existing command semantics
+2. Improve existing result metadata
+3. Improve ambiguity/error response
+4. Improve context returned by existing commands
+5. Add a new command only if necessary
+```
+
+Examples of acceptable candidate hypotheses:
+
+```text
+callers should resolve an unambiguous short name internally
+
+search should distinguish declaration and definition explicitly
+
+find should optionally return a minimal implementation excerpt
+```
+
+These are hypotheses, not required changes.
+
+---
+
+# Do Not Do During the Audit
+
+Do not:
+
+```text
+rewrite SKILL.md
+change Skill invocation description
+add generic routing instructions
+merge commands
+delete commands
+add new commands
+modify AST Tool output
+optimize for lower AST-call count alone
+```
+
+Phase 7f must first establish the cost model.
+
+---
+
+# Important Non-Goals
+
+Phase 7f is not trying to:
+
+```text
+maximize semantic-analysis invocation
+minimize AST Tool calls at any cost
+eliminate Grep
+eliminate Read
+force every task through AST Tool
+redesign the entire CLI
+```
+
+A manual route may be correct and cheaper for some tasks.
+
+That is an acceptable result.
+
+---
+
+# Acceptance Criteria
+
+Phase 7f is successful if it produces evidence sufficient to answer:
+
+```text
+1. Which task classes clearly benefit from semantic routing?
+
+2. Which task classes do not?
+
+3. Which semantic commands contribute unique useful information?
+
+4. Which repeated call patterns represent avoidable overhead?
+
+5. Which inefficiencies are caused by:
+   - agent behavior
+   - command semantics
+   - missing result information
+   - unavoidable task complexity
+
+6. Is there at least one narrow semantic-tool improvement
+   worth implementing and validating?
+```
+
+A successful Phase 7f does not require finding an improvement.
+
+The valid result may be:
+
+```text
+CURRENT TOOLSET IS ADEQUATE;
+NO CHANGE JUSTIFIED
+```
+
+---
+
+# Decision Outcomes
+
+Choose one primary outcome.
+
+## CURRENT TOOLSET ADEQUATE
+
+Use when:
+
+```text
+semantic routing is beneficial where expected
 and
-mismatch observed in Phase 7d.2 appears to be ordinary model variance
+observed overhead is mostly stochastic or task-inherent
 and
-normal agent-level results are not systematically harmed
+no repeated command-boundary problem is found
 ```
 
-Then proceed to repeat normal Phase 7d evaluation or move to the final baseline decision.
+Proceed without semantic API changes.
 
 ---
 
-## INVOCATION SURFACE IMPROVEMENT FOUND
+## EXISTING COMMAND SEMANTICS SHOULD BE IMPROVED
 
-Use this if:
+Use when:
 
 ```text
-one narrow invocation-facing change
-reproducibly improves appropriate Skill invocation
+one or more repeated trajectories
+show avoidable multi-call protocol overhead
 and
-preserves correctness
-and
-improves or preserves agent-level routing/cost
+the operation can be absorbed safely
+into existing commands
 ```
 
-Keep the semantic Phase 7d body unchanged.
-
-Validate the change on the full normal evaluation suite.
+Prefer this over adding new commands.
 
 ---
 
-## INVOCATION PROBLEM CONFIRMED, NO SAFE FIX YET
+## RESULT METADATA SHOULD BE IMPROVED
 
-Use this if:
+Use when:
 
 ```text
-invocation is materially stochastic or systematically missed
-but
-no narrow causal change has been validated
+the command finds the right semantic object
+but the agent immediately performs another query/read
+because required identity or context information is missing
 ```
-
-Document the limitation.
-
-Do not compensate by expanding SKILL.md.
 
 ---
 
-## NO MEANINGFUL INVOCATION EFFECT
+## NEW SEMANTIC CAPABILITY JUSTIFIED
 
-Use this if:
+Use only when:
 
 ```text
-same-task Skill-loaded and no-Skill trajectories
-do not show meaningful agent-level differences
+repeated tasks require an operation
+that the current command set cannot express cleanly
 ```
 
-In that case the Phase 7d normal-run variance should not be attributed primarily to invocation, and another source of variance must be investigated.
+Document why existing command semantics cannot solve it.
+
+---
+
+## INCONCLUSIVE
+
+Use when:
+
+```text
+within-task variance is too large
+or
+the probe cohort does not contain enough paired evidence
+```
+
+Do not implement speculative changes.
+
+---
+
+# If an Improvement Candidate Is Found
+
+Do not immediately modify multiple behaviors.
+
+Select exactly one candidate.
+
+Create a follow-up experiment:
+
+```text
+baseline
+→ one semantic API change
+→ targeted replay
+→ repeated guard validation
+→ controlled cohort
+→ normal agent-level validation
+```
+
+This should follow the methodology established in Phase 7.
 
 ---
 
 # Deliverables
 
-Produce a final Phase 7e report containing:
+Produce a final Phase 7f report containing:
 
 ```text
 1. Environment and revisions
 
-2. Exact Phase 7d Skill verification
+2. Baseline Skill / AST Tool verification
 
 3. Probe cohort
 
-4. Number of repeated runs
+4. Routing conditions and repetition counts
 
-5. Skill invocation frequency per task
+5. Task-level semantic-value classification
 
-6. Invocation position / first-action analysis
+6. Loaded/semantic versus manual paired comparisons
 
-7. Same-task loaded vs no-Skill comparison
+7. Annotated AST-call dataset
 
-8. Aggregate tool/token/recovery metrics
+8. Command-level efficiency summary
 
-9. Representative paired trajectories
+9. Repeated semantic trajectory patterns
 
-10. Earliest-divergence analysis
+10. Command-boundary analysis
 
-11. Any invocation-facing experiment performed
+11. Agent protocol overhead findings
 
-12. Causal assessment
+12. Semantic API limitation findings
 
-13. Final decision
+13. Candidate improvements, ranked by evidence
 
-14. Recommendation for the next phase
+14. Explicit rejected hypotheses
+
+15. Final decision
+
+16. Recommended next experiment
 ```
 
 Keep raw measurements separate from interpretation.
 
 ---
 
-# Expected Phase 7e Outcome
+# Preferred Reporting Tables
 
-The desired output is not necessarily a code change.
-
-A successful Phase 7e may simply establish:
+## Task-level routing value
 
 ```text
-where Skill invocation variance comes from
-how large its system-level cost is
-whether it is task-dependent or stochastic
-and whether a narrow intervention is justified
+Task
+Semantic runs
+Manual runs
+Success delta
+Tool delta
+Token delta
+Elapsed delta
+Read delta
+Semantic-value class
 ```
 
-Do not modify the system merely to produce a Phase 7e patch.
+## Semantic overhead
 
-Evidence is the deliverable.
+```text
+Task
+AST trajectory
+Necessary calls
+Resolution overhead
+Retry overhead
+Structural overhead
+Context-fetch overhead
+```
+
+## Command assessment
+
+```text
+Command
+Useful cases
+Repeated overhead pattern
+Frequency
+Estimated cost
+Candidate change
+Evidence strength
+```
 
 ---
 
-# Working Principle
+# Evidence Standard
 
-Use the methodology established during Phase 7:
+Use the following hierarchy:
+
+```text
+strong:
+    repeated same-task paired behavior
+
+moderate:
+    repeated pattern across several tasks
+
+weak:
+    single-run trajectory
+
+insufficient:
+    aggregate correlation without trajectory evidence
+```
+
+Do not promote a semantic API change from weak evidence alone.
+
+---
+
+# Working Hypothesis
+
+The current hypothesis is not that the semantic toolset is fundamentally wrong.
+
+The hypothesis to test is:
+
+```text
+The current semantic commands are useful,
+but some boundaries may force the agent
+to perform extra identity resolution,
+relationship retries,
+structural lookup,
+or source-context retrieval.
+```
+
+Phase 7f should determine whether that hypothesis is true.
+
+---
+
+# Development Principle
+
+Continue using the Phase 7 methodology:
 
 ```text
 stable baseline
-→ identify one reproducible behavior
-→ isolate the variable
-→ repeat under controlled conditions
-→ compare same-task trajectories
-→ make one narrow change only if causally justified
-→ validate at agent level
+→ observe repeated inefficiency
+→ isolate the semantic decision
+→ measure same-task cost
+→ classify the source of overhead
+→ propose one narrow change
+→ validate causally
 ```
 
-For Phase 7e, the isolated variable is:
+For Phase 7f, optimize:
 
 ```text
-Skill invocation reliability
+semantic information gained
+per agent decision / tool cost
 ```
 
 not:
 
 ```text
-SKILL.md semantic content
+number of AST Tool calls
+```
+
+and not:
+
+```text
+Skill invocation rate
 ```
