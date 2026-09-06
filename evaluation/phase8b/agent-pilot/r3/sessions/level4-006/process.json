@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. Three files updated:\n\n- `validation_service.h:8` \u2014 declaration renamed\n- `validation_service.cpp:6` \u2014 definition renamed  \n- `request_processor.cpp:13` \u2014 the sole caller updated\n\n`store::DatabaseStore::validate` and `jobs::CronJob::validate` were not touched.\n",
+  "fresh_logs": 1
+}

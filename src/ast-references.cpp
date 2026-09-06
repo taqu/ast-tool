@@ -1,6 +1,7 @@
 #include "ast-references.h"
 #include "ast-ir.h"
 #include "ast-resolver.h"
+#include "ast-member-resolution.h"
 
 namespace ast
 {
@@ -48,10 +49,10 @@ std::vector<ReferenceResult> FindReferences::find(
             if(node.text_.empty())
                 continue;
 
-            std::u8string text = node.text_.getText();
             uintptr_t scopeId = tu.scopeTree.getNodeScope(i);
 
-            ResolutionResult resolution = resolver.resolve(text, scopeId);
+            ResolutionResult resolution = resolve_relationship_identifier(
+                tu, workspace_, resolver, i, scopeId);
             if(!resolution.resolved())
                 continue;
 

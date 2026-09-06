@@ -1,6 +1,7 @@
 #include "ast-callers.h"
 #include "ast-call-utils.h"
 #include "ast-resolver.h"
+#include "ast-member-resolution.h"
 #include "ast-ir.h"
 
 using namespace ast::call_utils;
@@ -30,10 +31,10 @@ std::vector<CallSite> Callers::find(const WorkspaceSymbol& target) const
             const ASTNode& calleeNode = tu.ast[calleeIdentIdx];
             if(calleeNode.text_.empty()) continue;
 
-            std::u8string text    = calleeNode.text_.getText();
             uintptr_t   scopeId = tu.scopeTree.getNodeScope(i);
 
-            ResolutionResult resolution = resolver.resolve(text, scopeId);
+            ResolutionResult resolution = resolve_relationship_identifier(
+                tu, workspace_, resolver, calleeIdentIdx, scopeId);
             if(!resolution.resolved()) continue;
 
             if(!same_declaration(resolution.symbol(), target)) continue;

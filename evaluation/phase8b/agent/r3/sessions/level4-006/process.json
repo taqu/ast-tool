@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "The diagnostic is a clang driver warning unrelated to this rename. All three changes are complete:\n\n- `validation_service.h:8` \u2014 declaration renamed to `validatePayload`\n- `validation_service.cpp:6` \u2014 definition renamed to `validatePayload`\n- `request_processor.cpp:13` \u2014 call site updated to `validator_.validatePayload(payload)`\n\n`store::DatabaseStore::validate` and `jobs::CronJob::validate` were not touched.\n",
+  "fresh_logs": 1
+}

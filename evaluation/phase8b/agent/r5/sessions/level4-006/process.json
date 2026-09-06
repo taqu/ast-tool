@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All three changes applied. The clang diagnostic is a header-as-C false positive from the IDE, not a real issue.\n\n**Summary of changes:**\n- `validation_service.h:8` \u2014 declaration renamed `validate` \u2192 `validatePayload`\n- `validation_service.cpp:6` \u2014 definition renamed `validate` \u2192 `validatePayload`\n- `request_processor.cpp:13` \u2014 sole caller updated to `validator_.validatePayload(payload)`\n\n`jobs::CronJob::validate` and `store::DatabaseStore::validate` are untouched.\n",
+  "fresh_logs": 1
+}

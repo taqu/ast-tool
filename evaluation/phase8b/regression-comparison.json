@@ -1,0 +1,179 @@
+{
+  "phase8a_baseline": {
+    "runs": [
+      {
+        "returncode": 1,
+        "failure_count": 11,
+        "failures": [
+          "scSource has at least one call site",
+          "scSource has exactly 1 callee",
+          "mcSource has 2 callees",
+          "mcAlpha is a callee of mcSource",
+          "mcBeta  is a callee of mcSource",
+          "ncTransitive has exactly 1 callee (not transitive)",
+          "recCe has exactly 1 callee (itself)",
+          "at least 2 call sites for ordering check",
+          "ddCleMethod has ddCleHelper as a callee",
+          "scSource has callees",
+          "scTarget is a callee of scSource"
+        ]
+      },
+      {
+        "returncode": 1,
+        "failure_count": 14,
+        "failures": [
+          "scSource has at least one call site",
+          "scSource has exactly 1 callee",
+          "mcSource has 2 callees",
+          "mcAlpha is a callee of mcSource",
+          "mcBeta  is a callee of mcSource",
+          "ncNestedSource has 2 direct callees (ncPrint and ncGet)",
+          "ncPrint is a callee of ncNestedSource",
+          "ncGet   is a callee of ncNestedSource",
+          "ncTransitive has exactly 1 callee (not transitive)",
+          "recCe has exactly 1 callee (itself)",
+          "at least 2 call sites for ordering check",
+          "ddCleMethod has ddCleHelper as a callee",
+          "scSource has callees",
+          "scTarget is a callee of scSource"
+        ]
+      },
+      {
+        "returncode": 1,
+        "failure_count": 16,
+        "failures": [
+          "scSource has at least one call site",
+          "scSource has exactly 1 callee",
+          "mcSource has 2 callees",
+          "mcAlpha is a callee of mcSource",
+          "mcBeta  is a callee of mcSource",
+          "ncNestedSource has 2 direct callees (ncPrint and ncGet)",
+          "ncPrint is a callee of ncNestedSource",
+          "ncGet   is a callee of ncNestedSource",
+          "ncTransitive has exactly 1 callee (not transitive)",
+          "recCe has exactly 1 callee (itself)",
+          "nsCeSource has 1 callee",
+          "callee FQN is MbCe::mbTarget",
+          "at least 2 call sites for ordering check",
+          "ddCleMethod has ddCleHelper as a callee",
+          "scSource has callees",
+          "scTarget is a callee of scSource"
+        ]
+      }
+    ],
+    "systematic_failures": [
+      "at least 2 call sites for ordering check",
+      "ddCleMethod has ddCleHelper as a callee",
+      "mcAlpha is a callee of mcSource",
+      "mcBeta  is a callee of mcSource",
+      "mcSource has 2 callees",
+      "ncTransitive has exactly 1 callee (not transitive)",
+      "recCe has exactly 1 callee (itself)",
+      "scSource has at least one call site",
+      "scSource has callees",
+      "scSource has exactly 1 callee",
+      "scTarget is a callee of scSource"
+    ]
+  },
+  "phase8b": {
+    "runs": [
+      {
+        "returncode": 1,
+        "failure_count": 15,
+        "failures": [
+          "scSource has at least one call site",
+          "scSource has exactly 1 callee",
+          "mcSource has 2 callees",
+          "mcAlpha is a callee of mcSource",
+          "mcBeta  is a callee of mcSource",
+          "ncNestedSource has 2 direct callees (ncPrint and ncGet)",
+          "ncPrint is a callee of ncNestedSource",
+          "ncGet   is a callee of ncNestedSource",
+          "ncTransitive has exactly 1 callee (not transitive)",
+          "recCe has exactly 1 callee (itself)",
+          "callee FQN is MbCe::mbTarget",
+          "at least 2 call sites for ordering check",
+          "ddCleMethod has ddCleHelper as a callee",
+          "scSource has callees",
+          "scTarget is a callee of scSource"
+        ]
+      },
+      {
+        "returncode": 1,
+        "failure_count": 14,
+        "failures": [
+          "scSource has at least one call site",
+          "scSource has exactly 1 callee",
+          "mcSource has 2 callees",
+          "mcAlpha is a callee of mcSource",
+          "mcBeta  is a callee of mcSource",
+          "ncNestedSource has 2 direct callees (ncPrint and ncGet)",
+          "ncPrint is a callee of ncNestedSource",
+          "ncGet   is a callee of ncNestedSource",
+          "ncTransitive has exactly 1 callee (not transitive)",
+          "recCe has exactly 1 callee (itself)",
+          "at least 2 call sites for ordering check",
+          "ddCleMethod has ddCleHelper as a callee",
+          "scSource has callees",
+          "scTarget is a callee of scSource"
+        ]
+      },
+      {
+        "returncode": 1,
+        "failure_count": 15,
+        "failures": [
+          "scSource has at least one call site",
+          "scSource has exactly 1 callee",
+          "mcSource has 2 callees",
+          "mcAlpha is a callee of mcSource",
+          "mcBeta  is a callee of mcSource",
+          "ncNestedSource has 2 direct callees (ncPrint and ncGet)",
+          "ncPrint is a callee of ncNestedSource",
+          "ncGet   is a callee of ncNestedSource",
+          "ncTransitive has exactly 1 callee (not transitive)",
+          "recCe has exactly 1 callee (itself)",
+          "nsCeSource has 1 callee",
+          "at least 2 call sites for ordering check",
+          "ddCleMethod has ddCleHelper as a callee",
+          "scSource has callees",
+          "scTarget is a callee of scSource"
+        ]
+      }
+    ],
+    "systematic_failures": [
+      "at least 2 call sites for ordering check",
+      "ddCleMethod has ddCleHelper as a callee",
+      "mcAlpha is a callee of mcSource",
+      "mcBeta  is a callee of mcSource",
+      "mcSource has 2 callees",
+      "ncGet   is a callee of ncNestedSource",
+      "ncNestedSource has 2 direct callees (ncPrint and ncGet)",
+      "ncPrint is a callee of ncNestedSource",
+      "ncTransitive has exactly 1 callee (not transitive)",
+      "recCe has exactly 1 callee (itself)",
+      "scSource has at least one call site",
+      "scSource has callees",
+      "scSource has exactly 1 callee",
+      "scTarget is a callee of scSource"
+    ]
+  },
+  "unchanged_systematic_failures": [
+    "at least 2 call sites for ordering check",
+    "ddCleMethod has ddCleHelper as a callee",
+    "mcAlpha is a callee of mcSource",
+    "mcBeta  is a callee of mcSource",
+    "mcSource has 2 callees",
+    "ncTransitive has exactly 1 callee (not transitive)",
+    "recCe has exactly 1 callee (itself)",
+    "scSource has at least one call site",
+    "scSource has callees",
+    "scSource has exactly 1 callee",
+    "scTarget is a callee of scSource"
+  ],
+  "resolved_systematic_failures": [],
+  "new_systematic_failures": [
+    "ncGet   is a callee of ncNestedSource",
+    "ncNestedSource has 2 direct callees (ncPrint and ncGet)",
+    "ncPrint is a callee of ncNestedSource"
+  ]
+}

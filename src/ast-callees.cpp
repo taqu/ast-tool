@@ -1,6 +1,7 @@
 #include "ast-callees.h"
 #include "ast-call-utils.h"
 #include "ast-resolver.h"
+#include "ast-member-resolution.h"
 #include "ast-ir.h"
 #include <vector>
 #include <filesystem>
@@ -58,6 +59,7 @@ std::vector<CallSite> Callees::find(const Workspace&       workspace,
     IdentifierResolver resolver(tu->scopeTree, tu->symbols, tu->path, workspace);
 
     struct Ctx {
+        const TranslationUnit*  tu;
         const AST*              ast;
         const ScopeTree*        scopeTree;
         IdentifierResolver*     resolver;
@@ -67,7 +69,7 @@ std::vector<CallSite> Callees::find(const Workspace&       workspace,
         std::vector<CallSite>*  results;
     };
 
-    Ctx ctx{ &tu->ast, &tu->scopeTree, &resolver,
+    Ctx ctx{ tu, &tu->ast, &tu->scopeTree, &resolver,
              &workspace, callerPtr, &tu->path, &results };
 
     visit_call_expressions(tu->ast, funcNodeIdx,
@@ -80,10 +82,10 @@ std::vector<CallSite> Callees::find(const Workspace&       workspace,
             const ASTNode& calleeNode = (*c.ast)[calleeIdentIdx];
             if(calleeNode.text_.empty()) return;
 
-            std::u8string text    = calleeNode.text_.getText();
             uintptr_t   scopeId = c.scopeTree->getNodeScope(callIdx);
 
-            ResolutionResult res = c.resolver->resolve(text, scopeId);
+            ResolutionResult res = resolve_relationship_identifier(
+                *c.tu, *c.workspace, *c.resolver, calleeIdentIdx, scopeId);
             if(!res.resolved()) return;
 
             const WorkspaceSymbol* calleePtr = find_in_workspace(*c.workspace, res.symbol());

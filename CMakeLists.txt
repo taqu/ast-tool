@@ -221,6 +221,8 @@ set(SOURCES
     "${SOURCE_ROOT}/ast-references.cpp"
     "${SOURCE_ROOT}/ast-callers.cpp"
     "${SOURCE_ROOT}/ast-callees.cpp"
+    "${SOURCE_ROOT}/ast-member-resolution.h"
+    "${SOURCE_ROOT}/ast-member-resolution.cpp"
     "${SOURCE_ROOT}/ast-call-utils.h"
     "${SOURCE_ROOT}/ast-semantic-diff.cpp"
     "${SOURCE_ROOT}/ast-context-export.cpp"
@@ -311,4 +313,3 @@ add_custom_command(
 endif()
 
 add_subdirectory(test)
-

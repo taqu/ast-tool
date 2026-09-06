@@ -1,297 +1,21 @@
-# Phase 8a — Unique FQN-Suffix Relationship Resolution
+# Phase 8b — C++ Receiver-Type Member Relationship Resolution
 
 ## Objective
 
-Improve the existing relationship-command target resolver so that a partially qualified symbol name can resolve to a **single unambiguous fully qualified symbol by suffix**.
+Investigate and, only if justified by focused evidence, improve C++ relationship discovery for member calls whose target can be resolved from the receiver's static type.
 
-Phase 8a must change exactly one semantic behavior:
-
-```text
-relationship target resolution
-```
-
-for:
-
-```text
-callers
-callees
-references
-```
-
-The goal is to eliminate the repeated protocol:
-
-```text
-relationship short-qualified-name
-→ not found
-→ search
-→ relationship full-FQN
-```
-
-when the short-qualified name uniquely identifies one canonical symbol in the workspace.
-
-Do not add a new command.
-
-Do not change Skill guidance.
-
-Do not change member-call receiver resolution.
-
----
-
-# Background
-
-Phase 7f isolated a repeated command-semantics limitation.
-
-Observed recovery pattern:
-
-```text
-callers AuthToken::expire
-→ target not found
-
-search expire
-→ auth::AuthToken::expire
-
-callers auth::AuthToken::expire
-→ success
-```
-
-The same pattern was observed repeatedly across more than one task.
-
-The current resolver behavior is effectively:
-
-```text
-query contains "::"
-→ treat as exact FQN
-→ exact match fails
-→ return not found
-```
-
-It does not attempt a unique suffix match.
-
-This forces the agent to perform identity-resolution protocol that the semantic service can safely handle itself.
-
-Phase 8a should test whether the relationship API can absorb this resolution step without changing ambiguity behavior.
-
----
-
-# Scope
-
-Modify only the shared target-resolution behavior used by:
-
-```text
-callers
-callees
-references
-```
-
-The desired lookup order is:
-
-```text
-1. Exact FQN match
-2. If exact match is absent:
-   attempt unique canonical FQN suffix match
-3. If exactly one canonical symbol matches:
-   resolve it
-4. If multiple canonical symbols match:
-   preserve ambiguity
-5. If none match:
-   preserve not-found behavior
-```
-
-Do not alter downstream relationship discovery.
-
----
-
-# Required Semantics
-
-## 1. Exact match has precedence
-
-Given symbols:
-
-```text
-AuthToken::expire
-auth::AuthToken::expire
-```
-
-and query:
-
-```text
-AuthToken::expire
-```
-
-if an exact canonical symbol named:
-
-```text
-AuthToken::expire
-```
-
-exists, it must win.
-
-Do not prefer a suffix match over an exact match.
-
-Resolution order must remain:
-
-```text
-exact
-before
-suffix fallback
-```
-
----
-
-## 2. Unique suffix fallback
-
-Given:
-
-```text
-auth::AuthToken::expire
-```
-
-and query:
-
-```text
-AuthToken::expire
-```
-
-with no exact match, resolve the query to:
-
-```text
-auth::AuthToken::expire
-```
-
-only if it is the unique canonical suffix match.
-
-The suffix relationship should be equivalent to matching:
-
-```text
-"::" + query
-```
-
-against the end of canonical FQNs.
-
-Avoid arbitrary substring matching.
-
-For example:
-
-```text
-Token::expire
-```
-
-must not accidentally match:
-
-```text
-SomeToken::expire
-```
-
-unless the qualified-name boundary semantics explicitly make that valid.
-
----
-
-## 3. Preserve ambiguity
-
-Given:
-
-```text
-auth::AuthToken::expire
-legacy::AuthToken::expire
-```
-
-and query:
-
-```text
-AuthToken::expire
-```
-
-the resolver must not choose one arbitrarily.
-
-Return the existing ambiguity behavior or equivalent ambiguity result.
-
-The agent should still be required to disambiguate genuinely ambiguous identities.
-
-Phase 8a is not intended to make relationship lookup permissive.
-
-It is intended to remove unnecessary resolution work only when the identity is unique.
-
----
-
-## 4. Collapse declaration/definition duplicates correctly
-
-A declaration and definition belonging to the same canonical symbol must not cause false ambiguity.
-
-For example, if:
-
-```text
-auth::AuthToken::expire
-```
-
-appears as:
-
-```text
-header declaration
-source definition
-```
-
-they represent one semantic target for suffix-resolution purposes.
-
-Reuse the existing declaration/definition collapse or canonicalization behavior where possible.
-
-Do not create a second competing identity-resolution implementation unless necessary.
-
----
-
-## 5. Preserve current unqualified-name behavior
-
-Do not accidentally change queries such as:
-
-```text
-expire
-```
-
-unless the existing shared resolver already handles them through its current logic.
-
-Phase 8a is specifically about:
-
-```text
-partially qualified names containing "::"
-```
-
-Do not broaden the change beyond the demonstrated limitation.
-
----
-
-# Non-Goals
-
-Do not modify:
-
-```text
-member receiver-type inference
-member-call relationship discovery
-overload resolution
-virtual dispatch
-template resolution
-search output metadata
-find output
-Skill invocation
-SKILL.md
-command names
-CLI surface
-```
-
-In particular, do not attempt to fix the separate Phase 7f limitation where:
+The motivating failure pattern is:
 
 ```text
 token_.validate(...)
 validator_.validate(...)
 ```
 
-may not resolve through receiver types.
+where the relationship target itself is known and resolvable, but existing semantic relationship discovery fails to connect the member call to the canonical method.
 
-That is a separate, broader candidate for a later phase.
+Phase 8b must determine whether the current semantic layer can safely resolve these calls using existing AST IR and symbol information without expanding into general C++ type inference.
 
----
-
-# Implementation Principle
-
-Prefer modifying the existing shared resolver rather than adding command-specific logic to:
+The primary commands affected are:
 
 ```text
 callers
@@ -299,268 +23,672 @@ callees
 references
 ```
 
-The expected architecture is:
+The optimization target remains the Coding Agent as a whole, but Phase 8b first isolates the semantic capability itself.
+
+---
+
+# Baseline
+
+Use the accepted Phase 8a implementation as the baseline.
+
+Phase 8a target-resolution behavior must remain unchanged.
+
+In particular, preserve:
+
+```text
+exact FQN precedence
+unique FQN-suffix fallback
+ambiguity preservation
+not-found behavior
+unqualified lookup behavior
+declaration/definition canonicalization
+```
+
+Do not modify:
+
+```text
+SKILL.md
+Skill description
+Skill invocation behavior
+relationship target resolver
+search semantics
+find semantics
+CLI command surface
+```
+
+unless a later Phase 8b finding explicitly requires a separate follow-up phase.
+
+Record the baseline revision and hashes before making changes.
+
+---
+
+# Background
+
+Phase 7f identified a broader relationship limitation after target identity had already been resolved.
+
+Observed examples include calls such as:
+
+```text
+token_.validate(...)
+validator_.validate(...)
+```
+
+while queries for canonical methods such as:
+
+```text
+auth::AuthToken::validate
+service::ValidationService::validate
+```
+
+returned empty caller/reference results.
+
+A related `callees` case also returned no relationship even though the source body contained member calls.
+
+The current implementation appears to resolve member-call identifiers without sufficiently connecting the receiver expression to its static type.
+
+Phase 8b must validate that diagnosis before implementing a fix.
+
+---
+
+# Primary Questions
+
+Phase 8b must answer:
+
+```text
+1. Which receiver forms can the current semantic model resolve safely?
+
+2. Which required type information already exists in AST IR / semantic data?
+
+3. Which member-call failures are caused specifically by missing receiver-type resolution?
+
+4. Can callers/callees/references share one narrow member-resolution mechanism?
+
+5. Can this be fixed without implementing broad C++ type inference?
+
+6. How should ambiguous or unresolved receivers fail safely?
+```
+
+Do not assume all member calls should become resolvable.
+
+---
+
+# Scope
+
+Start with ordinary non-template C++ member calls where the receiver's static type can be determined directly from local semantic information.
+
+Candidate in-scope receiver categories are:
+
+```text
+1. data-member / field receiver
+2. local variable receiver
+3. reference receiver
+4. pointer receiver
+```
+
+Examples:
+
+```cpp
+token_.validate();
+
+Validator validator;
+validator.validate();
+
+Validator& validator = ...;
+validator.validate();
+
+Validator* validator = ...;
+validator->validate();
+```
+
+These categories must be investigated separately.
+
+Implementation authorization depends on the capability matrix described below.
+
+---
+
+# Explicit Non-Goals
+
+Do not attempt to solve all of C++ member resolution.
+
+Phase 8b must not expand into:
+
+```text
+general type inference
+template instantiation
+template-dependent member lookup
+virtual dispatch target expansion
+dynamic runtime type inference
+full overload resolution
+ADL
+concepts
+SFINAE
+auto type deduction beyond already available semantic data
+decltype reasoning
+macro expansion redesign
+cross-language resolution
+```
+
+Also do not change Phase 8a's target resolver.
+
+If any of these become necessary for correctness, stop and classify the case as out of scope rather than broadening the implementation.
+
+---
+
+# Stage 1 — Trace the Current Member-Call Resolution Path
+
+Before modifying production code, inspect and document the existing path used for member calls.
+
+Determine:
+
+```text
+1. How a call expression is represented in AST IR.
+2. How the member identifier is extracted.
+3. Whether the receiver expression is retained.
+4. Whether receiver symbol identity is retained.
+5. Whether declared/static type information is available.
+6. How IdentifierResolver currently resolves member names.
+7. Where unresolved member calls are dropped.
+8. Whether callers, callees, and references share infrastructure.
+```
+
+Produce a concise current-flow diagram such as:
+
+```text
+call expression
+→ receiver/member extraction
+→ identifier resolution
+→ canonical target
+→ relationship index
+```
+
+Mark exactly where receiver-type information is currently lost or ignored.
+
+Do not implement a fix until this path is understood.
+
+---
+
+# Stage 2 — Build Typed Receiver Fixtures
+
+Create minimal focused C++ fixtures before changing behavior.
+
+The fixtures must isolate receiver forms and avoid unrelated complexity.
+
+At minimum include the following.
+
+## Case A — Field receiver
+
+```cpp
+class Session {
+    AuthToken token_;
+public:
+    void refresh() {
+        token_.validate();
+    }
+};
+```
+
+Expected target:
+
+```text
+auth::AuthToken::validate
+```
+
+Test:
+
+```text
+callers
+references
+callees
+```
+
+as applicable.
+
+---
+
+## Case B — Local object receiver
+
+```cpp
+void run() {
+    Validator validator;
+    validator.validate();
+}
+```
+
+Expected:
+
+```text
+Validator::validate
+```
+
+---
+
+## Case C — Reference receiver
+
+```cpp
+void run(Validator& validator) {
+    validator.validate();
+}
+```
+
+Expected:
+
+```text
+Validator::validate
+```
+
+---
+
+## Case D — Pointer receiver
+
+```cpp
+void run(Validator* validator) {
+    validator->validate();
+}
+```
+
+Expected:
+
+```text
+Validator::validate
+```
+
+---
+
+## Case E — Same member name on unrelated types
+
+```cpp
+struct A {
+    void validate();
+};
+
+struct B {
+    void validate();
+};
+
+void run(A& a, B& b) {
+    a.validate();
+    b.validate();
+}
+```
+
+Expected:
+
+```text
+a.validate()
+→ A::validate
+
+b.validate()
+→ B::validate
+```
+
+This is a critical guard.
+
+Do not resolve only by member name.
+
+---
+
+## Case F — Unresolved receiver
+
+Construct a case where the receiver type is unavailable to the semantic layer.
+
+Expected:
+
+```text
+remain unresolved
+```
+
+Do not guess based on the member name.
+
+---
+
+## Case G — Ambiguous receiver/type information
+
+If the semantic model can represent an ambiguous receiver type, test it.
+
+Expected:
+
+```text
+preserve ambiguity or unresolved state
+```
+
+Never choose an arbitrary type.
+
+---
+
+# Stage 3 — Capability Matrix
+
+Before authorizing implementation, produce a matrix like:
+
+| Receiver form         | Receiver symbol known? | Static type available? | Canonical type resolvable? | Member target resolvable? |
+| --------------------- | ---------------------- | ---------------------- | -------------------------- | ------------------------- |
+| field                 | yes/no                 | yes/no                 | yes/no                     | yes/no                    |
+| local object          |                        |                        |                            |                           |
+| reference             |                        |                        |                            |                           |
+| pointer               |                        |                        |                            |                           |
+| implicit `this`       |                        |                        |                            |                           |
+| unresolved expression |                        |                        |                            |                           |
+
+This is a decision gate.
+
+Classify each category as:
+
+```text
+A. Safely implementable with existing semantic data
+B. Implementable with one narrow local extension
+C. Requires broader type inference
+D. Inconclusive
+```
+
+Only A and possibly narrowly justified B categories may proceed to implementation in Phase 8b.
+
+---
+
+# Stage 4 — Define the Narrow Resolution Rule
+
+If implementation is justified, define the rule before coding.
+
+The preferred conceptual rule is:
+
+```text
+member call:
+    receiver.member(args)
+or
+    receiver->member(args)
+
+1. resolve receiver symbol
+2. obtain receiver's declared/static type
+3. resolve that type to one canonical class/struct identity
+4. search member candidates within that type
+5. resolve only when the member target is unambiguous
+6. otherwise preserve unresolved/ambiguous behavior
+```
+
+Do not use:
+
+```text
+global member-name match
+first matching method
+suffix-only method guessing
+source-order preference
+```
+
+Receiver type must constrain the member search.
+
+---
+
+# Stage 5 — Reuse Existing Semantic Infrastructure
+
+Prefer existing symbol/type infrastructure over creating a separate C++ type system.
+
+Before adding new data structures, search for existing support for:
+
+```text
+variable declared type
+field declared type
+parameter type
+reference/pointer base type
+canonical type FQN
+class/struct symbol identity
+```
+
+Reuse existing declaration/definition canonicalization where applicable.
+
+Avoid implementing command-specific member resolution independently in:
+
+```text
+callers
+callees
+references
+```
+
+The relationship commands should share the semantic resolution result.
+
+---
+
+# Stage 6 — Overload Boundary
+
+Overloads require special care.
+
+Fixture:
+
+```cpp
+struct Validator {
+    void validate();
+    void validate(int);
+};
+```
+
+Do not claim Phase 8b supports general overload resolution unless argument information already makes selection deterministic using existing infrastructure.
+
+If current semantic data cannot safely choose among overloads:
+
+```text
+receiver type known
+member name known
+multiple overload candidates
+```
+
+then preserve ambiguity or the existing unresolved behavior.
+
+It is acceptable for Phase 8b to resolve:
+
+```text
+type + member name
+```
+
+only when that combination identifies one canonical member.
+
+Do not expand scope merely to make the overload fixture pass.
+
+---
+
+# Stage 7 — Implement the Smallest Shared Change
+
+If the capability matrix supports implementation, modify the narrowest shared semantic layer that can improve:
+
+```text
+callers
+callees
+references
+```
+
+together.
+
+Expected architecture:
+
+```text
+member call
+→ receiver symbol/type resolution
+→ canonical receiver type
+→ member lookup constrained by type
+→ existing relationship indexing
+```
+
+Avoid command-specific patches.
+
+The implementation should fail closed:
+
+```text
+type unknown
+→ unresolved
+
+type ambiguous
+→ unresolved/ambiguity
+
+member ambiguous
+→ unresolved/ambiguity
+```
+
+Never fall back to broad same-name resolution.
+
+---
+
+# Stage 8 — Unit / Semantic Tests
+
+Add focused tests for every implemented receiver category.
+
+At minimum verify:
+
+```text
+field object
+local object
+reference
+pointer
+same member name on unrelated types
+unresolved receiver
+ambiguous member candidate
+```
+
+If a category remains unsupported, add a regression test proving that it remains safely unresolved rather than incorrectly linked.
+
+The goal is not maximum resolution coverage.
+
+The goal is:
+
+```text
+more correct relationships
+without false relationships
+```
+
+---
+
+# Stage 9 — Cross-Command Guards
+
+For each supported receiver category, verify behavior through all relevant commands.
+
+## Callers
+
+Query the canonical member:
+
+```text
+callers Validator::validate
+```
+
+Expected:
+
+```text
+functions containing correctly typed receiver calls
+```
+
+---
+
+## References
+
+Query the canonical member:
+
+```text
+references Validator::validate
+```
+
+Expected:
+
+```text
+member-call references included
+```
+
+with no references from unrelated receiver types.
+
+---
+
+## Callees
+
+Query a function containing:
+
+```cpp
+validator.validate();
+```
+
+Expected:
+
+```text
+Validator::validate
+```
+
+in its callees.
+
+---
+
+# Stage 10 — Reproduce the Phase 7f Failures
+
+Replay the exact motivating fixtures/tasks.
+
+At minimum validate cases equivalent to:
+
+```text
+token_.validate(...)
+validator_.validate(...)
+```
+
+Record before and after:
 
 ```text
 relationship command
-→ shared target resolver
-→ exact resolution
-→ unique suffix fallback
-→ existing relationship implementation
-```
-
-The semantic rule should be defined once and reused consistently.
-
-Avoid duplicate suffix-resolution logic across commands.
-
----
-
-# Stage 1 — Inspect Existing Resolution Path
-
-Before modifying code:
-
-1. Identify the shared target-resolution function used by:
-
-   * callers
-   * callees
-   * references
-
-2. Confirm:
-
-   * exact FQN behavior
-   * unqualified-name behavior
-   * declaration/definition collapse behavior
-   * ambiguity representation
-   * not-found behavior
-
-3. Document the current resolution flow briefly.
-
-Do not change code until the exact boundary is understood.
-
----
-
-# Stage 2 — Add Resolver-Level Tests First
-
-Add focused tests covering at least the following cases.
-
-## Case A — Exact FQN
-
-Workspace:
-
-```text
-auth::AuthToken::expire
-```
-
-Query:
-
-```text
-auth::AuthToken::expire
-```
-
-Expected:
-
-```text
-exact match
-```
-
-No suffix fallback should change the result.
-
----
-
-## Case B — Unique partial FQN suffix
-
-Workspace:
-
-```text
-auth::AuthToken::expire
-```
-
-Query:
-
-```text
-AuthToken::expire
-```
-
-Expected:
-
-```text
-auth::AuthToken::expire
-```
-
----
-
-## Case C — Ambiguous suffix
-
-Workspace:
-
-```text
-auth::AuthToken::expire
-legacy::AuthToken::expire
-```
-
-Query:
-
-```text
-AuthToken::expire
-```
-
-Expected:
-
-```text
-ambiguity preserved
-```
-
-Do not choose either candidate.
-
----
-
-## Case D — Declaration/definition duplicate
-
-Workspace contains declaration and definition for:
-
-```text
-auth::AuthToken::expire
-```
-
-Query:
-
-```text
-AuthToken::expire
-```
-
-Expected:
-
-```text
-one canonical identity
-```
-
-Do not report false ambiguity.
-
----
-
-## Case E — No suffix match
-
-Workspace contains no matching canonical suffix.
-
-Query:
-
-```text
-AuthToken::expire
-```
-
-Expected:
-
-```text
-existing not-found behavior
-```
-
----
-
-## Case F — Exact match plus suffix candidate
-
-Workspace:
-
-```text
-AuthToken::expire
-auth::AuthToken::expire
-```
-
-Query:
-
-```text
-AuthToken::expire
-```
-
-Expected:
-
-```text
-exact AuthToken::expire
-```
-
-This test is important for precedence.
-
----
-
-# Stage 3 — Relationship Command Guards
-
-Verify the new resolver through all commands that share it:
-
-```text
-callers
-callees
-references
-```
-
-At minimum, prove that:
-
-```text
-unique suffix
-→ same target selected consistently
-```
-
-for each command.
-
-Also prove that:
-
-```text
-ambiguous suffix
-→ no arbitrary resolution
-```
-
-for each affected command or at the shared resolver level if command tests would be redundant.
-
----
-
-# Stage 4 — Replay the Observed Phase 7f Recoveries
-
-Replay the exact or equivalent tasks that previously produced:
-
-```text
-relationship short-qualified-name
-→ failure
-→ search
-→ relationship full-FQN
-```
-
-The key Phase 8a behavioral target is:
-
-```text
-relationship short-qualified-name
-→ success
-```
-
-without the intermediate resolution search and retry.
-
-For each replay record:
-
-```text
-before trajectory
-after trajectory
+target
+returned set
 AST calls
-AST failures
+failures
 retries
+tools
 tokens
 elapsed
-correctness
-returned relationship set
 ```
 
-The returned semantic answers must remain equivalent.
+The primary semantic criterion is:
+
+```text
+previously missing valid relationship
+→ now present
+```
+
+without introducing false positives.
 
 ---
 
-# Stage 5 — Targeted Agent-Level Validation
+# Stage 11 — False-Positive Guards
 
-Repeat at minimum the relationship-sensitive tasks identified by Phase 7f, including:
+False relationships are more dangerous than unresolved relationships.
 
-```text
-level2-008
-level3-008
+Create explicit negative tests.
+
+Examples:
+
+```cpp
+struct AuthToken {
+    void validate();
+};
+
+struct ValidationService {
+    void validate();
+};
 ```
 
-Use semantic routing.
+Then ensure:
 
-Prefer repeated runs because Phase 7 showed substantial trajectory variance.
+```text
+token_.validate()
+```
+
+does not resolve to:
+
+```text
+ValidationService::validate
+```
+
+and vice versa.
+
+Also test two namespaces containing similarly named types where practical.
+
+Phase 8b must remain conservative.
+
+---
+
+# Stage 12 — Targeted Agent-Level Validation
+
+After semantic tests pass, replay existing evaluation tasks that previously suffered from empty member relationships.
+
+Use the accepted Phase 8a Skill and resolver unchanged.
+
+Force semantic routing for causal comparison if needed.
 
 Recommended:
 
@@ -568,92 +696,15 @@ Recommended:
 5 runs per task
 ```
 
-If a task still shows meaningful variance, extend to:
+Extend to:
 
 ```text
 10 runs
 ```
 
-Do not interpret a single agent run as causal evidence.
+for highly variable tasks.
 
----
-
-# Stage 6 — Guard Against Regressions
-
-Run targeted guards covering:
-
-```text
-exact fully qualified target
-unique partial FQN
-ambiguous partial FQN
-unqualified target
-declaration/definition duplicate
-not-found target
-```
-
-Also run existing relationship-command tests.
-
-If practical, include tasks previously known to use:
-
-```text
-search → callers
-search → callees
-search → references
-```
-
-and verify that valid existing flows remain valid.
-
----
-
-# Causal Success Criterion
-
-The intended improvement is very specific.
-
-Before:
-
-```text
-callers AuthToken::expire
-→ failure
-→ search expire
-→ callers auth::AuthToken::expire
-```
-
-After:
-
-```text
-callers AuthToken::expire
-→ success
-```
-
-A successful Phase 8a should show:
-
-```text
-one relationship call per uniquely resolvable target
-```
-
-instead of:
-
-```text
-failed relationship
-+ resolution search
-+ relationship retry
-```
-
-while preserving:
-
-```text
-correctness
-relationship answers
-exact-match precedence
-ambiguity behavior
-not-found behavior
-```
-
----
-
-# Metrics
-
-Record at minimum:
+Record:
 
 ```text
 success
@@ -661,7 +712,6 @@ tools
 AST calls
 AST failures
 retries
-help
 search
 callers
 callees
@@ -671,100 +721,172 @@ glob
 read
 tokens
 elapsed
+recovery
+```
+
+Also compare trajectory shape.
+
+Example target improvement:
+
+```text
+Before:
+relationship returns empty
+→ source inspection / fallback
+
+After:
+relationship returns populated result
+→ targeted edit/work
+```
+
+---
+
+# Stage 13 — Evaluate Information Value
+
+Do not accept Phase 8b solely because more relationships are returned.
+
+For each changed task, ask:
+
+```text
+Did the newly resolved relationship:
+- eliminate manual exploration?
+- reduce Reads?
+- reduce retries?
+- improve correctness?
+- reduce tokens?
+- reduce elapsed time?
+```
+
+It is possible for semantic correctness to improve without immediate token savings.
+
+That can still justify the capability if the relationship result is demonstrably more correct and useful.
+
+But report the tradeoff clearly.
+
+---
+
+# Metrics
+
+Record at minimum:
+
+```text
+success
+relationship answer accuracy
+false-positive count
+false-negative count in fixtures
+tools
+AST calls
+AST failures
+retries
+help
+search
+find
+callers
+callees
+references
+grep
+glob
+read
+bash
+edit
+tokens
+elapsed
 recovery mean/max
 ```
 
-For targeted replays, also record:
+For fixture-level semantic validation, report:
 
 ```text
-relationship target
-resolved canonical FQN
-number of candidates
-whether suffix fallback was used
+expected relationships
+actual relationships
+missing relationships
+unexpected relationships
 ```
 
-if this can be observed without adding production-only diagnostic behavior.
+---
+
+# Primary Acceptance Criterion
+
+Phase 8b succeeds only if receiver-constrained resolution improves relationship correctness without creating false relationships.
+
+The highest-priority criterion is:
+
+```text
+precision before recall
+```
+
+A valid unresolved relationship is preferable to an incorrect relationship.
 
 ---
 
 # Acceptance Criteria
 
-Phase 8a may be accepted only if all of the following hold.
+## Correct receiver types resolve correctly
 
-## Correctness preserved
-
-Existing validators and semantic answers remain correct.
+Supported field/local/reference/pointer cases must resolve to the expected canonical member.
 
 ---
 
-## Exact behavior preserved
+## Same-name unrelated methods stay separate
 
-Exact FQN resolution still has precedence.
-
----
-
-## Ambiguity preserved
-
-Multiple suffix matches do not silently select one target.
+Receiver type must prevent cross-type contamination.
 
 ---
 
-## Canonical duplicates handled
+## Unresolved receivers remain safe
 
-Declaration/definition duplicates do not create false ambiguity.
-
----
-
-## Observed recovery removed
-
-The Phase 7f three-call relationship-resolution protocol is eliminated in the targeted cases.
+Unknown receiver type must not trigger broad member-name matching.
 
 ---
 
-## Agent-level cost improves directionally
+## Relationship commands agree
 
-The targeted agent runs should show lower:
+Where applicable:
 
 ```text
-AST calls
-retries
-elapsed
+callers
+references
+callees
 ```
 
-and preferably lower:
-
-```text
-tools
-tokens
-```
-
-The primary causal expectation is fewer semantic calls and failures.
-
-Do not require every stochastic metric to improve in every run.
+must reflect the same canonical member identity.
 
 ---
 
-## No unrelated semantic changes
+## Phase 8a remains unchanged
 
-Member receiver resolution and other semantic behavior remain unchanged.
+All Phase 8a target-resolution tests must continue to pass.
+
+---
+
+## Existing relationship behavior is preserved
+
+No systematic regression in already-correct direct function relationships.
+
+---
+
+## Agent-level usefulness is demonstrated
+
+At least one motivating task should show a newly useful semantic relationship at agent level.
+
+Prefer evidence of reduced fallback/manual exploration, but semantic correctness itself is the primary gate.
 
 ---
 
 # Possible Decisions
 
-Choose one final decision.
+Choose one final result.
 
-## ACCEPT PHASE 8A
+## ACCEPT PHASE 8B
 
 Use when:
 
 ```text
-unique suffix resolution works
-exact/ambiguity behavior is preserved
-targeted recovery disappears
-relationship answers are unchanged
+receiver-type resolution is narrow and deterministic
+member relationships become correct
+false-positive guards pass
+Phase 8a remains stable
 and
-no systematic regression is observed
+agent-level usefulness is demonstrated
 ```
 
 ---
@@ -774,30 +896,42 @@ no systematic regression is observed
 Use when:
 
 ```text
-semantic behavior is correct
+semantic correctness clearly improves
 and
-the recovery protocol is removed
+false positives are controlled
 but
-agent-level token/time savings are noisy
+coverage is intentionally limited
+or
+agent-level cost savings are noisy
 ```
 
-This is acceptable if the command-level causal improvement is clear.
+Document the supported receiver categories explicitly.
+
+---
+
+## PARTIAL ACCEPT
+
+Use when only a strict subset is safely supported.
+
+For example:
+
+```text
+field receiver       supported
+local object         supported
+reference            supported
+pointer              unsupported
+overloads            unsupported
+```
+
+This is preferable to overextending the implementation.
 
 ---
 
 ## REVISE
 
-Use when:
+Use when the architecture is sound but one narrow reproducible issue remains.
 
-```text
-the approach is fundamentally correct
-but
-one specific reproducible edge case remains
-```
-
-Identify the exact case.
-
-Do not broaden the resolver generically.
+Do not broaden the type system generically.
 
 ---
 
@@ -806,81 +940,29 @@ Do not broaden the resolver generically.
 Use when:
 
 ```text
-suffix fallback introduces ambiguity errors
-changes exact-match behavior
-returns wrong relationships
+false relationships appear
+ambiguity is silently collapsed
+Phase 8a behavior regresses
 or
-creates systematic regression
+the implementation requires broad C++ type inference
 ```
 
 ---
 
-# Important Failure Modes to Avoid
+# Stop Conditions
 
-## 1. Arbitrary fuzzy matching
-
-Do not implement:
+Stop implementation and report instead if any of the following becomes necessary:
 
 ```text
-substring search
-edit distance
-best effort
-first match
+full overload resolution
+template instantiation
+dynamic type inference
+virtual dispatch modeling
+major AST IR redesign
+general C++ type checker
 ```
 
-Resolution must remain deterministic and semantic.
-
----
-
-## 2. Silently resolving ambiguity
-
-Never choose a candidate merely because it appears first.
-
----
-
-## 3. Expanding into receiver-type resolution
-
-Do not fix:
-
-```text
-object.member()
-```
-
-relationship resolution in this phase.
-
-That would destroy causal isolation.
-
----
-
-## 4. Changing Skill guidance
-
-Do not teach the agent to rely on suffix resolution by changing SKILL.md during this experiment.
-
-The command should first prove that its semantics are safe.
-
----
-
-## 5. Adding a new command
-
-Do not create:
-
-```text
-resolve-callers
-smart-callers
-search-callers
-```
-
-or similar.
-
-The Phase 7f evidence supports improving the existing relationship resolver.
-
----
-
-## 6. Optimizing only AST call count
-
-A lower AST call count is useful only if semantic correctness and ambiguity handling remain sound.
-
-The optimization target remains the Coding Agent as a whole.
+Such a finding is valuable evidence that the capability belongs in a larger future phase.
 
 ---
 
@@ -890,99 +972,112 @@ Use:
 
 ```text
 strong:
-    repeated targeted agent behavior
-    + resolver-level tests
+    deterministic fixture tests
+    + repeated agent-level replay
+    + explicit false-positive guards
 
 moderate:
-    repeated semantic traces across multiple tasks
+    repeated behavior across several fixtures/tasks
 
 weak:
-    one agent run
+    one agent trace
 
 insufficient:
-    aggregate improvement without trajectory evidence
+    plausible source-level reasoning without reproduced behavior
 ```
 
-Implementation correctness alone is not enough.
-
-Agent-level replay is required.
+Do not accept broad receiver-resolution semantics from weak evidence.
 
 ---
 
 # Deliverables
 
-Produce a final Phase 8a report containing:
+Produce a final Phase 8b report containing:
 
 ```text
-1. Environment and revision
+1. Environment and revisions
 
-2. Baseline Skill / AST Tool verification
+2. Phase 8a baseline verification
 
-3. Existing resolver behavior
+3. Current member-resolution flow
 
-4. Exact implementation change
+4. Typed receiver capability matrix
 
-5. Resolver-level test matrix
+5. Authorized implementation scope
 
-6. Relationship-command regression tests
+6. Exact semantic change
 
-7. Before/after observed recovery trajectories
+7. Fixture/test matrix
 
-8. Targeted repeated agent results
+8. Supported receiver categories
 
-9. Aggregate metrics
+9. Unsupported receiver categories
 
-10. Exact-match precedence assessment
+10. Cross-command callers/callees/references results
 
-11. Ambiguity assessment
+11. False-positive guards
 
-12. Declaration/definition canonicalization assessment
+12. Before/after motivating relationship results
 
-13. Regressions or outliers
+13. Targeted repeated agent results
 
-14. Final decision
+14. Tool/token/recovery metrics
 
-15. Recommendation for Phase 8b
+15. Overload and ambiguity assessment
+
+16. Regressions/outliers
+
+17. Final decision
+
+18. Recommendation for the next Phase 8 step
 ```
 
 Keep raw measurements separate from interpretation.
 
 ---
 
-# Phase 8b Gate
+# Recommendation Gate for the Next Phase
 
-Do not automatically proceed to receiver-type member resolution.
+Do not automatically expand Phase 8b after success.
 
-After Phase 8a, decide separately whether the broader Phase 7f limitation justifies Phase 8b:
+After the report, separately decide whether evidence supports work on:
 
 ```text
-member call through receiver type
-→ callers / references / callees relationship resolution
+overload-aware member resolution
+implicit-this member calls
+more complex receiver expressions
+declaration/definition identity metadata
 ```
 
-Phase 8b is justified only if Phase 8a is stable and the member-resolution limitation remains reproducible and important.
+Each should require its own repeated failure pattern.
+
+A successful Phase 8b should not become an open-ended C++ semantic engine project.
 
 ---
 
 # Working Principle
 
-Phase 8a continues the methodology established in Phase 7:
+Continue the established methodology:
 
 ```text
 stable baseline
-→ isolate one reproducible inefficiency
-→ modify one semantic behavior
-→ test resolver semantics
-→ replay exact failing trajectories
-→ repeated agent-level validation
-→ accept only on causal evidence
+→ reproduce one semantic limitation
+→ characterize available information
+→ define a narrow safe capability
+→ fixture-first tests
+→ implement one shared behavior
+→ false-positive guards
+→ replay exact motivating cases
+→ repeated agent validation
+→ expand only on new evidence
 ```
 
-The isolated Phase 8a behavior is:
+For Phase 8b, the isolated capability is:
 
 ```text
-unique FQN-suffix fallback
-for relationship target resolution
+receiver static type
+→ canonical member identity
+→ callers / callees / references
 ```
 
-Nothing else.
+only when that resolution is unambiguous and conservative.

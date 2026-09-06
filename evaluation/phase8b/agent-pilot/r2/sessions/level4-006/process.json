@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "The diagnostic is a clang driver warning unrelated to this change (it's a pre-existing environment issue with the header being parsed as C). The three edits are complete:\n\n- **Declaration** (`validation_service.h:8`): `validate` \u2192 `validatePayload`\n- **Definition** (`validation_service.cpp:6`): `validate` \u2192 `validatePayload`\n- **Caller** (`request_processor.cpp:13`): `validator_.validate(payload)` \u2192 `validator_.validatePayload(payload)`\n\n`store::DatabaseStore::validate` and `jobs::CronJob::validate` were not touched.\n",
+  "fresh_logs": 1
+}

@@ -64,13 +64,11 @@ def test_missing_partial_fqn_stays_not_found():
     assert "symbol not found" in result.stderr
 
 
-def test_member_receiver_resolution_is_unchanged():
-    result = run(
-        "callers", "AuthToken::validate", "evaluation/repositories/level2-auth"
+def test_phase8a_partial_target_resolution_survives_member_resolution():
+    assert_partial_equals_exact(
+        "callers", "AuthToken::validate", "auth::AuthToken::validate",
+        "evaluation/repositories/level2-auth",
     )
-    assert result.returncode == 0
-    assert not result.stdout.strip()
-    assert "no callers found" in result.stderr
 
 
 def test_controlled_agent_dataset_is_complete_and_recovery_free():

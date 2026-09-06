@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. The debug line was added immediately before all 4 direct call sites of `AuthToken::validate`:\n\n| File | Caller | Line |\n|------|--------|------|\n| `src/auth/auth_service.cpp` | `auth::AuthService::login` | before `:14` |\n| `src/web/auth_controller.cpp` | `web::AuthController::handleLogin` | before `:13` |\n| `src/web/auth_controller.cpp` | `web::AuthController::handleRefresh` | before `:26` |\n| `src/web/session_controller.cpp` | `web::SessionController::handle` | before `:12` |\n",
+  "fresh_logs": 1
+}
