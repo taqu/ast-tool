@@ -409,6 +409,20 @@ namespace
         return ok;
     }
 
+    bool test_unique_suffix_references()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kRefRoot);
+        auto candidates = cli::resolve_symbol_query(ws, u8"inner::suffixRefTarget");
+        ok &= check(candidates.size() == 1, "partial FQN resolves one references target");
+        if(candidates.size() != 1) return false;
+        ok &= check(candidates[0]->symbol.fqn == u8"suffixref::inner::suffixRefTarget",
+                    "references selected the canonical suffix target");
+        auto refs = FindReferences(ws).find(*candidates[0]);
+        ok &= check(refs.size() == 1, "suffix-resolved target has one reference");
+        return ok;
+    }
+
     struct TestCase { const char* name; bool(*fn)(); };
 
 } // namespace
@@ -441,6 +455,7 @@ bool run_tests_references()
         {"owningScope set for namespace-member reference", test_owning_scope_namespace},
         // Declaration/definition deduplication
         {"decl/def: references work across decl+def",     test_decl_def_references},
+        {"resolver: unique suffix works for references", test_unique_suffix_references},
     };
 
     std::cout << "=== find references tests ===\n";

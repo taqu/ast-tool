@@ -172,6 +172,71 @@ namespace
         return ok;
     }
 
+    WorkspaceSymbol make_symbol(std::u8string_view fqn, SymbolKind kind)
+    {
+        WorkspaceSymbol result;
+        result.symbol.fqn = fqn;
+        const size_t separator = fqn.rfind(u8"::");
+        result.symbol.name = separator == std::u8string_view::npos
+            ? fqn : fqn.substr(separator + 2);
+        result.symbol.kind = kind;
+        return result;
+    }
+
+    // -----------------------------------------------------------------------
+    // Relationship target resolution: exact FQN first, then unique FQN suffix.
+
+    bool test_qualified_suffix_resolution_matrix()
+    {
+        bool ok = true;
+
+        Workspace unique;
+        unique.symbols.push_back(make_symbol(u8"auth::AuthToken::expire", SymbolKind::Method));
+
+        auto exact = cli::resolve_symbol_query(unique, u8"auth::AuthToken::expire");
+        ok &= check(exact.size() == 1 && exact[0]->symbol.fqn == u8"auth::AuthToken::expire",
+                    "exact FQN resolves unchanged");
+
+        auto suffix = cli::resolve_symbol_query(unique, u8"AuthToken::expire");
+        ok &= check(suffix.size() == 1 && suffix[0]->symbol.fqn == u8"auth::AuthToken::expire",
+                    "unique partial FQN resolves by qualified-name suffix");
+
+        auto missing = cli::resolve_symbol_query(unique, u8"MissingToken::expire");
+        ok &= check(missing.empty(), "missing partial FQN preserves not-found behavior");
+
+        Workspace ambiguous;
+        ambiguous.symbols.push_back(make_symbol(u8"auth::AuthToken::expire", SymbolKind::Method));
+        ambiguous.symbols.push_back(make_symbol(u8"legacy::AuthToken::expire", SymbolKind::Method));
+        auto multiple = cli::resolve_symbol_query(ambiguous, u8"AuthToken::expire");
+        ok &= check(multiple.size() == 2, "ambiguous FQN suffix preserves both candidates");
+
+        Workspace duplicate;
+        duplicate.symbols.push_back(make_symbol(u8"auth::AuthToken::expire", SymbolKind::Method));
+        duplicate.symbols.push_back(make_symbol(u8"auth::AuthToken::expire", SymbolKind::Function));
+        auto canonical = cli::resolve_symbol_query(duplicate, u8"AuthToken::expire");
+        ok &= check(canonical.size() == 1 && canonical[0]->symbol.kind == SymbolKind::Method,
+                    "suffix resolution collapses declaration/definition duplicates");
+
+        Workspace precedence;
+        precedence.symbols.push_back(make_symbol(u8"AuthToken::expire", SymbolKind::Method));
+        precedence.symbols.push_back(make_symbol(u8"auth::AuthToken::expire", SymbolKind::Method));
+        auto preferred = cli::resolve_symbol_query(precedence, u8"AuthToken::expire");
+        ok &= check(preferred.size() == 1 && preferred[0]->symbol.fqn == u8"AuthToken::expire",
+                    "exact FQN has precedence over suffix candidates");
+
+        Workspace boundary;
+        boundary.symbols.push_back(make_symbol(u8"auth::SomeAuthToken::expire", SymbolKind::Method));
+        auto bounded = cli::resolve_symbol_query(boundary, u8"AuthToken::expire");
+        ok &= check(bounded.empty(), "suffix matching requires a qualified-name boundary");
+
+        Workspace unqualified;
+        unqualified.symbols.push_back(make_symbol(u8"auth::AuthToken::expire", SymbolKind::Method));
+        unqualified.symbols.push_back(make_symbol(u8"legacy::OtherToken::expire", SymbolKind::Method));
+        auto byName = cli::resolve_symbol_query(unqualified, u8"expire");
+        ok &= check(byName.size() == 2, "unqualified-name behavior is unchanged");
+        return ok;
+    }
+
     // -----------------------------------------------------------------------
     // Text rendering — compact, actionable, no oversized dumps
 
@@ -384,6 +449,7 @@ bool run_tests_error_ux()
         {"ambiguous: unqualified query",                    test_ambiguous_unqualified},
         {"ambiguous: already-qualified query",              test_ambiguous_already_qualified},
         {"ambiguous: candidate list is bounded",            test_ambiguous_candidates_bounded},
+        {"resolver: qualified suffix semantics",            test_qualified_suffix_resolution_matrix},
         {"text render: symbol not found",                   test_render_text_symbol_not_found},
         {"text render: unknown option, no help dump",       test_render_text_unknown_option_no_help_dump},
         {"text render: invalid arguments, usage only",      test_render_text_invalid_arguments_usage_only},

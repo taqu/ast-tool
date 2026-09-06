@@ -394,6 +394,18 @@ namespace
         return ok;
     }
 
+    bool test_unique_suffix_callees()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        auto candidates = cli::resolve_symbol_query(ws, u8"inner::suffixCeSource");
+        ok &= check(candidates.size() == 1, "partial FQN resolves one callees target");
+        if(candidates.size() != 1) return false;
+        ok &= check(candidates[0]->symbol.fqn == u8"suffixce::inner::suffixCeSource",
+                    "callees selected the canonical suffix target");
+        return ok;
+    }
+
     struct TestCase { const char* name; bool(*fn)(); };
 
 } // namespace
@@ -415,6 +427,7 @@ bool run_tests_callees()
         {"cross-file callee",                               test_cross_file_callee},
         {"result ordering within function",                 test_result_ordering},
         {"decl/def: callees work across decl+def",          test_decl_def_callees},
+        {"resolver: unique suffix works for callees",       test_unique_suffix_callees},
     };
 
     std::cout << "=== callees tests ===\n";

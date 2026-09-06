@@ -377,6 +377,20 @@ namespace
         return ok;
     }
 
+    bool test_unique_suffix_callers()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCalRoot);
+        auto candidates = cli::resolve_symbol_query(ws, u8"inner::suffixCalTarget");
+        ok &= check(candidates.size() == 1, "partial FQN resolves one callers target");
+        if(candidates.size() != 1) return false;
+        ok &= check(candidates[0]->symbol.fqn == u8"suffixcal::inner::suffixCalTarget",
+                    "callers selected the canonical suffix target");
+        auto sites = Callers(ws).find(*candidates[0]);
+        ok &= check(sites.size() == 1, "suffix-resolved target has one caller");
+        return ok;
+    }
+
     struct TestCase { const char* name; bool(*fn)(); };
 
 } // namespace
@@ -398,6 +412,7 @@ bool run_tests_callers()
         {"decl/def: no ambiguity for out-of-line method", test_decl_def_no_ambiguity},
         {"decl/def: callers work across decl+def",       test_decl_def_callers},
         {"decl/def: constructor resolves to 1 candidate", test_decl_def_constructor},
+        {"resolver: unique suffix works for callers",     test_unique_suffix_callers},
     };
 
     std::cout << "=== callers tests ===\n";

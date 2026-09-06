@@ -63,9 +63,29 @@ std::vector<const WorkspaceSymbol*> resolve_symbol_query(
     std::u8string_view q{query};
     std::vector<const WorkspaceSymbol*> raw;
     bool byFqn = q.find(u8"::") != std::u8string_view::npos;
-    for(const WorkspaceSymbol& sym : ws.symbols) {
-        if(byFqn ? sym.symbol.fqn == q : sym.symbol.name == q) {
-            raw.push_back(&sym);
+    if(byFqn) {
+        // Preserve exact-FQN precedence.  Only when no exact identity exists
+        // may a partially qualified relationship target fall back to a
+        // qualified-name-boundary suffix match.
+        for(const WorkspaceSymbol& sym : ws.symbols) {
+            if(sym.symbol.fqn == q) {
+                raw.push_back(&sym);
+            }
+        }
+        if(raw.empty()) {
+            std::u8string suffix = u8"::";
+            suffix += q;
+            for(const WorkspaceSymbol& sym : ws.symbols) {
+                if(std::u8string_view{sym.symbol.fqn}.ends_with(suffix)) {
+                    raw.push_back(&sym);
+                }
+            }
+        }
+    } else {
+        for(const WorkspaceSymbol& sym : ws.symbols) {
+            if(sym.symbol.name == q) {
+                raw.push_back(&sym);
+            }
         }
     }
     if(raw.size() <= 1) return raw;

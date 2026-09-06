@@ -1,0 +1,951 @@
+{
+  "environment": {
+    "revision": "ccc1fbb650bf058aa11602134d4e4fa1795cb98e",
+    "branch": "features/phase8a",
+    "skill_sha256": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+    "installed_skill_sha256": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+    "workspace_binary_sha256": "68d5154a86b6afb0142c3a12906a88b715accfb0a2f5a6fe63254d0de6ec16d1"
+  },
+  "agent_runs": [
+    {
+      "task_id": "level2-008",
+      "task_level": 2,
+      "agent": "claude",
+      "repository": "repositories/level2-auth",
+      "success": true,
+      "validation_success": true,
+      "elapsed_seconds": 32.32,
+      "total_tool_calls": 4,
+      "tools": {
+        "Skill": 1,
+        "Bash": 1,
+        "Read": 1,
+        "Edit": 1
+      },
+      "bash_calls": 1,
+      "read_calls": 1,
+      "edit_calls": 1,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 1,
+      "ast_tool_successes": 1,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:callers",
+        "Read",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 14,
+      "output_tokens": 1215,
+      "total_tokens": 1229,
+      "repeat": 1,
+      "trajectory": "callers",
+      "ast_executable_invocations": 1
+    },
+    {
+      "task_id": "level3-008",
+      "task_level": 3,
+      "agent": "claude",
+      "repository": "repositories/level3-pipeline",
+      "success": true,
+      "validation_success": true,
+      "elapsed_seconds": 52.07,
+      "total_tool_calls": 7,
+      "tools": {
+        "Skill": 1,
+        "Bash": 2,
+        "Read": 2,
+        "Edit": 2
+      },
+      "bash_calls": 2,
+      "read_calls": 2,
+      "edit_calls": 2,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 2,
+      "ast_tool_successes": 2,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "search": 1,
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:search",
+        "ast-tool:callers",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "search",
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 18,
+      "output_tokens": 2367,
+      "total_tokens": 2385,
+      "repeat": 1,
+      "trajectory": "search\u2192callers",
+      "ast_executable_invocations": 3
+    },
+    {
+      "task_id": "level2-008",
+      "task_level": 2,
+      "agent": "claude",
+      "repository": "repositories/level2-auth",
+      "success": true,
+      "validation_success": true,
+      "elapsed_seconds": 38.07,
+      "total_tool_calls": 5,
+      "tools": {
+        "Skill": 1,
+        "Bash": 2,
+        "Read": 1,
+        "Edit": 1
+      },
+      "bash_calls": 2,
+      "read_calls": 1,
+      "edit_calls": 1,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 2,
+      "ast_tool_successes": 2,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "search": 1,
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:search",
+        "ast-tool:callers",
+        "Read",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "search",
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 15,
+      "output_tokens": 1294,
+      "total_tokens": 1309,
+      "repeat": 2,
+      "trajectory": "search\u2192callers",
+      "ast_executable_invocations": 2
+    },
+    {
+      "task_id": "level3-008",
+      "task_level": 3,
+      "agent": "claude",
+      "repository": "repositories/level3-pipeline",
+      "success": true,
+      "validation_success": true,
+      "elapsed_seconds": 49.36,
+      "total_tool_calls": 8,
+      "tools": {
+        "Skill": 1,
+        "Bash": 3,
+        "Read": 2,
+        "Edit": 2
+      },
+      "bash_calls": 3,
+      "read_calls": 2,
+      "edit_calls": 2,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 2,
+      "ast_tool_successes": 2,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "callers": 2
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "Bash",
+        "ast-tool:callers",
+        "ast-tool:callers",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "callers",
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 19,
+      "output_tokens": 2893,
+      "total_tokens": 2912,
+      "repeat": 2,
+      "trajectory": "callers\u2192callers",
+      "ast_executable_invocations": 3
+    },
+    {
+      "task_id": "level2-008",
+      "task_level": 2,
+      "agent": "claude",
+      "repository": "repositories/level2-auth",
+      "success": true,
+      "validation_success": true,
+      "elapsed_seconds": 29.12,
+      "total_tool_calls": 4,
+      "tools": {
+        "Skill": 1,
+        "Bash": 1,
+        "Read": 1,
+        "Edit": 1
+      },
+      "bash_calls": 1,
+      "read_calls": 1,
+      "edit_calls": 1,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 1,
+      "ast_tool_successes": 1,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:callers",
+        "Read",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 14,
+      "output_tokens": 1178,
+      "total_tokens": 1192,
+      "repeat": 3,
+      "trajectory": "callers",
+      "ast_executable_invocations": 1
+    },
+    {
+      "task_id": "level3-008",
+      "task_level": 3,
+      "agent": "claude",
+      "repository": "repositories/level3-pipeline",
+      "success": true,
+      "validation_success": true,
+      "elapsed_seconds": 56.88,
+      "total_tool_calls": 9,
+      "tools": {
+        "Skill": 1,
+        "Bash": 4,
+        "Read": 2,
+        "Edit": 2
+      },
+      "bash_calls": 4,
+      "read_calls": 2,
+      "edit_calls": 2,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 3,
+      "ast_tool_successes": 3,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "search": 2,
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:search",
+        "Bash",
+        "ast-tool:search",
+        "ast-tool:callers",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "search",
+        "search",
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 22,
+      "output_tokens": 3685,
+      "total_tokens": 3707,
+      "repeat": 3,
+      "trajectory": "search\u2192search\u2192callers",
+      "ast_executable_invocations": 4
+    },
+    {
+      "task_id": "level2-008",
+      "task_level": 2,
+      "agent": "claude",
+      "repository": "repositories/level2-auth",
+      "success": true,
+      "validation_success": true,
+      "elapsed_seconds": 39.29,
+      "total_tool_calls": 5,
+      "tools": {
+        "Skill": 1,
+        "Bash": 2,
+        "Read": 1,
+        "Edit": 1
+      },
+      "bash_calls": 2,
+      "read_calls": 1,
+      "edit_calls": 1,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 2,
+      "ast_tool_successes": 2,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "search": 1,
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:search",
+        "ast-tool:callers",
+        "Read",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "search",
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 15,
+      "output_tokens": 1313,
+      "total_tokens": 1328,
+      "repeat": 4,
+      "trajectory": "search\u2192callers",
+      "ast_executable_invocations": 2
+    },
+    {
+      "task_id": "level3-008",
+      "task_level": 3,
+      "agent": "claude",
+      "repository": "repositories/level3-pipeline",
+      "success": true,
+      "validation_success": true,
+      "elapsed_seconds": 54.03,
+      "total_tool_calls": 8,
+      "tools": {
+        "Skill": 1,
+        "Bash": 3,
+        "Read": 2,
+        "Edit": 2
+      },
+      "bash_calls": 3,
+      "read_calls": 2,
+      "edit_calls": 2,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 2,
+      "ast_tool_successes": 2,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "callers": 2
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "Bash",
+        "ast-tool:callers",
+        "ast-tool:callers",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "callers",
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 20,
+      "output_tokens": 3241,
+      "total_tokens": 3261,
+      "repeat": 4,
+      "trajectory": "callers\u2192callers",
+      "ast_executable_invocations": 3
+    },
+    {
+      "task_id": "level2-008",
+      "task_level": 2,
+      "agent": "claude",
+      "repository": "repositories/level2-auth",
+      "success": true,
+      "validation_success": true,
+      "elapsed_seconds": 31.19,
+      "total_tool_calls": 4,
+      "tools": {
+        "Skill": 1,
+        "Bash": 1,
+        "Read": 1,
+        "Edit": 1
+      },
+      "bash_calls": 1,
+      "read_calls": 1,
+      "edit_calls": 1,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 1,
+      "ast_tool_successes": 1,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:callers",
+        "Read",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 14,
+      "output_tokens": 1226,
+      "total_tokens": 1240,
+      "repeat": 5,
+      "trajectory": "callers",
+      "ast_executable_invocations": 1
+    },
+    {
+      "task_id": "level3-008",
+      "task_level": 3,
+      "agent": "claude",
+      "repository": "repositories/level3-pipeline",
+      "success": true,
+      "validation_success": true,
+      "elapsed_seconds": 59.45,
+      "total_tool_calls": 11,
+      "tools": {
+        "Skill": 1,
+        "Bash": 4,
+        "Read": 4,
+        "Edit": 2
+      },
+      "bash_calls": 4,
+      "read_calls": 4,
+      "edit_calls": 2,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 3,
+      "ast_tool_successes": 3,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "search": 1,
+        "callers": 2
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "Bash",
+        "ast-tool:search",
+        "Read",
+        "ast-tool:callers",
+        "Read",
+        "ast-tool:callers",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "search",
+        "callers",
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 25,
+      "output_tokens": 3795,
+      "total_tokens": 3820,
+      "repeat": 5,
+      "trajectory": "search\u2192callers\u2192callers",
+      "ast_executable_invocations": 4
+    }
+  ],
+  "task_aggregates": {
+    "level2-008": {
+      "before_runs": 6,
+      "after_runs": 5,
+      "before_means": {
+        "success": 1.0,
+        "total_tool_calls": 5.166666666666667,
+        "ast_tool_calls": 2.1666666666666665,
+        "ast_tool_failures": 0.3333333333333333,
+        "ast_tool_retries": 0.3333333333333333,
+        "ast_tool_help_calls": 0.0,
+        "search_calls": 0.8333333333333334,
+        "find_calls": 0.0,
+        "callers_calls": 1.3333333333333333,
+        "callees_calls": 0.0,
+        "references_calls": 0.0,
+        "grep_calls": 0.0,
+        "glob_calls": 0.0,
+        "read_calls": 1.0,
+        "bash_calls": 2.1666666666666665,
+        "edit_calls": 1.0,
+        "total_tokens": 1302.1666666666667,
+        "elapsed_seconds": 38.59
+      },
+      "after_means": {
+        "success": 1.0,
+        "total_tool_calls": 4.4,
+        "ast_tool_calls": 1.4,
+        "ast_tool_failures": 0.0,
+        "ast_tool_retries": 0.0,
+        "ast_tool_help_calls": 0.0,
+        "search_calls": 0.4,
+        "find_calls": 0.0,
+        "callers_calls": 1.0,
+        "callees_calls": 0.0,
+        "references_calls": 0.0,
+        "grep_calls": 0.0,
+        "glob_calls": 0.0,
+        "read_calls": 1.0,
+        "bash_calls": 1.4,
+        "edit_calls": 1.0,
+        "total_tokens": 1259.6,
+        "elapsed_seconds": 33.998
+      },
+      "after_minus_before": {
+        "success": 0.0,
+        "total_tool_calls": -0.7666666666666666,
+        "ast_tool_calls": -0.7666666666666666,
+        "ast_tool_failures": -0.3333333333333333,
+        "ast_tool_retries": -0.3333333333333333,
+        "ast_tool_help_calls": 0.0,
+        "search_calls": -0.43333333333333335,
+        "find_calls": 0.0,
+        "callers_calls": -0.33333333333333326,
+        "callees_calls": 0.0,
+        "references_calls": 0.0,
+        "grep_calls": 0.0,
+        "glob_calls": 0.0,
+        "read_calls": 0.0,
+        "bash_calls": -0.7666666666666666,
+        "edit_calls": 0.0,
+        "total_tokens": -42.56666666666683,
+        "elapsed_seconds": -4.592000000000006
+      },
+      "before_trajectories": {
+        "callers\u2192search\u2192callers": 2,
+        "search\u2192callers": 3,
+        "callers": 1
+      },
+      "after_trajectories": {
+        "callers": 3,
+        "search\u2192callers": 2
+      },
+      "after_executable_invocations_mean": 1.4,
+      "recovery_mean": null,
+      "recovery_max": null
+    },
+    "level3-008": {
+      "before_runs": 6,
+      "after_runs": 5,
+      "before_means": {
+        "success": 1.0,
+        "total_tool_calls": 9.0,
+        "ast_tool_calls": 2.3333333333333335,
+        "ast_tool_failures": 0.3333333333333333,
+        "ast_tool_retries": 0.3333333333333333,
+        "ast_tool_help_calls": 0.0,
+        "search_calls": 1.0,
+        "find_calls": 0.0,
+        "callers_calls": 1.3333333333333333,
+        "callees_calls": 0.0,
+        "references_calls": 0.0,
+        "grep_calls": 0.0,
+        "glob_calls": 0.0,
+        "read_calls": 2.1666666666666665,
+        "bash_calls": 3.8333333333333335,
+        "edit_calls": 2.0,
+        "total_tokens": 3662.0,
+        "elapsed_seconds": 53.365
+      },
+      "after_means": {
+        "success": 1.0,
+        "total_tool_calls": 8.6,
+        "ast_tool_calls": 2.4,
+        "ast_tool_failures": 0.0,
+        "ast_tool_retries": 0.0,
+        "ast_tool_help_calls": 0.0,
+        "search_calls": 0.8,
+        "find_calls": 0.0,
+        "callers_calls": 1.6,
+        "callees_calls": 0.0,
+        "references_calls": 0.0,
+        "grep_calls": 0.0,
+        "glob_calls": 0.0,
+        "read_calls": 2.4,
+        "bash_calls": 3.2,
+        "edit_calls": 2.0,
+        "total_tokens": 3217.0,
+        "elapsed_seconds": 54.358000000000004
+      },
+      "after_minus_before": {
+        "success": 0.0,
+        "total_tool_calls": -0.40000000000000036,
+        "ast_tool_calls": 0.06666666666666643,
+        "ast_tool_failures": -0.3333333333333333,
+        "ast_tool_retries": -0.3333333333333333,
+        "ast_tool_help_calls": 0.0,
+        "search_calls": -0.19999999999999996,
+        "find_calls": 0.0,
+        "callers_calls": 0.26666666666666683,
+        "callees_calls": 0.0,
+        "references_calls": 0.0,
+        "grep_calls": 0.0,
+        "glob_calls": 0.0,
+        "read_calls": 0.2333333333333334,
+        "bash_calls": -0.6333333333333333,
+        "edit_calls": 0.0,
+        "total_tokens": -445.0,
+        "elapsed_seconds": 0.9930000000000021
+      },
+      "before_trajectories": {
+        "search\u2192callers\u2192callers": 1,
+        "search\u2192search\u2192callers\u2192callers": 1,
+        "callers\u2192search\u2192callers": 2,
+        "none": 1,
+        "search": 1
+      },
+      "after_trajectories": {
+        "search\u2192callers": 1,
+        "callers\u2192callers": 2,
+        "search\u2192search\u2192callers": 1,
+        "search\u2192callers\u2192callers": 1
+      },
+      "after_executable_invocations_mean": 3.4,
+      "recovery_mean": null,
+      "recovery_max": null
+    }
+  },
+  "direct_replays": [
+    {
+      "task": "level2-008",
+      "query": "AuthToken::expire",
+      "canonical_fqn": "auth::AuthToken::expire",
+      "root": "evaluation/repositories/level2-auth",
+      "before_occurrences": 2,
+      "before_trajectory": "callers(partial, failure)\u2192search\u2192callers(exact, success)",
+      "after_trajectory": "callers(partial, success)",
+      "before_ast_calls": 3,
+      "after_ast_calls": 1,
+      "before_failures": 1,
+      "after_failures": 0,
+      "suffix_fallback_used": true,
+      "canonical_candidate_count": 1,
+      "answers_equivalent": true,
+      "relationship_set": [
+        "auth::AuthService::refresh evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:18:12",
+        "web::AuthController::handleLogout evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:21:12"
+      ],
+      "partial_mean_elapsed_seconds": 0.0303388,
+      "exact_mean_elapsed_seconds": 0.0309568,
+      "partial_runs": [
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.032401,
+          "stdout_lines": [
+            "auth::AuthService::refresh evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:18:12",
+            "web::AuthController::handleLogout evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:21:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.031064,
+          "stdout_lines": [
+            "auth::AuthService::refresh evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:18:12",
+            "web::AuthController::handleLogout evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:21:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.028398,
+          "stdout_lines": [
+            "auth::AuthService::refresh evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:18:12",
+            "web::AuthController::handleLogout evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:21:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.027681,
+          "stdout_lines": [
+            "auth::AuthService::refresh evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:18:12",
+            "web::AuthController::handleLogout evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:21:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.03215,
+          "stdout_lines": [
+            "auth::AuthService::refresh evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:18:12",
+            "web::AuthController::handleLogout evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:21:12"
+          ],
+          "stderr_lines": []
+        }
+      ],
+      "exact_runs": [
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.032652,
+          "stdout_lines": [
+            "auth::AuthService::refresh evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:18:12",
+            "web::AuthController::handleLogout evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:21:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.030734,
+          "stdout_lines": [
+            "auth::AuthService::refresh evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:18:12",
+            "web::AuthController::handleLogout evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:21:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.035111,
+          "stdout_lines": [
+            "auth::AuthService::refresh evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:18:12",
+            "web::AuthController::handleLogout evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:21:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.028449,
+          "stdout_lines": [
+            "auth::AuthService::refresh evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:18:12",
+            "web::AuthController::handleLogout evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:21:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.027838,
+          "stdout_lines": [
+            "auth::AuthService::refresh evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:18:12",
+            "web::AuthController::handleLogout evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:21:12"
+          ],
+          "stderr_lines": []
+        }
+      ]
+    },
+    {
+      "task": "level3-008",
+      "query": "DataStore::save",
+      "canonical_fqn": "store::DataStore::save",
+      "root": "evaluation/repositories/level3-pipeline",
+      "before_occurrences": 2,
+      "before_trajectory": "callers(partial, failure)\u2192search\u2192callers(exact, success)",
+      "after_trajectory": "callers(partial, success)",
+      "before_ast_calls": 3,
+      "after_ast_calls": 1,
+      "before_failures": 1,
+      "after_failures": 0,
+      "suffix_fallback_used": true,
+      "canonical_candidate_count": 1,
+      "answers_equivalent": true,
+      "relationship_set": [
+        "job::SyncJob::execute evaluation/repositories/level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+      ],
+      "partial_mean_elapsed_seconds": 0.0346862,
+      "exact_mean_elapsed_seconds": 0.0341648,
+      "partial_runs": [
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.031587,
+          "stdout_lines": [
+            "job::SyncJob::execute evaluation/repositories/level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.035884,
+          "stdout_lines": [
+            "job::SyncJob::execute evaluation/repositories/level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.033577,
+          "stdout_lines": [
+            "job::SyncJob::execute evaluation/repositories/level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.035664,
+          "stdout_lines": [
+            "job::SyncJob::execute evaluation/repositories/level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.036719,
+          "stdout_lines": [
+            "job::SyncJob::execute evaluation/repositories/level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+          ],
+          "stderr_lines": []
+        }
+      ],
+      "exact_runs": [
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.038576,
+          "stdout_lines": [
+            "job::SyncJob::execute evaluation/repositories/level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.038342,
+          "stdout_lines": [
+            "job::SyncJob::execute evaluation/repositories/level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.032269,
+          "stdout_lines": [
+            "job::SyncJob::execute evaluation/repositories/level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.031231,
+          "stdout_lines": [
+            "job::SyncJob::execute evaluation/repositories/level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.030406,
+          "stdout_lines": [
+            "job::SyncJob::execute evaluation/repositories/level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+          ],
+          "stderr_lines": []
+        }
+      ]
+    }
+  ]
+}

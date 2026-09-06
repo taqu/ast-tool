@@ -57,8 +57,10 @@ bool parse_symbol_root_args(
 /**
  * @brief Return workspace symbols matching @p query.
  *
- * Matches against FQN when query contains "::"; otherwise against the
- * unqualified name.
+ * When query contains "::", exact FQN matches take precedence. If no exact
+ * match exists, returns FQNs ending at a qualified-name boundary with the
+ * query; callers preserve ambiguity unless this leaves one canonical symbol.
+ * Queries without "::" retain unqualified-name matching.
  */
 std::vector<const WorkspaceSymbol*> resolve_symbol_query(
     const Workspace& ws,
