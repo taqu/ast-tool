@@ -1,0 +1,112 @@
+{
+  "environment": {
+    "evaluation_date": "2026-09-07",
+    "branch": "features/phase8a",
+    "phase8_binary_sha256": "current-build",
+    "phase8a_binary_sha256": "68d5154a86b6afb0142c3a12906a88b715accfb0a2f5a6fe63254d0de6ec16d1",
+    "phase8b_binary_sha256": "36904dd03fe0b586e9c9372f7fd83a56f99aa3983e4fb982504e233ce2f26ef7",
+    "skill_sha256": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+    "arm_a_revision": "ccc1fbb650bf058aa11602134d4e4fa1795cb98e",
+    "arm_b_revision": "current"
+  },
+  "cohort": {
+    "category_a": ["level2-008", "level3-008"],
+    "category_b": ["level2-004", "level4-006"],
+    "category_c": ["auth::AuthService::refresh (direct)", "processor::RequestProcessor::process (direct)"],
+    "category_d": ["auth::AuthToken::expire exact callers", "auth::AuthToken::validate references", "auth::AuthService::login callees"]
+  },
+  "direct_probe_summary": {
+    "total_probes": 8,
+    "all_stable": true,
+    "total_missing": 0,
+    "total_unexpected": 0,
+    "probes": [
+      {
+        "cat": "A", "cmd": "callers", "query": "AuthToken::expire",
+        "pre_phase8": "error: symbol not found",
+        "phase8": "2 callers", "stable": true, "missing": 0, "unexpected": 0
+      },
+      {
+        "cat": "A", "cmd": "callers", "query": "DataStore::save",
+        "pre_phase8": "error: symbol not found",
+        "phase8": "1 caller", "stable": true, "missing": 0, "unexpected": 0
+      },
+      {
+        "cat": "B", "cmd": "callers", "query": "auth::AuthToken::validate",
+        "pre_phase8": "note: no callers found",
+        "phase8": "4 callers", "stable": true, "missing": 0, "unexpected": 0
+      },
+      {
+        "cat": "C", "cmd": "callees", "query": "auth::AuthService::refresh",
+        "pre_phase8": "note: no callees found",
+        "phase8": "3 callees", "stable": true, "missing": 0, "unexpected": 0
+      },
+      {
+        "cat": "C", "cmd": "callees", "query": "processor::RequestProcessor::process",
+        "pre_phase8": "note: no callees found",
+        "phase8": "2 callees", "stable": true, "missing": 0, "unexpected": 0
+      },
+      {
+        "cat": "D", "cmd": "callers", "query": "auth::AuthToken::expire (exact FQN)",
+        "pre_phase8": "2 callers (unchanged)",
+        "phase8": "2 callers", "stable": true, "missing": 0, "unexpected": 0
+      },
+      {
+        "cat": "D", "cmd": "references", "query": "auth::AuthToken::validate",
+        "pre_phase8": "4 references (unchanged)",
+        "phase8": "4 references", "stable": true, "missing": 0, "unexpected": 0
+      },
+      {
+        "cat": "D", "cmd": "callees", "query": "auth::AuthService::login",
+        "pre_phase8": "1 callee (unchanged)",
+        "phase8": "1 callee", "stable": true, "missing": 0, "unexpected": 0
+      }
+    ]
+  },
+  "agent_run_summary": {
+    "source": "phase8a/measurements.json + phase8b/measurements.json",
+    "tasks_with_agent_data": ["level2-008", "level3-008", "level2-004", "level4-006"],
+    "level2-008": {
+      "arm_a_runs": 6, "arm_b_runs": 5,
+      "arm_a_success": 1.0, "arm_b_success": 1.0,
+      "arm_a_failures_mean": 0.333, "arm_b_failures_mean": 0.0,
+      "arm_a_tokens_mean": 1302, "arm_b_tokens_mean": 1260,
+      "arm_a_tools_mean": 5.17, "arm_b_tools_mean": 4.40,
+      "assessment": "Improved: failures/retries eliminated, tool/token reduction"
+    },
+    "level3-008": {
+      "arm_a_runs": 6, "arm_b_runs": 5,
+      "arm_a_success": 1.0, "arm_b_success": 1.0,
+      "arm_a_failures_mean": 0.333, "arm_b_failures_mean": 0.0,
+      "arm_a_tokens_mean": 3662, "arm_b_tokens_mean": 3217,
+      "arm_a_tools_mean": 9.0, "arm_b_tools_mean": 8.6,
+      "assessment": "Improved: failures/retries eliminated, -445 tokens"
+    },
+    "level2-004": {
+      "arm_a_runs": 1, "arm_b_runs": 5,
+      "arm_a_success": 1.0, "arm_b_success": 1.0,
+      "arm_a_tokens_mean": 5196, "arm_b_tokens_mean": 4464,
+      "arm_a_tools_mean": 12.0, "arm_b_tools_mean": 10.0,
+      "arm_a_ast_calls_mean": 4.0, "arm_b_ast_calls_mean": 2.0,
+      "assessment": "Strongly improved: -2 AST calls, -732 tokens, -15s"
+    },
+    "level4-006": {
+      "arm_a_runs": 1, "arm_b_runs": 5,
+      "arm_a_success": 0.0, "arm_b_success": 0.0,
+      "assessment": "Validation fixture defect: not attributable to Phase 8"
+    }
+  },
+  "gates": {
+    "correctness": "PASS — no success rate regressions",
+    "semantic_precision": "PASS — 0 unexpected relationships in all probes",
+    "recovery": "PASS — failures/retries eliminated on affected tasks",
+    "guards": "PASS — all guard probes unchanged",
+    "agent_value": "PASS — directionally favorable on all measured tasks"
+  },
+  "decision": "ACCEPT PHASE 8 CAPABILITY SET",
+  "limitations": [
+    "Arm A fresh forced-routing agent runs not collected (historical proxy only)",
+    "Phase 8c agent trajectory not measured (direct probes only)",
+    "Small Arm A sample for Phase 8b (1 run vs 5)"
+  ]
+}

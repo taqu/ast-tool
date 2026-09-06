@@ -1,837 +1,888 @@
-# Phase 8c — C++ Declaration/Definition Body Identity for Callees
+# Phase 9a — Controlled Semantic Capability Evaluation
 
 ## Objective
 
-Investigate and, if justified by focused evidence, improve `callees` so that when a callable target resolves to a declaration without a body, the semantic layer can safely locate the corresponding body-bearing definition of the same canonical callable.
+Evaluate whether the completed Phase 8 semantic-command changes improve the Coding Agent under controlled semantic-routing conditions.
 
-Phase 8c must address exactly this semantic boundary:
-
-```text
-callable identity
-→ body-bearing definition
-→ callee traversal
-```
-
-The motivating failure is:
+Phase 9a must isolate the value of the semantic capability changes themselves from:
 
 ```text
-callees auth::AuthService::refresh
-→ target resolves successfully
-→ selected symbol is a declaration without a body
-→ result is empty
+Skill invocation variance
+normal first-action routing variance
+unrelated manual exploration variance
 ```
 
-even though the same canonical callable has an out-of-line definition whose body contains calls.
+The comparison is:
 
-The goal is not to redesign callable identity generally.
+```text
+pre-Phase-8 semantic baseline
+vs
+Phase 8a + Phase 8b + Phase 8c
+```
 
-The goal is to connect an already-resolved callable identity to the correct implementation body when that relationship is unambiguous.
+under matched task conditions and forced semantic routing.
+
+The primary question is:
+
+```text
+Did Phase 8 improve semantic information quality
+and reduce avoidable semantic recovery / manual fallback
+without reducing correctness?
+```
+
+Phase 9a is not a new feature-development phase.
+
+Do not modify semantic behavior during this evaluation.
 
 ---
 
-# Baseline
+# Systems Under Comparison
 
-Use the accepted Phase 8b implementation as the baseline.
+Define two immutable arms.
 
-Preserve all accepted Phase 8a and Phase 8b behavior.
+## Arm A — Pre-Phase-8 Baseline
 
-Do not modify:
+Use the last accepted semantic implementation before Phase 8 changes.
+
+This arm must exclude:
 
 ```text
-Phase 8a FQN-suffix target resolution
-Phase 8b receiver-type resolution
-SKILL.md
-Skill description
-Skill invocation behavior
-search semantics
-find semantics
-callers behavior
-references behavior
-CLI command surface
+Phase 8a
+    unique FQN-suffix relationship target resolution
+
+Phase 8b
+    receiver-type member relationship resolution
+
+Phase 8c
+    declaration→definition body selection for callees
 ```
 
-unless a separate regression proves that a shared internal fix is strictly required.
+Use the accepted Phase 7d Skill body.
 
-Record baseline revision and relevant hashes before changing code.
+Record:
+
+```text
+repository revision
+AST Tool binary hash
+Skill hash
+evaluation harness hash
+```
 
 ---
 
-# Background
+## Arm B — Current Phase 8 System
 
-Phase 8b demonstrated that member-call identity can now be resolved conservatively for supported receiver forms.
+Use the current accepted implementation containing:
 
-However, one motivating `callees` case remained empty:
+```text
+Phase 8a
+Phase 8b
+Phase 8c
+```
+
+with the same accepted Phase 7d Skill body.
+
+Record the same revision/hash information.
+
+Do not change:
+
+```text
+Skill text
+Skill metadata
+Skill invocation policy
+task prompts
+fixtures
+validators
+evaluation harness behavior
+```
+
+between arms.
+
+---
+
+# Controlled Routing Condition
+
+For both arms:
+
+```text
+semantic-analysis
+= invoked exactly once
+= first tool action
+```
+
+This is required to remove the invocation confound identified during Phase 7e.
+
+Do not compare:
+
+```text
+forced semantic Arm A
+vs
+normal Arm B
+```
+
+or vice versa.
+
+Both arms must use the same routing condition.
+
+---
+
+# Phase 9a Scope
+
+The controlled cohort should emphasize tasks that exercise Phase 8 behavior while retaining enough unaffected controls to detect regressions.
+
+The cohort must contain four categories:
+
+```text
+A. Phase 8a target-resolution tasks
+
+B. Phase 8b receiver-type relationship tasks
+
+C. Phase 8c body-identity / callees tasks
+
+D. unaffected semantic guard tasks
+```
+
+Prefer existing evaluation tasks and fixtures.
+
+Do not create broad new tasks merely to increase sample size.
+
+---
+
+# Cohort Construction
+
+## Category A — Phase 8a Target Resolution
+
+Include tasks that previously showed:
+
+```text
+partial FQN relationship query
+→ not found
+→ search
+→ full-FQN relationship retry
+```
+
+At minimum include the existing tasks corresponding to:
+
+```text
+AuthToken::expire
+DataStore::save
+```
+
+where available in the evaluation suite.
+
+The expected Phase 8 improvement is:
+
+```text
+one successful relationship call
+```
+
+instead of:
+
+```text
+failed relationship
+→ search
+→ relationship retry
+```
+
+---
+
+## Category B — Phase 8b Receiver-Type Resolution
+
+Include tasks where previously valid member relationships were missing for calls such as:
+
+```text
+token_.validate(...)
+validator_.validate(...)
+```
+
+At minimum include the existing tasks equivalent to:
+
+```text
+level2-004
+level4-006
+```
+
+or the current canonical tasks exercising those relationships.
+
+The expected Phase 8 improvement is:
+
+```text
+empty relationship result
+→ populated exact relationship result
+```
+
+with no false-positive relationships.
+
+---
+
+## Category C — Phase 8c Body Identity
+
+Include at least one task where:
+
+```text
+callees target
+→ declaration selected
+→ no body
+→ empty result
+```
+
+before Phase 8c.
+
+The canonical example is:
 
 ```text
 auth::AuthService::refresh
 ```
 
-The callable identity is resolvable, but the selected workspace symbol corresponds to a declaration in a header.
+where the implementation body exists out of line.
 
-That declaration has no body.
-
-The implementation body exists in an out-of-line definition with the same callable identity.
-
-Therefore the remaining failure is not:
+The expected Phase 8 improvement is:
 
 ```text
-receiver-type resolution
-```
-
-and not:
-
-```text
-relationship target resolution
-```
-
-It is:
-
-```text
-declaration / definition body identity
-```
-
-Phase 8c must isolate that boundary.
-
----
-
-# Primary Questions
-
-Answer these before broad implementation:
-
-```text
-1. How does callees choose the callable symbol whose body it traverses?
-
-2. When declaration and definition share one FQN,
-   how are they represented in workspace symbols?
-
-3. Is there already a canonical declaration/definition relationship?
-
-4. Can a declaration without a body be mapped safely
-   to exactly one body-bearing definition?
-
-5. What happens when:
-   - there is no definition,
-   - multiple definitions exist,
-   - overloads share the same name,
-   - the definition is inline,
-   - the definition is namespace-qualified?
-
-6. Can this be fixed without changing target identity semantics?
-```
-
-Do not assume FQN alone is always sufficient until fixtures verify it.
-
----
-
-# Scope
-
-Phase 8c should initially support ordinary non-template C++ callables whose declaration and definition can be matched using existing semantic identity.
-
-Candidate in-scope cases:
-
-```text
-1. free function declaration + source definition
-2. class method declaration + out-of-line definition
-3. namespace-qualified out-of-line definition
-4. inline definition
-5. constructor/destructor declaration + definition
-   only if already represented consistently
-```
-
-Only include constructors/destructors if existing infrastructure already supports them cleanly.
-
-Do not expand scope merely for coverage.
-
----
-
-# Explicit Non-Goals
-
-Do not implement:
-
-```text
-general overload resolution
-template instantiation
-template specialization matching
-ODR analysis
-linker-level identity
-virtual dispatch expansion
-inheritance-aware body selection
-macro-aware definition synthesis
-cross-language definition mapping
-```
-
-Also do not extend Phase 8b receiver inference.
-
-Phase 8c is not a general C++ symbol linker.
-
----
-
-# Stage 1 — Trace Current Callees Body Selection
-
-Before changing production code, document the current path.
-
-Determine:
-
-```text
-1. how `callees` receives its resolved target;
-2. which workspace symbol is selected;
-3. how the body node is obtained;
-4. what happens when that symbol has no body;
-5. whether declaration and definition entries share:
-   - FQN,
-   - symbol kind,
-   - scope,
-   - canonical ID,
-   - source identity;
-6. whether an existing helper already collapses or pairs them.
-```
-
-Produce a concise current-flow diagram, for example:
-
-```text
-CLI target
-→ resolve_symbol_query
-→ selected callable symbol
-→ locate AST node
-→ extract body
-→ walk calls
-→ resolve callees
-```
-
-Mark exactly where declaration-only selection causes the result to become empty.
-
----
-
-# Stage 2 — Build Body-Identity Fixtures First
-
-Create minimal C++ fixtures before modifying behavior.
-
-At minimum cover the following.
-
-## Case A — Free function declaration + definition
-
-```cpp
-// api.h
-void run();
-
-// api.cpp
-void run() {
-    helper();
-}
-```
-
-Expected:
-
-```text
-callees run
-→ helper
-```
-
-even if target resolution initially lands on the header declaration.
-
----
-
-## Case B — Class method declaration + out-of-line definition
-
-```cpp
-class AuthService {
-public:
-    void refresh();
-};
-
-void AuthService::refresh() {
-    token_.validate();
-}
-```
-
-Expected:
-
-```text
-callees AuthService::refresh
-→ AuthToken::validate
-```
-
-assuming Phase 8b can resolve the member call.
-
----
-
-## Case C — Namespace-qualified method definition
-
-```cpp
-namespace auth {
-
-class AuthService {
-public:
-    void refresh();
-};
-
-}
-
-void auth::AuthService::refresh() {
-    ...
-}
-```
-
-Expected:
-
-```text
-declaration
-→ correct namespaced definition
-```
-
----
-
-## Case D — Inline definition
-
-```cpp
-class AuthService {
-public:
-    void refresh() {
-        token_.validate();
-    }
-};
-```
-
-Expected:
-
-```text
-use the existing body directly
-```
-
-No declaration-to-definition fallback should be required.
-
----
-
-## Case E — Declaration only
-
-```cpp
-void run();
-```
-
-with no definition.
-
-Expected:
-
-```text
-no body found
-→ existing empty/unresolved behavior
-```
-
-Do not invent a definition.
-
----
-
-## Case F — Multiple incompatible body-bearing candidates
-
-Construct a controlled ambiguous case if the semantic model can represent one.
-
-Expected:
-
-```text
-do not select arbitrarily
-```
-
-Fail closed or preserve the existing ambiguity behavior.
-
----
-
-## Case G — Declaration/definition kind mismatch
-
-If current C++ extraction represents:
-
-```text
-Method declaration
-+
-Function-classified out-of-line definition
-```
-
-test that the existing callable duplicate/canonicalization semantics are reused.
-
-Do not introduce a competing identity rule.
-
----
-
-# Stage 3 — Body Identity Matrix
-
-Before authorizing implementation, produce a matrix:
-
-| Callable form       | Declaration found | Definition found | Same canonical identity | Unique body | Safe? |
-| ------------------- | ----------------- | ---------------- | ----------------------- | ----------- | ----- |
-| free function       |                   |                  |                         |             |       |
-| method              |                   |                  |                         |             |       |
-| namespaced method   |                   |                  |                         |             |       |
-| inline method       |                   |                  |                         |             |       |
-| declaration only    |                   |                  |                         |             |       |
-| duplicate/ambiguous |                   |                  |                         |             |       |
-
-Classify each as:
-
-```text
-A. Existing body works directly
-B. Safe declaration→definition mapping
-C. Ambiguous / must remain unresolved
-D. Unsupported / requires broader semantics
-```
-
-Only A and B categories may be implemented.
-
----
-
-# Stage 4 — Define the Narrow Resolution Rule
-
-If implementation is justified, define the rule before coding.
-
-Preferred semantics:
-
-```text
-resolved callable target
-→ inspect selected callable
-
-if selected callable has a traversable body:
-    use it
-
-otherwise:
-    find canonical callable candidates
-    representing the same semantic identity
-
-    keep only body-bearing candidates
-
-    apply existing callable duplicate collapse /
-    canonicalization
-
-    if exactly one valid body-bearing definition remains:
-        use it
-
-    if none:
-        preserve existing empty/unresolved behavior
-
-    if multiple incompatible candidates remain:
-        fail closed / preserve ambiguity
-```
-
-The fallback must be identity-based.
-
-Do not use:
-
-```text
-same unqualified name
-first source definition
-nearest file
-substring FQN
-source-order preference
-```
-
----
-
-# Stage 5 — Reuse Existing Canonicalization
-
-Phase 8a already relies on existing callable declaration/definition collapse.
-
-Phase 8c should reuse the same semantic identity rules where possible.
-
-Investigate whether the current system already recognizes pairs such as:
-
-```text
-Method declaration
-+
-Function-classified out-of-line definition
-```
-
-with the same FQN.
-
-Prefer:
-
-```text
-one canonical callable identity
-→ choose body-bearing representation when body traversal is required
-```
-
-over adding a second ad hoc map used only by `callees`.
-
----
-
-# Stage 6 — Separate Identity from Body Selection
-
-Do not change what callable the user query means.
-
-Phase 8c must preserve:
-
-```text
-target resolution identity
-```
-
-and only change:
-
-```text
-which representation supplies the body
-```
-
-Conceptually:
-
-```text
-AuthService::refresh
-        │
-        ├─ declaration
-        └─ definition with body
-```
-
-Both should represent the same semantic callable.
-
-`callees` may use the definition body without changing the resolved target identity presented to the user.
-
-This separation is important.
-
----
-
-# Stage 7 — Implement the Smallest Change
-
-Prefer a shared callable-body helper such as conceptually:
-
-```text
-resolve_body_for_callable(symbol)
-```
-
-rather than embedding declaration/definition search directly into command logic.
-
-Expected responsibility:
-
-```text
-input:
-    already-resolved canonical callable
-
-output:
-    zero or one safe body-bearing representation
-```
-
-Do not let this helper perform unrelated name resolution.
-
-If only `callees` currently needs body traversal, it is acceptable for usage to remain `callees`-specific while the identity logic itself remains semantically clean.
-
----
-
-# Stage 8 — Focused Semantic Tests
-
-For every implemented case, verify:
-
-```text
-target identity
-selected body source
-expected callees
-unexpected callees
-```
-
-At minimum assert:
-
-```text
-inline body remains unchanged
-out-of-line body is found
-declaration-only stays empty
-ambiguous bodies are not guessed
-same-name unrelated function is not selected
-```
-
----
-
-# Stage 9 — Phase 8a and 8b Regression Guards
-
-Run all focused Phase 8a and Phase 8b tests.
-
-Specifically verify:
-
-```text
-partial FQN relationship targets still resolve correctly
-receiver-typed member calls still resolve correctly
-unrelated receiver types remain separated
-overloaded members still fail closed where unsupported
-```
-
-Phase 8c must not alter these behaviors.
-
----
-
-# Stage 10 — Replay the Motivating Failure
-
-Replay the exact motivating case:
-
-```text
-callees auth::AuthService::refresh
-```
-
-Record:
-
-```text
-before:
-    selected representation
-    body availability
-    returned callees
-
-after:
-    selected body representation
-    returned callees
-```
-
-Expected causal change:
-
-```text
-Before:
-declaration selected
-→ no body
-→ empty callees
-
-After:
 same callable identity
-→ body-bearing definition selected
-→ actual callees returned
+→ body-bearing definition
+→ correct callees
 ```
-
-If Phase 8b is active, expected member relationships should include the correctly resolved member calls from that body.
 
 ---
 
-# Stage 11 — Direct Answer Equivalence Guards
+## Category D — Unaffected Guards
 
-Where both declaration and definition can be queried or resolved independently, verify that they map to the same effective callable relationship result.
+Include semantic tasks that were already correct before Phase 8.
 
-For example:
+Cover several of:
 
 ```text
-query declaration identity
-→ callees set X
-
-query exact definition representation
-→ callees set X
+exact search
+direct callers
+direct references
+direct callees
+structural find
+unqualified resolution
+exact FQN resolution
 ```
 
-Do this only where the CLI/API makes such comparison meaningful.
+These guard tasks are necessary to detect regressions from broader semantic changes.
 
-The purpose is to prove that body selection does not change semantic identity.
+Prefer approximately:
+
+```text
+6–10 affected tasks
++
+4–8 unaffected guards
+```
+
+for a total controlled cohort of approximately:
+
+```text
+12–18 tasks
+```
+
+If the existing historical 18-task controlled cohort remains suitable, reuse as much of it as practical.
 
 ---
 
-# Stage 12 — False-Positive Guards
+# Repetition Strategy
 
-False body association is more dangerous than an empty result.
+One fresh paired run per task is insufficient for strong claims.
 
-Create explicit negative cases.
-
-Examples:
-
-```cpp
-namespace a {
-    void run();
-}
-
-namespace b {
-    void run() {
-        helper();
-    }
-}
-```
-
-Query:
-
-```text
-a::run
-```
-
-must not use:
-
-```text
-b::run
-```
-
-Likewise, two classes with same method name must remain separate.
-
-Do not allow same-name fallback across canonical identities.
-
----
-
-# Stage 13 — Targeted Agent-Level Validation
-
-After semantic tests pass, replay tasks where empty `callees` previously forced additional search/read/manual reasoning.
-
-Use the accepted Skill and Phase 8a/8b semantics unchanged.
+Use repeated controlled trials for the tasks most directly affected by Phase 8.
 
 Recommended:
 
 ```text
-5 runs per motivating task
+Affected tasks:
+    minimum 5 runs per arm
+
+Unaffected guards:
+    minimum 3 runs per arm
 ```
 
-Extend to 10 only if trajectory variance is material.
-
-Record:
+For tasks with high historical trajectory variance:
 
 ```text
-success
-tools
-AST calls
-AST failures
-retries
-search
-find
-callers
-callees
-references
-grep
-glob
-read
-tokens
-elapsed
+extend to 10 runs per arm
 ```
 
-Also record whether the newly populated `callees` result changes the agent trajectory.
+if needed.
+
+Rotate task order between rounds.
+
+If practical, interleave arms at the task or round level to reduce temporal bias.
+
+Example:
+
+```text
+round 1:
+    A task1
+    B task1
+    B task2
+    A task2
+
+round 2:
+    reverse / rotate order
+```
+
+Do not run all Arm A first and all Arm B second unless unavoidable.
+
+If interleaving is not possible, record that as a limitation.
 
 ---
 
-# Stage 14 — Evaluate Agent-Level Value
+# Primary Metrics
 
-Do not accept Phase 8c merely because `callees` returns more entries.
-
-Ask:
+For every run record:
 
 ```text
-Did the corrected body identity:
-- eliminate a fallback search?
-- eliminate a Read?
-- reduce manual exploration?
-- reduce retries?
-- improve correctness?
-- reduce tokens/time?
-```
-
-Semantic correctness is the primary gate.
-
-Agent-level savings are supporting evidence.
-
----
-
-# Metrics
-
-At fixture level, record:
-
-```text
-expected body identity
-actual body identity
-expected callees
-actual callees
-missing callees
-unexpected callees
-```
-
-At agent level, record:
-
-```text
+task
+arm
 success
-tools
+
+total tools
+
 AST calls
 AST failures
-retries
+AST retries
 help
+
 search
 find
 callers
 callees
 references
+symbols
+
 grep
 glob
 read
 bash
 edit
+
 tokens
 elapsed
-recovery mean/max
+
+recovery mean
+recovery max
+```
+
+Also record:
+
+```text
+ordered AST trajectory
+first semantic query
+relationship result cardinality where relevant
 ```
 
 ---
 
-# Primary Acceptance Principle
+# Semantic Information Metrics
+
+Phase 9a must measure not only tool count but semantic information quality.
+
+For affected tasks, record:
+
+```text
+expected semantic result
+actual semantic result
+missing relationships
+unexpected relationships
+empty-result fallback
+identity-resolution recovery
+body-resolution recovery
+```
+
+For relationship queries, include:
+
+```text
+target
+canonical resolved identity
+returned relationship count
+expected relationship count
+false positives
+false negatives
+```
+
+This is especially important for Phase 8b.
+
+---
+
+# Phase-Specific Causal Metrics
+
+## Phase 8a Metrics
+
+Count occurrences of:
+
+```text
+relationship
+→ failure
+→ search
+→ relationship retry
+```
+
+The Phase 8 system should reduce these to zero for uniquely resolvable partial FQNs.
+
+Measure:
+
+```text
+target-resolution failures
+target-resolution searches
+relationship retries
+```
+
+---
+
+## Phase 8b Metrics
+
+Count:
+
+```text
+relationship query returned empty
+despite valid typed member relationship
+```
+
+Measure:
+
+```text
+correct member relationships returned
+missing member relationships
+unexpected cross-type relationships
+manual fallback after empty result
+```
+
+False positives are a hard regression.
+
+---
+
+## Phase 8c Metrics
+
+Count:
+
+```text
+callees query resolved declaration-only representation
+and returned empty despite existing definition body
+```
+
+Measure:
+
+```text
+body-bearing definition successfully used
+correct callee count
+empty false-negative result
+unexpected callee
+```
+
+---
+
+# Trajectory Classification
+
+For each task, compare Arm A and Arm B trajectories and classify the difference.
 
 Use:
 
 ```text
-correct body identity
-before
-higher recall
+1. Equivalent
+
+2. Semantic recovery eliminated
+
+3. Manual fallback eliminated
+
+4. Semantic result improved but agent trajectory unchanged
+
+5. Lower tool/token cost
+
+6. Higher cost with better semantic information
+
+7. Regression
+
+8. Stochastic / inconclusive
 ```
 
-A declaration with no usable body is preferable to traversal of the wrong definition.
+Do not force every improvement into a cost-saving category.
 
-Fail closed when body identity is ambiguous.
+---
+
+# Task-Level Comparison
+
+Produce a table containing at minimum:
+
+```text
+Task
+Phase exercised
+Arm A success
+Arm B success
+Δtools
+ΔAST
+Δfailures
+Δretries
+Δreads
+Δtokens
+Δelapsed
+semantic result change
+assessment
+```
+
+For repeated runs, report means and medians where useful.
+
+---
+
+# Pairwise Distribution Analysis
+
+For repeated same-task runs, calculate Arm B minus Arm A deltas for:
+
+```text
+tools
+AST calls
+AST failures
+retries
+reads
+tokens
+elapsed
+```
+
+Report:
+
+```text
+mean
+median
+p75
+p90
+min
+max
+```
+
+where sample size makes those statistics meaningful.
+
+Do not rely only on aggregate totals.
+
+---
+
+# Correctness Gate
+
+Correctness must not regress.
+
+For each task:
+
+```text
+Arm B success rate
+>=
+Arm A success rate
+```
+
+unless a difference is clearly attributable to an unrelated pre-existing validator defect.
+
+Any such defect must be documented separately and should not be counted as semantic regression if the semantic output and intended edit set can be independently verified.
+
+Do not silently exclude failures.
+
+---
+
+# Semantic Precision Gate
+
+Phase 8 must not introduce false semantic relationships.
+
+For all fixture-backed or task-backed relationship results:
+
+```text
+unexpected relationship count
+=
+0
+```
+
+is the preferred requirement.
+
+A false positive is more serious than a remaining false negative.
+
+Any new false relationship should trigger investigation before acceptance.
+
+---
+
+# Recovery Gate
+
+Phase 8 was explicitly designed to eliminate known semantic recovery patterns.
+
+Therefore compare:
+
+```text
+AST failures
+retries
+recovery distance
+```
+
+particularly on affected tasks.
+
+Expected direction:
+
+```text
+Phase 8
+<=
+pre-Phase-8
+```
+
+for known resolver/body-identity defects.
+
+Do not require every unaffected stochastic task to improve.
+
+---
+
+# Manual Exploration Gate
+
+Measure whether better semantic information reduces:
+
+```text
+Grep
+Glob
+Read
+manual source inspection
+```
+
+on affected tasks.
+
+This is supporting evidence, not a hard requirement.
+
+A semantic capability may still be valuable if correctness improves while manual exploration remains similar.
+
+---
+
+# Token and Time Interpretation
+
+Do not treat tokens or elapsed time as the sole acceptance criterion.
+
+Phase 8b already showed that:
+
+```text
+better semantic information
+```
+
+can coexist with noisy cost metrics.
+
+Use the following interpretation:
+
+```text
+best:
+    semantic correctness improves
+    and cost falls
+
+acceptable:
+    semantic correctness improves
+    and cost is approximately neutral
+
+caveat:
+    semantic correctness improves
+    but cost rises materially
+
+regression:
+    cost rises
+    without meaningful semantic benefit
+```
+
+---
+
+# Unaffected Guard Analysis
+
+For guard tasks, specifically look for:
+
+```text
+new AST failures
+new retries
+new ambiguity
+changed exact FQN resolution
+changed unqualified resolution
+new false relationships
+new empty relationships
+extra semantic calls
+manual fallback increases
+```
+
+Phase 8 should not improve affected tasks by destabilizing already-correct ones.
+
+---
+
+# Required Before/After Pattern Analysis
+
+At minimum report these three patterns.
+
+## Pattern A — Phase 8a
+
+```text
+Before:
+partial-FQN relationship
+→ not found
+→ search
+→ full-FQN relationship
+
+After:
+partial-FQN relationship
+→ success
+```
+
+---
+
+## Pattern B — Phase 8b
+
+```text
+Before:
+canonical relationship target
+→ empty result
+→ fallback/manual reasoning
+
+After:
+canonical relationship target
+→ exact populated relationship result
+```
+
+---
+
+## Pattern C — Phase 8c
+
+```text
+Before:
+callee target
+→ declaration-only body
+→ empty
+
+After:
+same callable identity
+→ body-bearing definition
+→ correct callees
+```
+
+These are the primary causal signatures of Phase 8.
+
+---
+
+# Historical Comparisons
+
+Historical Phase 7/8 measurements may be included for context.
+
+However:
+
+```text
+historical normal runs
+!=
+controlled causal evidence
+```
+
+Do not mix historical single-run results directly into fresh repeated controlled aggregates.
+
+Keep:
+
+```text
+fresh controlled comparison
+```
+
+and:
+
+```text
+historical context
+```
+
+separate.
+
+---
+
+# No Changes During Evaluation
+
+Once Phase 9a begins, freeze:
+
+```text
+AST Tool implementation
+Skill files
+fixtures
+validators
+task prompts
+evaluation scripts
+```
+
+If a measurement bug is found:
+
+1. stop;
+2. fix the measurement;
+3. document it;
+4. rerun affected measurements symmetrically for both arms.
+
+Do not patch semantic behavior mid-evaluation.
 
 ---
 
 # Acceptance Criteria
 
-## Inline behavior preserved
+Phase 9a may conclude favorably if all of the following are true.
 
-Callables that already contain a body must behave exactly as before.
+## 1. Correctness preserved
 
----
-
-## Unique out-of-line definition works
-
-A declaration without a body must map to its unique canonical body-bearing definition.
+Phase 8 does not reduce task success.
 
 ---
 
-## Declaration-only remains safe
+## 2. Known Phase 8 defects are actually removed
 
-No definition means no guessed body.
+The affected tasks show the intended semantic changes:
 
----
+```text
+8a:
+resolution recovery removed
 
-## Ambiguity remains safe
+8b:
+missing typed-member relationships restored
 
-Multiple incompatible definitions must not be selected arbitrarily.
-
----
-
-## Semantic identity is preserved
-
-Body selection must not change which callable the target represents.
-
----
-
-## Phase 8a remains stable
-
-All target-resolution guards must continue to pass.
+8c:
+declaration-only callees false empty removed
+```
 
 ---
 
-## Phase 8b remains stable
+## 3. No new false semantic relationships
 
-All receiver-resolution and false-positive guards must continue to pass.
-
----
-
-## Motivating empty `callees` is corrected
-
-At least the known `AuthService::refresh`-style case should move from incorrect empty output to the exact expected callee set.
+False-positive guards remain clean.
 
 ---
 
-## No false callees introduced
+## 4. Unaffected semantic routes remain stable
 
-Unexpected relationship count in focused fixtures must remain zero.
+No systematic regression appears in guard tasks.
 
 ---
 
-# Possible Decisions
+## 5. Recovery improves or remains controlled
 
-## ACCEPT PHASE 8C
+Known semantic failures/retries decrease.
+
+---
+
+## 6. Agent-level trajectory shows credible value
+
+At least one of the following should improve meaningfully across affected tasks:
+
+```text
+fewer failed semantic calls
+fewer retries
+less manual exploration
+fewer Reads
+fewer total tools
+lower tokens
+lower elapsed
+```
+
+Semantic correctness itself remains the primary benefit.
+
+---
+
+# Possible Final Decisions
+
+## ACCEPT PHASE 8 CAPABILITY SET
 
 Use when:
 
 ```text
-unique declaration→definition body mapping works
-correct callees are returned
-ambiguity is preserved
-no false body association appears
-Phase 8a/8b remain stable
+correctness preserved
+known semantic defects removed
+no false-positive regression
+guards stable
 and
-agent-level usefulness is demonstrated
+agent-level value is directionally favorable
 ```
+
+Proceed to Phase 9b normal full-suite evaluation.
 
 ---
 
@@ -840,161 +891,243 @@ agent-level usefulness is demonstrated
 Use when:
 
 ```text
-semantic correctness is clear
+semantic correctness clearly improves
+and
+guards remain stable
 but
-coverage is intentionally narrow
-or
-agent-level cost improvements are noisy
+token/time/tool improvements are mixed or noisy
 ```
 
-Document exactly which callable forms are supported.
+Proceed to Phase 9b, carrying the caveats explicitly.
 
 ---
 
-## PARTIAL ACCEPT
+## REVISE PHASE 8
 
-Use when only a subset is safely supported.
+Use only if a specific reproducible regression is isolated to one Phase 8 behavior.
 
-Example:
+Identify whether it belongs to:
 
 ```text
-free functions             supported
-ordinary class methods     supported
-constructors/destructors   deferred
-templates                  unsupported
+8a
+8b
+8c
 ```
 
-Do not expand implementation just to avoid a partial result.
+Do not reopen all Phase 8 changes together.
 
 ---
 
-## REVISE
+## REVERT SPECIFIC PHASE 8 CHANGE
 
-Use when one narrow reproducible body-identity edge case remains.
-
-Do not broaden into general C++ linking.
-
----
-
-## REVERT
-
-Use when:
+Use if one isolated Phase 8 change introduces:
 
 ```text
-wrong definitions are selected
-same-name callables cross-link
-ambiguity is silently collapsed
-Phase 8a or 8b regresses
-or
-the change requires broad C++ semantic redesign
+wrong relationships
+wrong body identity
+ambiguity collapse
+or systematic correctness regression
 ```
+
+Revert only the causal change if possible.
 
 ---
 
-# Stop Conditions
+## INCONCLUSIVE
 
-Stop and report rather than expanding scope if the fix requires:
+Use when variance or measurement limitations prevent a reliable comparison.
+
+Do not compensate by adding more semantic behavior.
+
+---
+
+# Phase 9b Gate
+
+Proceed to Phase 9b only if Phase 9a concludes:
 
 ```text
-general overload resolution
-template specialization matching
-ODR/linker analysis
-inheritance-based body lookup
-large AST IR redesign
-general symbol graph rewrite
+ACCEPT PHASE 8 CAPABILITY SET
 ```
 
-Such evidence belongs to a later architectural phase.
+or:
+
+```text
+ACCEPT WITH CAVEATS
+```
+
+Phase 9b will answer a different question:
+
+```text
+Does the complete current system improve
+under normal agent routing and Skill invocation?
+```
+
+Phase 9a answers only:
+
+```text
+Are the Phase 8 semantic capabilities themselves better
+when semantic routing is held constant?
+```
+
+Keep these questions separate.
 
 ---
 
 # Deliverables
 
-Produce a final Phase 8c report containing:
+Produce a final Phase 9a report containing:
 
 ```text
 1. Environment and revisions
 
-2. Phase 8a/8b baseline verification
+2. Exact Arm A / Arm B definitions
 
-3. Existing callees body-selection flow
+3. Skill and harness verification
 
-4. Body-identity capability matrix
+4. Controlled cohort
 
-5. Authorized implementation scope
+5. Repetition and ordering protocol
 
-6. Exact semantic change
+6. Aggregate metrics
 
-7. Fixture/test matrix
+7. Task-level paired metrics
 
-8. Supported callable forms
+8. Phase 8a causal analysis
 
-9. Unsupported callable forms
+9. Phase 8b causal analysis
 
-10. Declaration→definition mapping behavior
+10. Phase 8c causal analysis
 
-11. Ambiguity and false-positive guards
+11. Semantic precision / false-positive analysis
 
-12. Before/after motivating callees result
+12. Recovery analysis
 
-13. Phase 8a/8b regression results
+13. Manual exploration analysis
 
-14. Targeted repeated agent results
+14. Token/time distribution
 
-15. Tool/token/recovery metrics
+15. Unaffected guard results
 
-16. Regressions/outliers
+16. Representative before/after trajectories
 
-17. Final decision
+17. Regressions and outliers
 
-18. Recommendation for the next Phase 8 step
+18. Limitations
+
+19. Final decision
+
+20. Phase 9b recommendation
 ```
 
 Keep raw measurements separate from interpretation.
 
 ---
 
-# Gate for the Next Phase
+# Preferred Report Tables
 
-Do not automatically continue semantic expansion after Phase 8c.
-
-After the report, separately decide whether repeated evidence justifies work on:
+## Controlled Aggregate
 
 ```text
-search declaration/definition metadata
-overload-aware member resolution
-explicit this-> receiver resolution
-complex receiver expressions
-other relationship gaps
+Metric
+Pre-Phase-8
+Phase 8
+Delta
+Assessment
 ```
 
-If none has sufficiently strong repeated evidence, Phase 8 may be ready for closure and final agent-level evaluation.
+---
+
+## Task-Level Comparison
+
+```text
+Task
+Phase
+Success A/B
+Δtools
+ΔAST
+Δfail
+Δretry
+ΔRead
+Δtokens
+Δelapsed
+Semantic change
+Assessment
+```
+
+---
+
+## Semantic Correctness
+
+```text
+Task
+Expected relationships
+Pre-Phase-8 result
+Phase 8 result
+Missing before
+Missing after
+Unexpected after
+```
+
+---
+
+## Phase-Specific Recovery
+
+```text
+Pattern
+Pre-Phase-8 occurrences
+Phase 8 occurrences
+Calls saved
+Failures removed
+Retries removed
+```
+
+---
+
+# Evidence Standard
+
+Use:
+
+```text
+strong:
+    repeated same-task controlled comparison
+    + exact semantic-result verification
+
+moderate:
+    repeated task behavior with controlled routing
+
+weak:
+    single paired run
+
+insufficient:
+    historical aggregate or cross-task correlation
+```
+
+Do not make broad Phase 8 claims from weak evidence alone.
 
 ---
 
 # Working Principle
 
-Continue the established methodology:
+Phase 9a is a validation phase, not an optimization phase.
+
+Use:
 
 ```text
-accepted baseline
-→ isolate one reproduced semantic defect
-→ characterize identity representation
-→ fixture-first validation
-→ define one narrow body-selection rule
-→ implement conservatively
-→ false-positive guards
-→ replay the exact motivating failure
-→ repeated agent validation
-→ expand only on new evidence
+freeze both systems
+→ hold semantic routing constant
+→ repeat the same tasks
+→ compare exact semantic information
+→ compare recovery and exploration
+→ measure agent-level cost
+→ accept or reject the Phase 8 capability set
 ```
 
-For Phase 8c, the isolated capability is:
+The central question is:
 
 ```text
-canonical callable identity
-→ unique body-bearing definition
-→ correct callees traversal
+Did Phase 8 make semantic analysis
+more correct and more useful
+when the agent actually uses it?
 ```
 
 Nothing else.
