@@ -327,6 +327,13 @@ namespace
                           return a.symbol.line < b.symbol.line;
                       return a.symbol.column < b.symbol.column;
                   });
+
+        // Rebuild tuIndex_ after sorting so get_translation_unit() stays consistent.
+        ws.tuIndex_.clear();
+        for(size_t i = 0; i < ws.translationUnits.size(); ++i) {
+            std::u8string key = ws.translationUnits[i].path.lexically_normal().u8string();
+            ws.tuIndex_[key] = i;
+        }
     }
 
     // -----------------------------------------------------------------------

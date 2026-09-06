@@ -53,6 +53,25 @@ std::vector<CallSite> Callees::find(const Workspace&       workspace,
     size_t funcNodeIdx = caller.symbol.nodeIndex;
     if(funcNodeIdx >= tu->ast.size()) return results;
 
+    // If the selected symbol is a declaration without a body (e.g. a Method
+    // declaration in a header), locate the body-bearing out-of-line definition
+    // that shares the same FQN. This keeps target identity unchanged while
+    // allowing callee traversal of the implementation body.
+    if(tu->ast[funcNodeIdx].type_ != ASTNodeType::FunctionDefinition) {
+        for(const WorkspaceSymbol& sym : workspace.symbols) {
+            if(sym.symbol.fqn != caller.symbol.fqn) continue;
+            if(sym.symbol.kind != SymbolKind::Function) continue;
+            const TranslationUnit* defTu = workspace.get_translation_unit(sym.sourceFile);
+            if(!defTu || sym.symbol.nodeIndex >= defTu->ast.size()) continue;
+            if(defTu->ast[sym.symbol.nodeIndex].type_ == ASTNodeType::FunctionDefinition) {
+                tu = defTu;
+                funcNodeIdx = sym.symbol.nodeIndex;
+                break;
+            }
+        }
+        if(funcNodeIdx >= tu->ast.size()) return results;
+    }
+
     // Find a stable pointer to the caller in workspace.symbols.
     const WorkspaceSymbol* callerPtr = find_in_workspace(workspace, caller);
 

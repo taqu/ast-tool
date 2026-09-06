@@ -103,17 +103,47 @@ std::vector<const WorkspaceSymbol*> resolve_symbol_query(
             fqnsWithProperCallable.insert(std::u8string(p->symbol.fqn));
         }
     }
-    if(fqnsWithProperCallable.empty()) return raw;
-
     std::vector<const WorkspaceSymbol*> result;
-    for(const WorkspaceSymbol* p : raw) {
-        if(p->symbol.kind == SymbolKind::Function
-           && fqnsWithProperCallable.count(std::u8string(p->symbol.fqn))) {
-            continue; // misclassified out-of-line definition — skip it
+    if(!fqnsWithProperCallable.empty()) {
+        for(const WorkspaceSymbol* p : raw) {
+            if(p->symbol.kind == SymbolKind::Function
+               && fqnsWithProperCallable.count(std::u8string(p->symbol.fqn))) {
+                continue; // misclassified out-of-line definition — skip it
+            }
+            result.push_back(p);
         }
-        result.push_back(p);
+    } else {
+        result = raw;
     }
-    return result;
+
+    if(result.size() <= 1) return result;
+
+    // Collapse Function+Function pairs where both share a FQN but one is a
+    // declaration-only (no body) and the other is a body-bearing definition.
+    // This avoids false ambiguity when a workspace contains both a header
+    // forward declaration and a cpp definition for the same free function.
+    std::unordered_set<std::u8string> fqnsWithBody;
+    for(const WorkspaceSymbol* p : result) {
+        if(p->symbol.kind != SymbolKind::Function) continue;
+        const TranslationUnit* tu = ws.get_translation_unit(p->sourceFile);
+        if(!tu || p->symbol.nodeIndex >= tu->ast.size()) continue;
+        if(tu->ast[p->symbol.nodeIndex].type_ == ASTNodeType::FunctionDefinition)
+            fqnsWithBody.insert(std::u8string(p->symbol.fqn));
+    }
+    if(fqnsWithBody.empty()) return result;
+
+    std::vector<const WorkspaceSymbol*> deduped;
+    for(const WorkspaceSymbol* p : result) {
+        if(p->symbol.kind == SymbolKind::Function
+           && fqnsWithBody.count(std::u8string(p->symbol.fqn))) {
+            const TranslationUnit* tu = ws.get_translation_unit(p->sourceFile);
+            bool isDecl = !tu || p->symbol.nodeIndex >= tu->ast.size()
+                || tu->ast[p->symbol.nodeIndex].type_ != ASTNodeType::FunctionDefinition;
+            if(isDecl) continue; // skip declaration-only when a body exists
+        }
+        deduped.push_back(p);
+    }
+    return deduped.empty() ? result : deduped;
 }
 
 bool is_callable(SymbolKind kind)

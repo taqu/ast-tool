@@ -406,6 +406,168 @@ namespace
         return ok;
     }
 
+    // -----------------------------------------------------------------------
+    // Phase 8c — body identity
+    // Case A: free function declaration (header) + definition (cpp)
+    // Resolver must collapse the two Function entries and select the definition.
+
+    bool test_bi_free_function()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        auto candidates = cli::resolve_symbol_query(ws, u8"biFreeFn");
+        ok &= check(candidates.size() == 1,
+                    "bi/free: biFreeFn resolves to exactly 1 candidate (definition)");
+        if(candidates.empty()) return false;
+
+        const TranslationUnit* tu = ws.get_translation_unit(candidates[0]->sourceFile);
+        ok &= check(tu != nullptr, "bi/free: TU found");
+        if(tu && candidates[0]->symbol.nodeIndex < tu->ast.size()) {
+            ok &= check(tu->ast[candidates[0]->symbol.nodeIndex].type_
+                        == ASTNodeType::FunctionDefinition,
+                        "bi/free: selected symbol is a FunctionDefinition");
+        }
+
+        Callees callees;
+        auto sites = callees.find(ws, *candidates[0]);
+        bool foundHelper = false;
+        for(const auto& s : sites)
+            if(s.callee && s.callee->symbol.name == u8"biFreeHelper") foundHelper = true;
+        ok &= check(foundHelper, "bi/free: biFreeFn callee is biFreeHelper");
+        return ok;
+    }
+
+    // Case B: class method declaration + out-of-line definition
+
+    bool test_bi_method_outofline()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        auto candidates = cli::resolve_symbol_query(ws, u8"BiMethodClass::biMethodFn");
+        ok &= check(candidates.size() == 1,
+                    "bi/method: BiMethodClass::biMethodFn resolves to 1 candidate");
+        if(candidates.empty()) return false;
+        ok &= check(candidates[0]->symbol.kind == SymbolKind::Method,
+                    "bi/method: resolved kind is Method");
+
+        Callees callees;
+        auto sites = callees.find(ws, *candidates[0]);
+        bool foundHelper = false;
+        for(const auto& s : sites)
+            if(s.callee && s.callee->symbol.name == u8"biMethodHelper") foundHelper = true;
+        ok &= check(foundHelper, "bi/method: biMethodFn callee is biMethodHelper");
+        return ok;
+    }
+
+    // Case C: namespace-qualified out-of-line method definition
+
+    bool test_bi_ns_method()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        auto candidates = cli::resolve_symbol_query(ws, u8"binsns::BiNsClass::biNsMethodFn");
+        ok &= check(candidates.size() == 1,
+                    "bi/ns: binsns::BiNsClass::biNsMethodFn resolves to 1 candidate");
+        if(candidates.empty()) return false;
+        ok &= check(candidates[0]->symbol.kind == SymbolKind::Method,
+                    "bi/ns: resolved kind is Method");
+
+        Callees callees;
+        auto sites = callees.find(ws, *candidates[0]);
+        bool foundHelper = false;
+        for(const auto& s : sites)
+            if(s.callee && s.callee->symbol.name == u8"biNsMethodHelper") foundHelper = true;
+        ok &= check(foundHelper, "bi/ns: biNsMethodFn callee is biNsMethodHelper");
+        return ok;
+    }
+
+    // Case D: inline method — body already present, no fallback needed
+
+    bool test_bi_inline_body()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        auto candidates = cli::resolve_symbol_query(ws, u8"BiInlineClass::biInlineFn");
+        ok &= check(candidates.size() == 1,
+                    "bi/inline: BiInlineClass::biInlineFn resolves to 1 candidate");
+        if(candidates.empty()) return false;
+
+        Callees callees;
+        auto sites = callees.find(ws, *candidates[0]);
+        bool foundHelper = false;
+        for(const auto& s : sites)
+            if(s.callee && s.callee->symbol.name == u8"biInlineHelper") foundHelper = true;
+        ok &= check(foundHelper, "bi/inline: biInlineFn callee is biInlineHelper (inline body)");
+        return ok;
+    }
+
+    // Case E: declaration only — no definition exists, must return empty
+
+    bool test_bi_decl_only()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        auto candidates = cli::resolve_symbol_query(ws, u8"biDeclOnlyFn");
+        ok &= check(candidates.size() == 1,
+                    "bi/decl-only: biDeclOnlyFn found");
+        if(candidates.empty()) return false;
+
+        Callees callees;
+        auto sites = callees.find(ws, *candidates[0]);
+        ok &= check(sites.empty(),
+                    "bi/decl-only: no callees for declaration-only function");
+        return ok;
+    }
+
+    // Stage 10 — motivating failure replay:
+    // auth::AuthService::refresh was previously empty because the method
+    // declaration in the header was selected (no body). Now the out-of-line
+    // definition is used and auth::AuthToken::validate is returned.
+
+    bool test_bi_auth_motivating_case()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        auto candidates = cli::resolve_symbol_query(ws, u8"auth::AuthService::refresh");
+        ok &= check(candidates.size() == 1,
+                    "bi/auth: auth::AuthService::refresh resolves to 1 candidate");
+        if(candidates.empty()) return false;
+        ok &= check(candidates[0]->symbol.kind == SymbolKind::Method,
+                    "bi/auth: resolved kind is Method");
+
+        Callees callees;
+        auto sites = callees.find(ws, *candidates[0]);
+        bool foundValidate = false;
+        for(const auto& s : sites) {
+            if(s.callee && s.callee->symbol.name == u8"validate") {
+                foundValidate = true;
+                break;
+            }
+        }
+        ok &= check(foundValidate,
+                    "bi/auth: refresh callee is auth::AuthToken::validate");
+        return ok;
+    }
+
+    // Stage 12 — false-positive guard:
+    // bifpa::biFpRun is declared without a body; bifpb::biFpRun has a body.
+    // Querying bifpa::biFpRun must NOT use bifpb::biFpRun's body.
+
+    bool test_bi_false_positive_guard()
+    {
+        bool ok = true;
+        Workspace ws = analyze_workspace((const char8_t*)kCeRoot);
+        auto candidates = cli::resolve_symbol_query(ws, u8"bifpa::biFpRun");
+        ok &= check(candidates.size() == 1, "bi/fp-guard: bifpa::biFpRun found");
+        if(candidates.empty()) return false;
+
+        Callees callees;
+        auto sites = callees.find(ws, *candidates[0]);
+        ok &= check(sites.empty(),
+                    "bi/fp-guard: bifpa::biFpRun has no callees (must not use bifpb body)");
+        return ok;
+    }
+
     struct TestCase { const char* name; bool(*fn)(); };
 
 } // namespace
@@ -428,6 +590,13 @@ bool run_tests_callees()
         {"result ordering within function",                 test_result_ordering},
         {"decl/def: callees work across decl+def",          test_decl_def_callees},
         {"resolver: unique suffix works for callees",       test_unique_suffix_callees},
+        {"bi/A: free function decl+def body found",         test_bi_free_function},
+        {"bi/B: class method out-of-line body found",       test_bi_method_outofline},
+        {"bi/C: namespace-qualified method body found",     test_bi_ns_method},
+        {"bi/D: inline method body used directly",          test_bi_inline_body},
+        {"bi/E: declaration-only stays empty",              test_bi_decl_only},
+        {"bi/G: false-positive guard (different namespace)", test_bi_false_positive_guard},
+        {"bi/motivating: auth::AuthService::refresh callee found", test_bi_auth_motivating_case},
     };
 
     std::cout << "=== callees tests ===\n";
