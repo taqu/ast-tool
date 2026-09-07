@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "`<iostream>` is already included, so `std::cerr` works. Added the diagnostic line as the first statement in `InventoryService::update` (`src/service/inventory_service.cpp:12`).\n",
+  "fresh_logs": 1
+}

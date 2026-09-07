@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Renamed `service::ValidationService::validate` to `validatePayload` in its declaration (`validation_service.h`), definition (`validation_service.cpp`), and its one caller (`request_processor.cpp:13`). Left `store::DatabaseStore::validate` and `jobs::CronJob::validate` untouched, as they're unrelated methods.\n",
+  "fresh_logs": 1
+}

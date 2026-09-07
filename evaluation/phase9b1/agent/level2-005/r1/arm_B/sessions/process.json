@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. `AuthService::refresh` calls `repo_.update(u)` at `src/auth/auth_service.cpp:22`, which resolves to `UserRepository::update` in `src/auth/user_repository.cpp`. Added the diagnostic line as the first statement of that method.\n",
+  "fresh_logs": 1
+}

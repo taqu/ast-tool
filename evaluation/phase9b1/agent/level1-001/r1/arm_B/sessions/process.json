@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "`<iostream>` was already included, so no header changes needed. Added the diagnostic line at the top of `InventoryService::update`'s body in `src/service/inventory_service.cpp:12`.\n",
+  "fresh_logs": 1
+}

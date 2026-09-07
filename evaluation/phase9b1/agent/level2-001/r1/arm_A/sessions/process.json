@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "`<iostream>` is already included, so `std::cerr` is available. The diagnostic line has been added to `AuthService::update` at `src/auth/auth_service.cpp:27` \u2014 no other classes' `update` methods were touched.\n",
+  "fresh_logs": 1
+}

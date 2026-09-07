@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All three call sites to `InventoryService::save` are now logged: two in `src/main.cpp` (also added the missing `<iostream>` include) and one in `src/service/order_service.cpp` inside `OrderService::save`.\n",
+  "fresh_logs": 1
+}

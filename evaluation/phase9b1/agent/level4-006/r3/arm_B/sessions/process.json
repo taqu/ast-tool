@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "`service::ValidationService::validate` is now `validatePayload` in both declaration and definition, and its one caller in `RequestProcessor::process` was updated. `jobs::CronJob::validate` and `store::DatabaseStore::validate` remain untouched.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. `AuthToken::expire` has two callers: `AuthService::refresh` (refresh flow, untouched) and `AuthController::handleLogout` (logout flow, `src/web/auth_controller.cpp:21`) \u2014 I added the `std::cerr` log line immediately before the `expire` call there only.\n",
+  "fresh_logs": 1
+}

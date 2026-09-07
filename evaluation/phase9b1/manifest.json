@@ -1,0 +1,1890 @@
+{
+  "binary_sha256": {
+    "A": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+    "B": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431"
+  },
+  "binary_git_revision": {
+    "A": "ccc1fbb650bf058aa11602134d4e4fa1795cb98e",
+    "B": "3095337a5ff04c7de723c3a0853682c9cefdf90c"
+  },
+  "skill_sha256": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+  "skill_paths": [
+    "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\skills\\semantic-analysis\\SKILL.md",
+    "C:\\Users\\sakai_takuro\\.claude\\skills\\semantic-analysis\\SKILL.md"
+  ],
+  "tasks": [
+    "level2-008",
+    "level3-008",
+    "level2-004",
+    "level4-006",
+    "level1-002",
+    "level2-005",
+    "level1-001",
+    "level1-003",
+    "level2-001",
+    "level3-001"
+  ],
+  "task_group": {
+    "level2-008": "A",
+    "level3-008": "A",
+    "level2-004": "B",
+    "level4-006": "B",
+    "level1-002": "B",
+    "level2-005": "C",
+    "level1-001": "D",
+    "level1-003": "D",
+    "level2-001": "D",
+    "level3-001": "D"
+  },
+  "forced_semantic": true,
+  "checks": [
+    {
+      "task": "level2-008",
+      "group": "A",
+      "repeat": 1,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-008",
+      "group": "A",
+      "repeat": 1,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-008",
+      "group": "A",
+      "repeat": 2,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-008",
+      "group": "A",
+      "repeat": 2,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-008",
+      "group": "A",
+      "repeat": 3,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-008",
+      "group": "A",
+      "repeat": 3,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-008",
+      "group": "A",
+      "repeat": 4,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-008",
+      "group": "A",
+      "repeat": 4,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-008",
+      "group": "A",
+      "repeat": 5,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-008",
+      "group": "A",
+      "repeat": 5,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-008",
+      "group": "A",
+      "repeat": 1,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-008",
+      "group": "A",
+      "repeat": 1,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-008",
+      "group": "A",
+      "repeat": 2,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-008",
+      "group": "A",
+      "repeat": 2,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-008",
+      "group": "A",
+      "repeat": 3,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-008",
+      "group": "A",
+      "repeat": 3,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-008",
+      "group": "A",
+      "repeat": 4,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-008",
+      "group": "A",
+      "repeat": 4,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-008",
+      "group": "A",
+      "repeat": 5,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-008",
+      "group": "A",
+      "repeat": 5,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-004",
+      "group": "B",
+      "repeat": 1,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-004",
+      "group": "B",
+      "repeat": 1,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-004",
+      "group": "B",
+      "repeat": 2,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-004",
+      "group": "B",
+      "repeat": 2,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-004",
+      "group": "B",
+      "repeat": 3,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-004",
+      "group": "B",
+      "repeat": 3,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-004",
+      "group": "B",
+      "repeat": 4,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-004",
+      "group": "B",
+      "repeat": 4,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-004",
+      "group": "B",
+      "repeat": 5,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-004",
+      "group": "B",
+      "repeat": 5,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level4-006",
+      "group": "B",
+      "repeat": 1,
+      "arm": "A",
+      "order_position": 1,
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level4-006",
+      "group": "B",
+      "repeat": 1,
+      "arm": "B",
+      "order_position": 2,
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level4-006",
+      "group": "B",
+      "repeat": 2,
+      "arm": "B",
+      "order_position": 1,
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level4-006",
+      "group": "B",
+      "repeat": 2,
+      "arm": "A",
+      "order_position": 2,
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level4-006",
+      "group": "B",
+      "repeat": 3,
+      "arm": "A",
+      "order_position": 1,
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level4-006",
+      "group": "B",
+      "repeat": 3,
+      "arm": "B",
+      "order_position": 2,
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level4-006",
+      "group": "B",
+      "repeat": 4,
+      "arm": "B",
+      "order_position": 1,
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level4-006",
+      "group": "B",
+      "repeat": 4,
+      "arm": "A",
+      "order_position": 2,
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level4-006",
+      "group": "B",
+      "repeat": 5,
+      "arm": "A",
+      "order_position": 1,
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level4-006",
+      "group": "B",
+      "repeat": 5,
+      "arm": "B",
+      "order_position": 2,
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-002",
+      "group": "B",
+      "repeat": 1,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-002",
+      "group": "B",
+      "repeat": 1,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-002",
+      "group": "B",
+      "repeat": 2,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-002",
+      "group": "B",
+      "repeat": 2,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-002",
+      "group": "B",
+      "repeat": 3,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-002",
+      "group": "B",
+      "repeat": 3,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-002",
+      "group": "B",
+      "repeat": 4,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-002",
+      "group": "B",
+      "repeat": 4,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-002",
+      "group": "B",
+      "repeat": 5,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-002",
+      "group": "B",
+      "repeat": 5,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-005",
+      "group": "C",
+      "repeat": 1,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-005",
+      "group": "C",
+      "repeat": 1,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-005",
+      "group": "C",
+      "repeat": 2,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-005",
+      "group": "C",
+      "repeat": 2,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-005",
+      "group": "C",
+      "repeat": 3,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-005",
+      "group": "C",
+      "repeat": 3,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-005",
+      "group": "C",
+      "repeat": 4,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-005",
+      "group": "C",
+      "repeat": 4,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-005",
+      "group": "C",
+      "repeat": 5,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-005",
+      "group": "C",
+      "repeat": 5,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-001",
+      "group": "D",
+      "repeat": 1,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-001",
+      "group": "D",
+      "repeat": 1,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-001",
+      "group": "D",
+      "repeat": 2,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-001",
+      "group": "D",
+      "repeat": 2,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-001",
+      "group": "D",
+      "repeat": 3,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-001",
+      "group": "D",
+      "repeat": 3,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-003",
+      "group": "D",
+      "repeat": 1,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-003",
+      "group": "D",
+      "repeat": 1,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-003",
+      "group": "D",
+      "repeat": 2,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-003",
+      "group": "D",
+      "repeat": 2,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-003",
+      "group": "D",
+      "repeat": 3,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level1-003",
+      "group": "D",
+      "repeat": 3,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-001",
+      "group": "D",
+      "repeat": 1,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-001",
+      "group": "D",
+      "repeat": 1,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-001",
+      "group": "D",
+      "repeat": 2,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-001",
+      "group": "D",
+      "repeat": 2,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-001",
+      "group": "D",
+      "repeat": 3,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level2-001",
+      "group": "D",
+      "repeat": 3,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-001",
+      "group": "D",
+      "repeat": 1,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-001",
+      "group": "D",
+      "repeat": 1,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-001",
+      "group": "D",
+      "repeat": 2,
+      "arm": "B",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-001",
+      "group": "D",
+      "repeat": 2,
+      "arm": "A",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-001",
+      "group": "D",
+      "repeat": 3,
+      "arm": "A",
+      "order_position": 1,
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    },
+    {
+      "task": "level3-001",
+      "group": "D",
+      "repeat": 3,
+      "arm": "B",
+      "order_position": 2,
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "skill_invocations": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "first_tool": "Skill",
+        "routing_ok": true
+      }
+    }
+  ]
+}

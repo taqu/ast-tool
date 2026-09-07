@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[log] inventory save\\n\";` immediately before all three call sites of `InventoryService::save`: `src/main.cpp:12,14` and `src/service/order_service.cpp:11` (added `#include <iostream>` to `main.cpp`, which lacked it).\n",
+  "fresh_logs": 1
+}

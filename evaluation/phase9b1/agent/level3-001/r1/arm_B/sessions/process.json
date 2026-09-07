@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[handler] checkout start\\n\";` at the start of `handle` in both `web_checkout_handler.cpp` and `mobile_checkout_handler.cpp`. The retry worker (`worker::RetryWorker::retry`) was confirmed unmodified \u2014 it actually calls `PaymentService::authorize` directly rather than `CheckoutService`, but per the instructions it was left untouched regardless.\n",
+  "fresh_logs": 1
+}

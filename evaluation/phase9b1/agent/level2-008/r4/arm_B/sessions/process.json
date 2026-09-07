@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. The two callers of `AuthToken::expire` are `AuthService::refresh` (refresh flow, left untouched) and `AuthController::handleLogout` (logout flow) at `src/web/auth_controller.cpp:21`. I added the `std::cerr << \"[auth] token expired on logout\\n\";` line immediately before the `expire` call in `handleLogout` only.\n",
+  "fresh_logs": 1
+}

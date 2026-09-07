@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "The rename resolved cleanly: `service::ValidationService::validate` \u2192 `validatePayload`, with its single caller in `RequestProcessor::process` updated. `store::DatabaseStore::validate` and `jobs::CronJob::validate` are untouched, as required.\n\n**Changes made:**\n- `src/service/validation_service.h:9` \u2014 declaration renamed\n- `src/service/validation_service.cpp:6` \u2014 definition renamed\n- `src/processor/request_processor.cpp:13` \u2014 call site updated to `validator_.validatePayload(payload)`\n",
+  "fresh_logs": 1
+}

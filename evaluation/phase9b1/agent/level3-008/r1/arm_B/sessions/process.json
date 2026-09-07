@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Both jobs already include `<iostream>`, so `std::cerr` is available. Changes made:\n\n- **`src/job/sync_job.cpp`** \u2014 before `store_.save(data)` (triggers `AuditLogger::log` via `DataStore::save`)\n- **`src/job/cleanup_job.cpp`** \u2014 before `store_.purge()` (triggers `AuditLogger::log` via `DataStore::purge`)\n\n`report_job.cpp` calls `store_.query()`, which has no callers of the audit logger (confirmed via `ast-tool callers`) and was left unmodified.\n",
+  "fresh_logs": 1
+}

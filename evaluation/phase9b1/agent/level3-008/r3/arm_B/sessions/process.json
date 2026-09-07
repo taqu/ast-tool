@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Both jobs already `#include <iostream>`, so no additional includes needed.\n\n**Summary:** Traced `save`/`purge` \u2192 `AuditLogger::log` via `callees`, then found their callers via `callers`: `SyncJob::execute` (calls `save`) and `CleanupJob::execute` (calls `purge`). Added `std::cerr << \"[job] audit triggered\\n\";` immediately before each call in `src/job/sync_job.cpp:24` and `src/job/cleanup_job.cpp:13`. `ReportJob::generate` only calls `store_.query()`, which doesn't trigger audit logging, so it was left unmodified.\n",
+  "fresh_logs": 1
+}

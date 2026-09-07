@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Both jobs already `#include <iostream>`, so no additional includes are needed. Summary:\n\n- `SyncJob::execute` (`src/job/sync_job.cpp`) calls `DataStore::save`, which audits \u2014 added the `cerr` line before `store_.save(data)`.\n- `CleanupJob::execute` (`src/job/cleanup_job.cpp`) calls `DataStore::purge`, which audits \u2014 added the `cerr` line before `store_.purge()`.\n- `ReportJob::generate` only calls `DataStore::query`, which doesn't audit \u2014 left unmodified, per instructions.\n",
+  "fresh_logs": 1
+}

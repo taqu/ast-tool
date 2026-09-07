@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the debug line before all four direct call sites of `AuthToken::validate` found via `ast-tool callers`:\n\n- `auth::AuthService::login` \u2014 `src/auth/auth_service.cpp:14`\n- `web::AuthController::handleLogin` \u2014 `src/web/auth_controller.cpp:13`\n- `web::AuthController::handleRefresh` \u2014 `src/web/auth_controller.cpp:26`\n- `web::SessionController::handle` \u2014 `src/web/session_controller.cpp:12`\n\n`AuthService::validate` (a different method, same unqualified name) does not call `AuthToken::validate`, so it was correctly excluded. All affected files already include `<iostream>`.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the zero-ID guard at the top of `OrderService::save` in `src\\service\\order_service.cpp:9-13`, which logs `[OrderService] invalid id` to stderr and returns `false` before any other logic. `InventoryService` was left untouched.\n",
+  "fresh_logs": 1
+}

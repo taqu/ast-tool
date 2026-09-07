@@ -1,0 +1,1313 @@
+[
+  {
+    "group": "A",
+    "command": "callers",
+    "query": "AuthToken::expire",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth",
+    "arm": "A",
+    "binary_revision": "ccc1fbb650bf058aa11602134d4e4fa1795cb98e",
+    "expected_fragments": [
+      "auth::AuthService::refresh",
+      "web::AuthController::handleLogout"
+    ],
+    "stable_across_five": true,
+    "missing": [
+      "auth::AuthService::refresh",
+      "web::AuthController::handleLogout"
+    ],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.054333,
+    "runs": [
+      {
+        "returncode": 1,
+        "elapsed_seconds": 0.055127,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "error: symbol not found: AuthToken::expire",
+          "next: search expire D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth"
+        ]
+      },
+      {
+        "returncode": 1,
+        "elapsed_seconds": 0.055474,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "error: symbol not found: AuthToken::expire",
+          "next: search expire D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth"
+        ]
+      },
+      {
+        "returncode": 1,
+        "elapsed_seconds": 0.054521,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "error: symbol not found: AuthToken::expire",
+          "next: search expire D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth"
+        ]
+      },
+      {
+        "returncode": 1,
+        "elapsed_seconds": 0.054076,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "error: symbol not found: AuthToken::expire",
+          "next: search expire D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth"
+        ]
+      },
+      {
+        "returncode": 1,
+        "elapsed_seconds": 0.052469,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "error: symbol not found: AuthToken::expire",
+          "next: search expire D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth"
+        ]
+      }
+    ]
+  },
+  {
+    "group": "A",
+    "command": "callers",
+    "query": "AuthToken::expire",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth",
+    "arm": "B",
+    "binary_revision": "3095337a5ff04c7de723c3a0853682c9cefdf90c",
+    "expected_fragments": [
+      "auth::AuthService::refresh",
+      "web::AuthController::handleLogout"
+    ],
+    "stable_across_five": true,
+    "missing": [],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.059414,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.059692,
+        "stdout_lines": [
+          "auth::AuthService::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "web::AuthController::handleLogout D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:21:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.058959,
+        "stdout_lines": [
+          "auth::AuthService::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "web::AuthController::handleLogout D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:21:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.057594,
+        "stdout_lines": [
+          "auth::AuthService::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "web::AuthController::handleLogout D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:21:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.057945,
+        "stdout_lines": [
+          "auth::AuthService::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "web::AuthController::handleLogout D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:21:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.062881,
+        "stdout_lines": [
+          "auth::AuthService::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "web::AuthController::handleLogout D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:21:12"
+        ],
+        "stderr_lines": []
+      }
+    ]
+  },
+  {
+    "group": "A",
+    "command": "callers",
+    "query": "DataStore::save",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-pipeline",
+    "arm": "A",
+    "binary_revision": "ccc1fbb650bf058aa11602134d4e4fa1795cb98e",
+    "expected_fragments": [
+      "job::SyncJob::execute"
+    ],
+    "stable_across_five": true,
+    "missing": [
+      "job::SyncJob::execute"
+    ],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.060519,
+    "runs": [
+      {
+        "returncode": 1,
+        "elapsed_seconds": 0.064551,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "error: symbol not found: DataStore::save",
+          "next: search save D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-pipeline"
+        ]
+      },
+      {
+        "returncode": 1,
+        "elapsed_seconds": 0.059704,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "error: symbol not found: DataStore::save",
+          "next: search save D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-pipeline"
+        ]
+      },
+      {
+        "returncode": 1,
+        "elapsed_seconds": 0.057687,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "error: symbol not found: DataStore::save",
+          "next: search save D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-pipeline"
+        ]
+      },
+      {
+        "returncode": 1,
+        "elapsed_seconds": 0.059788,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "error: symbol not found: DataStore::save",
+          "next: search save D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-pipeline"
+        ]
+      },
+      {
+        "returncode": 1,
+        "elapsed_seconds": 0.060863,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "error: symbol not found: DataStore::save",
+          "next: search save D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-pipeline"
+        ]
+      }
+    ]
+  },
+  {
+    "group": "A",
+    "command": "callers",
+    "query": "DataStore::save",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-pipeline",
+    "arm": "B",
+    "binary_revision": "3095337a5ff04c7de723c3a0853682c9cefdf90c",
+    "expected_fragments": [
+      "job::SyncJob::execute"
+    ],
+    "stable_across_five": true,
+    "missing": [],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.081107,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.061575,
+        "stdout_lines": [
+          "job::SyncJob::execute D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.066309,
+        "stdout_lines": [
+          "job::SyncJob::execute D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.162592,
+        "stdout_lines": [
+          "job::SyncJob::execute D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.058418,
+        "stdout_lines": [
+          "job::SyncJob::execute D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.056639,
+        "stdout_lines": [
+          "job::SyncJob::execute D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-pipeline\\src\\job\\sync_job.cpp:24:12"
+        ],
+        "stderr_lines": []
+      }
+    ]
+  },
+  {
+    "group": "B",
+    "command": "callers",
+    "query": "auth::AuthToken::validate",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth",
+    "arm": "A",
+    "binary_revision": "ccc1fbb650bf058aa11602134d4e4fa1795cb98e",
+    "expected_fragments": [
+      "auth::AuthService::login",
+      "web::AuthController::handleLogin",
+      "web::AuthController::handleRefresh",
+      "web::SessionController::handle"
+    ],
+    "stable_across_five": true,
+    "missing": [
+      "auth::AuthService::login",
+      "web::AuthController::handleLogin",
+      "web::AuthController::handleRefresh",
+      "web::SessionController::handle"
+    ],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.075618,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.054212,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no callers found for: auth::AuthToken::validate",
+          "next: check references auth::AuthToken::validate"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.052678,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no callers found for: auth::AuthToken::validate",
+          "next: check references auth::AuthToken::validate"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.054946,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no callers found for: auth::AuthToken::validate",
+          "next: check references auth::AuthToken::validate"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.055817,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no callers found for: auth::AuthToken::validate",
+          "next: check references auth::AuthToken::validate"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.160436,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no callers found for: auth::AuthToken::validate",
+          "next: check references auth::AuthToken::validate"
+        ]
+      }
+    ]
+  },
+  {
+    "group": "B",
+    "command": "callers",
+    "query": "auth::AuthToken::validate",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth",
+    "arm": "B",
+    "binary_revision": "3095337a5ff04c7de723c3a0853682c9cefdf90c",
+    "expected_fragments": [
+      "auth::AuthService::login",
+      "web::AuthController::handleLogin",
+      "web::AuthController::handleRefresh",
+      "web::SessionController::handle"
+    ],
+    "stable_across_five": true,
+    "missing": [],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.075972,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.053438,
+        "stdout_lines": [
+          "auth::AuthService::login D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:14:19",
+          "web::AuthController::handleLogin D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:13:17",
+          "web::AuthController::handleRefresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:26:17",
+          "web::SessionController::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\session_controller.cpp:12:17"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.05404,
+        "stdout_lines": [
+          "auth::AuthService::login D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:14:19",
+          "web::AuthController::handleLogin D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:13:17",
+          "web::AuthController::handleRefresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:26:17",
+          "web::SessionController::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\session_controller.cpp:12:17"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.154999,
+        "stdout_lines": [
+          "auth::AuthService::login D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:14:19",
+          "web::AuthController::handleLogin D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:13:17",
+          "web::AuthController::handleRefresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:26:17",
+          "web::SessionController::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\session_controller.cpp:12:17"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.061708,
+        "stdout_lines": [
+          "auth::AuthService::login D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:14:19",
+          "web::AuthController::handleLogin D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:13:17",
+          "web::AuthController::handleRefresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:26:17",
+          "web::SessionController::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\session_controller.cpp:12:17"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.055674,
+        "stdout_lines": [
+          "auth::AuthService::login D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:14:19",
+          "web::AuthController::handleLogin D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:13:17",
+          "web::AuthController::handleRefresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:26:17",
+          "web::SessionController::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\session_controller.cpp:12:17"
+        ],
+        "stderr_lines": []
+      }
+    ]
+  },
+  {
+    "group": "C",
+    "command": "callees",
+    "query": "auth::AuthService::refresh",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth",
+    "arm": "A",
+    "binary_revision": "ccc1fbb650bf058aa11602134d4e4fa1795cb98e",
+    "expected_fragments": [
+      "auth::AuthToken::expire",
+      "auth::TokenCache::invalidate",
+      "auth::AuthToken::refresh"
+    ],
+    "stable_across_five": true,
+    "missing": [
+      "auth::AuthToken::expire",
+      "auth::TokenCache::invalidate",
+      "auth::AuthToken::refresh"
+    ],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.055158,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.055971,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no callees found for: auth::AuthService::refresh"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.056309,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no callees found for: auth::AuthService::refresh"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.056463,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no callees found for: auth::AuthService::refresh"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.051822,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no callees found for: auth::AuthService::refresh"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.055223,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no callees found for: auth::AuthService::refresh"
+        ]
+      }
+    ]
+  },
+  {
+    "group": "C",
+    "command": "callees",
+    "query": "auth::AuthService::refresh",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth",
+    "arm": "B",
+    "binary_revision": "3095337a5ff04c7de723c3a0853682c9cefdf90c",
+    "expected_fragments": [
+      "auth::AuthToken::expire",
+      "auth::TokenCache::invalidate",
+      "auth::AuthToken::refresh"
+    ],
+    "stable_across_five": true,
+    "missing": [],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.053908,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.0535,
+        "stdout_lines": [
+          "auth::AuthToken::expire D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "auth::TokenCache::invalidate D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:19:12",
+          "auth::AuthToken::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:23:19"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.052939,
+        "stdout_lines": [
+          "auth::AuthToken::expire D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "auth::TokenCache::invalidate D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:19:12",
+          "auth::AuthToken::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:23:19"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.056724,
+        "stdout_lines": [
+          "auth::AuthToken::expire D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "auth::TokenCache::invalidate D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:19:12",
+          "auth::AuthToken::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:23:19"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.052436,
+        "stdout_lines": [
+          "auth::AuthToken::expire D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "auth::TokenCache::invalidate D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:19:12",
+          "auth::AuthToken::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:23:19"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.053943,
+        "stdout_lines": [
+          "auth::AuthToken::expire D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "auth::TokenCache::invalidate D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:19:12",
+          "auth::AuthToken::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:23:19"
+        ],
+        "stderr_lines": []
+      }
+    ]
+  },
+  {
+    "group": "B",
+    "command": "references",
+    "query": "auth::AuthToken::validate",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth",
+    "arm": "A",
+    "binary_revision": "ccc1fbb650bf058aa11602134d4e4fa1795cb98e",
+    "expected_fragments": [
+      "auth_service.cpp:14:19",
+      "auth_controller.cpp:13:17"
+    ],
+    "stable_across_five": true,
+    "missing": [
+      "auth_service.cpp:14:19",
+      "auth_controller.cpp:13:17"
+    ],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.075256,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.159153,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no references found for: auth::AuthToken::validate"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.058329,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no references found for: auth::AuthToken::validate"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.05409,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no references found for: auth::AuthToken::validate"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.052206,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no references found for: auth::AuthToken::validate"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.052504,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no references found for: auth::AuthToken::validate"
+        ]
+      }
+    ]
+  },
+  {
+    "group": "B",
+    "command": "references",
+    "query": "auth::AuthToken::validate",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth",
+    "arm": "B",
+    "binary_revision": "3095337a5ff04c7de723c3a0853682c9cefdf90c",
+    "expected_fragments": [
+      "auth_service.cpp:14:19",
+      "auth_controller.cpp:13:17"
+    ],
+    "stable_across_five": true,
+    "missing": [],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.07503,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.057073,
+        "stdout_lines": [
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:14:19",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:13:17",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:26:17",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\session_controller.cpp:12:17"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.053521,
+        "stdout_lines": [
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:14:19",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:13:17",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:26:17",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\session_controller.cpp:12:17"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.055306,
+        "stdout_lines": [
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:14:19",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:13:17",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:26:17",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\session_controller.cpp:12:17"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.151827,
+        "stdout_lines": [
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:14:19",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:13:17",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:26:17",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\session_controller.cpp:12:17"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.057425,
+        "stdout_lines": [
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:14:19",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:13:17",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:26:17",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\session_controller.cpp:12:17"
+        ],
+        "stderr_lines": []
+      }
+    ]
+  },
+  {
+    "group": "B",
+    "command": "callees",
+    "query": "auth::AuthService::login",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth",
+    "arm": "A",
+    "binary_revision": "ccc1fbb650bf058aa11602134d4e4fa1795cb98e",
+    "expected_fragments": [
+      "auth::AuthToken::validate"
+    ],
+    "stable_across_five": true,
+    "missing": [
+      "auth::AuthToken::validate"
+    ],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.057083,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.061693,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no callees found for: auth::AuthService::login"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.056155,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no callees found for: auth::AuthService::login"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.059942,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no callees found for: auth::AuthService::login"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.05423,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no callees found for: auth::AuthService::login"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.053393,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no callees found for: auth::AuthService::login"
+        ]
+      }
+    ]
+  },
+  {
+    "group": "B",
+    "command": "callees",
+    "query": "auth::AuthService::login",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth",
+    "arm": "B",
+    "binary_revision": "3095337a5ff04c7de723c3a0853682c9cefdf90c",
+    "expected_fragments": [
+      "auth::AuthToken::validate"
+    ],
+    "stable_across_five": true,
+    "missing": [],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.073916,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.149149,
+        "stdout_lines": [
+          "auth::AuthToken::validate D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:14:19"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.058227,
+        "stdout_lines": [
+          "auth::AuthToken::validate D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:14:19"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.054015,
+        "stdout_lines": [
+          "auth::AuthToken::validate D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:14:19"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.053603,
+        "stdout_lines": [
+          "auth::AuthToken::validate D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:14:19"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.054586,
+        "stdout_lines": [
+          "auth::AuthToken::validate D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:14:19"
+        ],
+        "stderr_lines": []
+      }
+    ]
+  },
+  {
+    "group": "B",
+    "command": "references",
+    "query": "store::InventoryService::save",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store",
+    "arm": "A",
+    "binary_revision": "ccc1fbb650bf058aa11602134d4e4fa1795cb98e",
+    "expected_fragments": [
+      "main.cpp:11:9",
+      "main.cpp:12:9",
+      "order_service.cpp:11:23"
+    ],
+    "stable_across_five": true,
+    "missing": [
+      "main.cpp:11:9",
+      "main.cpp:12:9",
+      "order_service.cpp:11:23"
+    ],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.106063,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.207879,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no references found for: store::InventoryService::save"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.0553,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no references found for: store::InventoryService::save"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.151977,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no references found for: store::InventoryService::save"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.056065,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no references found for: store::InventoryService::save"
+        ]
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.059095,
+        "stdout_lines": [],
+        "stderr_lines": [
+          "note: no references found for: store::InventoryService::save"
+        ]
+      }
+    ]
+  },
+  {
+    "group": "B",
+    "command": "references",
+    "query": "store::InventoryService::save",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store",
+    "arm": "B",
+    "binary_revision": "3095337a5ff04c7de723c3a0853682c9cefdf90c",
+    "expected_fragments": [
+      "main.cpp:11:9",
+      "main.cpp:12:9",
+      "order_service.cpp:11:23"
+    ],
+    "stable_across_five": true,
+    "missing": [],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.052135,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.051764,
+        "stdout_lines": [
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store\\src\\main.cpp:11:9",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store\\src\\main.cpp:12:9",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store\\src\\service\\order_service.cpp:11:23"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.05127,
+        "stdout_lines": [
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store\\src\\main.cpp:11:9",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store\\src\\main.cpp:12:9",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store\\src\\service\\order_service.cpp:11:23"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.053143,
+        "stdout_lines": [
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store\\src\\main.cpp:11:9",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store\\src\\main.cpp:12:9",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store\\src\\service\\order_service.cpp:11:23"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.051722,
+        "stdout_lines": [
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store\\src\\main.cpp:11:9",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store\\src\\main.cpp:12:9",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store\\src\\service\\order_service.cpp:11:23"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.052776,
+        "stdout_lines": [
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store\\src\\main.cpp:11:9",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store\\src\\main.cpp:12:9",
+          "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level1-store\\src\\service\\order_service.cpp:11:23"
+        ],
+        "stderr_lines": []
+      }
+    ]
+  },
+  {
+    "group": "D",
+    "command": "callers",
+    "query": "auth::AuthToken::expire",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth",
+    "arm": "A",
+    "binary_revision": "ccc1fbb650bf058aa11602134d4e4fa1795cb98e",
+    "expected_fragments": [
+      "auth::AuthService::refresh",
+      "web::AuthController::handleLogout"
+    ],
+    "stable_across_five": true,
+    "missing": [],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.055555,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.051677,
+        "stdout_lines": [
+          "auth::AuthService::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "web::AuthController::handleLogout D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:21:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.056989,
+        "stdout_lines": [
+          "auth::AuthService::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "web::AuthController::handleLogout D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:21:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.05752,
+        "stdout_lines": [
+          "auth::AuthService::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "web::AuthController::handleLogout D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:21:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.05421,
+        "stdout_lines": [
+          "auth::AuthService::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "web::AuthController::handleLogout D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:21:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.05738,
+        "stdout_lines": [
+          "auth::AuthService::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "web::AuthController::handleLogout D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:21:12"
+        ],
+        "stderr_lines": []
+      }
+    ]
+  },
+  {
+    "group": "D",
+    "command": "callers",
+    "query": "auth::AuthToken::expire",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth",
+    "arm": "B",
+    "binary_revision": "3095337a5ff04c7de723c3a0853682c9cefdf90c",
+    "expected_fragments": [
+      "auth::AuthService::refresh",
+      "web::AuthController::handleLogout"
+    ],
+    "stable_across_five": true,
+    "missing": [],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.11796,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.059044,
+        "stdout_lines": [
+          "auth::AuthService::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "web::AuthController::handleLogout D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:21:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.058331,
+        "stdout_lines": [
+          "auth::AuthService::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "web::AuthController::handleLogout D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:21:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.164076,
+        "stdout_lines": [
+          "auth::AuthService::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "web::AuthController::handleLogout D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:21:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.154768,
+        "stdout_lines": [
+          "auth::AuthService::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "web::AuthController::handleLogout D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:21:12"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.153583,
+        "stdout_lines": [
+          "auth::AuthService::refresh D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.cpp:18:12",
+          "web::AuthController::handleLogout D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\web\\auth_controller.cpp:21:12"
+        ],
+        "stderr_lines": []
+      }
+    ]
+  },
+  {
+    "group": "D",
+    "command": "callers",
+    "query": "service::CheckoutService::process",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order",
+    "arm": "A",
+    "binary_revision": "ccc1fbb650bf058aa11602134d4e4fa1795cb98e",
+    "expected_fragments": [
+      "web::MobileCheckoutHandler::handle",
+      "web::WebCheckoutHandler::handle"
+    ],
+    "stable_across_five": true,
+    "missing": [],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.101178,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.274589,
+        "stdout_lines": [
+          "web::MobileCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\mobile_checkout_handler.cpp:12:22",
+          "web::WebCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\web_checkout_handler.cpp:12:22"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.05931,
+        "stdout_lines": [
+          "web::MobileCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\mobile_checkout_handler.cpp:12:22",
+          "web::WebCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\web_checkout_handler.cpp:12:22"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.062748,
+        "stdout_lines": [
+          "web::MobileCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\mobile_checkout_handler.cpp:12:22",
+          "web::WebCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\web_checkout_handler.cpp:12:22"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.055071,
+        "stdout_lines": [
+          "web::MobileCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\mobile_checkout_handler.cpp:12:22",
+          "web::WebCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\web_checkout_handler.cpp:12:22"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.054173,
+        "stdout_lines": [
+          "web::MobileCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\mobile_checkout_handler.cpp:12:22",
+          "web::WebCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\web_checkout_handler.cpp:12:22"
+        ],
+        "stderr_lines": []
+      }
+    ]
+  },
+  {
+    "group": "D",
+    "command": "callers",
+    "query": "service::CheckoutService::process",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order",
+    "arm": "B",
+    "binary_revision": "3095337a5ff04c7de723c3a0853682c9cefdf90c",
+    "expected_fragments": [
+      "web::MobileCheckoutHandler::handle",
+      "web::WebCheckoutHandler::handle"
+    ],
+    "stable_across_five": true,
+    "missing": [],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.056265,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.054776,
+        "stdout_lines": [
+          "web::MobileCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\mobile_checkout_handler.cpp:12:22",
+          "web::WebCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\web_checkout_handler.cpp:12:22"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.056577,
+        "stdout_lines": [
+          "web::MobileCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\mobile_checkout_handler.cpp:12:22",
+          "web::WebCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\web_checkout_handler.cpp:12:22"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.060734,
+        "stdout_lines": [
+          "web::MobileCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\mobile_checkout_handler.cpp:12:22",
+          "web::WebCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\web_checkout_handler.cpp:12:22"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.052786,
+        "stdout_lines": [
+          "web::MobileCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\mobile_checkout_handler.cpp:12:22",
+          "web::WebCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\web_checkout_handler.cpp:12:22"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.056454,
+        "stdout_lines": [
+          "web::MobileCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\mobile_checkout_handler.cpp:12:22",
+          "web::WebCheckoutHandler::handle D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level3-order\\src\\web\\web_checkout_handler.cpp:12:22"
+        ],
+        "stderr_lines": []
+      }
+    ]
+  },
+  {
+    "group": "D",
+    "command": "search",
+    "query": "--name update",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth",
+    "arm": "A",
+    "binary_revision": "ccc1fbb650bf058aa11602134d4e4fa1795cb98e",
+    "expected_fragments": [
+      "auth::AuthService::update",
+      "auth::TokenCache::update",
+      "auth::UserRepository::update",
+      "session::SessionManager::update"
+    ],
+    "stable_across_five": true,
+    "missing": [],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.05684,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.054389,
+        "stdout_lines": [
+          "Method auth::AuthService::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.h:20:5",
+          "Method auth::TokenCache::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\token_cache.h:13:5",
+          "Method auth::UserRepository::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\user_repository.h:12:5",
+          "Method session::SessionManager::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\session\\session_manager.h:19:5"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.053573,
+        "stdout_lines": [
+          "Method auth::AuthService::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.h:20:5",
+          "Method auth::TokenCache::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\token_cache.h:13:5",
+          "Method auth::UserRepository::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\user_repository.h:12:5",
+          "Method session::SessionManager::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\session\\session_manager.h:19:5"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.060148,
+        "stdout_lines": [
+          "Method auth::AuthService::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.h:20:5",
+          "Method auth::TokenCache::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\token_cache.h:13:5",
+          "Method auth::UserRepository::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\user_repository.h:12:5",
+          "Method session::SessionManager::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\session\\session_manager.h:19:5"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.05614,
+        "stdout_lines": [
+          "Method auth::AuthService::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.h:20:5",
+          "Method auth::TokenCache::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\token_cache.h:13:5",
+          "Method auth::UserRepository::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\user_repository.h:12:5",
+          "Method session::SessionManager::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\session\\session_manager.h:19:5"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.059952,
+        "stdout_lines": [
+          "Method auth::AuthService::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.h:20:5",
+          "Method auth::TokenCache::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\token_cache.h:13:5",
+          "Method auth::UserRepository::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\user_repository.h:12:5",
+          "Method session::SessionManager::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\session\\session_manager.h:19:5"
+        ],
+        "stderr_lines": []
+      }
+    ]
+  },
+  {
+    "group": "D",
+    "command": "search",
+    "query": "--name update",
+    "root": "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth",
+    "arm": "B",
+    "binary_revision": "3095337a5ff04c7de723c3a0853682c9cefdf90c",
+    "expected_fragments": [
+      "auth::AuthService::update",
+      "auth::TokenCache::update",
+      "auth::UserRepository::update",
+      "session::SessionManager::update"
+    ],
+    "stable_across_five": true,
+    "missing": [],
+    "unexpected": [],
+    "mean_elapsed_seconds": 0.095546,
+    "runs": [
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.055819,
+        "stdout_lines": [
+          "Method auth::AuthService::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.h:20:5",
+          "Method auth::TokenCache::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\token_cache.h:13:5",
+          "Method auth::UserRepository::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\user_repository.h:12:5",
+          "Method session::SessionManager::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\session\\session_manager.h:19:5"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.160488,
+        "stdout_lines": [
+          "Method auth::AuthService::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.h:20:5",
+          "Method auth::TokenCache::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\token_cache.h:13:5",
+          "Method auth::UserRepository::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\user_repository.h:12:5",
+          "Method session::SessionManager::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\session\\session_manager.h:19:5"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.052013,
+        "stdout_lines": [
+          "Method auth::AuthService::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.h:20:5",
+          "Method auth::TokenCache::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\token_cache.h:13:5",
+          "Method auth::UserRepository::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\user_repository.h:12:5",
+          "Method session::SessionManager::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\session\\session_manager.h:19:5"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.051341,
+        "stdout_lines": [
+          "Method auth::AuthService::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.h:20:5",
+          "Method auth::TokenCache::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\token_cache.h:13:5",
+          "Method auth::UserRepository::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\user_repository.h:12:5",
+          "Method session::SessionManager::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\session\\session_manager.h:19:5"
+        ],
+        "stderr_lines": []
+      },
+      {
+        "returncode": 0,
+        "elapsed_seconds": 0.158071,
+        "stdout_lines": [
+          "Method auth::AuthService::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\auth_service.h:20:5",
+          "Method auth::TokenCache::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\token_cache.h:13:5",
+          "Method auth::UserRepository::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\auth\\user_repository.h:12:5",
+          "Method session::SessionManager::update D:\\MyDocuments\\Projects\\cpp\\ast-tool\\evaluation\\repositories\\level2-auth\\src\\session\\session_manager.h:19:5"
+        ],
+        "stderr_lines": []
+      }
+    ]
+  }
+]

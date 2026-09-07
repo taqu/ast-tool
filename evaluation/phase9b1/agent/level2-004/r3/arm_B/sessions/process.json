@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "`<iostream>` is already included in all three files, so no additional includes were needed. Added the debug line before all 4 direct call sites of `AuthToken::validate`:\n\n- `src/auth/auth_service.cpp:14` \u2014 `AuthService::login`\n- `src/web/auth_controller.cpp:13` \u2014 `AuthController::handleLogin`\n- `src/web/auth_controller.cpp:27` \u2014 `AuthController::handleRefresh`\n- `src/web/session_controller.cpp:12` \u2014 `SessionController::handle`\n",
+  "fresh_logs": 1
+}

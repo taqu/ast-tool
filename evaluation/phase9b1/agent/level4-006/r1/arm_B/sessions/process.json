@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "The rename resolved correctly, and `store::DatabaseStore::validate` / `jobs::CronJob::validate` remain untouched as required.\n\nRenamed `service::ValidationService::validate` \u2192 `validatePayload` in the declaration (`validation_service.h`), definition (`validation_service.cpp`), and its one call site in `RequestProcessor::process` (`request_processor.cpp`). Confirmed via `ast-tool` that `store::DatabaseStore::validate` and `jobs::CronJob::validate` are unrelated and left unchanged.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All 3 call sites to `InventoryService::save` are now covered \u2014 confirmed via `ast-tool callers` across the whole workspace, so no site was missed.\n\n- `src/main.cpp:11-13` \u2014 added log before both `inv.save(p1)` and `inv.save(p2)`, plus `#include <iostream>` (wasn't previously included).\n- `src/service/order_service.cpp:11` \u2014 added log before `inventory_.save(product)` inside `OrderService::save` (this file already had `<iostream>`).\n\nNote: `orders.save(p1)` in `main.cpp` calls `OrderService::save`, not `InventoryService::save`, so it's correctly left untouched \u2014 its own internal call is what got the log line.\n",
+  "fresh_logs": 1
+}

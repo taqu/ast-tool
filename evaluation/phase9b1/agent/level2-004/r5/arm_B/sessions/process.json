@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All 4 direct call sites of `AuthToken::validate` (found via `ast-tool callers`) now have the debug line inserted immediately before the call, in `auth_service.cpp`, `auth_controller.cpp` (\u00d72), and `session_controller.cpp`. All three files already had `<iostream>` included.\n",
+  "fresh_logs": 1
+}

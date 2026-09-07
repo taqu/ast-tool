@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the guard at the top of `OrderService::save` (order_service.cpp:9-12), which rejects zero-ID products with the required log line before falling through to existing logic. `InventoryService` was left untouched.\n",
+  "fresh_logs": 1
+}

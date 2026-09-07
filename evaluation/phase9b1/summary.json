@@ -1,0 +1,4015 @@
+{
+  "tasks": {
+    "level2-008": {
+      "task": "level2-008",
+      "group": "A",
+      "arm_A": {
+        "n_runs": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 5,
+          "median": 5,
+          "min": 5,
+          "max": 5,
+          "values": [
+            5,
+            5,
+            5,
+            5,
+            5
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "values": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "grep_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "values": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ]
+        },
+        "edit_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 1525,
+          "median": 1465,
+          "min": 1283,
+          "max": 1838,
+          "values": [
+            1577,
+            1283,
+            1462,
+            1465,
+            1838
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 18.658,
+          "median": 19.28,
+          "min": 15.62,
+          "max": 20.76,
+          "values": [
+            17.74,
+            19.28,
+            15.62,
+            19.89,
+            20.76
+          ]
+        },
+        "ast_commands": {
+          "search": 1,
+          "find": 0,
+          "callers": 1,
+          "callees": 0,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      },
+      "arm_B": {
+        "n_runs": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 5,
+          "median": 5,
+          "min": 5,
+          "max": 5,
+          "values": [
+            5,
+            5,
+            5,
+            5,
+            5
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "values": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "grep_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "values": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ]
+        },
+        "edit_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 1581.4,
+          "median": 1607,
+          "min": 1488,
+          "max": 1658,
+          "values": [
+            1607,
+            1518,
+            1658,
+            1636,
+            1488
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 19.992,
+          "median": 20.77,
+          "min": 17.06,
+          "max": 22.92,
+          "values": [
+            22.92,
+            18.39,
+            17.06,
+            20.77,
+            20.82
+          ]
+        },
+        "ast_commands": {
+          "search": 1,
+          "find": 0,
+          "callers": 1,
+          "callees": 0,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      }
+    },
+    "level3-008": {
+      "task": "level3-008",
+      "group": "A",
+      "arm_A": {
+        "n_runs": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 10.4,
+          "median": 10,
+          "min": 10,
+          "max": 11,
+          "values": [
+            11,
+            10,
+            10,
+            11,
+            10
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 2.8,
+          "median": 2,
+          "min": 2,
+          "max": 5,
+          "values": [
+            2,
+            2,
+            2,
+            5,
+            3
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 3.6,
+          "median": 3,
+          "min": 3,
+          "max": 5,
+          "values": [
+            5,
+            3,
+            4,
+            3,
+            3
+          ]
+        },
+        "grep_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 3.8,
+          "median": 4,
+          "min": 3,
+          "max": 5,
+          "values": [
+            3,
+            4,
+            3,
+            5,
+            4
+          ]
+        },
+        "edit_calls": {
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "values": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 4332,
+          "median": 4457,
+          "min": 3567,
+          "max": 4944,
+          "values": [
+            4457,
+            4608,
+            4084,
+            4944,
+            3567
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 30.876,
+          "median": 30.96,
+          "min": 23.06,
+          "max": 35.68,
+          "values": [
+            35.68,
+            23.06,
+            35.4,
+            30.96,
+            29.28
+          ]
+        },
+        "ast_commands": {
+          "search": 1.2,
+          "find": 0,
+          "callers": 1.2,
+          "callees": 0.4,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      },
+      "arm_B": {
+        "n_runs": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 11.6,
+          "median": 12,
+          "min": 10,
+          "max": 13,
+          "values": [
+            12,
+            13,
+            11,
+            10,
+            12
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 2.6,
+          "median": 2,
+          "min": 2,
+          "max": 4,
+          "values": [
+            2,
+            2,
+            4,
+            3,
+            2
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0.8,
+          "median": 1,
+          "min": 0,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            0,
+            1
+          ]
+        },
+        "read_calls": {
+          "mean": 4.2,
+          "median": 6,
+          "min": 0,
+          "max": 6,
+          "values": [
+            6,
+            6,
+            3,
+            0,
+            6
+          ]
+        },
+        "grep_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "glob_calls": {
+          "mean": 0.4,
+          "median": 0,
+          "min": 0,
+          "max": 2,
+          "values": [
+            0,
+            2,
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 4,
+          "median": 3,
+          "min": 2,
+          "max": 7,
+          "values": [
+            3,
+            2,
+            5,
+            7,
+            3
+          ]
+        },
+        "edit_calls": {
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "values": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 5466,
+          "median": 5997,
+          "min": 4121,
+          "max": 6141,
+          "values": [
+            6051,
+            5997,
+            5020,
+            4121,
+            6141
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 43.16,
+          "median": 38.42,
+          "min": 25.46,
+          "max": 64.97,
+          "values": [
+            25.46,
+            54.44,
+            38.42,
+            64.97,
+            32.51
+          ]
+        },
+        "ast_commands": {
+          "search": 0.6,
+          "find": 0,
+          "callers": 1,
+          "callees": 0.2,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      }
+    },
+    "level2-004": {
+      "task": "level2-004",
+      "group": "B",
+      "arm_A": {
+        "n_runs": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 16.6,
+          "median": 15,
+          "min": 14,
+          "max": 21,
+          "values": [
+            15,
+            21,
+            19,
+            14,
+            14
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 3.6,
+          "median": 3,
+          "min": 3,
+          "max": 5,
+          "values": [
+            4,
+            5,
+            3,
+            3,
+            3
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 5.4,
+          "median": 5,
+          "min": 4,
+          "max": 8,
+          "values": [
+            5,
+            5,
+            8,
+            5,
+            4
+          ]
+        },
+        "grep_calls": {
+          "mean": 2.2,
+          "median": 2,
+          "min": 1,
+          "max": 5,
+          "values": [
+            1,
+            5,
+            2,
+            1,
+            2
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 4,
+          "median": 4,
+          "min": 3,
+          "max": 6,
+          "values": [
+            4,
+            6,
+            4,
+            3,
+            3
+          ]
+        },
+        "edit_calls": {
+          "mean": 4,
+          "median": 4,
+          "min": 4,
+          "max": 4,
+          "values": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 15993.6,
+          "median": 15099,
+          "min": 13071,
+          "max": 18973,
+          "values": [
+            14275,
+            18973,
+            18550,
+            15099,
+            13071
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 50.636,
+          "median": 46.82,
+          "min": 39.8,
+          "max": 71.82,
+          "values": [
+            39.8,
+            71.82,
+            46.82,
+            45.38,
+            49.36
+          ]
+        },
+        "ast_commands": {
+          "search": 1.4,
+          "find": 0,
+          "callers": 1.6,
+          "callees": 0,
+          "references": 0.6,
+          "symbols": 0
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      },
+      "arm_B": {
+        "n_runs": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 10.4,
+          "median": 10,
+          "min": 10,
+          "max": 12,
+          "values": [
+            12,
+            10,
+            10,
+            10,
+            10
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 1.8,
+          "median": 2,
+          "min": 1,
+          "max": 2,
+          "values": [
+            1,
+            2,
+            2,
+            2,
+            2
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 3,
+          "median": 3,
+          "min": 3,
+          "max": 3,
+          "values": [
+            3,
+            3,
+            3,
+            3,
+            3
+          ]
+        },
+        "grep_calls": {
+          "mean": 0.2,
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "values": [
+            1,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 2.2,
+          "median": 2,
+          "min": 2,
+          "max": 3,
+          "values": [
+            3,
+            2,
+            2,
+            2,
+            2
+          ]
+        },
+        "edit_calls": {
+          "mean": 4,
+          "median": 4,
+          "min": 4,
+          "max": 4,
+          "values": [
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 7950.6,
+          "median": 7892,
+          "min": 6813,
+          "max": 8835,
+          "values": [
+            8835,
+            8682,
+            6813,
+            7531,
+            7892
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 27.402,
+          "median": 24.41,
+          "min": 23.33,
+          "max": 34.77,
+          "values": [
+            30.82,
+            34.77,
+            24.41,
+            23.33,
+            23.68
+          ]
+        },
+        "ast_commands": {
+          "search": 0.8,
+          "find": 0,
+          "callers": 0.8,
+          "callees": 0,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      }
+    },
+    "level4-006": {
+      "task": "level4-006",
+      "group": "B",
+      "arm_A": {
+        "n_runs": 5,
+        "success_rate": 0.0,
+        "total_tool_calls": {
+          "mean": 17,
+          "median": 17,
+          "min": 14,
+          "max": 23,
+          "values": [
+            14,
+            17,
+            14,
+            17,
+            23
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 4.4,
+          "median": 4,
+          "min": 3,
+          "max": 6,
+          "values": [
+            3,
+            6,
+            4,
+            4,
+            5
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0.2,
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "values": [
+            0,
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0.2,
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "values": [
+            0,
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 4.4,
+          "median": 4,
+          "min": 1,
+          "max": 9,
+          "values": [
+            3,
+            5,
+            4,
+            1,
+            9
+          ]
+        },
+        "grep_calls": {
+          "mean": 3,
+          "median": 2,
+          "min": 2,
+          "max": 6,
+          "values": [
+            3,
+            2,
+            2,
+            6,
+            2
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 5.6,
+          "median": 6,
+          "min": 4,
+          "max": 8,
+          "values": [
+            4,
+            6,
+            4,
+            6,
+            8
+          ]
+        },
+        "edit_calls": {
+          "mean": 3,
+          "median": 3,
+          "min": 3,
+          "max": 3,
+          "values": [
+            3,
+            3,
+            3,
+            3,
+            3
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 8061.6,
+          "median": 6635,
+          "min": 5920,
+          "max": 12181,
+          "values": [
+            6479,
+            9093,
+            6635,
+            5920,
+            12181
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 49.766,
+          "median": 58.37,
+          "min": 32.13,
+          "max": 61.66,
+          "values": [
+            37.67,
+            59.0,
+            32.13,
+            61.66,
+            58.37
+          ]
+        },
+        "ast_commands": {
+          "search": 1.8,
+          "find": 0,
+          "callers": 1.6,
+          "callees": 0,
+          "references": 1,
+          "symbols": 0
+        },
+        "recovery_mean": 1,
+        "recovery_max": 1
+      },
+      "arm_B": {
+        "n_runs": 5,
+        "success_rate": 0.0,
+        "total_tool_calls": {
+          "mean": 10.8,
+          "median": 11,
+          "min": 10,
+          "max": 12,
+          "values": [
+            11,
+            10,
+            12,
+            11,
+            10
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 3.8,
+          "median": 4,
+          "min": 3,
+          "max": 5,
+          "values": [
+            4,
+            3,
+            5,
+            4,
+            3
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 3,
+          "median": 3,
+          "min": 3,
+          "max": 3,
+          "values": [
+            3,
+            3,
+            3,
+            3,
+            3
+          ]
+        },
+        "grep_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 3.8,
+          "median": 4,
+          "min": 3,
+          "max": 5,
+          "values": [
+            4,
+            3,
+            5,
+            4,
+            3
+          ]
+        },
+        "edit_calls": {
+          "mean": 3,
+          "median": 3,
+          "min": 3,
+          "max": 3,
+          "values": [
+            3,
+            3,
+            3,
+            3,
+            3
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 4988.2,
+          "median": 5135,
+          "min": 4673,
+          "max": 5228,
+          "values": [
+            5228,
+            4673,
+            5205,
+            5135,
+            4700
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 25.368,
+          "median": 25.06,
+          "min": 22.31,
+          "max": 30.5,
+          "values": [
+            25.06,
+            30.5,
+            26.21,
+            22.76,
+            22.31
+          ]
+        },
+        "ast_commands": {
+          "search": 1.8,
+          "find": 0,
+          "callers": 1,
+          "callees": 0,
+          "references": 1,
+          "symbols": 0
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      }
+    },
+    "level1-002": {
+      "task": "level1-002",
+      "group": "B",
+      "arm_A": {
+        "n_runs": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 14.2,
+          "median": 14,
+          "min": 12,
+          "max": 16,
+          "values": [
+            14,
+            16,
+            13,
+            16,
+            12
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 3.8,
+          "median": 4,
+          "min": 3,
+          "max": 5,
+          "values": [
+            5,
+            3,
+            4,
+            4,
+            3
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 4.8,
+          "median": 4,
+          "min": 4,
+          "max": 6,
+          "values": [
+            4,
+            6,
+            4,
+            6,
+            4
+          ]
+        },
+        "grep_calls": {
+          "mean": 1.4,
+          "median": 1,
+          "min": 1,
+          "max": 2,
+          "values": [
+            2,
+            2,
+            1,
+            1,
+            1
+          ]
+        },
+        "glob_calls": {
+          "mean": 0.6,
+          "median": 0,
+          "min": 0,
+          "max": 2,
+          "values": [
+            0,
+            1,
+            0,
+            2,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 4,
+          "median": 4,
+          "min": 3,
+          "max": 5,
+          "values": [
+            5,
+            3,
+            5,
+            4,
+            3
+          ]
+        },
+        "edit_calls": {
+          "mean": 2.4,
+          "median": 2,
+          "min": 2,
+          "max": 3,
+          "values": [
+            2,
+            3,
+            2,
+            2,
+            3
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 7254.6,
+          "median": 7466,
+          "min": 6287,
+          "max": 7999,
+          "values": [
+            7999,
+            7509,
+            7466,
+            6287,
+            7012
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 43.682,
+          "median": 41.84,
+          "min": 35.33,
+          "max": 52.46,
+          "values": [
+            41.84,
+            39.77,
+            52.46,
+            35.33,
+            49.01
+          ]
+        },
+        "ast_commands": {
+          "search": 1.4,
+          "find": 0,
+          "callers": 1.4,
+          "callees": 0,
+          "references": 1,
+          "symbols": 0
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      },
+      "arm_B": {
+        "n_runs": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 8,
+          "median": 8,
+          "min": 7,
+          "max": 10,
+          "values": [
+            10,
+            8,
+            7,
+            7,
+            8
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 2.2,
+          "median": 2,
+          "min": 2,
+          "max": 3,
+          "values": [
+            3,
+            2,
+            2,
+            2,
+            2
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "values": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ]
+        },
+        "grep_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 2.4,
+          "median": 2,
+          "min": 2,
+          "max": 4,
+          "values": [
+            4,
+            2,
+            2,
+            2,
+            2
+          ]
+        },
+        "edit_calls": {
+          "mean": 2.6,
+          "median": 3,
+          "min": 2,
+          "max": 3,
+          "values": [
+            3,
+            3,
+            2,
+            2,
+            3
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 4077.4,
+          "median": 3970,
+          "min": 2730,
+          "max": 6133,
+          "values": [
+            6133,
+            4208,
+            2730,
+            3346,
+            3970
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 25.936,
+          "median": 23.34,
+          "min": 18.65,
+          "max": 34.39,
+          "values": [
+            34.34,
+            18.96,
+            34.39,
+            18.65,
+            23.34
+          ]
+        },
+        "ast_commands": {
+          "search": 1.2,
+          "find": 0,
+          "callers": 1,
+          "callees": 0,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      }
+    },
+    "level2-005": {
+      "task": "level2-005",
+      "group": "C",
+      "arm_A": {
+        "n_runs": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 9.2,
+          "median": 9,
+          "min": 8,
+          "max": 11,
+          "values": [
+            9,
+            10,
+            8,
+            11,
+            8
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 5,
+          "median": 5,
+          "min": 4,
+          "max": 6,
+          "values": [
+            5,
+            6,
+            4,
+            6,
+            4
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "values": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ]
+        },
+        "grep_calls": {
+          "mean": 0.2,
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "values": [
+            0,
+            0,
+            0,
+            1,
+            0
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 5,
+          "median": 5,
+          "min": 4,
+          "max": 6,
+          "values": [
+            5,
+            6,
+            4,
+            6,
+            4
+          ]
+        },
+        "edit_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 2952,
+          "median": 2843,
+          "min": 2660,
+          "max": 3276,
+          "values": [
+            2660,
+            2843,
+            2720,
+            3261,
+            3276
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 31.438,
+          "median": 31.0,
+          "min": 27.19,
+          "max": 37.56,
+          "values": [
+            37.56,
+            27.19,
+            31.0,
+            30.22,
+            31.22
+          ]
+        },
+        "ast_commands": {
+          "search": 3.4,
+          "find": 0,
+          "callers": 0.2,
+          "callees": 1.4,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      },
+      "arm_B": {
+        "n_runs": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 9,
+          "median": 9,
+          "min": 8,
+          "max": 10,
+          "values": [
+            10,
+            10,
+            8,
+            8,
+            9
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 4.2,
+          "median": 4,
+          "min": 3,
+          "max": 5,
+          "values": [
+            4,
+            5,
+            3,
+            5,
+            4
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0.2,
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "values": [
+            0,
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0.6,
+          "median": 0,
+          "min": 0,
+          "max": 3,
+          "values": [
+            0,
+            3,
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 2.2,
+          "median": 2,
+          "min": 1,
+          "max": 3,
+          "values": [
+            3,
+            3,
+            2,
+            1,
+            2
+          ]
+        },
+        "grep_calls": {
+          "mean": 0.4,
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "values": [
+            0,
+            0,
+            1,
+            0,
+            1
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 4.4,
+          "median": 5,
+          "min": 3,
+          "max": 5,
+          "values": [
+            5,
+            5,
+            3,
+            5,
+            4
+          ]
+        },
+        "edit_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 2826.6,
+          "median": 2817,
+          "min": 2465,
+          "max": 3229,
+          "values": [
+            2709,
+            3229,
+            2465,
+            2913,
+            2817
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 32.372,
+          "median": 32.28,
+          "min": 23.96,
+          "max": 44.34,
+          "values": [
+            44.34,
+            35.23,
+            23.96,
+            32.28,
+            26.05
+          ]
+        },
+        "ast_commands": {
+          "search": 2.8,
+          "find": 0.2,
+          "callers": 0,
+          "callees": 1.2,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": 1,
+        "recovery_max": 1
+      }
+    },
+    "level1-001": {
+      "task": "level1-001",
+      "group": "D",
+      "arm_A": {
+        "n_runs": 3,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 6,
+          "median": 5,
+          "min": 5,
+          "max": 8,
+          "values": [
+            5,
+            5,
+            8
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 2.333,
+          "median": 2,
+          "min": 2,
+          "max": 3,
+          "values": [
+            2,
+            2,
+            3
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 1.333,
+          "median": 1,
+          "min": 1,
+          "max": 2,
+          "values": [
+            1,
+            1,
+            2
+          ]
+        },
+        "grep_calls": {
+          "mean": 0.333,
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "values": [
+            0,
+            0,
+            1
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 2.333,
+          "median": 2,
+          "min": 2,
+          "max": 3,
+          "values": [
+            2,
+            2,
+            3
+          ]
+        },
+        "edit_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 1888.667,
+          "median": 1618,
+          "min": 1546,
+          "max": 2502,
+          "values": [
+            1546,
+            1618,
+            2502
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 21.093,
+          "median": 16.08,
+          "min": 15.81,
+          "max": 31.39,
+          "values": [
+            16.08,
+            15.81,
+            31.39
+          ]
+        },
+        "ast_commands": {
+          "search": 2.333,
+          "find": 0,
+          "callers": 0,
+          "callees": 0,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      },
+      "arm_B": {
+        "n_runs": 3,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 5,
+          "median": 5,
+          "min": 5,
+          "max": 5,
+          "values": [
+            5,
+            5,
+            5
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "values": [
+            2,
+            2,
+            2
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "grep_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "values": [
+            2,
+            2,
+            2
+          ]
+        },
+        "edit_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 1500.333,
+          "median": 1531,
+          "min": 1295,
+          "max": 1675,
+          "values": [
+            1675,
+            1531,
+            1295
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 21.663,
+          "median": 22.95,
+          "min": 18.91,
+          "max": 23.13,
+          "values": [
+            22.95,
+            23.13,
+            18.91
+          ]
+        },
+        "ast_commands": {
+          "search": 2,
+          "find": 0,
+          "callers": 0,
+          "callees": 0,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      }
+    },
+    "level1-003": {
+      "task": "level1-003",
+      "group": "D",
+      "arm_A": {
+        "n_runs": 3,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 5.333,
+          "median": 5,
+          "min": 5,
+          "max": 6,
+          "values": [
+            6,
+            5,
+            5
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 1.667,
+          "median": 2,
+          "min": 1,
+          "max": 2,
+          "values": [
+            2,
+            1,
+            2
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "grep_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "glob_calls": {
+          "mean": 0.667,
+          "median": 1,
+          "min": 0,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 1.667,
+          "median": 2,
+          "min": 1,
+          "max": 2,
+          "values": [
+            2,
+            1,
+            2
+          ]
+        },
+        "edit_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 1520,
+          "median": 1460,
+          "min": 1408,
+          "max": 1692,
+          "values": [
+            1692,
+            1460,
+            1408
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 25.303,
+          "median": 22.0,
+          "min": 21.01,
+          "max": 32.9,
+          "values": [
+            22.0,
+            21.01,
+            32.9
+          ]
+        },
+        "ast_commands": {
+          "search": 1.667,
+          "find": 0,
+          "callers": 0,
+          "callees": 0,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      },
+      "arm_B": {
+        "n_runs": 3,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 5,
+          "median": 5,
+          "min": 5,
+          "max": 5,
+          "values": [
+            5,
+            5,
+            5
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 1.333,
+          "median": 1,
+          "min": 1,
+          "max": 2,
+          "values": [
+            2,
+            1,
+            1
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "grep_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "glob_calls": {
+          "mean": 0.667,
+          "median": 1,
+          "min": 0,
+          "max": 1,
+          "values": [
+            0,
+            1,
+            1
+          ]
+        },
+        "bash_calls": {
+          "mean": 1.333,
+          "median": 1,
+          "min": 1,
+          "max": 2,
+          "values": [
+            2,
+            1,
+            1
+          ]
+        },
+        "edit_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 1404.667,
+          "median": 1401,
+          "min": 1299,
+          "max": 1514,
+          "values": [
+            1514,
+            1401,
+            1299
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 18.267,
+          "median": 17.66,
+          "min": 15.69,
+          "max": 21.45,
+          "values": [
+            21.45,
+            15.69,
+            17.66
+          ]
+        },
+        "ast_commands": {
+          "search": 1.333,
+          "find": 0,
+          "callers": 0,
+          "callees": 0,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      }
+    },
+    "level2-001": {
+      "task": "level2-001",
+      "group": "D",
+      "arm_A": {
+        "n_runs": 3,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 5.333,
+          "median": 6,
+          "min": 4,
+          "max": 6,
+          "values": [
+            6,
+            4,
+            6
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 2.333,
+          "median": 3,
+          "min": 1,
+          "max": 3,
+          "values": [
+            3,
+            1,
+            3
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0.667,
+          "median": 1,
+          "min": 0,
+          "max": 1,
+          "values": [
+            1,
+            0,
+            1
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 1.333,
+          "median": 2,
+          "min": 0,
+          "max": 2,
+          "values": [
+            2,
+            0,
+            2
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "grep_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 2.333,
+          "median": 3,
+          "min": 1,
+          "max": 3,
+          "values": [
+            3,
+            1,
+            3
+          ]
+        },
+        "edit_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 1913.667,
+          "median": 1925,
+          "min": 1335,
+          "max": 2481,
+          "values": [
+            1925,
+            1335,
+            2481
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 22.97,
+          "median": 27.43,
+          "min": 14.01,
+          "max": 27.47,
+          "values": [
+            27.43,
+            14.01,
+            27.47
+          ]
+        },
+        "ast_commands": {
+          "search": 2.333,
+          "find": 0,
+          "callers": 0,
+          "callees": 0,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": 1,
+        "recovery_max": 1
+      },
+      "arm_B": {
+        "n_runs": 3,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 5.333,
+          "median": 5,
+          "min": 5,
+          "max": 6,
+          "values": [
+            5,
+            5,
+            6
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "values": [
+            2,
+            2,
+            2
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 1.333,
+          "median": 1,
+          "min": 1,
+          "max": 2,
+          "values": [
+            1,
+            1,
+            2
+          ]
+        },
+        "grep_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "values": [
+            2,
+            2,
+            2
+          ]
+        },
+        "edit_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 1957,
+          "median": 1921,
+          "min": 1678,
+          "max": 2272,
+          "values": [
+            1921,
+            1678,
+            2272
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 18.313,
+          "median": 17.42,
+          "min": 16.41,
+          "max": 21.11,
+          "values": [
+            17.42,
+            16.41,
+            21.11
+          ]
+        },
+        "ast_commands": {
+          "search": 2,
+          "find": 0,
+          "callers": 0,
+          "callees": 0,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      }
+    },
+    "level3-001": {
+      "task": "level3-001",
+      "group": "D",
+      "arm_A": {
+        "n_runs": 3,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 9.667,
+          "median": 10,
+          "min": 7,
+          "max": 12,
+          "values": [
+            7,
+            12,
+            10
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 3,
+          "median": 3,
+          "min": 2,
+          "max": 4,
+          "values": [
+            2,
+            3,
+            4
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0.333,
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "values": [
+            0,
+            1,
+            0
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 3,
+          "median": 3,
+          "min": 2,
+          "max": 4,
+          "values": [
+            2,
+            4,
+            3
+          ]
+        },
+        "grep_calls": {
+          "mean": 0.667,
+          "median": 0,
+          "min": 0,
+          "max": 2,
+          "values": [
+            0,
+            2,
+            0
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 3,
+          "median": 3,
+          "min": 2,
+          "max": 4,
+          "values": [
+            2,
+            3,
+            4
+          ]
+        },
+        "edit_calls": {
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "values": [
+            2,
+            2,
+            2
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 5070.333,
+          "median": 5388,
+          "min": 3936,
+          "max": 5887,
+          "values": [
+            3936,
+            5887,
+            5388
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 26.523,
+          "median": 26.65,
+          "min": 21.36,
+          "max": 31.56,
+          "values": [
+            21.36,
+            31.56,
+            26.65
+          ]
+        },
+        "ast_commands": {
+          "search": 2.333,
+          "find": 0,
+          "callers": 0.667,
+          "callees": 0,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": 1,
+        "recovery_max": 1
+      },
+      "arm_B": {
+        "n_runs": 3,
+        "success_rate": 1.0,
+        "total_tool_calls": {
+          "mean": 12,
+          "median": 12,
+          "min": 11,
+          "max": 13,
+          "values": [
+            12,
+            11,
+            13
+          ]
+        },
+        "ast_tool_calls": {
+          "mean": 4.333,
+          "median": 4,
+          "min": 4,
+          "max": 5,
+          "values": [
+            4,
+            4,
+            5
+          ]
+        },
+        "ast_tool_failures": {
+          "mean": 0.333,
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "values": [
+            0,
+            0,
+            1
+          ]
+        },
+        "ast_tool_retries": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "ast_tool_help_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "read_calls": {
+          "mean": 4.667,
+          "median": 5,
+          "min": 4,
+          "max": 5,
+          "values": [
+            5,
+            4,
+            5
+          ]
+        },
+        "grep_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "glob_calls": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        "bash_calls": {
+          "mean": 4.333,
+          "median": 4,
+          "min": 4,
+          "max": 5,
+          "values": [
+            4,
+            4,
+            5
+          ]
+        },
+        "edit_calls": {
+          "mean": 2,
+          "median": 2,
+          "min": 2,
+          "max": 2,
+          "values": [
+            2,
+            2,
+            2
+          ]
+        },
+        "skill_calls": {
+          "mean": 1,
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "values": [
+            1,
+            1,
+            1
+          ]
+        },
+        "total_tokens": {
+          "mean": 6109.333,
+          "median": 5879,
+          "min": 5368,
+          "max": 7081,
+          "values": [
+            7081,
+            5368,
+            5879
+          ]
+        },
+        "elapsed_seconds": {
+          "mean": 34.913,
+          "median": 34.03,
+          "min": 33.01,
+          "max": 37.7,
+          "values": [
+            33.01,
+            34.03,
+            37.7
+          ]
+        },
+        "ast_commands": {
+          "search": 3,
+          "find": 0,
+          "callers": 1,
+          "callees": 0.333,
+          "references": 0,
+          "symbols": 0
+        },
+        "recovery_mean": 3,
+        "recovery_max": 3
+      }
+    }
+  },
+  "groups": {
+    "all": {
+      "A": {
+        "n_runs": 42,
+        "success_rate": 0.881,
+        "total_tool_calls": 10.5,
+        "ast_tool_calls": 3.238,
+        "ast_tool_failures": 0.095,
+        "ast_tool_retries": 0.119,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2.976,
+        "grep_calls": 0.881,
+        "glob_calls": 0.119,
+        "bash_calls": 3.571,
+        "edit_calls": 1.952,
+        "skill_calls": 1,
+        "total_tokens": 5518.381,
+        "elapsed_seconds": 33.642,
+        "ast_commands_total": {
+          "search": 77,
+          "callers": 37,
+          "callees": 9,
+          "references": 13
+        },
+        "recovery_mean": 1,
+        "recovery_max": 1
+      },
+      "B": {
+        "n_runs": 42,
+        "success_rate": 0.881,
+        "total_tool_calls": 8.476,
+        "ast_tool_calls": 2.667,
+        "ast_tool_failures": 0.048,
+        "ast_tool_retries": 0.071,
+        "ast_tool_help_calls": 0.095,
+        "read_calls": 2.405,
+        "grep_calls": 0.071,
+        "glob_calls": 0.095,
+        "bash_calls": 2.929,
+        "edit_calls": 1.976,
+        "skill_calls": 1,
+        "total_tokens": 3984.881,
+        "elapsed_seconds": 27.396,
+        "ast_commands_total": {
+          "search": 66,
+          "callers": 27,
+          "top_level": 3,
+          "2": 2,
+          "callees": 8,
+          "references": 5,
+          "find": 1
+        },
+        "recovery_mean": 2,
+        "recovery_max": 3
+      }
+    },
+    "affected": {
+      "A": {
+        "n_runs": 30,
+        "success_rate": 0.833,
+        "total_tool_calls": 12.067,
+        "ast_tool_calls": 3.6,
+        "ast_tool_failures": 0.033,
+        "ast_tool_retries": 0.033,
+        "ast_tool_help_calls": 0,
+        "read_calls": 3.533,
+        "grep_calls": 1.133,
+        "glob_calls": 0.1,
+        "bash_calls": 4.067,
+        "edit_calls": 2.233,
+        "skill_calls": 1,
+        "total_tokens": 6686.467,
+        "elapsed_seconds": 37.509,
+        "ast_commands_total": {
+          "search": 51,
+          "callers": 35,
+          "callees": 9,
+          "references": 13
+        },
+        "recovery_mean": 1,
+        "recovery_max": 1
+      },
+      "B": {
+        "n_runs": 30,
+        "success_rate": 0.833,
+        "total_tool_calls": 9.133,
+        "ast_tool_calls": 2.767,
+        "ast_tool_failures": 0.033,
+        "ast_tool_retries": 0.1,
+        "ast_tool_help_calls": 0.133,
+        "read_calls": 2.567,
+        "grep_calls": 0.1,
+        "glob_calls": 0.067,
+        "bash_calls": 3.133,
+        "edit_calls": 2.267,
+        "skill_calls": 1,
+        "total_tokens": 4481.7,
+        "elapsed_seconds": 29.038,
+        "ast_commands_total": {
+          "search": 41,
+          "callers": 24,
+          "top_level": 3,
+          "2": 2,
+          "callees": 7,
+          "references": 5,
+          "find": 1
+        },
+        "recovery_mean": 1,
+        "recovery_max": 1
+      }
+    },
+    "guards": {
+      "A": {
+        "n_runs": 12,
+        "success_rate": 1.0,
+        "total_tool_calls": 6.583,
+        "ast_tool_calls": 2.333,
+        "ast_tool_failures": 0.25,
+        "ast_tool_retries": 0.333,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1.583,
+        "grep_calls": 0.25,
+        "glob_calls": 0.167,
+        "bash_calls": 2.333,
+        "edit_calls": 1.25,
+        "skill_calls": 1,
+        "total_tokens": 2598.167,
+        "elapsed_seconds": 23.973,
+        "ast_commands_total": {
+          "search": 26,
+          "callers": 2
+        },
+        "recovery_mean": 1,
+        "recovery_max": 1
+      },
+      "B": {
+        "n_runs": 12,
+        "success_rate": 1.0,
+        "total_tool_calls": 6.833,
+        "ast_tool_calls": 2.417,
+        "ast_tool_failures": 0.083,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 0,
+        "glob_calls": 0.167,
+        "bash_calls": 2.417,
+        "edit_calls": 1.25,
+        "skill_calls": 1,
+        "total_tokens": 2742.833,
+        "elapsed_seconds": 23.289,
+        "ast_commands_total": {
+          "search": 25,
+          "callees": 1,
+          "callers": 3
+        },
+        "recovery_mean": 3,
+        "recovery_max": 3
+      }
+    },
+    "group_A": {
+      "A": {
+        "n_runs": 10,
+        "success_rate": 1.0,
+        "total_tool_calls": 7.7,
+        "ast_tool_calls": 2.4,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2.3,
+        "grep_calls": 0,
+        "glob_calls": 0,
+        "bash_calls": 2.9,
+        "edit_calls": 1.5,
+        "skill_calls": 1,
+        "total_tokens": 2928.5,
+        "elapsed_seconds": 24.767,
+        "ast_commands_total": {
+          "search": 11,
+          "callers": 11,
+          "callees": 2
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      },
+      "B": {
+        "n_runs": 10,
+        "success_rate": 1.0,
+        "total_tool_calls": 8.3,
+        "ast_tool_calls": 2.3,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0.4,
+        "read_calls": 2.6,
+        "grep_calls": 0,
+        "glob_calls": 0.2,
+        "bash_calls": 3,
+        "edit_calls": 1.5,
+        "skill_calls": 1,
+        "total_tokens": 3523.7,
+        "elapsed_seconds": 31.576,
+        "ast_commands_total": {
+          "search": 8,
+          "callers": 10,
+          "top_level": 3,
+          "2": 1,
+          "callees": 1
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      }
+    },
+    "group_B": {
+      "A": {
+        "n_runs": 15,
+        "success_rate": 0.667,
+        "total_tool_calls": 15.933,
+        "ast_tool_calls": 3.933,
+        "ast_tool_failures": 0.067,
+        "ast_tool_retries": 0.067,
+        "ast_tool_help_calls": 0,
+        "read_calls": 4.867,
+        "grep_calls": 2.2,
+        "glob_calls": 0.2,
+        "bash_calls": 4.533,
+        "edit_calls": 3.133,
+        "skill_calls": 1,
+        "total_tokens": 10436.6,
+        "elapsed_seconds": 48.028,
+        "ast_commands_total": {
+          "search": 23,
+          "callers": 23,
+          "references": 13
+        },
+        "recovery_mean": 1,
+        "recovery_max": 1
+      },
+      "B": {
+        "n_runs": 15,
+        "success_rate": 0.667,
+        "total_tool_calls": 9.733,
+        "ast_tool_calls": 2.6,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2.667,
+        "grep_calls": 0.067,
+        "glob_calls": 0,
+        "bash_calls": 2.8,
+        "edit_calls": 3.2,
+        "skill_calls": 1,
+        "total_tokens": 5672.067,
+        "elapsed_seconds": 26.235,
+        "ast_commands_total": {
+          "2": 1,
+          "search": 19,
+          "callers": 14,
+          "references": 5
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      }
+    },
+    "group_C": {
+      "A": {
+        "n_runs": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 9.2,
+        "ast_tool_calls": 5,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 0.2,
+        "glob_calls": 0,
+        "bash_calls": 5,
+        "edit_calls": 1,
+        "skill_calls": 1,
+        "total_tokens": 2952,
+        "elapsed_seconds": 31.438,
+        "ast_commands_total": {
+          "search": 17,
+          "callees": 7,
+          "callers": 1
+        },
+        "recovery_mean": null,
+        "recovery_max": null
+      },
+      "B": {
+        "n_runs": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 9,
+        "ast_tool_calls": 4.2,
+        "ast_tool_failures": 0.2,
+        "ast_tool_retries": 0.6,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2.2,
+        "grep_calls": 0.4,
+        "glob_calls": 0,
+        "bash_calls": 4.4,
+        "edit_calls": 1,
+        "skill_calls": 1,
+        "total_tokens": 2826.6,
+        "elapsed_seconds": 32.372,
+        "ast_commands_total": {
+          "search": 14,
+          "callees": 6,
+          "find": 1
+        },
+        "recovery_mean": 1,
+        "recovery_max": 1
+      }
+    },
+    "group_D": {
+      "A": {
+        "n_runs": 12,
+        "success_rate": 1.0,
+        "total_tool_calls": 6.583,
+        "ast_tool_calls": 2.333,
+        "ast_tool_failures": 0.25,
+        "ast_tool_retries": 0.333,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1.583,
+        "grep_calls": 0.25,
+        "glob_calls": 0.167,
+        "bash_calls": 2.333,
+        "edit_calls": 1.25,
+        "skill_calls": 1,
+        "total_tokens": 2598.167,
+        "elapsed_seconds": 23.973,
+        "ast_commands_total": {
+          "search": 26,
+          "callers": 2
+        },
+        "recovery_mean": 1,
+        "recovery_max": 1
+      },
+      "B": {
+        "n_runs": 12,
+        "success_rate": 1.0,
+        "total_tool_calls": 6.833,
+        "ast_tool_calls": 2.417,
+        "ast_tool_failures": 0.083,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 0,
+        "glob_calls": 0.167,
+        "bash_calls": 2.417,
+        "edit_calls": 1.25,
+        "skill_calls": 1,
+        "total_tokens": 2742.833,
+        "elapsed_seconds": 23.289,
+        "ast_commands_total": {
+          "search": 25,
+          "callees": 1,
+          "callers": 3
+        },
+        "recovery_mean": 3,
+        "recovery_max": 3
+      }
+    }
+  },
+  "causal": {
+    "level2-008": {
+      "A": {
+        "pattern_8a": 0,
+        "pattern_8b": 0,
+        "pattern_8c": 0,
+        "runs": 5
+      },
+      "B": {
+        "pattern_8a": 0,
+        "pattern_8b": 0,
+        "pattern_8c": 0,
+        "runs": 5
+      }
+    },
+    "level3-008": {
+      "A": {
+        "pattern_8a": 0,
+        "pattern_8b": 3,
+        "pattern_8c": 2,
+        "runs": 5
+      },
+      "B": {
+        "pattern_8a": 0,
+        "pattern_8b": 1,
+        "pattern_8c": 0,
+        "runs": 5
+      }
+    },
+    "level2-004": {
+      "A": {
+        "pattern_8a": 0,
+        "pattern_8b": 11,
+        "pattern_8c": 0,
+        "runs": 5
+      },
+      "B": {
+        "pattern_8a": 0,
+        "pattern_8b": 0,
+        "pattern_8c": 0,
+        "runs": 5
+      }
+    },
+    "level4-006": {
+      "A": {
+        "pattern_8a": 0,
+        "pattern_8b": 11,
+        "pattern_8c": 0,
+        "runs": 5
+      },
+      "B": {
+        "pattern_8a": 0,
+        "pattern_8b": 0,
+        "pattern_8c": 0,
+        "runs": 5
+      }
+    },
+    "level1-002": {
+      "A": {
+        "pattern_8a": 0,
+        "pattern_8b": 12,
+        "pattern_8c": 0,
+        "runs": 5
+      },
+      "B": {
+        "pattern_8a": 0,
+        "pattern_8b": 0,
+        "pattern_8c": 0,
+        "runs": 5
+      }
+    },
+    "level2-005": {
+      "A": {
+        "pattern_8a": 0,
+        "pattern_8b": 1,
+        "pattern_8c": 7,
+        "runs": 5
+      },
+      "B": {
+        "pattern_8a": 0,
+        "pattern_8b": 0,
+        "pattern_8c": 1,
+        "runs": 5
+      }
+    },
+    "level1-001": {
+      "A": {
+        "pattern_8a": 0,
+        "pattern_8b": 0,
+        "pattern_8c": 0,
+        "runs": 3
+      },
+      "B": {
+        "pattern_8a": 0,
+        "pattern_8b": 0,
+        "pattern_8c": 0,
+        "runs": 3
+      }
+    },
+    "level1-003": {
+      "A": {
+        "pattern_8a": 0,
+        "pattern_8b": 0,
+        "pattern_8c": 0,
+        "runs": 3
+      },
+      "B": {
+        "pattern_8a": 0,
+        "pattern_8b": 0,
+        "pattern_8c": 0,
+        "runs": 3
+      }
+    },
+    "level2-001": {
+      "A": {
+        "pattern_8a": 0,
+        "pattern_8b": 0,
+        "pattern_8c": 0,
+        "runs": 3
+      },
+      "B": {
+        "pattern_8a": 0,
+        "pattern_8b": 0,
+        "pattern_8c": 0,
+        "runs": 3
+      }
+    },
+    "level3-001": {
+      "A": {
+        "pattern_8a": 0,
+        "pattern_8b": 0,
+        "pattern_8c": 0,
+        "runs": 3
+      },
+      "B": {
+        "pattern_8a": 0,
+        "pattern_8b": 0,
+        "pattern_8c": 0,
+        "runs": 3
+      }
+    }
+  },
+  "integrity": {
+    "total_checks": 84,
+    "routing_failures": [],
+    "binary_failures": [],
+    "binary_sha256": {
+      "A": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "B": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431"
+    },
+    "binary_git_revision": {
+      "A": "ccc1fbb650bf058aa11602134d4e4fa1795cb98e",
+      "B": "3095337a5ff04c7de723c3a0853682c9cefdf90c"
+    },
+    "skill_sha256": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+  }
+}

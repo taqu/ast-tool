@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All 4 direct callers of `AuthToken::validate` now emit the debug line right before the call: `AuthService::login` (auth_service.cpp:15), `AuthController::handleLogin` and `handleRefresh` (auth_controller.cpp), and `SessionController::handle` (session_controller.cpp). All files already included `<iostream>`, so no additional includes were needed.\n",
+  "fresh_logs": 1
+}

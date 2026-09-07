@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. Added the log line in `AuthController::handleLogout` (src/web/auth_controller.cpp:22) right before its `token_.expire(...)` call \u2014 the logout-flow caller. Left `AuthService::refresh` (src/auth/auth_service.cpp:18), the refresh-flow caller, untouched.\n",
+  "fresh_logs": 1
+}

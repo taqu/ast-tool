@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All 3 direct call sites to `InventoryService::save` (2 in `main.cpp`, 1 in `order_service.cpp` inside `OrderService::save`) now have `std::cerr << \"[log] inventory save\\n\";` immediately before the call. Added `#include <iostream>` to `main.cpp` since it was missing.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "I found all three call sites to `InventoryService::save` (ast-tool's `callers`/`references` returned none, likely a resolver limitation with member-reference calls, so I confirmed via grep): `main.cpp:11`, `main.cpp:12`, and `order_service.cpp:11` (via `inventory_.save(...)`). Added `std::cerr << \"[log] inventory save\\n\";` immediately before each, plus `#include <iostream>` to `main.cpp` (order_service.cpp already had it). `orders.save(...)` in main.cpp is `OrderService::save`, a different method, so it was left untouched.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[handler] checkout start\\n\";` as the first line of `handle` in `src/web/web_checkout_handler.cpp:11` and `src/web/mobile_checkout_handler.cpp:11`. I confirmed via `ast-tool callers` that these two are the only direct callers of `CheckoutService::process`; the retry worker (`src/worker/retry_worker.cpp`) calls `PaymentService` instead and was left untouched.\n",
+  "fresh_logs": 1
+}

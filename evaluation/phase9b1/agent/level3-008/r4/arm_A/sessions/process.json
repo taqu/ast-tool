@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Both files already include `<iostream>`, so `std::cerr` is available without extra includes.\n\nTraced the call chain: `DataStore::save`/`purge` both call `auditor_.log(...)`, and their only callers are `SyncJob::execute` (`src/job/sync_job.cpp:24`) and `CleanupJob::execute` (`src/job/cleanup_job.cpp:13`). Added the audit-trigger log line immediately before each call. `ReportJob` only calls `DataStore::query()`, which doesn't touch the auditor, so it was left unmodified.\n",
+  "fresh_logs": 1
+}

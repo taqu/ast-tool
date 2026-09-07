@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "No other call sites in the repo. All three `InventoryService::save` call sites are now covered \u2014 `orders.save(p1)` is `OrderService::save`, a different method, correctly left untouched.\n\n**Summary:** ast-tool's `callers`/`references` returned empty for `store::InventoryService::save` even after retrying (member-call resolution gap), so I verified call sites with Grep and confirmed each caller's type via source inspection. Added `std::cerr << \"[log] inventory save\\n\";` before both calls in `src/main.cpp` (and added the needed `<iostream>` include) and before the call in `src/service/order_service.cpp`.\n",
+  "fresh_logs": 1
+}

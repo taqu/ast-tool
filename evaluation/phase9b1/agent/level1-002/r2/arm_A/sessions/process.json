@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All three call sites to `InventoryService::save` now have the log line immediately before them:\n\n- `src/main.cpp:12,14` \u2014 before both `inv.save(p1)` and `inv.save(p2)` (added `<iostream>` include)\n- `src/service/order_service.cpp:11` \u2014 before `inventory_.save(product)` inside `OrderService::save`\n\n`orders.save(p1)` in main.cpp was left untouched \u2014 it calls `OrderService::save`, a different method, not `InventoryService::save`.\n",
+  "fresh_logs": 1
+}

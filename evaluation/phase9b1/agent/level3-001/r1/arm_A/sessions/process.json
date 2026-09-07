@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. Added `std::cerr << \"[handler] checkout start\\n\";` as the first line in both `WebCheckoutHandler::handle` (web_checkout_handler.cpp:11) and `MobileCheckoutHandler::handle` (mobile_checkout_handler.cpp:11). The retry worker was left untouched.\n",
+  "fresh_logs": 1
+}

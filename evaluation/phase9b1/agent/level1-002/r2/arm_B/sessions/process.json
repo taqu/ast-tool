@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All three call sites to `InventoryService::save` (2 in `main.cpp`, 1 in `order_service.cpp`) now log `[log] inventory save` immediately before the call; added `<iostream>` to `main.cpp` since it wasn't previously included.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "I added `std::cerr << \"[handler] checkout start\\n\";` as the first line of `handle` in both `src/web/web_checkout_handler.cpp` and `src/web/mobile_checkout_handler.cpp` (both already include `<iostream>`). `src/worker/retry_worker.cpp` was left untouched \u2014 worth noting it actually calls `PaymentService::authorize` directly, not `CheckoutService::process`, so it wasn't a real caller to begin with.\n",
+  "fresh_logs": 1
+}

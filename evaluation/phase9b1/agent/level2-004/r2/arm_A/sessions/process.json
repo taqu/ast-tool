@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All three files already `#include <iostream>`, so no additional includes needed. Added the debug line before all 4 direct call sites of `AuthToken::validate`:\n\n- `src/web/auth_controller.cpp` \u2014 `handleLogin` (line 13) and `handleRefresh` (line 26)\n- `src/web/session_controller.cpp` \u2014 `handle` (line 12)\n- `src/auth/auth_service.cpp` \u2014 `login` (line 14)\n\nNote: `ast-tool callers`/`references` reported zero results for `AuthToken::validate` (a resolver gap with reference-typed member calls), so I verified the 4 call sites manually by reading each caller and confirming `token_` is `auth::AuthToken&` in each case. `AuthService::validate` (auth_service.cpp:31) is a distinct method and was correctly left untouched.\n",
+  "fresh_logs": 1
+}

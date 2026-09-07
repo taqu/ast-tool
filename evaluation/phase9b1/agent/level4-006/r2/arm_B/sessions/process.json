@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "`ValidationService::validate` is now renamed to `validatePayload` everywhere (declaration, definition, and its one caller in `RequestProcessor::process`), while `CronJob::validate` and `DatabaseStore::validate` remain unchanged.\n",
+  "fresh_logs": 1
+}

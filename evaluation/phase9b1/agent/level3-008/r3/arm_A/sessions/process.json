@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Both `sync_job.cpp` and `cleanup_job.cpp` already include `<iostream>`, so no additional includes are needed. `report_job.cpp` was left unchanged since it only reads via `query()`, which doesn't audit-log.\n",
+  "fresh_logs": 1
+}

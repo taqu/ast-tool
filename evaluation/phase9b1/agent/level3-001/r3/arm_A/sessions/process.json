@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[handler] checkout start\\n\";` as the first line of `handle` in both `web_checkout_handler.cpp` and `mobile_checkout_handler.cpp` (both already include `<iostream>`). The retry worker (`src/worker/retry_worker.cpp`) was left untouched \u2014 its `retry` method calls `PaymentService`, not `CheckoutService`.\n",
+  "fresh_logs": 1
+}

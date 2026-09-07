@@ -1,76 +1,115 @@
-# Phase 9a — Controlled Semantic Capability Evaluation
+# Phase 9b.1 — Fresh Controlled Pre-Phase-8 vs Phase-8 Confirmation
 
 ## Objective
 
-Evaluate whether the completed Phase 8 semantic-command changes improve the Coding Agent under controlled semantic-routing conditions.
-
-Phase 9a must isolate the value of the semantic capability changes themselves from:
+Perform a fresh, symmetric, controlled comparison between:
 
 ```text
-Skill invocation variance
-normal first-action routing variance
-unrelated manual exploration variance
+Arm A:
+    pre-Phase-8 semantic implementation
+
+Arm B:
+    accepted Phase 8a + 8b + 8c implementation
 ```
 
-The comparison is:
+under identical agent-routing conditions.
+
+Phase 9b.1 exists to remove the primary limitation of Phase 9a:
 
 ```text
-pre-Phase-8 semantic baseline
-vs
-Phase 8a + Phase 8b + Phase 8c
+Arm A relied partly on historical proxy runs.
 ```
 
-under matched task conditions and forced semantic routing.
-
-The primary question is:
+The central question is:
 
 ```text
-Did Phase 8 improve semantic information quality
-and reduce avoidable semantic recovery / manual fallback
-without reducing correctness?
+When semantic-analysis is forced identically in both arms,
+does the Phase 8 capability set still preserve correctness
+and reproduce the semantic/recovery improvements observed
+during Phase 8 and Phase 9a?
 ```
 
-Phase 9a is not a new feature-development phase.
+Phase 9b.1 is a validation phase.
 
-Do not modify semantic behavior during this evaluation.
+Do not modify semantic behavior during the experiment.
+
+---
+
+# Relationship to Phase 9a
+
+Phase 9a concluded:
+
+```text
+ACCEPT PHASE 8 CAPABILITY SET
+```
+
+based on:
+
+```text
+Phase 8a:
+    partial-FQN relationship recovery eliminated
+
+Phase 8b:
+    typed-member relationships restored
+
+Phase 8c:
+    declaration-only callees false-empty corrected
+
+No false-positive relationship regression observed.
+```
+
+However, Phase 9a retained three important limitations:
+
+```text
+1. Fresh forced-routing Arm A agent runs
+   were not collected.
+
+2. Phase 8b historical Arm A agent evidence
+   was sparse for some tasks.
+
+3. Phase 8c had strong direct semantic evidence
+   but no dedicated agent-level comparison.
+```
+
+Phase 9b.1 must address these limitations directly.
+
+Do not reopen the Phase 8 implementations unless a fresh reproducible regression is found.
 
 ---
 
 # Systems Under Comparison
 
-Define two immutable arms.
+Freeze exactly two arms.
 
-## Arm A — Pre-Phase-8 Baseline
+## Arm A — Fresh Pre-Phase-8 Baseline
 
-Use the last accepted semantic implementation before Phase 8 changes.
+Use:
 
-This arm must exclude:
+```text
+Git revision:
+ccc1fbb650bf058aa11602134d4e4fa1795cb98e
+```
+
+or the exact verified pre-Phase-8 revision used in Phase 9a.
+
+Arm A must exclude:
 
 ```text
 Phase 8a
-    unique FQN-suffix relationship target resolution
+    unique FQN-suffix relationship resolution
 
 Phase 8b
     receiver-type member relationship resolution
 
 Phase 8c
-    declaration→definition body selection for callees
+    declaration/definition body identity
 ```
 
-Use the accepted Phase 7d Skill body.
-
-Record:
-
-```text
-repository revision
-AST Tool binary hash
-Skill hash
-evaluation harness hash
-```
+Use the same accepted Phase 7d `semantic-analysis` Skill.
 
 ---
 
-## Arm B — Current Phase 8 System
+## Arm B — Accepted Phase 8 System
 
 Use the current accepted implementation containing:
 
@@ -80,263 +119,304 @@ Phase 8b
 Phase 8c
 ```
 
-with the same accepted Phase 7d Skill body.
-
-Record the same revision/hash information.
-
-Do not change:
-
-```text
-Skill text
-Skill metadata
-Skill invocation policy
-task prompts
-fixtures
-validators
-evaluation harness behavior
-```
-
-between arms.
+Use the exact same Skill body as Arm A.
 
 ---
 
-# Controlled Routing Condition
+# Immutable Evaluation Inputs
 
-For both arms:
+Before running any agent evaluation, record and verify:
+
+```text
+Arm A Git revision
+Arm B Git revision
+
+Arm A binary SHA-256
+Arm B binary SHA-256
+
+Skill SHA-256
+
+task prompt hashes or exact task revisions
+fixture revisions
+validator revisions
+harness revision/hash
+model identifier
+Claude Code version
+```
+
+Verify before and after the experiment that no arm changed.
+
+Do not allow working-tree semantic changes during measured runs.
+
+---
+
+# Controlled Routing Requirement
+
+For every measured run in both arms:
 
 ```text
 semantic-analysis
-= invoked exactly once
+= exactly once
 = first tool action
 ```
 
-This is required to remove the invocation confound identified during Phase 7e.
+Use the same forced-routing mechanism used previously.
 
-Do not compare:
+Verify this from trace logs rather than assuming the control succeeded.
 
-```text
-forced semantic Arm A
-vs
-normal Arm B
-```
+Any run that does not satisfy the routing condition must be excluded and rerun.
 
-or vice versa.
-
-Both arms must use the same routing condition.
+Record exclusions explicitly.
 
 ---
 
-# Phase 9a Scope
+# Same Runtime Conditions
 
-The controlled cohort should emphasize tasks that exercise Phase 8 behavior while retaining enough unaffected controls to detect regressions.
-
-The cohort must contain four categories:
+Use the same:
 
 ```text
-A. Phase 8a target-resolution tasks
-
-B. Phase 8b receiver-type relationship tasks
-
-C. Phase 8c body-identity / callees tasks
-
-D. unaffected semantic guard tasks
+model
+Claude Code version
+launcher
+environment
+task prompt
+repository fixture
+validator
+Skill
+routing control
 ```
 
-Prefer existing evaluation tasks and fixtures.
+for both arms.
 
-Do not create broad new tasks merely to increase sample size.
+Reset the evaluation repository before every run.
+
+Each measured run must use a fresh agent process/session.
+
+Do not reuse agent memory/state across runs.
 
 ---
 
-# Cohort Construction
+# Cohort Design
 
-## Category A — Phase 8a Target Resolution
+Phase 9b.1 should be smaller than the final normal-routing suite.
 
-Include tasks that previously showed:
+Its purpose is causal confirmation, not broad system coverage.
+
+Use four groups.
+
+---
+
+## Group A — Phase 8a Target Resolution
+
+Include:
 
 ```text
-partial FQN relationship query
-→ not found
+level2-008
+level3-008
+```
+
+or their exact current equivalents.
+
+These tasks historically exercised:
+
+```text
+partial-FQN relationship
+→ failure
 → search
-→ full-FQN relationship retry
+→ exact relationship retry
 ```
 
-At minimum include the existing tasks corresponding to:
+Expected Arm B behavior:
 
 ```text
-AuthToken::expire
-DataStore::save
+partial-FQN relationship
+→ success
 ```
 
-where available in the evaluation suite.
-
-The expected Phase 8 improvement is:
-
-```text
-one successful relationship call
-```
-
-instead of:
-
-```text
-failed relationship
-→ search
-→ relationship retry
-```
+without the recovery sequence.
 
 ---
 
-## Category B — Phase 8b Receiver-Type Resolution
+## Group B — Phase 8b Receiver-Type Relationships
 
-Include tasks where previously valid member relationships were missing for calls such as:
-
-```text
-token_.validate(...)
-validator_.validate(...)
-```
-
-At minimum include the existing tasks equivalent to:
+Include:
 
 ```text
 level2-004
 level4-006
 ```
 
-or the current canonical tasks exercising those relationships.
+or their current equivalents.
 
-The expected Phase 8 improvement is:
+The key semantic signal is:
 
 ```text
-empty relationship result
-→ populated exact relationship result
+Arm A:
+    canonical relationship query
+    → empty / incomplete result
+
+Arm B:
+    same relationship query
+    → exact populated result
 ```
 
-with no false-positive relationships.
+`level4-006` has a known validator defect.
+
+Do not use its raw validator success alone as a semantic correctness signal.
+
+Record separately:
+
+```text
+semantic result correctness
+intended edit set correctness
+validator result
+```
 
 ---
 
-## Category C — Phase 8c Body Identity
+## Group C — Phase 8c Agent-Level Body Identity
 
-Include at least one task where:
+Add at least one task that requires `callees` on a declaration-only target whose body is defined out of line.
+
+Prefer a real existing evaluation task.
+
+If no existing task exercises the behavior cleanly, use the smallest existing task that can be adapted without changing the semantic fixture itself.
+
+The target behavior should be equivalent to:
 
 ```text
-callees target
-→ declaration selected
+callees auth::AuthService::refresh
+```
+
+Arm A:
+
+```text
+declaration selected
 → no body
-→ empty result
+→ false empty
 ```
 
-before Phase 8c.
-
-The canonical example is:
-
-```text
-auth::AuthService::refresh
-```
-
-where the implementation body exists out of line.
-
-The expected Phase 8 improvement is:
+Arm B:
 
 ```text
 same callable identity
 → body-bearing definition
-→ correct callees
+→ populated correct callees
 ```
+
+The task should require the agent to make meaningful use of this result.
+
+Do not count a direct CLI probe as the Group C agent-level run.
 
 ---
 
-## Category D — Unaffected Guards
+## Group D — Unaffected Semantic Guards
 
-Include semantic tasks that were already correct before Phase 8.
+Include at least four tasks that were already correct before Phase 8.
 
-Cover several of:
+Cover a mix of:
 
 ```text
-exact search
-direct callers
+exact FQN callers
+unqualified search
 direct references
 direct callees
 structural find
-unqualified resolution
-exact FQN resolution
+already-correct relationship routing
 ```
 
-These guard tasks are necessary to detect regressions from broader semantic changes.
+The purpose is to detect regressions in unaffected semantic behavior.
 
-Prefer approximately:
+---
+
+# Recommended Cohort Size
+
+Target approximately:
 
 ```text
-6–10 affected tasks
-+
-4–8 unaffected guards
+Affected tasks:
+    5–6
+
+Unaffected guards:
+    4–6
+
+Total:
+    approximately 9–12 tasks
 ```
 
-for a total controlled cohort of approximately:
+Do not expand to the full 41-task suite in Phase 9b.1.
 
-```text
-12–18 tasks
-```
-
-If the existing historical 18-task controlled cohort remains suitable, reuse as much of it as practical.
+That belongs to Phase 9b.2.
 
 ---
 
 # Repetition Strategy
 
-One fresh paired run per task is insufficient for strong claims.
+Use fresh repeated runs for both arms.
 
-Use repeated controlled trials for the tasks most directly affected by Phase 8.
-
-Recommended:
+Recommended minimum:
 
 ```text
 Affected tasks:
-    minimum 5 runs per arm
+    5 runs per arm
 
 Unaffected guards:
-    minimum 3 runs per arm
+    3 runs per arm
 ```
 
-For tasks with high historical trajectory variance:
+For historically high-variance tasks:
 
 ```text
-extend to 10 runs per arm
+10 runs per arm
 ```
 
-if needed.
+may be used if the initial 5 runs are mixed.
 
-Rotate task order between rounds.
+Do not increase repetition merely to chase a desired result.
 
-If practical, interleave arms at the task or round level to reduce temporal bias.
+---
+
+# Arm Ordering
+
+Avoid temporal bias.
+
+Prefer interleaving.
 
 Example:
 
 ```text
-round 1:
-    A task1
-    B task1
-    B task2
-    A task2
+Task A round 1:
+    Arm A
+    Arm B
 
-round 2:
-    reverse / rotate order
+Task B round 1:
+    Arm B
+    Arm A
+
+Task A round 2:
+    Arm B
+    Arm A
 ```
 
-Do not run all Arm A first and all Arm B second unless unavoidable.
+Rotate order across tasks and rounds.
 
-If interleaving is not possible, record that as a limitation.
+Do not run all Arm A sessions first and all Arm B sessions afterward unless unavoidable.
+
+If full interleaving cannot be achieved, document the limitation.
 
 ---
 
-# Primary Metrics
+# Required Metrics
 
-For every run record:
+For every measured agent run record:
 
 ```text
 task
 arm
 success
+
+Skill invoked?
+Skill invocation position
 
 total tools
 
@@ -365,169 +445,305 @@ recovery mean
 recovery max
 ```
 
-Also record:
+Also retain:
 
 ```text
+ordered full tool trajectory
 ordered AST trajectory
-first semantic query
-relationship result cardinality where relevant
 ```
 
 ---
 
-# Semantic Information Metrics
+# Semantic Result Metrics
 
-Phase 9a must measure not only tool count but semantic information quality.
+For Phase 8-affected tasks, record the actual semantic answer.
 
-For affected tasks, record:
+At minimum:
 
 ```text
-expected semantic result
-actual semantic result
+query
+resolved canonical target
+expected relationship set
+actual relationship set
+
 missing relationships
 unexpected relationships
-empty-result fallback
-identity-resolution recovery
-body-resolution recovery
+
+empty result?
+failure?
+retry?
 ```
 
-For relationship queries, include:
-
-```text
-target
-canonical resolved identity
-returned relationship count
-expected relationship count
-false positives
-false negatives
-```
-
-This is especially important for Phase 8b.
+Do not infer semantic correctness only from final task success.
 
 ---
 
-# Phase-Specific Causal Metrics
+# Phase 8a Confirmation
 
-## Phase 8a Metrics
-
-Count occurrences of:
+For every relevant run classify whether this pattern occurs:
 
 ```text
-relationship
+relationship(partial FQN)
 → failure
 → search
-→ relationship retry
+→ relationship(exact FQN)
 ```
 
-The Phase 8 system should reduce these to zero for uniquely resolvable partial FQNs.
-
-Measure:
+Report:
 
 ```text
-target-resolution failures
-target-resolution searches
-relationship retries
+Arm A occurrence count
+Arm B occurrence count
+```
+
+Expected:
+
+```text
+Arm B = 0
+```
+
+for uniquely resolvable targets.
+
+Also verify that ambiguity guards are not weakened.
+
+---
+
+# Phase 8b Confirmation
+
+For receiver-typed member relationships measure:
+
+```text
+correct callers returned
+correct references returned
+correct callees returned
+
+missing relationship count
+unexpected relationship count
+```
+
+Track whether an empty relationship causes:
+
+```text
+references fallback
+search fallback
+Read/manual exploration
+```
+
+Expected Phase 8 signature:
+
+```text
+previously empty relationship
+→ populated exact relationship
+→ fallback reduced or eliminated
 ```
 
 ---
 
-## Phase 8b Metrics
+# Phase 8c Confirmation
 
-Count:
+Phase 9b.1 must add agent-level evidence for Phase 8c.
 
-```text
-relationship query returned empty
-despite valid typed member relationship
-```
-
-Measure:
+For the selected Group C task, record whether the agent uses:
 
 ```text
-correct member relationships returned
-missing member relationships
-unexpected cross-type relationships
-manual fallback after empty result
+callees
 ```
 
-False positives are a hard regression.
+and whether the result is:
+
+```text
+Arm A:
+    false empty due to declaration-only body
+
+Arm B:
+    populated using body-bearing definition
+```
+
+Then determine whether this changes:
+
+```text
+subsequent search
+Read usage
+manual exploration
+AST retries
+total tools
+tokens
+elapsed
+```
+
+The key new evidence required from 9b.1 is:
+
+```text
+correct Phase 8c semantic result
+→ useful agent trajectory change
+```
+
+or, if trajectory does not improve:
+
+```text
+correct semantic result
+→ neutral agent-level effect
+```
+
+Either is informative.
 
 ---
 
-## Phase 8c Metrics
+# Guard Requirements
 
-Count:
+For unaffected guard tasks verify:
 
 ```text
-callees query resolved declaration-only representation
-and returned empty despite existing definition body
+same success rate
+same semantic result sets
+no new failures
+no new retries
+no new ambiguity
+no false relationships
+no systematic extra semantic protocol
 ```
 
-Measure:
+A Phase 8 change must not improve its target cases by destabilizing unrelated semantic behavior.
+
+---
+
+# False-Positive Gate
+
+This is a hard semantic guard.
+
+Across all relationship queries where expected sets are known:
 
 ```text
-body-bearing definition successfully used
-correct callee count
-empty false-negative result
-unexpected callee
+unexpected relationships
+=
+0
+```
+
+should hold.
+
+Any new false relationship must be investigated before acceptance.
+
+Do not trade precision for lower recovery cost.
+
+---
+
+# Correctness Analysis
+
+Use three levels where relevant:
+
+```text
+1. semantic answer correctness
+2. intended edit/work correctness
+3. validator success
+```
+
+This is especially important for tasks with known fixture defects.
+
+Do not label a Phase 8 semantic regression solely because a known-broken validator fails.
+
+Conversely, do not label a semantic result correct merely because the final validator passes.
+
+---
+
+# Primary Comparison Tables
+
+Produce at least the following.
+
+## Table 1 — Aggregate
+
+```text
+Metric
+Arm A
+Arm B
+Delta
+Assessment
+```
+
+Include:
+
+```text
+success
+tools
+AST calls
+AST failures
+retries
+help
+search
+find
+callers
+callees
+references
+grep
+glob
+read
+tokens
+elapsed
+recovery
 ```
 
 ---
 
-# Trajectory Classification
-
-For each task, compare Arm A and Arm B trajectories and classify the difference.
-
-Use:
-
-```text
-1. Equivalent
-
-2. Semantic recovery eliminated
-
-3. Manual fallback eliminated
-
-4. Semantic result improved but agent trajectory unchanged
-
-5. Lower tool/token cost
-
-6. Higher cost with better semantic information
-
-7. Regression
-
-8. Stochastic / inconclusive
-```
-
-Do not force every improvement into a cost-saving category.
-
----
-
-# Task-Level Comparison
-
-Produce a table containing at minimum:
+## Table 2 — Task-Level
 
 ```text
 Task
-Phase exercised
-Arm A success
-Arm B success
+Group
+Runs A/B
+Success A/B
 Δtools
 ΔAST
 Δfailures
 Δretries
-Δreads
+ΔRead
 Δtokens
 Δelapsed
-semantic result change
-assessment
+Semantic result change
+Assessment
 ```
-
-For repeated runs, report means and medians where useful.
 
 ---
 
-# Pairwise Distribution Analysis
+## Table 3 — Semantic Accuracy
 
-For repeated same-task runs, calculate Arm B minus Arm A deltas for:
+```text
+Task / query
+Expected
+Arm A
+Arm B
+Missing A
+Missing B
+Unexpected A
+Unexpected B
+```
+
+---
+
+## Table 4 — Phase-Specific Causal Patterns
+
+```text
+Pattern
+Arm A occurrences
+Arm B occurrences
+Calls saved
+Failures removed
+Retries removed
+```
+
+Cover:
+
+```text
+8a partial-FQN recovery
+8b empty member relationship fallback
+8c declaration-body false empty
+```
+
+---
+
+# Distribution Analysis
+
+Because the experiment is repeated, do not rely only on means.
+
+For each affected task report Arm B minus Arm A distributions for:
 
 ```text
 tools
@@ -539,547 +755,345 @@ tokens
 elapsed
 ```
 
-Report:
+Include where meaningful:
 
 ```text
 mean
 median
-p75
-p90
 min
 max
 ```
 
-where sample size makes those statistics meaningful.
-
-Do not rely only on aggregate totals.
+Use p75/p90 only if the number of runs is large enough to make them useful.
 
 ---
 
-# Correctness Gate
+# Trajectory Analysis
 
-Correctness must not regress.
+For every affected task include at least one representative Arm A and Arm B trajectory.
 
-For each task:
-
-```text
-Arm B success rate
->=
-Arm A success rate
-```
-
-unless a difference is clearly attributable to an unrelated pre-existing validator defect.
-
-Any such defect must be documented separately and should not be counted as semantic regression if the semantic output and intended edit set can be independently verified.
-
-Do not silently exclude failures.
-
----
-
-# Semantic Precision Gate
-
-Phase 8 must not introduce false semantic relationships.
-
-For all fixture-backed or task-backed relationship results:
+Example Phase 8a:
 
 ```text
-unexpected relationship count
-=
-0
-```
-
-is the preferred requirement.
-
-A false positive is more serious than a remaining false negative.
-
-Any new false relationship should trigger investigation before acceptance.
-
----
-
-# Recovery Gate
-
-Phase 8 was explicitly designed to eliminate known semantic recovery patterns.
-
-Therefore compare:
-
-```text
-AST failures
-retries
-recovery distance
-```
-
-particularly on affected tasks.
-
-Expected direction:
-
-```text
-Phase 8
-<=
-pre-Phase-8
-```
-
-for known resolver/body-identity defects.
-
-Do not require every unaffected stochastic task to improve.
-
----
-
-# Manual Exploration Gate
-
-Measure whether better semantic information reduces:
-
-```text
-Grep
-Glob
-Read
-manual source inspection
-```
-
-on affected tasks.
-
-This is supporting evidence, not a hard requirement.
-
-A semantic capability may still be valuable if correctness improves while manual exploration remains similar.
-
----
-
-# Token and Time Interpretation
-
-Do not treat tokens or elapsed time as the sole acceptance criterion.
-
-Phase 8b already showed that:
-
-```text
-better semantic information
-```
-
-can coexist with noisy cost metrics.
-
-Use the following interpretation:
-
-```text
-best:
-    semantic correctness improves
-    and cost falls
-
-acceptable:
-    semantic correctness improves
-    and cost is approximately neutral
-
-caveat:
-    semantic correctness improves
-    but cost rises materially
-
-regression:
-    cost rises
-    without meaningful semantic benefit
-```
-
----
-
-# Unaffected Guard Analysis
-
-For guard tasks, specifically look for:
-
-```text
-new AST failures
-new retries
-new ambiguity
-changed exact FQN resolution
-changed unqualified resolution
-new false relationships
-new empty relationships
-extra semantic calls
-manual fallback increases
-```
-
-Phase 8 should not improve affected tasks by destabilizing already-correct ones.
-
----
-
-# Required Before/After Pattern Analysis
-
-At minimum report these three patterns.
-
-## Pattern A — Phase 8a
-
-```text
-Before:
-partial-FQN relationship
-→ not found
+Arm A:
+Skill
+→ callers(partial)
+→ FAILURE
 → search
-→ full-FQN relationship
+→ callers(exact)
+→ Read/Edit
 
-After:
-partial-FQN relationship
-→ success
+Arm B:
+Skill
+→ callers(partial)
+→ SUCCESS
+→ Read/Edit
 ```
 
----
-
-## Pattern B — Phase 8b
+Example Phase 8b:
 
 ```text
-Before:
-canonical relationship target
-→ empty result
-→ fallback/manual reasoning
-
-After:
-canonical relationship target
-→ exact populated relationship result
-```
-
----
-
-## Pattern C — Phase 8c
-
-```text
-Before:
-callee target
-→ declaration-only body
+Arm A:
+Skill
+→ search
+→ callers
 → empty
+→ references
+→ Read/Edit
 
-After:
-same callable identity
-→ body-bearing definition
-→ correct callees
+Arm B:
+Skill
+→ search
+→ callers
+→ populated
+→ Read/Edit
 ```
 
-These are the primary causal signatures of Phase 8.
-
----
-
-# Historical Comparisons
-
-Historical Phase 7/8 measurements may be included for context.
-
-However:
+Example Phase 8c:
 
 ```text
-historical normal runs
-!=
-controlled causal evidence
+Arm A:
+Skill
+→ callees
+→ empty
+→ fallback
+
+Arm B:
+Skill
+→ callees
+→ populated
+→ targeted continuation
 ```
-
-Do not mix historical single-run results directly into fresh repeated controlled aggregates.
-
-Keep:
-
-```text
-fresh controlled comparison
-```
-
-and:
-
-```text
-historical context
-```
-
-separate.
-
----
-
-# No Changes During Evaluation
-
-Once Phase 9a begins, freeze:
-
-```text
-AST Tool implementation
-Skill files
-fixtures
-validators
-task prompts
-evaluation scripts
-```
-
-If a measurement bug is found:
-
-1. stop;
-2. fix the measurement;
-3. document it;
-4. rerun affected measurements symmetrically for both arms.
-
-Do not patch semantic behavior mid-evaluation.
 
 ---
 
 # Acceptance Criteria
 
-Phase 9a may conclude favorably if all of the following are true.
+Phase 9b.1 may pass only if the fresh symmetric comparison supports the Phase 9a conclusion.
 
 ## 1. Correctness preserved
 
-Phase 8 does not reduce task success.
+No reproducible decrease in semantic or task correctness.
 
 ---
 
-## 2. Known Phase 8 defects are actually removed
+## 2. Phase 8a effect reproduced
 
-The affected tasks show the intended semantic changes:
+Known partial-FQN recovery disappears under Arm B.
+
+---
+
+## 3. Phase 8b effect reproduced
+
+Previously missing receiver-typed relationships become exact populated results.
+
+---
+
+## 4. Phase 8c agent-level usefulness characterized
+
+The body-identity improvement is exercised by an agent task and its trajectory impact is measured.
+
+---
+
+## 5. Semantic precision preserved
+
+No new false relationships.
+
+---
+
+## 6. Unaffected guards stable
+
+No systematic regression in already-correct semantic tasks.
+
+---
+
+## 7. Recovery does not regress
+
+Across affected tasks, Phase 8 should reduce or preserve:
 
 ```text
-8a:
-resolution recovery removed
-
-8b:
-missing typed-member relationships restored
-
-8c:
-declaration-only callees false empty removed
+failures
+retries
+recovery distance
 ```
 
 ---
 
-## 3. No new false semantic relationships
+## 8. Agent-level cost is acceptable
 
-False-positive guards remain clean.
-
----
-
-## 4. Unaffected semantic routes remain stable
-
-No systematic regression appears in guard tasks.
-
----
-
-## 5. Recovery improves or remains controlled
-
-Known semantic failures/retries decrease.
-
----
-
-## 6. Agent-level trajectory shows credible value
-
-At least one of the following should improve meaningfully across affected tasks:
+Preferred:
 
 ```text
-fewer failed semantic calls
-fewer retries
-less manual exploration
-fewer Reads
-fewer total tools
-lower tokens
-lower elapsed
+correctness improves/preserves
++
+tools/tokens/time improve
 ```
 
-Semantic correctness itself remains the primary benefit.
+Acceptable:
+
+```text
+semantic correctness improves
++
+cost is approximately neutral
+```
+
+Caveat:
+
+```text
+semantic correctness improves
++
+cost rises materially
+```
+
+A cost increase must be justified by semantic value.
 
 ---
 
-# Possible Final Decisions
+# Possible Decisions
 
-## ACCEPT PHASE 8 CAPABILITY SET
+## CONFIRM PHASE 8
 
 Use when:
 
 ```text
-correctness preserved
-known semantic defects removed
-no false-positive regression
-guards stable
-and
-agent-level value is directionally favorable
+fresh Arm A vs Arm B
+reproduces the Phase 9a semantic improvements,
+guards remain stable,
+and no systematic regression appears.
 ```
 
-Proceed to Phase 9b normal full-suite evaluation.
+Proceed to Phase 9b.2.
 
 ---
 
-## ACCEPT WITH CAVEATS
+## CONFIRM WITH CAVEATS
 
 Use when:
 
 ```text
-semantic correctness clearly improves
-and
-guards remain stable
-but
-token/time/tool improvements are mixed or noisy
+semantic correctness is clearly better,
+guards remain stable,
+but cost or trajectory metrics are mixed.
 ```
 
-Proceed to Phase 9b, carrying the caveats explicitly.
+Proceed to Phase 9b.2 while carrying the caveats.
 
 ---
 
-## REVISE PHASE 8
+## REVISE SPECIFIC PHASE 8 CHANGE
 
-Use only if a specific reproducible regression is isolated to one Phase 8 behavior.
-
-Identify whether it belongs to:
+Use only when a fresh reproducible regression is isolated to:
 
 ```text
 8a
 8b
+or
 8c
 ```
 
-Do not reopen all Phase 8 changes together.
-
----
-
-## REVERT SPECIFIC PHASE 8 CHANGE
-
-Use if one isolated Phase 8 change introduces:
-
-```text
-wrong relationships
-wrong body identity
-ambiguity collapse
-or systematic correctness regression
-```
-
-Revert only the causal change if possible.
+Do not reopen all Phase 8 changes.
 
 ---
 
 ## INCONCLUSIVE
 
-Use when variance or measurement limitations prevent a reliable comparison.
+Use when:
 
-Do not compensate by adding more semantic behavior.
+```text
+fresh A/B variance
+prevents reliable interpretation
+```
+
+Increase repetitions only for the affected tasks.
+
+Do not modify semantic behavior.
 
 ---
 
-# Phase 9b Gate
+# Hard Stop Conditions
 
-Proceed to Phase 9b only if Phase 9a concludes:
+Do not proceed directly to Phase 9b.2 if fresh Arm B introduces:
 
 ```text
-ACCEPT PHASE 8 CAPABILITY SET
+false semantic relationships
+wrong body identity
+ambiguity collapse
+systematic correctness loss
+systematic guard regression
+```
+
+Investigate the specific causal Phase 8 change first.
+
+---
+
+# No Semantic Changes During Phase 9b.1
+
+Once measurement begins, freeze:
+
+```text
+AST Tool source
+binaries
+Skill
+tasks
+fixtures
+validators
+harness
+```
+
+If an evaluation measurement bug is found:
+
+```text
+stop
+fix measurement only
+rerun both arms symmetrically
+document the change
+```
+
+Do not patch production semantics mid-run.
+
+---
+
+# Phase 9b.2 Gate
+
+Proceed to Phase 9b.2 only if the final Phase 9b.1 decision is:
+
+```text
+CONFIRM PHASE 8
 ```
 
 or:
 
 ```text
-ACCEPT WITH CAVEATS
+CONFIRM WITH CAVEATS
 ```
 
-Phase 9b will answer a different question:
+Phase 9b.2 will remove the forced-routing control and answer:
 
 ```text
-Does the complete current system improve
-under normal agent routing and Skill invocation?
+Does the complete Phase 8 system improve
+under normal Skill invocation and ordinary agent behavior?
 ```
 
-Phase 9a answers only:
+Phase 9b.1 answers only:
 
 ```text
-Are the Phase 8 semantic capabilities themselves better
-when semantic routing is held constant?
+Does Phase 8 remain better
+under a fresh symmetric controlled comparison?
 ```
 
-Keep these questions separate.
+Do not mix these conclusions.
 
 ---
 
 # Deliverables
 
-Produce a final Phase 9a report containing:
+Produce a final Phase 9b.1 report containing:
 
 ```text
 1. Environment and revisions
 
 2. Exact Arm A / Arm B definitions
 
-3. Skill and harness verification
+3. Binary / Skill / harness verification
 
-4. Controlled cohort
+4. Controlled-routing verification
 
-5. Repetition and ordering protocol
+5. Cohort and group definitions
 
-6. Aggregate metrics
+6. Repetition and arm-order protocol
 
-7. Task-level paired metrics
+7. Fresh aggregate comparison
 
-8. Phase 8a causal analysis
+8. Fresh task-level comparison
 
-9. Phase 8b causal analysis
+9. Semantic accuracy results
 
-10. Phase 8c causal analysis
+10. Phase 8a confirmation
 
-11. Semantic precision / false-positive analysis
+11. Phase 8b confirmation
 
-12. Recovery analysis
+12. Phase 8c agent-level confirmation
 
-13. Manual exploration analysis
+13. Recovery analysis
 
-14. Token/time distribution
+14. Manual exploration analysis
 
-15. Unaffected guard results
+15. Tool/token/time distributions
 
-16. Representative before/after trajectories
+16. Unaffected guard results
 
-17. Regressions and outliers
+17. Representative trajectories
 
-18. Limitations
+18. Regressions and outliers
 
-19. Final decision
+19. Experimental limitations
 
-20. Phase 9b recommendation
+20. Final decision
+
+21. Phase 9b.2 recommendation
 ```
 
 Keep raw measurements separate from interpretation.
-
----
-
-# Preferred Report Tables
-
-## Controlled Aggregate
-
-```text
-Metric
-Pre-Phase-8
-Phase 8
-Delta
-Assessment
-```
-
----
-
-## Task-Level Comparison
-
-```text
-Task
-Phase
-Success A/B
-Δtools
-ΔAST
-Δfail
-Δretry
-ΔRead
-Δtokens
-Δelapsed
-Semantic change
-Assessment
-```
-
----
-
-## Semantic Correctness
-
-```text
-Task
-Expected relationships
-Pre-Phase-8 result
-Phase 8 result
-Missing before
-Missing after
-Unexpected after
-```
-
----
-
-## Phase-Specific Recovery
-
-```text
-Pattern
-Pre-Phase-8 occurrences
-Phase 8 occurrences
-Calls saved
-Failures removed
-Retries removed
-```
 
 ---
 
@@ -1089,45 +1103,47 @@ Use:
 
 ```text
 strong:
-    repeated same-task controlled comparison
+    fresh repeated same-task Arm A/B comparison
     + exact semantic-result verification
 
 moderate:
-    repeated task behavior with controlled routing
+    fresh repeated controlled trajectory comparison
 
 weak:
-    single paired run
+    one fresh run
 
-insufficient:
-    historical aggregate or cross-task correlation
+context only:
+    historical Phase 7/8 data
 ```
 
-Do not make broad Phase 8 claims from weak evidence alone.
+Historical data may explain a pattern, but Phase 9b.1 conclusions must come from fresh evidence.
 
 ---
 
 # Working Principle
 
-Phase 9a is a validation phase, not an optimization phase.
+Phase 9b.1 is the final causal confirmation before normal-routing evaluation.
 
 Use:
 
 ```text
-freeze both systems
-→ hold semantic routing constant
-→ repeat the same tasks
-→ compare exact semantic information
-→ compare recovery and exploration
-→ measure agent-level cost
-→ accept or reject the Phase 8 capability set
+freeze pre-Phase-8
+freeze Phase 8
+→ force the same Skill routing
+→ run both arms fresh
+→ interleave repetitions
+→ verify exact semantic answers
+→ compare trajectories and recovery
+→ confirm or challenge Phase 9a
 ```
 
 The central question is:
 
 ```text
-Did Phase 8 make semantic analysis
-more correct and more useful
-when the agent actually uses it?
+Does the Phase 8 capability set still win
+when both systems are evaluated fresh,
+symmetrically,
+and under identical semantic routing?
 ```
 
 Nothing else.

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Both jobs already `#include <iostream>`, so no additional includes are needed.\n\nTraced with `ast-tool callers` that `store::DataStore::save` and `purge` (both call `auditor_.log(...)`) are invoked only from `SyncJob::execute` and `CleanupJob::execute` respectively. Added the audit log line immediately before each triggering call in `src/job/sync_job.cpp` and `src/job/cleanup_job.cpp`. `ReportJob::generate` (`src/job/report_job.cpp`) only calls `store_.query()`, which doesn't touch the audit logger, so it was left unchanged.\n",
+  "fresh_logs": 1
+}

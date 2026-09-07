@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Only the unrelated `CronJob::validate` and `DatabaseStore::validate` remain, as intended \u2014 no leftover references to `ValidationService::validate`. The refactor is complete:\n\n- `service::ValidationService::validate` \u2192 `validatePayload` in `validation_service.h` and `validation_service.cpp`\n- Updated the sole caller `RequestProcessor::process` in `request_processor.cpp:13`\n- `store::DatabaseStore::validate` and `jobs::CronJob::validate` left untouched\n",
+  "fresh_logs": 1
+}

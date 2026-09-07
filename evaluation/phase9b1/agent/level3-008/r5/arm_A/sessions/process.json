@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "I traced the call graph with `ast-tool`: `DataStore::save` and `DataStore::purge` both call `auditor_.log(...)` (confirmed in `data_store.cpp`), while `DataStore::query` does not. Callers were:\n\n- `job::SyncJob::execute` \u2192 `store_.save(data)` \u2014 audit-triggering\n- `job::CleanupJob::execute` \u2192 `store_.purge()` \u2014 audit-triggering\n- `job::ReportJob::generate` \u2192 `store_.query()` \u2014 read-only, not modified\n\nAdded `std::cerr << \"[job] audit triggered\\n\";` immediately before the `save`/`purge` calls in `sync_job.cpp` and `cleanup_job.cpp`; `report_job.cpp` left untouched.\n",
+  "fresh_logs": 1
+}

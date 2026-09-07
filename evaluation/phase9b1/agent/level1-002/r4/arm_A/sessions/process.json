@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "I've added the log line before all three call sites of `InventoryService::save`:\n\n- `src/main.cpp:11,12` \u2014 before both `inv.save(p1)` and `inv.save(p2)` (also added the missing `<iostream>` include)\n- `src/service/order_service.cpp:11` \u2014 before `inventory_.save(product)` inside `OrderService::save`\n\nNote: `orders.save(p1)` in main.cpp calls `OrderService::save`, a different method, so it wasn't touched \u2014 its own body calls `InventoryService::save` internally, which is already covered by the order_service.cpp edit.\n",
+  "fresh_logs": 1
+}

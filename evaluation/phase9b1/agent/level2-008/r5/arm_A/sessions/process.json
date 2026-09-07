@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Found both callers of `AuthToken::expire`: `AuthService::refresh` (refresh flow) and `AuthController::handleLogout` (logout flow). Added the log line immediately before the `expire` call in `handleLogout` only \u2014 `AuthService::refresh` was left unchanged.\n",
+  "fresh_logs": 1
+}

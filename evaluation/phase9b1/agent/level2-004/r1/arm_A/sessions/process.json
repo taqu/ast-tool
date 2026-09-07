@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All four direct call sites of `AuthToken::validate` now have the debug line immediately before them:\n\n- `src/auth/auth_service.cpp` \u2014 `AuthService::login`\n- `src/web/session_controller.cpp` \u2014 `SessionController::handle`\n- `src/web/auth_controller.cpp` \u2014 `AuthController::handleLogin` and `AuthController::handleRefresh`\n\n`AuthService::validate` (the other `validate` overload) was excluded since it doesn't call `AuthToken::validate`. All three files already include `<iostream>`.\n",
+  "fresh_logs": 1
+}
