@@ -1,53 +1,35 @@
-# Phase 10 — Semantic Routing Opportunity / Trigger Reliability
+# Phase 11 — Release Freeze / Baseline Lock
 
 ## Objective
 
-Phase 10 evaluates and improves **semantic routing reliability**.
+Phase 11 transitions the project from capability development into release preparation.
 
-The current semantic capability is already the stable baseline. Do not redesign or broaden the semantic engine unless the experiment reveals a concrete blocker.
-
-The goal of this phase is **not** to maximize `semantic-analysis` invocation rate.
-
-The goal is:
+The purpose of this phase is to:
 
 ```text
-increase appropriate semantic routing
-where semantic routing has demonstrated agent-level value
-without materially increasing low-value invocation
+freeze the accepted implementation baseline
+define the release scope
+separate release blockers from known limitations
+prevent further feature drift before release qualification
 ```
 
-Treat routing as a classification problem:
+This is **not** a semantic capability improvement phase.
 
-```text
-                     Semantic route useful?
-                     Yes          No
+Do not introduce new semantic behavior, new commands, new routing strategies, or speculative optimizations unless they are required to resolve a confirmed release blocker.
 
-Invoked              TP           FP
-Not invoked          FN           TN
-```
-
-The primary optimization target is:
-
-```text
-reduce FN
-without materially increasing FP
-```
-
-In other words, reduce missed high-value semantic opportunities without making the agent invoke semantic tooling indiscriminately.
+The primary outcome of Phase 11 is a clearly defined and reproducible release baseline.
 
 ---
 
-## Stable Baseline
+# Release Baseline
 
-Keep the current accepted implementation unchanged unless a Phase 10 experiment explicitly requires a routing-related modification.
-
-The semantic baseline is:
+The release baseline is:
 
 ```text
 Phase 7d Skill
 +
 Phase 8a
-    unique FQN suffix resolution
+    unique FQN suffix relationship resolution
 +
 Phase 8b
     receiver-type member relationship resolution
@@ -56,653 +38,613 @@ Phase 8c
     callable declaration/definition body identity
 ```
 
-Do not revert any Phase 8 capability.
+Phase 10 routing experiments are **not** part of the release baseline.
 
-Do not use pre-Phase-8 behavior as the implementation baseline.
+In particular:
+
+```text
+Phase 10 Candidate 1
+    trigger vocabulary addition
+    → REJECTED
+    → REVERTED
+```
+
+Do not reintroduce rejected Phase 10 changes.
 
 ---
 
-## Core Hypothesis
+# Phase 10 Final Status
 
-Phase 9 established that semantic routing can produce clear agent-level value when the task requires relationship discovery.
-
-The strongest positive evidence comes from Phase-8b-like tasks such as:
+Record Phase 10 as:
 
 ```text
-who calls X?
-where is X referenced?
-which callers need modification?
-cross-file member relationship discovery
-member-method relationship discovery
+Phase 10
+Semantic Routing Opportunity / Trigger Reliability
+
+Status:
+COMPLETE
+
+Final result:
+NO SAFE ROUTING IMPROVEMENT FOUND
 ```
 
-For these tasks, the desired trajectory is approximately:
+The baseline routing behavior should therefore remain unchanged for the release.
+
+The key conclusion is:
 
 ```text
-semantic routing
-→ targeted relationship query
-→ small relevant context
-→ edit / solution
+Semantic routing is already reliable for the task shapes
+where semantic capability has demonstrated the strongest value.
+
+Remaining missed opportunities are sparse boundary cases,
+and no safe routing improvement was demonstrated.
 ```
 
-rather than:
-
-```text
-Grep / Glob
-→ repeated Read
-→ manual reconstruction
-→ edit
-```
-
-Phase 10 should determine why the agent sometimes fails to select the semantic route for these opportunities and whether a small routing change can improve that decision.
+Do not continue routing experimentation during release preparation.
 
 ---
 
-## Important Constraint
+# Feature Freeze
 
-Do not optimize for raw invocation frequency.
+After Phase 11 begins, apply a feature freeze.
 
-The following outcome is not sufficient:
-
-```text
-semantic-analysis invocation rate increased
-```
-
-A change is useful only if the additional invocations occur primarily on tasks where semantic routing provides demonstrated value.
-
-A change that increases semantic invocation while also increasing unnecessary AST calls, tokens, latency, retries, or manual recovery should not be accepted merely because routing frequency improved.
-
----
-
-# Phase 10a — Opportunity Set Construction
-
-Before changing any routing behavior, build an evaluation corpus that separates positive semantic opportunities from negative or neutral cases.
-
-## Positive Set
-
-Create a focused set of tasks where semantic relationship queries are expected to have concrete value.
-
-Prioritize Phase-8b-like cases.
-
-Examples:
+Do not add:
 
 ```text
-Find every caller of a member method and modify those callers.
-
-Determine where a class member function is referenced.
-
-Find which call sites of a specific member need an update.
-
-Trace a member-method relationship across multiple files.
-
-Locate callers of methods accessed through:
-- object fields
-- pointer fields
-- local objects
-- local pointers
-- reference parameters
-- pointer parameters
-```
-
-Prefer tasks where manual exploration would otherwise require multiple Grep/Read operations.
-
-Include cases with:
-
-```text
-same member name on unrelated classes
-qualified and partially qualified names
-multiple source files
-declaration / implementation separation
-```
-
-The positive set should contain opportunities where the current semantic baseline is known to return useful and precise results.
-
-Do not include unsupported semantic cases merely to increase difficulty.
-
----
-
-## Negative / Control Set
-
-Create a control set where semantic routing is unnecessary, low-value, or clearly inferior to simpler inspection.
-
-Examples may include:
-
-```text
-small local edits
-single-file literal changes
-obvious nearby code modifications
-formatting or mechanical edits
-tasks where the relevant code is already directly visible
-tasks where no relationship discovery is required
-```
-
-The control set is required to detect over-triggering.
-
-A routing change that improves the positive set but causes semantic-analysis to fire broadly on these tasks may be a regression.
-
----
-
-## Dataset Requirements
-
-The dataset must allow each run to be classified independently.
-
-For every task, record at minimum:
-
-```text
-task id
-expected opportunity class:
-    positive
-    negative/control
-
-semantic-analysis invoked?
-first agent action
-first discovery action
-AST commands used
-manual discovery tools used
-success/failure
-tool count
-AST call count
-AST failures
-AST retries
-Read count
-Grep count
-Glob count
-token count
-elapsed time
-```
-
-Where possible, also record whether the semantic result directly contributed to the final edit.
-
----
-
-# Phase 10b — Baseline Routing Characterization
-
-Run the opportunity corpus using the unchanged stable baseline.
-
-Do not add routing hints yet.
-
-The purpose is to measure current routing behavior.
-
-For every run, classify the outcome as:
-
-```text
-TP
-semantic route was valuable and was selected
-
-FN
-semantic route would have been valuable but was not selected
-
-FP
-semantic route was selected but provided little or no value
-
-TN
-semantic route was not selected and was not needed
-```
-
-For positive tasks, inspect the first-decision trajectory.
-
-Especially distinguish:
-
-```text
-semantic-analysis first
-direct ast-tool first
-Grep first
-Glob first
-Read first
-other
-```
-
-The main question is:
-
-```text
-Where does the trajectory diverge before semantic-analysis gets a chance to help?
-```
-
-Do not assume all non-invocation is caused by the same trigger failure.
-
----
-
-# Phase 10c — First-Decision Analysis
-
-Analyze false negatives individually.
-
-For each FN, determine whether the missed semantic route appears related to:
-
-```text
-Skill description
-trigger wording
-tool / Skill discovery metadata
-task phrasing
-agent interpretation of relationship intent
-competition with Grep / Read
-direct ast-tool use without Skill invocation
-other first-decision behavior
-```
-
-Pay particular attention to the observation that `semantic-analysis`, when invoked, tends to be invoked as the first action.
-
-Therefore, treat this primarily as a **first-decision routing problem**, not a late-recovery problem.
-
-Do not attempt to fix missed invocation by adding instructions deep inside the Skill body unless evidence shows the Skill has already been loaded before the decision failure.
-
----
-
-# Phase 10d — Minimal Trigger Experiments
-
-After the baseline classification is complete, test routing interventions one variable at a time.
-
-Candidate variables include:
-
-```text
-1. Skill description
-2. trigger phrasing
-3. discovery metadata
-4. system-level routing hint
-```
-
-Do not change multiple routing variables in the same initial experiment.
-
-For each candidate:
-
-```text
-baseline
-vs.
-one-variable modification
-```
-
-Keep the following constant:
-
-```text
-repository
-task prompt
-semantic implementation
-Skill body unless it is the tested variable
-agent configuration
-tool availability
-evaluation procedure
-```
-
-Use repeated runs where routing is stochastic.
-
----
-
-## Preferred Intervention Style
-
-Prefer small, explicit trigger cues describing **when semantic relationship discovery is valuable**.
-
-Good routing guidance should emphasize task shape rather than blanket tool preference.
-
-Conceptually, guidance should resemble:
-
-```text
-Use semantic analysis when the task requires discovering callers,
-references, callees, or cross-file symbol/member relationships.
-```
-
-Avoid guidance equivalent to:
-
-```text
-Always use semantic-analysis for code tasks.
-```
-
-or:
-
-```text
-Try semantic-analysis before Grep.
-```
-
-unless evidence strongly justifies such behavior.
-
-The intervention should improve discrimination, not simply bias the agent toward another tool.
-
----
-
-# Evaluation Metrics
-
-Evaluate routing quality and agent performance together.
-
-## Primary Metrics
-
-```text
-positive-set semantic routing recall
-    TP / (TP + FN)
-
-false-positive routing rate
-    FP / (FP + TN)
-
-correctness
-```
-
-The primary routing objective is:
-
-```text
-positive-set recall ↑
-while FP remains stable or increases only negligibly
-```
-
----
-
-## Secondary Metrics
-
-Track:
-
-```text
-semantic precision
-tool count
-AST call count
-AST failures
-AST retries
-manual fallback
-Read count
-Grep count
-Glob count
-tokens
-elapsed time
-recovery cost
-```
-
-The intended improvement pattern is:
-
-```text
-FN ↓
-manual fallback ↓
-Read / Grep exploration ↓
-tokens ↓ or stable
-elapsed ↓ or stable
-correctness stable
-FP approximately stable
-```
-
-Not every metric must improve on every task, but broad cost regressions must not be hidden by a higher invocation rate.
-
----
-
-# Semantic Precision Check
-
-When semantic routing occurs, verify that the semantic result itself is useful.
-
-Do not count an invocation as a TP merely because the Skill or AST command was called.
-
-A useful semantic route should satisfy most of the following:
-
-```text
-returned the relevant relationship
-avoided false-positive cross-linking
-reduced manual discovery
-contributed directly to the solution
-did not require unnecessary recovery
-```
-
-If the agent invokes semantic-analysis but ignores or cannot use the result, classify and report that separately.
-
----
-
-# Repeated Evaluation
-
-Routing has previously shown stochastic behavior.
-
-For tasks near the decision boundary, use repeated runs rather than relying on one trajectory.
-
-Prefer repeated evaluation for:
-
-```text
-tasks that alternate between semantic and manual routing
-tasks affected by a proposed trigger change
-tasks responsible for apparent aggregate improvements
-tasks that produce unexpected FP or FN behavior
-```
-
-Report both aggregate results and per-task distributions.
-
-Do not let one unusually cheap or expensive run dominate the conclusion.
-
----
-
-# Acceptance Criteria
-
-A Phase 10 routing change should be accepted only if the evidence shows that it improves **appropriate semantic selection**.
-
-A good result should demonstrate:
-
-```text
-1. meaningful reduction in FN on the positive set
-
-2. no material correctness regression
-
-3. no material increase in FP on the control set
-
-4. semantic results remain precise
-
-5. no broad increase in AST failure/retry behavior
-
-6. agent-level cost is improved or at least reasonably neutral
-   on the tasks where additional routing occurs
-```
-
-Prefer evidence from repeated task-level behavior over a single aggregate invocation percentage.
-
----
-
-# Rejection Conditions
-
-Reject or revert a routing change if it mainly produces any of the following:
-
-```text
-semantic invocation increases everywhere
-
-positive routing recall improves only slightly
-but control-set invocation rises substantially
-
-AST calls increase without reducing manual discovery
-
-tokens or elapsed time increase broadly
-
-semantic-analysis is invoked on trivial local tasks
-
-new routing causes repeated redundant semantic queries
-
-correctness regresses
-
-the apparent gain depends on one or two stochastic runs
-```
-
-Also reject changes whose only demonstrated benefit is:
-
-```text
-higher semantic-analysis invocation rate
-```
-
-Raw invocation rate is diagnostic, not the optimization target.
-
----
-
-# Out of Scope
-
-Do not expand Phase 10 into general semantic capability development.
-
-The following are not current priorities unless repeated Phase 10 evidence shows that they block valuable routing:
-
-```text
-additional receiver forms
-auto / decltype inference
-templates
-inheritance / virtual dispatch
-overload resolution
-complex receiver expressions
-explicit this-> support
+new AST commands
 new semantic commands
-stable semantic symbol IDs
+new relationship semantics
+new receiver inference
+new resolution strategies
+new routing heuristics
+new Skill trigger strategies
+new agent-specific optimization behavior
+new output modes
 ```
 
-Also do not prioritize the known callee-side residual gap merely because it exists.
+unless a release-blocking defect requires a narrowly scoped change.
 
-A real semantic limitation is not automatically the next optimization target.
+The default decision for non-critical enhancement ideas is:
 
-The criterion is agent-level exposure and demonstrated cost.
+```text
+DEFER TO POST-RELEASE
+```
 
 ---
 
-# Known Low-Priority Issues
+# Release Scope
 
-Keep the following documented, but do not let them distract from the routing experiment unless they materially affect the results:
+Define exactly what the first release promises.
+
+The release should include only capabilities that are already implemented, tested, and understood.
+
+Document the supported command surface and semantic behavior.
+
+At minimum, identify:
 
 ```text
-callee-side declaration/definition residual gap
-
-Windows path quoting issues
-
-sporadic --help overuse
+supported commands
+supported languages
+supported relationship queries
+supported symbol resolution behavior
+supported JSON / machine-readable output
+supported repository/workspace behavior
+supported operating systems
 ```
 
-If one of these invalidates a run, classify the run separately rather than treating it as evidence for or against the routing hypothesis.
+Do not expand support claims based on theoretical capability.
+
+Only document behavior demonstrated by the current implementation and tests.
 
 ---
 
-# Implementation Discipline
+# Known Limitations
 
-Follow these rules during Phase 10:
+Create a release-facing known limitations list.
+
+Known limitations are not automatically release blockers.
+
+Current examples include:
 
 ```text
-measure before modifying
+advanced receiver/type inference
 
-change one routing variable at a time
+auto / decltype-based receiver inference
 
-preserve the Phase 8 semantic baseline
+complex receiver expressions
 
-do not optimize raw invocation rate
+template-heavy resolution
 
-separate positive opportunities from controls
+inheritance-aware relationship resolution
 
-inspect first-decision behavior
+virtual dispatch
 
-repeat stochastic cases
+overload-sensitive relationship resolution
 
-prefer small reversible changes
+explicit this-> receiver handling
 
-require agent-level evidence
+callee-side residual declaration/definition identity gaps
+
+ambiguous or unsupported language-specific semantic cases
 ```
 
-Do not make speculative cleanup changes during the experiment.
+Verify the exact current behavior before publishing each limitation.
 
-Do not combine unrelated improvements into a routing candidate.
+Do not attempt to fix these merely because they are known.
 
-Keep every tested change easy to revert and compare.
+A limitation should block release only if it violates the release's documented contract or causes unacceptable correctness or stability problems in ordinary supported use.
+
+---
+
+# Rejected and Deferred Work
+
+Create a concise record of important rejected or deferred work.
+
+This should include at least:
+
+```text
+Phase 6
+    Agent-facing command surface
+    REJECTED
+
+Phase 10 Candidate 1
+    Trigger vocabulary addition
+    REJECTED
+
+Stable semantic symbol ID
+    DEFERRED
+
+Additional semantic capability extensions
+    DEFERRED
+
+Further semantic routing optimization
+    DEFERRED
+```
+
+The purpose is to prevent future release work from accidentally reopening already-settled experiments.
+
+Do not delete historical evaluation data.
+
+---
+
+# Release Blocker Definition
+
+A release blocker is a defect that makes the current supported release unsafe, unreliable, unusable, or materially misleading.
+
+Examples include:
+
+```text
+crash or panic during normal supported use
+
+repository corruption
+
+incorrect file modification
+
+incorrect exit status
+
+malformed or unstable machine-readable output
+
+installation failure
+
+startup failure
+
+critical cross-platform failure
+
+common valid input producing clearly incorrect semantic results
+
+nondeterministic behavior that violates the documented CLI contract
+
+missing required release files
+
+license or distribution problems
+```
+
+Do not classify every known semantic limitation as a release blocker.
+
+---
+
+# Non-Blocker Definition
+
+Examples of issues that normally should not block the release:
+
+```text
+unsupported advanced C++ semantics
+
+edge-case receiver forms
+
+unsupported templates or virtual dispatch
+
+minor efficiency differences
+
+marginal semantic-routing false negatives
+
+extra Read/Grep calls when correctness remains intact
+
+feature requests
+
+new commands
+
+additional output convenience
+
+rare unsupported source constructs
+```
+
+Record these as limitations or backlog items instead.
+
+---
+
+# Release Baseline Verification
+
+Before declaring the baseline frozen, verify that the repository is in the intended state.
+
+Perform:
+
+```text
+1. build from a clean checkout
+
+2. run the complete existing test suite
+
+3. verify no rejected Phase 10 changes remain
+
+4. verify Phase 8a behavior remains present
+
+5. verify Phase 8b behavior remains present
+
+6. verify Phase 8c behavior remains present
+
+7. verify the accepted Phase 7d Skill is present
+
+8. verify no accidental experimental files affect runtime behavior
+
+9. verify working tree cleanliness after tests
+
+10. record the exact commit used as the frozen baseline
+```
+
+Do not modify semantics merely to make this verification cleaner.
+
+---
+
+# Regression Gate
+
+Run the normal regression suite against the frozen candidate.
+
+The purpose is not to optimize metrics.
+
+The purpose is to detect accidental regression.
+
+Record at least:
+
+```text
+total tests
+passed
+failed
+success rate
+
+AST failures
+AST retries
+
+unexpected crashes
+unexpected output changes
+```
+
+Where existing agent-level evaluation can be run cheaply, use it as a smoke/regression check.
+
+Do not require historical token or latency metrics to improve.
+
+Release readiness is based on stability, not optimization.
+
+---
+
+# CLI Contract Inventory
+
+Create an inventory of the externally visible CLI contract.
+
+For every public command, record:
+
+```text
+command name
+arguments
+required arguments
+optional arguments
+exit behavior
+stdout behavior
+stderr behavior
+JSON behavior
+common failure modes
+```
+
+Identify any behavior that is currently unstable or undocumented.
+
+Do not redesign the CLI in Phase 11 unless there is a clear release-blocking problem.
+
+CLI polish belongs to the later release-preparation phase.
+
+---
+
+# Versioning Decision
+
+Choose the intended initial release version.
+
+Prefer a pre-1.0 version unless the project already has a stronger compatibility commitment.
+
+For example:
+
+```text
+v0.1.0
+```
+
+or an appropriate existing project version.
+
+Record:
+
+```text
+release version
+version source of truth
+how the CLI reports the version
+tag format
+release branch policy
+```
+
+Do not implement a complex versioning system if the project does not need one.
+
+---
+
+# Branch and Change Policy
+
+Define the release preparation policy.
+
+Recommended model:
+
+```text
+main / development branch
+    normal future development after release branch is cut
+
+release branch
+    release-blocking fixes only
+```
+
+If the project does not need a separate release branch, document that explicitly.
+
+After freeze, every code change intended for the release should satisfy:
+
+```text
+Is this required for release correctness,
+stability, compatibility, packaging, documentation,
+or distribution?
+```
+
+If the answer is no:
+
+```text
+defer it
+```
+
+---
+
+# Artifact Inventory
+
+Identify all files required for release.
+
+At minimum check for:
+
+```text
+README
+LICENSE
+CHANGELOG or release notes source
+installation instructions
+usage documentation
+supported-platform information
+known limitations
+version information
+CI configuration
+release workflow if applicable
+third-party license notices if required
+```
+
+Phase 11 only inventories these items.
+
+Missing documentation or packaging can be completed in later release phases unless it blocks establishing the baseline.
+
+---
+
+# Issue Classification
+
+Review known open issues and classify each as one of:
+
+```text
+RELEASE BLOCKER
+RELEASE FIX
+KNOWN LIMITATION
+POST-RELEASE IMPROVEMENT
+REJECTED / NOT PLANNED
+```
+
+For every release blocker, record:
+
+```text
+issue
+impact
+reproduction
+affected platform / command
+required fix
+verification method
+```
+
+Avoid vague blocker labels.
+
+---
+
+# No Opportunistic Cleanup
+
+Do not perform unrelated cleanup during Phase 11.
+
+Avoid:
+
+```text
+large refactors
+
+naming cleanup
+
+architecture cleanup
+
+dependency upgrades without release need
+
+format-only repository-wide changes
+
+test rewrites
+
+performance tuning
+
+new abstractions
+
+semantic simplification
+```
+
+These changes increase release risk without helping establish the frozen baseline.
 
 ---
 
 # Expected Deliverables
 
-Produce the following artifacts.
+Produce the following.
 
-## 1. Opportunity Corpus
-
-Document:
-
-```text
-positive tasks
-negative/control tasks
-why each task belongs to its class
-```
-
----
-
-## 2. Baseline Routing Report
+## 1. Frozen Baseline Record
 
 Include:
 
 ```text
-TP
-FP
-FN
-TN
-
-positive-set routing recall
-control-set false-positive rate
-
-first-action distribution
-semantic-analysis invocation rate
-direct ast-tool usage
-manual routing usage
+commit hash
+branch
+version target
+Phase 7d Skill status
+Phase 8a status
+Phase 8b status
+Phase 8c status
+Phase 10 changes excluded
+working tree state
 ```
 
 ---
 
-## 3. False-Negative Analysis
+## 2. Release Scope
 
-For each important FN, summarize:
+Document:
 
 ```text
-task
-first action
-actual trajectory
-expected semantic opportunity
-likely routing decision cause
-manual fallback cost
+supported languages
+supported commands
+supported semantic capabilities
+supported platforms
+supported output modes
+```
+
+Only claim verified support.
+
+---
+
+## 3. Known Limitations
+
+Create a concise list suitable for later inclusion in release documentation.
+
+Separate:
+
+```text
+intentional unsupported behavior
+known edge cases
+known low-priority defects
 ```
 
 ---
 
-## 4. Candidate Experiment Results
+## 4. Release Blocker List
 
-For every routing intervention:
+Produce a table such as:
 
 ```text
-exact change
-hypothesis
-task cohort
-number of runs
-TP / FP / FN / TN
-correctness
-tool metrics
-token metrics
-elapsed metrics
-manual fallback
-observed regressions
+Issue | Severity | Blocker? | Required before release? | Verification
+```
+
+If no blockers are found, explicitly state:
+
+```text
+No confirmed release blockers found during Phase 11.
 ```
 
 ---
 
-## 5. Final Recommendation
+## 5. Deferred / Rejected Work Record
 
-End Phase 10 with one of:
+Include major historical decisions so that release preparation does not reopen them.
+
+---
+
+## 6. Release Readiness Summary
+
+End with one of:
 
 ```text
-ACCEPT
+BASELINE LOCKED — READY FOR RELEASE QUALIFICATION
 
-ACCEPT WITH CAVEATS
+BASELINE LOCKED WITH RELEASE BLOCKERS
 
-REJECT
-
-NO SAFE ROUTING IMPROVEMENT FOUND
+BASELINE NOT SAFE TO FREEZE
 ```
 
-The conclusion must be evidence-based.
+If blockers exist, do not broaden the scope.
 
-If no candidate reliably reduces false negatives without increasing low-value semantic invocation, keep the existing routing behavior and report that result rather than forcing a change.
+Resolve only those blockers in the following release-quality phase.
+
+---
+
+# Acceptance Criteria
+
+Phase 11 is complete when:
+
+```text
+1. the exact release baseline is identified
+
+2. rejected Phase 10 changes are absent
+
+3. all existing tests pass at the expected baseline level,
+   or every failure is understood and classified
+
+4. release scope is documented
+
+5. known limitations are separated from release blockers
+
+6. public CLI surface is inventoried
+
+7. versioning / branch policy is defined
+
+8. no unresolved uncertainty exists about which implementation
+   is intended for release
+
+9. feature freeze is in effect
+```
+
+Phase 11 does not require the product to be fully packaged or documented.
+
+Those belong to subsequent release-preparation phases.
 
 ---
 
 # Final Principle
 
-The semantic engine is no longer the main question.
-
-Phase 10 asks:
+Phase 11 should answer one question:
 
 ```text
-Can the agent recognize the tasks where the existing semantic capability
-has already proven valuable?
+What exact version of the project are we preparing to release?
 ```
 
-The desired trajectory is:
+At the end of this phase, that answer must be unambiguous.
+
+From this point onward:
 
 ```text
-valuable semantic opportunity
-→ semantic route selected
-→ targeted query
-→ small relevant context
-→ correct edit
+stability > optimization
+
+release correctness > new capability
+
+small verified fixes > speculative improvement
 ```
-
-The objective is not more semantic tooling.
-
-The objective is **better routing decisions**.
