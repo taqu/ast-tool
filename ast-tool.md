@@ -1,1133 +1,708 @@
-# Phase 9a — Controlled Semantic Capability Evaluation
+# Phase 10 — Semantic Routing Opportunity / Trigger Reliability
 
 ## Objective
 
-Evaluate whether the completed Phase 8 semantic-command changes improve the Coding Agent under controlled semantic-routing conditions.
+Phase 10 evaluates and improves **semantic routing reliability**.
 
-Phase 9a must isolate the value of the semantic capability changes themselves from:
+The current semantic capability is already the stable baseline. Do not redesign or broaden the semantic engine unless the experiment reveals a concrete blocker.
 
-```text
-Skill invocation variance
-normal first-action routing variance
-unrelated manual exploration variance
-```
+The goal of this phase is **not** to maximize `semantic-analysis` invocation rate.
 
-The comparison is:
+The goal is:
 
 ```text
-pre-Phase-8 semantic baseline
-vs
-Phase 8a + Phase 8b + Phase 8c
+increase appropriate semantic routing
+where semantic routing has demonstrated agent-level value
+without materially increasing low-value invocation
 ```
 
-under matched task conditions and forced semantic routing.
-
-The primary question is:
+Treat routing as a classification problem:
 
 ```text
-Did Phase 8 improve semantic information quality
-and reduce avoidable semantic recovery / manual fallback
-without reducing correctness?
+                     Semantic route useful?
+                     Yes          No
+
+Invoked              TP           FP
+Not invoked          FN           TN
 ```
 
-Phase 9a is not a new feature-development phase.
+The primary optimization target is:
 
-Do not modify semantic behavior during this evaluation.
+```text
+reduce FN
+without materially increasing FP
+```
+
+In other words, reduce missed high-value semantic opportunities without making the agent invoke semantic tooling indiscriminately.
 
 ---
 
-# Systems Under Comparison
+## Stable Baseline
 
-Define two immutable arms.
+Keep the current accepted implementation unchanged unless a Phase 10 experiment explicitly requires a routing-related modification.
 
-## Arm A — Pre-Phase-8 Baseline
-
-Use the last accepted semantic implementation before Phase 8 changes.
-
-This arm must exclude:
+The semantic baseline is:
 
 ```text
+Phase 7d Skill
++
 Phase 8a
-    unique FQN-suffix relationship target resolution
-
+    unique FQN suffix resolution
++
 Phase 8b
     receiver-type member relationship resolution
-
-Phase 8c
-    declaration→definition body selection for callees
-```
-
-Use the accepted Phase 7d Skill body.
-
-Record:
-
-```text
-repository revision
-AST Tool binary hash
-Skill hash
-evaluation harness hash
-```
-
----
-
-## Arm B — Current Phase 8 System
-
-Use the current accepted implementation containing:
-
-```text
-Phase 8a
-Phase 8b
-Phase 8c
-```
-
-with the same accepted Phase 7d Skill body.
-
-Record the same revision/hash information.
-
-Do not change:
-
-```text
-Skill text
-Skill metadata
-Skill invocation policy
-task prompts
-fixtures
-validators
-evaluation harness behavior
-```
-
-between arms.
-
----
-
-# Controlled Routing Condition
-
-For both arms:
-
-```text
-semantic-analysis
-= invoked exactly once
-= first tool action
-```
-
-This is required to remove the invocation confound identified during Phase 7e.
-
-Do not compare:
-
-```text
-forced semantic Arm A
-vs
-normal Arm B
-```
-
-or vice versa.
-
-Both arms must use the same routing condition.
-
----
-
-# Phase 9a Scope
-
-The controlled cohort should emphasize tasks that exercise Phase 8 behavior while retaining enough unaffected controls to detect regressions.
-
-The cohort must contain four categories:
-
-```text
-A. Phase 8a target-resolution tasks
-
-B. Phase 8b receiver-type relationship tasks
-
-C. Phase 8c body-identity / callees tasks
-
-D. unaffected semantic guard tasks
-```
-
-Prefer existing evaluation tasks and fixtures.
-
-Do not create broad new tasks merely to increase sample size.
-
----
-
-# Cohort Construction
-
-## Category A — Phase 8a Target Resolution
-
-Include tasks that previously showed:
-
-```text
-partial FQN relationship query
-→ not found
-→ search
-→ full-FQN relationship retry
-```
-
-At minimum include the existing tasks corresponding to:
-
-```text
-AuthToken::expire
-DataStore::save
-```
-
-where available in the evaluation suite.
-
-The expected Phase 8 improvement is:
-
-```text
-one successful relationship call
-```
-
-instead of:
-
-```text
-failed relationship
-→ search
-→ relationship retry
-```
-
----
-
-## Category B — Phase 8b Receiver-Type Resolution
-
-Include tasks where previously valid member relationships were missing for calls such as:
-
-```text
-token_.validate(...)
-validator_.validate(...)
-```
-
-At minimum include the existing tasks equivalent to:
-
-```text
-level2-004
-level4-006
-```
-
-or the current canonical tasks exercising those relationships.
-
-The expected Phase 8 improvement is:
-
-```text
-empty relationship result
-→ populated exact relationship result
-```
-
-with no false-positive relationships.
-
----
-
-## Category C — Phase 8c Body Identity
-
-Include at least one task where:
-
-```text
-callees target
-→ declaration selected
-→ no body
-→ empty result
-```
-
-before Phase 8c.
-
-The canonical example is:
-
-```text
-auth::AuthService::refresh
-```
-
-where the implementation body exists out of line.
-
-The expected Phase 8 improvement is:
-
-```text
-same callable identity
-→ body-bearing definition
-→ correct callees
-```
-
----
-
-## Category D — Unaffected Guards
-
-Include semantic tasks that were already correct before Phase 8.
-
-Cover several of:
-
-```text
-exact search
-direct callers
-direct references
-direct callees
-structural find
-unqualified resolution
-exact FQN resolution
-```
-
-These guard tasks are necessary to detect regressions from broader semantic changes.
-
-Prefer approximately:
-
-```text
-6–10 affected tasks
 +
-4–8 unaffected guards
+Phase 8c
+    callable declaration/definition body identity
 ```
 
-for a total controlled cohort of approximately:
+Do not revert any Phase 8 capability.
 
-```text
-12–18 tasks
-```
-
-If the existing historical 18-task controlled cohort remains suitable, reuse as much of it as practical.
+Do not use pre-Phase-8 behavior as the implementation baseline.
 
 ---
 
-# Repetition Strategy
+## Core Hypothesis
 
-One fresh paired run per task is insufficient for strong claims.
+Phase 9 established that semantic routing can produce clear agent-level value when the task requires relationship discovery.
 
-Use repeated controlled trials for the tasks most directly affected by Phase 8.
-
-Recommended:
+The strongest positive evidence comes from Phase-8b-like tasks such as:
 
 ```text
-Affected tasks:
-    minimum 5 runs per arm
-
-Unaffected guards:
-    minimum 3 runs per arm
+who calls X?
+where is X referenced?
+which callers need modification?
+cross-file member relationship discovery
+member-method relationship discovery
 ```
 
-For tasks with high historical trajectory variance:
+For these tasks, the desired trajectory is approximately:
 
 ```text
-extend to 10 runs per arm
+semantic routing
+→ targeted relationship query
+→ small relevant context
+→ edit / solution
 ```
 
-if needed.
-
-Rotate task order between rounds.
-
-If practical, interleave arms at the task or round level to reduce temporal bias.
-
-Example:
+rather than:
 
 ```text
-round 1:
-    A task1
-    B task1
-    B task2
-    A task2
-
-round 2:
-    reverse / rotate order
+Grep / Glob
+→ repeated Read
+→ manual reconstruction
+→ edit
 ```
 
-Do not run all Arm A first and all Arm B second unless unavoidable.
-
-If interleaving is not possible, record that as a limitation.
+Phase 10 should determine why the agent sometimes fails to select the semantic route for these opportunities and whether a small routing change can improve that decision.
 
 ---
 
-# Primary Metrics
+## Important Constraint
 
-For every run record:
+Do not optimize for raw invocation frequency.
+
+The following outcome is not sufficient:
 
 ```text
-task
-arm
-success
+semantic-analysis invocation rate increased
+```
 
-total tools
+A change is useful only if the additional invocations occur primarily on tasks where semantic routing provides demonstrated value.
 
-AST calls
+A change that increases semantic invocation while also increasing unnecessary AST calls, tokens, latency, retries, or manual recovery should not be accepted merely because routing frequency improved.
+
+---
+
+# Phase 10a — Opportunity Set Construction
+
+Before changing any routing behavior, build an evaluation corpus that separates positive semantic opportunities from negative or neutral cases.
+
+## Positive Set
+
+Create a focused set of tasks where semantic relationship queries are expected to have concrete value.
+
+Prioritize Phase-8b-like cases.
+
+Examples:
+
+```text
+Find every caller of a member method and modify those callers.
+
+Determine where a class member function is referenced.
+
+Find which call sites of a specific member need an update.
+
+Trace a member-method relationship across multiple files.
+
+Locate callers of methods accessed through:
+- object fields
+- pointer fields
+- local objects
+- local pointers
+- reference parameters
+- pointer parameters
+```
+
+Prefer tasks where manual exploration would otherwise require multiple Grep/Read operations.
+
+Include cases with:
+
+```text
+same member name on unrelated classes
+qualified and partially qualified names
+multiple source files
+declaration / implementation separation
+```
+
+The positive set should contain opportunities where the current semantic baseline is known to return useful and precise results.
+
+Do not include unsupported semantic cases merely to increase difficulty.
+
+---
+
+## Negative / Control Set
+
+Create a control set where semantic routing is unnecessary, low-value, or clearly inferior to simpler inspection.
+
+Examples may include:
+
+```text
+small local edits
+single-file literal changes
+obvious nearby code modifications
+formatting or mechanical edits
+tasks where the relevant code is already directly visible
+tasks where no relationship discovery is required
+```
+
+The control set is required to detect over-triggering.
+
+A routing change that improves the positive set but causes semantic-analysis to fire broadly on these tasks may be a regression.
+
+---
+
+## Dataset Requirements
+
+The dataset must allow each run to be classified independently.
+
+For every task, record at minimum:
+
+```text
+task id
+expected opportunity class:
+    positive
+    negative/control
+
+semantic-analysis invoked?
+first agent action
+first discovery action
+AST commands used
+manual discovery tools used
+success/failure
+tool count
+AST call count
 AST failures
 AST retries
-help
-
-search
-find
-callers
-callees
-references
-symbols
-
-grep
-glob
-read
-bash
-edit
-
-tokens
-elapsed
-
-recovery mean
-recovery max
+Read count
+Grep count
+Glob count
+token count
+elapsed time
 ```
 
-Also record:
-
-```text
-ordered AST trajectory
-first semantic query
-relationship result cardinality where relevant
-```
+Where possible, also record whether the semantic result directly contributed to the final edit.
 
 ---
 
-# Semantic Information Metrics
+# Phase 10b — Baseline Routing Characterization
 
-Phase 9a must measure not only tool count but semantic information quality.
+Run the opportunity corpus using the unchanged stable baseline.
 
-For affected tasks, record:
+Do not add routing hints yet.
 
-```text
-expected semantic result
-actual semantic result
-missing relationships
-unexpected relationships
-empty-result fallback
-identity-resolution recovery
-body-resolution recovery
-```
+The purpose is to measure current routing behavior.
 
-For relationship queries, include:
+For every run, classify the outcome as:
 
 ```text
-target
-canonical resolved identity
-returned relationship count
-expected relationship count
-false positives
-false negatives
+TP
+semantic route was valuable and was selected
+
+FN
+semantic route would have been valuable but was not selected
+
+FP
+semantic route was selected but provided little or no value
+
+TN
+semantic route was not selected and was not needed
 ```
 
-This is especially important for Phase 8b.
+For positive tasks, inspect the first-decision trajectory.
+
+Especially distinguish:
+
+```text
+semantic-analysis first
+direct ast-tool first
+Grep first
+Glob first
+Read first
+other
+```
+
+The main question is:
+
+```text
+Where does the trajectory diverge before semantic-analysis gets a chance to help?
+```
+
+Do not assume all non-invocation is caused by the same trigger failure.
 
 ---
 
-# Phase-Specific Causal Metrics
+# Phase 10c — First-Decision Analysis
 
-## Phase 8a Metrics
+Analyze false negatives individually.
 
-Count occurrences of:
-
-```text
-relationship
-→ failure
-→ search
-→ relationship retry
-```
-
-The Phase 8 system should reduce these to zero for uniquely resolvable partial FQNs.
-
-Measure:
+For each FN, determine whether the missed semantic route appears related to:
 
 ```text
-target-resolution failures
-target-resolution searches
-relationship retries
+Skill description
+trigger wording
+tool / Skill discovery metadata
+task phrasing
+agent interpretation of relationship intent
+competition with Grep / Read
+direct ast-tool use without Skill invocation
+other first-decision behavior
 ```
+
+Pay particular attention to the observation that `semantic-analysis`, when invoked, tends to be invoked as the first action.
+
+Therefore, treat this primarily as a **first-decision routing problem**, not a late-recovery problem.
+
+Do not attempt to fix missed invocation by adding instructions deep inside the Skill body unless evidence shows the Skill has already been loaded before the decision failure.
 
 ---
 
-## Phase 8b Metrics
+# Phase 10d — Minimal Trigger Experiments
 
-Count:
+After the baseline classification is complete, test routing interventions one variable at a time.
 
-```text
-relationship query returned empty
-despite valid typed member relationship
-```
-
-Measure:
+Candidate variables include:
 
 ```text
-correct member relationships returned
-missing member relationships
-unexpected cross-type relationships
-manual fallback after empty result
+1. Skill description
+2. trigger phrasing
+3. discovery metadata
+4. system-level routing hint
 ```
 
-False positives are a hard regression.
+Do not change multiple routing variables in the same initial experiment.
+
+For each candidate:
+
+```text
+baseline
+vs.
+one-variable modification
+```
+
+Keep the following constant:
+
+```text
+repository
+task prompt
+semantic implementation
+Skill body unless it is the tested variable
+agent configuration
+tool availability
+evaluation procedure
+```
+
+Use repeated runs where routing is stochastic.
 
 ---
 
-## Phase 8c Metrics
+## Preferred Intervention Style
 
-Count:
+Prefer small, explicit trigger cues describing **when semantic relationship discovery is valuable**.
+
+Good routing guidance should emphasize task shape rather than blanket tool preference.
+
+Conceptually, guidance should resemble:
 
 ```text
-callees query resolved declaration-only representation
-and returned empty despite existing definition body
+Use semantic analysis when the task requires discovering callers,
+references, callees, or cross-file symbol/member relationships.
 ```
 
-Measure:
+Avoid guidance equivalent to:
 
 ```text
-body-bearing definition successfully used
-correct callee count
-empty false-negative result
-unexpected callee
-```
-
----
-
-# Trajectory Classification
-
-For each task, compare Arm A and Arm B trajectories and classify the difference.
-
-Use:
-
-```text
-1. Equivalent
-
-2. Semantic recovery eliminated
-
-3. Manual fallback eliminated
-
-4. Semantic result improved but agent trajectory unchanged
-
-5. Lower tool/token cost
-
-6. Higher cost with better semantic information
-
-7. Regression
-
-8. Stochastic / inconclusive
-```
-
-Do not force every improvement into a cost-saving category.
-
----
-
-# Task-Level Comparison
-
-Produce a table containing at minimum:
-
-```text
-Task
-Phase exercised
-Arm A success
-Arm B success
-Δtools
-ΔAST
-Δfailures
-Δretries
-Δreads
-Δtokens
-Δelapsed
-semantic result change
-assessment
-```
-
-For repeated runs, report means and medians where useful.
-
----
-
-# Pairwise Distribution Analysis
-
-For repeated same-task runs, calculate Arm B minus Arm A deltas for:
-
-```text
-tools
-AST calls
-AST failures
-retries
-reads
-tokens
-elapsed
-```
-
-Report:
-
-```text
-mean
-median
-p75
-p90
-min
-max
-```
-
-where sample size makes those statistics meaningful.
-
-Do not rely only on aggregate totals.
-
----
-
-# Correctness Gate
-
-Correctness must not regress.
-
-For each task:
-
-```text
-Arm B success rate
->=
-Arm A success rate
-```
-
-unless a difference is clearly attributable to an unrelated pre-existing validator defect.
-
-Any such defect must be documented separately and should not be counted as semantic regression if the semantic output and intended edit set can be independently verified.
-
-Do not silently exclude failures.
-
----
-
-# Semantic Precision Gate
-
-Phase 8 must not introduce false semantic relationships.
-
-For all fixture-backed or task-backed relationship results:
-
-```text
-unexpected relationship count
-=
-0
-```
-
-is the preferred requirement.
-
-A false positive is more serious than a remaining false negative.
-
-Any new false relationship should trigger investigation before acceptance.
-
----
-
-# Recovery Gate
-
-Phase 8 was explicitly designed to eliminate known semantic recovery patterns.
-
-Therefore compare:
-
-```text
-AST failures
-retries
-recovery distance
-```
-
-particularly on affected tasks.
-
-Expected direction:
-
-```text
-Phase 8
-<=
-pre-Phase-8
-```
-
-for known resolver/body-identity defects.
-
-Do not require every unaffected stochastic task to improve.
-
----
-
-# Manual Exploration Gate
-
-Measure whether better semantic information reduces:
-
-```text
-Grep
-Glob
-Read
-manual source inspection
-```
-
-on affected tasks.
-
-This is supporting evidence, not a hard requirement.
-
-A semantic capability may still be valuable if correctness improves while manual exploration remains similar.
-
----
-
-# Token and Time Interpretation
-
-Do not treat tokens or elapsed time as the sole acceptance criterion.
-
-Phase 8b already showed that:
-
-```text
-better semantic information
-```
-
-can coexist with noisy cost metrics.
-
-Use the following interpretation:
-
-```text
-best:
-    semantic correctness improves
-    and cost falls
-
-acceptable:
-    semantic correctness improves
-    and cost is approximately neutral
-
-caveat:
-    semantic correctness improves
-    but cost rises materially
-
-regression:
-    cost rises
-    without meaningful semantic benefit
-```
-
----
-
-# Unaffected Guard Analysis
-
-For guard tasks, specifically look for:
-
-```text
-new AST failures
-new retries
-new ambiguity
-changed exact FQN resolution
-changed unqualified resolution
-new false relationships
-new empty relationships
-extra semantic calls
-manual fallback increases
-```
-
-Phase 8 should not improve affected tasks by destabilizing already-correct ones.
-
----
-
-# Required Before/After Pattern Analysis
-
-At minimum report these three patterns.
-
-## Pattern A — Phase 8a
-
-```text
-Before:
-partial-FQN relationship
-→ not found
-→ search
-→ full-FQN relationship
-
-After:
-partial-FQN relationship
-→ success
-```
-
----
-
-## Pattern B — Phase 8b
-
-```text
-Before:
-canonical relationship target
-→ empty result
-→ fallback/manual reasoning
-
-After:
-canonical relationship target
-→ exact populated relationship result
-```
-
----
-
-## Pattern C — Phase 8c
-
-```text
-Before:
-callee target
-→ declaration-only body
-→ empty
-
-After:
-same callable identity
-→ body-bearing definition
-→ correct callees
-```
-
-These are the primary causal signatures of Phase 8.
-
----
-
-# Historical Comparisons
-
-Historical Phase 7/8 measurements may be included for context.
-
-However:
-
-```text
-historical normal runs
-!=
-controlled causal evidence
-```
-
-Do not mix historical single-run results directly into fresh repeated controlled aggregates.
-
-Keep:
-
-```text
-fresh controlled comparison
-```
-
-and:
-
-```text
-historical context
-```
-
-separate.
-
----
-
-# No Changes During Evaluation
-
-Once Phase 9a begins, freeze:
-
-```text
-AST Tool implementation
-Skill files
-fixtures
-validators
-task prompts
-evaluation scripts
-```
-
-If a measurement bug is found:
-
-1. stop;
-2. fix the measurement;
-3. document it;
-4. rerun affected measurements symmetrically for both arms.
-
-Do not patch semantic behavior mid-evaluation.
-
----
-
-# Acceptance Criteria
-
-Phase 9a may conclude favorably if all of the following are true.
-
-## 1. Correctness preserved
-
-Phase 8 does not reduce task success.
-
----
-
-## 2. Known Phase 8 defects are actually removed
-
-The affected tasks show the intended semantic changes:
-
-```text
-8a:
-resolution recovery removed
-
-8b:
-missing typed-member relationships restored
-
-8c:
-declaration-only callees false empty removed
-```
-
----
-
-## 3. No new false semantic relationships
-
-False-positive guards remain clean.
-
----
-
-## 4. Unaffected semantic routes remain stable
-
-No systematic regression appears in guard tasks.
-
----
-
-## 5. Recovery improves or remains controlled
-
-Known semantic failures/retries decrease.
-
----
-
-## 6. Agent-level trajectory shows credible value
-
-At least one of the following should improve meaningfully across affected tasks:
-
-```text
-fewer failed semantic calls
-fewer retries
-less manual exploration
-fewer Reads
-fewer total tools
-lower tokens
-lower elapsed
-```
-
-Semantic correctness itself remains the primary benefit.
-
----
-
-# Possible Final Decisions
-
-## ACCEPT PHASE 8 CAPABILITY SET
-
-Use when:
-
-```text
-correctness preserved
-known semantic defects removed
-no false-positive regression
-guards stable
-and
-agent-level value is directionally favorable
-```
-
-Proceed to Phase 9b normal full-suite evaluation.
-
----
-
-## ACCEPT WITH CAVEATS
-
-Use when:
-
-```text
-semantic correctness clearly improves
-and
-guards remain stable
-but
-token/time/tool improvements are mixed or noisy
-```
-
-Proceed to Phase 9b, carrying the caveats explicitly.
-
----
-
-## REVISE PHASE 8
-
-Use only if a specific reproducible regression is isolated to one Phase 8 behavior.
-
-Identify whether it belongs to:
-
-```text
-8a
-8b
-8c
-```
-
-Do not reopen all Phase 8 changes together.
-
----
-
-## REVERT SPECIFIC PHASE 8 CHANGE
-
-Use if one isolated Phase 8 change introduces:
-
-```text
-wrong relationships
-wrong body identity
-ambiguity collapse
-or systematic correctness regression
-```
-
-Revert only the causal change if possible.
-
----
-
-## INCONCLUSIVE
-
-Use when variance or measurement limitations prevent a reliable comparison.
-
-Do not compensate by adding more semantic behavior.
-
----
-
-# Phase 9b Gate
-
-Proceed to Phase 9b only if Phase 9a concludes:
-
-```text
-ACCEPT PHASE 8 CAPABILITY SET
+Always use semantic-analysis for code tasks.
 ```
 
 or:
 
 ```text
+Try semantic-analysis before Grep.
+```
+
+unless evidence strongly justifies such behavior.
+
+The intervention should improve discrimination, not simply bias the agent toward another tool.
+
+---
+
+# Evaluation Metrics
+
+Evaluate routing quality and agent performance together.
+
+## Primary Metrics
+
+```text
+positive-set semantic routing recall
+    TP / (TP + FN)
+
+false-positive routing rate
+    FP / (FP + TN)
+
+correctness
+```
+
+The primary routing objective is:
+
+```text
+positive-set recall ↑
+while FP remains stable or increases only negligibly
+```
+
+---
+
+## Secondary Metrics
+
+Track:
+
+```text
+semantic precision
+tool count
+AST call count
+AST failures
+AST retries
+manual fallback
+Read count
+Grep count
+Glob count
+tokens
+elapsed time
+recovery cost
+```
+
+The intended improvement pattern is:
+
+```text
+FN ↓
+manual fallback ↓
+Read / Grep exploration ↓
+tokens ↓ or stable
+elapsed ↓ or stable
+correctness stable
+FP approximately stable
+```
+
+Not every metric must improve on every task, but broad cost regressions must not be hidden by a higher invocation rate.
+
+---
+
+# Semantic Precision Check
+
+When semantic routing occurs, verify that the semantic result itself is useful.
+
+Do not count an invocation as a TP merely because the Skill or AST command was called.
+
+A useful semantic route should satisfy most of the following:
+
+```text
+returned the relevant relationship
+avoided false-positive cross-linking
+reduced manual discovery
+contributed directly to the solution
+did not require unnecessary recovery
+```
+
+If the agent invokes semantic-analysis but ignores or cannot use the result, classify and report that separately.
+
+---
+
+# Repeated Evaluation
+
+Routing has previously shown stochastic behavior.
+
+For tasks near the decision boundary, use repeated runs rather than relying on one trajectory.
+
+Prefer repeated evaluation for:
+
+```text
+tasks that alternate between semantic and manual routing
+tasks affected by a proposed trigger change
+tasks responsible for apparent aggregate improvements
+tasks that produce unexpected FP or FN behavior
+```
+
+Report both aggregate results and per-task distributions.
+
+Do not let one unusually cheap or expensive run dominate the conclusion.
+
+---
+
+# Acceptance Criteria
+
+A Phase 10 routing change should be accepted only if the evidence shows that it improves **appropriate semantic selection**.
+
+A good result should demonstrate:
+
+```text
+1. meaningful reduction in FN on the positive set
+
+2. no material correctness regression
+
+3. no material increase in FP on the control set
+
+4. semantic results remain precise
+
+5. no broad increase in AST failure/retry behavior
+
+6. agent-level cost is improved or at least reasonably neutral
+   on the tasks where additional routing occurs
+```
+
+Prefer evidence from repeated task-level behavior over a single aggregate invocation percentage.
+
+---
+
+# Rejection Conditions
+
+Reject or revert a routing change if it mainly produces any of the following:
+
+```text
+semantic invocation increases everywhere
+
+positive routing recall improves only slightly
+but control-set invocation rises substantially
+
+AST calls increase without reducing manual discovery
+
+tokens or elapsed time increase broadly
+
+semantic-analysis is invoked on trivial local tasks
+
+new routing causes repeated redundant semantic queries
+
+correctness regresses
+
+the apparent gain depends on one or two stochastic runs
+```
+
+Also reject changes whose only demonstrated benefit is:
+
+```text
+higher semantic-analysis invocation rate
+```
+
+Raw invocation rate is diagnostic, not the optimization target.
+
+---
+
+# Out of Scope
+
+Do not expand Phase 10 into general semantic capability development.
+
+The following are not current priorities unless repeated Phase 10 evidence shows that they block valuable routing:
+
+```text
+additional receiver forms
+auto / decltype inference
+templates
+inheritance / virtual dispatch
+overload resolution
+complex receiver expressions
+explicit this-> support
+new semantic commands
+stable semantic symbol IDs
+```
+
+Also do not prioritize the known callee-side residual gap merely because it exists.
+
+A real semantic limitation is not automatically the next optimization target.
+
+The criterion is agent-level exposure and demonstrated cost.
+
+---
+
+# Known Low-Priority Issues
+
+Keep the following documented, but do not let them distract from the routing experiment unless they materially affect the results:
+
+```text
+callee-side declaration/definition residual gap
+
+Windows path quoting issues
+
+sporadic --help overuse
+```
+
+If one of these invalidates a run, classify the run separately rather than treating it as evidence for or against the routing hypothesis.
+
+---
+
+# Implementation Discipline
+
+Follow these rules during Phase 10:
+
+```text
+measure before modifying
+
+change one routing variable at a time
+
+preserve the Phase 8 semantic baseline
+
+do not optimize raw invocation rate
+
+separate positive opportunities from controls
+
+inspect first-decision behavior
+
+repeat stochastic cases
+
+prefer small reversible changes
+
+require agent-level evidence
+```
+
+Do not make speculative cleanup changes during the experiment.
+
+Do not combine unrelated improvements into a routing candidate.
+
+Keep every tested change easy to revert and compare.
+
+---
+
+# Expected Deliverables
+
+Produce the following artifacts.
+
+## 1. Opportunity Corpus
+
+Document:
+
+```text
+positive tasks
+negative/control tasks
+why each task belongs to its class
+```
+
+---
+
+## 2. Baseline Routing Report
+
+Include:
+
+```text
+TP
+FP
+FN
+TN
+
+positive-set routing recall
+control-set false-positive rate
+
+first-action distribution
+semantic-analysis invocation rate
+direct ast-tool usage
+manual routing usage
+```
+
+---
+
+## 3. False-Negative Analysis
+
+For each important FN, summarize:
+
+```text
+task
+first action
+actual trajectory
+expected semantic opportunity
+likely routing decision cause
+manual fallback cost
+```
+
+---
+
+## 4. Candidate Experiment Results
+
+For every routing intervention:
+
+```text
+exact change
+hypothesis
+task cohort
+number of runs
+TP / FP / FN / TN
+correctness
+tool metrics
+token metrics
+elapsed metrics
+manual fallback
+observed regressions
+```
+
+---
+
+## 5. Final Recommendation
+
+End Phase 10 with one of:
+
+```text
+ACCEPT
+
 ACCEPT WITH CAVEATS
+
+REJECT
+
+NO SAFE ROUTING IMPROVEMENT FOUND
 ```
 
-Phase 9b will answer a different question:
+The conclusion must be evidence-based.
 
-```text
-Does the complete current system improve
-under normal agent routing and Skill invocation?
-```
-
-Phase 9a answers only:
-
-```text
-Are the Phase 8 semantic capabilities themselves better
-when semantic routing is held constant?
-```
-
-Keep these questions separate.
+If no candidate reliably reduces false negatives without increasing low-value semantic invocation, keep the existing routing behavior and report that result rather than forcing a change.
 
 ---
 
-# Deliverables
+# Final Principle
 
-Produce a final Phase 9a report containing:
+The semantic engine is no longer the main question.
 
-```text
-1. Environment and revisions
-
-2. Exact Arm A / Arm B definitions
-
-3. Skill and harness verification
-
-4. Controlled cohort
-
-5. Repetition and ordering protocol
-
-6. Aggregate metrics
-
-7. Task-level paired metrics
-
-8. Phase 8a causal analysis
-
-9. Phase 8b causal analysis
-
-10. Phase 8c causal analysis
-
-11. Semantic precision / false-positive analysis
-
-12. Recovery analysis
-
-13. Manual exploration analysis
-
-14. Token/time distribution
-
-15. Unaffected guard results
-
-16. Representative before/after trajectories
-
-17. Regressions and outliers
-
-18. Limitations
-
-19. Final decision
-
-20. Phase 9b recommendation
-```
-
-Keep raw measurements separate from interpretation.
-
----
-
-# Preferred Report Tables
-
-## Controlled Aggregate
+Phase 10 asks:
 
 ```text
-Metric
-Pre-Phase-8
-Phase 8
-Delta
-Assessment
+Can the agent recognize the tasks where the existing semantic capability
+has already proven valuable?
 ```
 
----
-
-## Task-Level Comparison
+The desired trajectory is:
 
 ```text
-Task
-Phase
-Success A/B
-Δtools
-ΔAST
-Δfail
-Δretry
-ΔRead
-Δtokens
-Δelapsed
-Semantic change
-Assessment
+valuable semantic opportunity
+→ semantic route selected
+→ targeted query
+→ small relevant context
+→ correct edit
 ```
 
----
+The objective is not more semantic tooling.
 
-## Semantic Correctness
-
-```text
-Task
-Expected relationships
-Pre-Phase-8 result
-Phase 8 result
-Missing before
-Missing after
-Unexpected after
-```
-
----
-
-## Phase-Specific Recovery
-
-```text
-Pattern
-Pre-Phase-8 occurrences
-Phase 8 occurrences
-Calls saved
-Failures removed
-Retries removed
-```
-
----
-
-# Evidence Standard
-
-Use:
-
-```text
-strong:
-    repeated same-task controlled comparison
-    + exact semantic-result verification
-
-moderate:
-    repeated task behavior with controlled routing
-
-weak:
-    single paired run
-
-insufficient:
-    historical aggregate or cross-task correlation
-```
-
-Do not make broad Phase 8 claims from weak evidence alone.
-
----
-
-# Working Principle
-
-Phase 9a is a validation phase, not an optimization phase.
-
-Use:
-
-```text
-freeze both systems
-→ hold semantic routing constant
-→ repeat the same tasks
-→ compare exact semantic information
-→ compare recovery and exploration
-→ measure agent-level cost
-→ accept or reject the Phase 8 capability set
-```
-
-The central question is:
-
-```text
-Did Phase 8 make semantic analysis
-more correct and more useful
-when the agent actually uses it?
-```
-
-Nothing else.
+The objective is **better routing decisions**.

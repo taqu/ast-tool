@@ -1,23 +1,27 @@
-# AST Tool — Roadmap / Progress Summary
+## 現在の全体像
 
-## 1. Optimization Goal
+最終目標は一貫して、**Coding Agent が必要なときに AST Tool の semantic capability を使い、少ない無駄で正しい編集まで到達すること**です。
 
-The optimization target is the **Coding Agent as a whole**, not AST Tool metrics in isolation.
-
-Primary concerns remain:
+評価軸は次のままです。
 
 ```text
-1. Correctness / success rate
-2. Targeted semantic routing
-3. Token / context efficiency
-4. Recovery cost
-5. Manual exploration
-6. Latency / tool-call efficiency
+1. correctness
+2. semantic routing quality
+3. AST failure / retry
+4. manual fallback
+5. tool count
+6. token/context cost
+7. latency
+8. recovery cost
 ```
 
-A lower AST Tool call count is not inherently good.
+重要なのは、
 
-The desired trajectory is:
+```text
+AST call を減らすこと自体
+```
+
+ではなく、
 
 ```text
 targeted semantic query
@@ -25,827 +29,866 @@ targeted semantic query
 → edit / solution
 ```
 
-rather than:
-
-```text
-grep / glob
-→ broad reads
-→ manual reasoning
-```
+へ近づけることです。
 
 ---
 
-# 2. Current Roadmap
+# ロードマップ
 
 ```text
-P0  Baseline / Trace Metrics
+P0  Baseline / trace metrics
     ✓ COMPLETE
 
-P1  Skill.md Decision Tree
-    ✓ ACCEPTED
+P1  Skill.md decision tree
+    ✓ COMPLETE
 
 P2  Output / JSON UX
+    ✓ COMPLETE
+
+P3  Semantic resolver
+    → historical item; later Phase 8 workで実質的に具体化
+
+P4  Stable semantic symbol ID
+    → DEFERRED
+
+P5  Error recovery UX
     ✓ ACCEPTED
+    → long-term behavioral baseline
 
-P3  Semantic Resolver
-    ✗ DEFERRED
-
-P4  Stable Semantic Symbol ID
-    ✗ DEFERRED
-
-P5  Error Recovery UX
-    ✓ ACCEPTED
-    │
-    └─ Stable behavioral baseline
-
-P6  Agent-facing Command Surface
+P6  Agent-facing command surface
     ✗ REJECTED
 
 P7  Skill / Agent Guidance Optimization
-    ├─ 7a Conservative Compression
-    │   ✓ useful experiment
-    │
-    ├─ 7b Further Compression
-    │   ✗ rejected as final candidate
-    │
-    ├─ 7c Semantic-Preserving Compression
-    │   △ semantically preserved with caveats
-    │
-    ├─ 7c.1 Targeted Restoration
-    │   ✓ CLOSED — no justified restoration
-    │
-    ├─ 7d Selective Backport onto Phase 5
-    │   → current candidate
-    │
-    ├─ 7d.1 Repeated Guard Validation
-    │   ✓ PASSED WITH CAVEAT
-    │
-    └─ 7d.2 Full 18-task Controlled Validation
-        → CURRENT GATE
+    ✓ COMPLETE
 
-P8  Final Agent-Level Evaluation
-    → after Phase 7d.2 gate
+P8  Semantic Command Semantics Optimization
+    ✓ COMPLETE
+    → PROMOTED TO STABLE BASELINE
 
-P9  Targeted Semantic Capability Research
-    → only after final Skill behavior is established
+P9  Final Agent-Level Evaluation
+    ✓ COMPLETE
+
+P10 Semantic Routing Opportunity / Trigger Reliability
+    → NEXT CANDIDATE
 ```
 
 ---
 
-# 3. Phase 5 — Stable Baseline
+# Phase 5 — Stable behavioral baseline
 
-Phase 5 remains the formal stable baseline.
+Phase 5 が長く比較基準として機能しました。
 
-```text
-tests                      41
-successes                  37
-success rate              90.24%
-
-total tool calls           518
-AST Tool calls              69
-AST failures                 9
-failure rate              13.04%
-AST retries                  9
-help calls                   2
-
-grep                         15
-glob                         12
-read                        252
-bash                        120
-edit                         86
-
-avg recovery distance      1.44
-max recovery distance         2
-
-total tokens            158,303
-avg tokens/test           3,861
-
-elapsed                 2224.27 sec
-```
-
-Phase 5 established the strongest combination so far of:
+41 tasks:
 
 ```text
-semantic routing stability
-+
-low grep fallback
-+
-short recovery
-+
-acceptable correctness
+success            37 / 41 = 90.24%
+tools              518
+AST calls           69
+AST failures         9
+AST retries          9
+grep                15
+glob                12
+read               252
+bash               120
+edit                86
+tokens          158,303
+elapsed        2224.27 sec
 ```
 
-Its weakness is that some semantic trajectories contain redundant AST work.
+ここからの教訓は、agent guidance と error recovery のバランスが比較的安定していたことです。
 
 ---
 
-# 4. Phase 6 — Important Failed Experiment
-
-Phase 6 changed the agent-facing command surface.
-
-Although correctness remained around Phase 5 level, behavior changed substantially:
+# Phase 6 — Command surface experiment
 
 ```text
-AST semantic usage ↓↓↓
-grep/manual exploration ↑↑↑
-tokens ↑ substantially
-recovery worsened
+Status: REJECTED
 ```
 
-The key lesson was:
+Correctness は維持できたものの、
 
 ```text
-correctness preserved
-≠
-optimization succeeded
+semantic usage ↓
+grep/manual exploration ↑
+tokens/recovery ↑
 ```
 
-Agent-facing presentation can alter routing even when the underlying commands remain unchanged.
+となりました。
 
-Phase 6 was rejected.
+重要な学び：
+
+```text
+Tool presentation changes agent routing.
+```
+
+単に CLI を簡略化すれば agent behavior が改善するわけではありません。
 
 ---
 
-# 5. Phase 7a / 7b — Compression Experiments
+# Phase 7 — Skill / Agent Guidance Optimization
 
-## Phase 7a
+## 7a–7c
 
-Conservative compression produced promising aggregate results and even one additional success in one run.
+Skill の圧縮・semantic-preserving compression を検証。
 
-However, later analysis showed that a significant portion of the apparent differences came from stochastic Skill invocation and trajectory variation.
+結果として、
 
-Phase 7a was useful primarily because it demonstrated that substantial instruction reduction was possible.
+```text
+too much compression
+→ weaker trajectory
+```
+
+が確認されました。
+
+## 7d — Selective backport
+
+Phase 5 Skill に、根拠のある1ルールだけ追加：
+
+```text
+If a refined search already identifies the exact symbol or member needed,
+do not add a redundant find solely to locate it;
+use find when AST structure or node detail is required.
+```
+
+Controlled gate では改善。
+
+```text
+tools      -15
+AST calls   -5
+failures    -4
+tokens      -9.2%
+elapsed    -10.9%
+```
+
+最終判断：
+
+```text
+ACCEPT WITH CAVEATS
+```
+
+Phase 7d Skill body が以降の accepted Skill baseline になりました。
 
 ---
 
-## Phase 7b
+# Phase 7e — Skill invocation reliability
 
-Further aggressive compression reduced Skill size dramatically.
-
-However, the final Phase 8 comparison showed an undesirable agent-level pattern:
+目的：
 
 ```text
-AST semantic commands ↓
-grep ↑
-recovery worsened
-reported tokens ↑
+semantic-analysis が呼ばれる / 呼ばれない
 ```
 
-The compressed body itself could not be proven causal because Skill invocation collapsed independently.
+という routing 問題を分離。
 
-Nevertheless, Phase 7b was rejected as the final candidate because the **observed complete system** did not preserve the required semantic-routing behavior.
-
-Major lesson:
+主結果：
 
 ```text
-A smaller Skill is not the goal.
+semantic-analysis invocation
+= always first action when invoked
+```
 
-Instruction salience and behavioral stability
-matter more than instruction length.
+つまり late invocation ではなく、
+
+```text
+first-decision router
+```
+
+として動いていることが判明。
+
+また invocation は task-dependent で、一部 stochastic。
+
+重要な発見：
+
+```text
+more invocation
+!= automatically lower cost
+```
+
+同じ `level3-007` では semantic route は Read を減らしたものの、tools/tokens/time は増えました。
+
+最終判断：
+
+```text
+INVOCATION PROBLEM CONFIRMED
+NO SAFE FIX YET
+```
+
+ここで invocation rate 自体を最適化するのは保留。
+
+---
+
+# Phase 7f — Semantic Routing Value / Toolset Cost Audit
+
+ここが Phase 8 の出発点になりました。
+
+154 AST calls を分類：
+
+```text
+A necessary semantic query
+B identity/resolution overhead
+C relationship retry overhead
+D redundant structural lookup
+E context-fetch overhead
+F recovery/error overhead
+```
+
+主要発見は3つ。
+
+## 1. Relationship target resolution
+
+```text
+callers AuthToken::expire
+→ not found
+→ search expire
+→ callers auth::AuthToken::expire
+```
+
+partial FQN が exact FQN としてしか扱われないため、3-call recovery が発生。
+
+## 2. Receiver-type relationship gap
+
+```text
+token_.validate()
+validator_.validate()
+```
+
+が存在しても、
+
+```text
+callers/references AuthToken::validate
+```
+
+が empty。
+
+## 3. Declaration/body identity gap
+
+target declaration は見つかるが、body-bearing definition に繋がらず `callees` が empty。
+
+Phase 7f の結論：
+
+```text
+EXISTING COMMAND SEMANTICS SHOULD BE IMPROVED
+```
+
+新 command ではなく既存 semantics を直すべき、と判断。
+
+---
+
+# Phase 8 — Semantic Command Semantics Optimization
+
+Phase 8 は完了し、現在の stable semantic baseline です。
+
+---
+
+## Phase 8a — Unique FQN-Suffix Relationship Resolution
+
+変更：
+
+```text
+exact FQN first
+→ if no exact match
+→ unique "::" + query suffix fallback
+→ preserve ambiguity
+```
+
+対象：
+
+```text
+callers
+callees
+references
+```
+
+結果：
+
+```text
+3-call recovery
+→ 1 successful relationship call
+```
+
+exact precedence / ambiguity / not-found / unqualified behavior は維持。
+
+最終判断：
+
+```text
+ACCEPT WITH CAVEATS
 ```
 
 ---
 
-# 6. Phase 7c — Semantic-Preserving Compression
+## Phase 8b — Receiver-Type Member Relationship Resolution
 
-Phase 7c restarted from Phase 5 and attempted to preserve every behaviorally meaningful rule rather than simply shorten the document.
+Phase 8 の中で、**agent-level ROI が最も強く確認された改善**です。
 
-Normal 41-task result:
+対応した receiver：
 
 ```text
-Phase 5                  Phase 7c
-
-success     37/41        37/41
-tools          518          542
-AST calls       69           59
-AST failures     9            7
-grep             15           17
-glob             12           22
-read            252          286
-bash            120          102
-edit             86           82
-tokens      158,303      178,116
-elapsed     2224.27      2214.34
+object field
+pointer field
+local object
+local pointer
+reference parameter
+pointer parameter
 ```
 
-Phase 7c recovered most of the routing behavior lost in Phase 7b.
-
-It also improved:
+原則：
 
 ```text
-AST failures
-AST failure rate
-bash usage
-edit usage
+receiver identifier
+→ explicit declared/static type
+→ canonical class
+→ unique member
 ```
 
-but regressed:
+以下は意図的に未対応：
 
 ```text
-glob
-read
-total tools
-tokens
-maximum recovery
+auto / decltype
+complex receivers
+templates
+inheritance / virtual dispatch
+overloads
+explicit this->
+```
+
+False-positive guard:
+
+```text
+same member name on unrelated types
+→ cross-linkしない
+```
+
+結果：
+
+```text
+callers auth::AuthToken::validate
+Before: empty
+After: exact callers
+```
+
+callers / references / callees に generalize。
+
+最終判断：
+
+```text
+ACCEPT WITH CAVEATS
+```
+
+ただし caveats は未完成というより intentional scope boundary。
+
+---
+
+## Phase 8c — Declaration/Definition Body Identity for Callees
+
+問題：
+
+```text
+callees AuthService::refresh
+→ Method declaration selected
+→ no body
+→ empty
+```
+
+改善：
+
+```text
+canonical callable identity
+→ same-FQN body-bearing definition
+→ traverse definition body
+```
+
+対応：
+
+```text
+free function decl + definition
+class method + out-of-line definition
+namespaced out-of-line definition
+inline method
+```
+
+Regression tests:
+
+```text
+291 tests
+0 failures
+```
+
+Motivating case：
+
+```text
+Before:
+callees auth::AuthService::refresh
+→ empty
+
+After:
+→ auth::AuthToken::expire
+→ auth::TokenCache::invalidate
+→ auth::AuthToken::refresh
+```
+
+最終判断：
+
+```text
+ACCEPT
+```
+
+残る edge caveat：
+
+```text
+ODR-violating multiple body definitions
+→ first matching body currently wins
+```
+
+これは unsupported edge case として記録。
+
+---
+
+# Phase 9 — Final Evaluation
+
+Phase 8 を stable baseline に昇格できるかを検証しました。
+
+---
+
+## Phase 9a — Controlled Semantic Capability Evaluation
+
+Phase 8 capability set を controlled routing で評価。
+
+主結果：
+
+```text
+8a:
+partial-FQN failure/retry eliminated
+
+8b:
+empty callers → exact populated callers
+
+8c:
+empty callees → exact populated callees
+
+false positives:
+0
+
+guards:
+stable
+```
+
+結果：
+
+```text
+ACCEPT PHASE 8 CAPABILITY SET
+```
+
+ただし Arm A の一部が historical proxy だったため、fresh symmetric A/B が必要になりました。
+
+---
+
+## Phase 9b.1 — Fresh Controlled Confirmation
+
+Fresh A/B、forced semantic routing。
+
+```text
+84 agent runs
+84/84 semantic-analysis first
+0 binary drift
+0 Skill drift
+```
+
+Whole cohort:
+
+```text
+tools        -2.02 / run
+AST calls    -0.57
+tokens       -1533
+elapsed      -6.25 sec
+```
+
+Phase 8b が特に強い：
+
+```text
+Arm A empty relationship fallback:
+14/15
+
+Arm B:
+0/15
+```
+
+8c も agent-level で：
+
+```text
+Arm A false-empty:
+5/5
+
+Arm B:
+0/5
+```
+
+結論：
+
+```text
+CONFIRM PHASE 8
 ```
 
 ---
 
-# 7. Controlled Phase 5 vs Phase 7c
+## Phase 9b.2 — Final Normal-Routing Evaluation
 
-Skill invocation was then forced in both versions to isolate the Skill body.
-
-18-task controlled result:
+Forced routing を外し、実際の agent behavior を評価。
 
 ```text
-                    Phase 5    Phase 7c
-
-success              17/18       17/18
-tools                   162         173
-AST calls                57          64
-AST failures              5           8
-retries                   4           8
-help                      0           2
-grep                      3           2
-tokens               54,344      59,440
-elapsed              912.59      970.03
+41-task full suite
++ selected repeated cohort
+= 194 runs
 ```
 
-The main conclusion was:
+Whole-suite Stage 1：
 
 ```text
-Phase 7c preserves semantic capability,
-but not strict trajectory equivalence.
+                Arm A       Arm B
+
+success         92.7%       90.2%
+tools           10.78        9.39
+AST calls        0.39        0.61
+AST failures     0.073       0.049
+AST retries      0.122       0.049
+Read             5.098       3.707
+tokens        6020.4      5737.0
+elapsed         30.44       26.26
 ```
 
-There was no systematic semantic → grep/manual collapse.
+Success差は `level4-005` の inherent flakiness で説明され、5-repeat では両 Arm 20%。
 
-However, Phase 7c showed weaker adherence to:
+したがって Phase 8 attributable correctness regression はなし。
+
+### Phase 8b under normal routing
+
+最も重要な結果：
 
 ```text
-search before under-qualified relationship queries
-diagnostic-first recovery
-restricted help usage
+Arm A:
+affected relationship invoked → false empty 9/9
+
+Arm B:
+affected relationship invoked → false empty 0/9
 ```
 
-even though equivalent rules were still present.
+さらに same-loaded task では：
 
-This suggested that **wording salience**, not only semantic content, matters.
+```text
+level2-004
+level4-006
+```
+
+が最大の Arm B 改善。
+
+おおよそ：
+
+```text
+tools    -4.4 ～ -5.2
+tokens   -3.4k ～ -4.7k
+elapsed  -18s ～ -27s
+```
+
+### Final decision
+
+```text
+PROMOTE PHASE 8 TO STABLE BASELINE
+```
+
+Phase 9 は完了。
 
 ---
 
-# 8. Important Positive Finding from Phase 7c
+# 現在の Stable Baseline
 
-Phase 7c also exposed a genuine Phase 5 inefficiency.
-
-The clearest case was `level3-007`.
-
-Historical controlled trajectory:
+現在の正式な baseline は：
 
 ```text
-Phase 5:
-search ×3
-→ find ×6
-```
-
-versus:
-
-```text
-Phase 7c:
-refined search only
-```
-
-The Phase 7c route could identify the required semantic targets without redundant structural lookup.
-
-This produced evidence that:
-
-```text
-find is appropriate for AST structure/node detail,
-but is sometimes redundant once refined search
-has already identified the exact semantic target.
-```
-
-This became the basis for Phase 7d.
-
----
-
-# 9. Phase 7c.1 — Targeted Restoration
-
-Phase 7c.1 investigated whether the Phase 7c regressions could be fixed by restoring selected Phase 5 wording.
-
-Result:
-
-```text
-REVERT TO PHASE 7C / NO CHANGE
-```
-
-No restoration met the required causal standard.
-
-The main findings were:
-
-```text
-- Most glob/read regressions happened when the Skill was not loaded.
-- The same-loaded find → Glob substitution was actually cheaper.
-- The long recovery case occurred without the Skill.
-- Phase 7c already contained equivalent routing/recovery guidance.
-```
-
-Therefore adding more wording would have been instruction bloat without demonstrated benefit.
-
-This closed the general compression/restoration direction.
-
----
-
-# 10. Strategic Pivot — Phase 7d
-
-The strategy changed from:
-
-```text
-make Phase 5 smaller
-```
-
-to:
-
-```text
-keep Phase 5 where Phase 5 wins
-+
-backport only improvements that Phase 7c demonstrated
-```
-
-Phase 7d therefore started from the **exact Phase 5 Skill**.
-
-Only one behavioral rule was added:
-
-```text
-If a refined `search` already identifies the exact symbol or member needed,
-do not add a redundant `find` solely to locate it; use `find` when AST
-structure or node detail is required.
-```
-
-Phase 7d is therefore:
-
-```text
-Phase 5
-+
-one evidence-backed micro-optimization
-```
-
-rather than a compressed rewrite.
-
----
-
-# 11. Initial Phase 7d Targeted Test
-
-The new rule reproduced the intended effect.
-
-In `level3-007`, Phase 7d repeatedly eliminated the redundant six-`find` path while preserving correctness and targeted semantic search.
-
-Other structural cases such as `level3-003` also successfully used refined `search`.
-
-However, the first targeted guard runs showed more AST failures than the single Phase 5 reference run.
-
-Because those failures involved:
-
-```text
-relationship ordering
-references ambiguity
-smoke-001 recovery
-```
-
-rather than the new search/find rule, causality was unclear.
-
-The initial Phase 7d decision was therefore:
-
-```text
-REVISE / NEED VARIANCE CHARACTERIZATION
-```
-
-rather than rejection.
-
----
-
-# 12. Phase 7d.1 — Repeated Controlled Guard Validation
-
-Phase 5 and Phase 7d were each repeatedly tested on:
-
-```text
-level2-006
-level2-008
-level3-008
-smoke-001
-```
-
-with `level3-007` as a positive control.
-
-Three fresh repeats were run per task/version.
-
-Primary guard aggregate:
-
-```text
-                    Phase 5    Phase 7d
-
-runs                  12           12
-successes             12           12
-
-tools                 110          110
-AST calls              39           36
-AST failures           12           12
-retries                11           10
-help                    0            0
-
-tokens             44,184       41,245
-```
-
-The originally observed guard regression disappeared.
-
-The conclusion was:
-
-```text
-MINOR STOCHASTIC DIFFERENCE
-```
-
-not:
-
-```text
-SYSTEMATIC GUARD REGRESSION
-```
-
-Important observations:
-
-### `level2-006`
-
-```text
-search → callers
-```
-
-in every Phase 5 and Phase 7d run.
-
-### `level2-008`
-
-Relationship-first:
-
-```text
-Phase 5:  1/3
-Phase 7d: 2/3
-```
-
-Slight directional difference, but both versions exhibited both trajectories.
-
-### `level3-008`
-
-Relationship-first:
-
-```text
-Phase 5:  1/3
-Phase 7d: 1/3
-```
-
-One Phase 7d run produced recovery distance 5, but it was an isolated outlier.
-
-### `smoke-001`
-
-All six runs had short recovery.
-
-Phase 7d actually had fewer mean failures and retries than Phase 5.
-
-Therefore the previous Phase 7d recovery regression was not reproducible.
-
----
-
-# 13. Positive-Control Result
-
-`level3-007` continued to directionally favor Phase 7d:
-
-```text
-mean AST calls
-Phase 5:  5.67
-Phase 7d: 5.00
-
-mean tools
-Phase 5:  13.33
-Phase 7d: 12.33
-
-mean tokens
-Phase 5:  6,872
-Phase 7d: 6,423
-```
-
-However, Phase 5 itself spontaneously avoided `find` in 2/3 new runs.
-
-Therefore the current evidence is:
-
-```text
-Phase 7d creates a useful efficiency bias
-```
-
-rather than:
-
-```text
-Phase 7d deterministically changes the trajectory
-```
-
-This is enough to continue testing because no corresponding systematic regression has been observed.
-
----
-
-# 14. Current Phase 7d Status
-
-Current interpretation:
-
-```text
-Phase 7d concept
-    SUPPORTED
-
-Intended refined-search optimization
-    DIRECTIONALLY REPRODUCIBLE
-
-Systematic guard regression
-    NOT OBSERVED
-
-Correctness risk
-    NOT OBSERVED
-
-Ready for full controlled validation
-    YES
-```
-
-The key methodological lesson is that **within-version stochastic variation is often as large as the difference between Skill versions**.
-
-Therefore single-run aggregate differences should no longer be used to justify Skill changes.
-
----
-
-# 15. Phase 7d.2 — Current Gate
-
-Phase 7d.2 is the full controlled 18-task comparison:
-
-```text
-Phase 5 Skill
-vs
 Phase 7d Skill
-```
-
-using the current repository and current AST Tool implementation, with everything else held constant.
-
-The controlled cohort contains 18 representative tasks covering search, find, callers, references, callees, C++ ambiguity, relationship ordering, recovery, help behavior, grep fallback, and structural lookup.
-
-Skill invocation is forced:
-
-```text
-semantic-analysis
-= exactly once
-= first tool action
-```
-
-for both arms, eliminating the major invocation confound observed in earlier phases.
-
-Phase 7d remains exactly:
-
-```text
-Phase 5
 +
-one narrow refined-search rule
-```
-
-No other Skill modification is permitted during the experiment.
-
----
-
-# 16. Phase 7d.2 Acceptance Gate
-
-The controlled evaluation should answer:
-
-```text
-1. Does Phase 7d preserve Phase 5 correctness?
-
-2. Does semantic routing remain targeted?
-
-3. Is recovery approximately Phase 5-like?
-
-4. Does the refined-search rule provide
-   a credible efficiency benefit?
-```
-
-The possible decisions are:
-
-```text
-ACCEPT PHASE 7D
-ACCEPT WITH CAVEATS
-REVISE
-REVERT TO PHASE 5
-```
-
-A favorable controlled result requires Phase 5-level correctness, targeted routing, approximately Phase 5-level recovery, and at least one meaningful efficiency benefit without systematic regression.
-
----
-
-# 17. Important Current Limitation
-
-The supplied Phase 7d.2 material contains the **evaluation protocol**, but not the resulting 18-task measurements or final decision.
-
-Therefore the current state should be recorded as:
-
-```text
-Phase 7d.2
-FULL CONTROLLED VALIDATION
-→ READY / IN PROGRESS / RESULT NOT YET RECORDED HERE
-```
-
-rather than marking it accepted or rejected.
-
-The protocol states that the normal 41-task evaluation should run only if Phase 7d.2 concludes either:
-
-```text
-ACCEPT PHASE 7D
-```
-
-or:
-
-```text
-ACCEPT WITH CAVEATS
-```
-
----
-
-# 18. Next Decision Tree
-
-The next discussion should begin here:
-
-```text
-Phase 7d.2 controlled 18-task result
-                │
-        ┌───────┴────────┐
-        │                │
-    favorable        unfavorable
-        │                │
-        ↓                ↓
-normal 41-task       investigate the
-Phase 7d run         specific reproducible
-        │            regression
-        ↓
-Phase 5 vs Phase 7d
-agent-level comparison
-        │
-        ↓
-final stable candidate
-```
-
-If Phase 7d.2 is favorable:
-
-```text
-Phase 7d
-→ normal 41-task evaluation
-→ determine whether it replaces Phase 5
-```
-
-If unfavorable:
-
-```text
-do not add generic Skill wording
-
-identify:
-specific task
-→ repeated trajectory difference
-→ causal relation to added rule
-```
-
-Only then consider revising the rule.
-
----
-
-# 19. Phase 9 — Current Intended Role
-
-Phase 9 should not be another Skill wording phase.
-
-Once Phase 5 vs Phase 7d is resolved, Phase 9 should investigate **semantic inefficiencies shared by both Skills**.
-
-Current candidate patterns include:
-
-```text
-1. Under-qualified relationship target
-   → search refinement
-   → relationship retry
-
-2. Same-FQN C++ declaration/definition ambiguity
-
-3. search finds declaration
-   → second query/read needed for definition
-
-4. find returns useful structural information
-   → Read still required for implementation context
-```
-
-These are candidates because they may indicate an AST Tool capability limitation rather than an instruction problem.
-
-Phase 7d.2 explicitly records these shared patterns for later Phase 9 research rather than changing them now.
-
-Phase 9 should first determine whether:
-
-```text
-existing command semantics can be improved
-```
-
-before considering:
-
-```text
-new subcommands
-```
-
-A new command should be justified only by repeated trajectories showing that the existing command set cannot express the needed operation cleanly.
-
----
-
-# 20. Current Working Hypothesis
-
-The accumulated evidence now supports:
-
-```text
-Broad Skill compression
-    → too difficult to control behaviorally
-
-Phase 5 stable wording
+Phase 8a
+    unique FQN suffix resolution
 +
-small evidence-backed changes
-    → much easier to validate causally
+Phase 8b
+    receiver-type member relationships
++
+Phase 8c
+    callable body identity
 ```
 
-Therefore the preferred development strategy is now:
-
-```text
-stable baseline
-→ identify one reproducible inefficiency
-→ make one narrow change
-→ targeted replay
-→ repeated guard validation
-→ full controlled cohort
-→ normal agent-level evaluation
-```
-
-This methodology is itself one of the main outcomes of Phase 7.
+つまり、**pre-Phase-8 に戻る理由はありません**。
 
 ---
 
-# 21. Current Baseline / Candidate
+# 現在見えている最大の問題
 
-For the next discussion, keep these roles explicit:
+Phase 9b.2 で、semantic capability 自体より大きな bottleneck が明確になりました。
+
+Normal routing の `semantic-analysis` invocation：
 
 ```text
-Stable baseline:
-    Phase 5
+weighted corpus:
+14.4%
 
-Candidate:
-    Phase 7d
-
-Phase 7d contents:
-    exact Phase 5 Skill
-    +
-    one refined-search / redundant-find rule
-
-Phase 7d.1:
-    passed guard validation with minor stochastic differences
-
-Current gate:
-    Phase 7d.2 18-task controlled validation
+raw full-suite:
+roughly 5–12%
 ```
 
-Do not promote Phase 7d to stable baseline until Phase 7d.2 and, if it passes, the normal 41-task evaluation are complete.
+大多数：
+
+```text
+manual Grep/Glob/Read
+or
+direct AST without Skill
+```
+
+です。
+
+つまり、
+
+```text
+semantic capability is useful when selected
+```
+
+は証明された一方で、
+
+```text
+it is often not selected
+```
+
+が現在の主要課題です。
 
 ---
 
-# 22. Next Discussion Starting Point
+# 次の Phase 10
 
-Start the next discussion with:
-
-```text
-1. What is the Phase 7d.2 18-task controlled result?
-
-2. Did Phase 7d preserve:
-   - correctness
-   - semantic routing
-   - recovery stability?
-
-3. Did it produce a credible efficiency improvement
-   beyond ordinary stochastic variance?
-
-4. If yes:
-   run/evaluate the normal 41-task Phase 7d result.
-
-5. If Phase 7d becomes the stable baseline:
-   use shared Phase 5/7d inefficiencies
-   to define Phase 9 research targets.
-```
-
-The immediate question is no longer:
+次は semantic capability をさらに増やすより、
 
 ```text
-How can SKILL.md be compressed further?
+Phase 10
+Semantic Routing Opportunity / Trigger Reliability
 ```
 
-It is:
+を推奨。
+
+ただし目的は：
 
 ```text
-Can the one evidence-backed Phase 7d micro-optimization
-be promoted safely on top of Phase 5?
+increase invocation rate
 ```
 
-After that question is resolved, the optimization effort should move away from Skill rewriting and toward evidence-backed Phase 9 semantic-capability research.
+ではありません。
+
+目標は：
+
+```text
+increase appropriate semantic routing
+where semantic routing has demonstrated value
+without increasing low-value invocation
+```
+
+です。
+
+---
+
+# Phase 10 の評価思想
+
+Phase 8b の成功パターンを positive evidence の中心にするのがよいです。
+
+コード baseline は：
+
+```text
+Phase 8a + 8b + 8c
+```
+
+のまま。
+
+ただし routing experiment の positive set は **Phase-8b-like tasks** を中心にします。
+
+例：
+
+```text
+who calls X?
+where is X referenced?
+which callers need modification?
+cross-file member relationship
+member-method relationship discovery
+```
+
+これらは、
+
+```text
+Skill invoked
+→ useful semantic result
+→ fewer fallbacks / Reads / tokens / time
+```
+
+が実証済み。
+
+---
+
+# Routing を classification problem として扱う
+
+単純な invocation rate ではなく：
+
+```text
+                     Semantic route useful?
+                     Yes          No
+
+Invoked              TP           FP
+Not invoked          FN           TN
+```
+
+として扱う。
+
+主目標：
+
+```text
+reduce FN
+without materially increasing FP
+```
+
+つまり、
+
+```text
+missed valuable semantic route
+```
+
+を減らす。
+
+---
+
+# Phase 10 の候補実験
+
+最初から Skill body をいじるのではなく、まず：
+
+```text
+1. positive opportunity set
+2. negative/control set
+3. current routing classification
+4. first-decision divergence
+```
+
+を測る。
+
+その後、一変数ずつ：
+
+```text
+Skill description
+trigger phrasing
+discovery metadata
+system-level routing hint
+```
+
+などを試す。
+
+評価：
+
+```text
+appropriate invocation
+correctness
+semantic precision
+tools
+tokens
+elapsed
+manual fallback
+```
+
+---
+
+# 今は優先しないもの
+
+## Callee-side declaration/definition identity
+
+Phase 9b.1 で、
+
+```text
+repo_.update(u)
+→ UserRepository::update
+```
+
+が `callees` に出ない residual gap を発見。
+
+ただし normal routing ではほぼ未露出。
+
+したがって：
+
+```text
+real semantic gap
+but not current top priority
+```
+
+将来 repeated evidence が増えたら Phase 10/11 candidate。
+
+## Windows path quoting
+
+194 runs 中2件。
+
+```text
+real harness issue
+low urgency
+```
+
+## `--help` overuse
+
+forced routing では一度見えたが、normal routing では再現せず。
+
+```text
+not currently actionable
+```
+
+---
+
+# 現在のロードマップ
+
+```text
+P0  Baseline / tracing
+    ✓
+
+P1  Skill decision tree
+    ✓
+
+P2  Output / JSON UX
+    ✓
+
+P3/P4
+    deferred / superseded by later evidence-driven work
+
+P5  Recovery UX
+    ✓
+
+P6  Agent-facing command surface
+    ✗ rejected
+
+P7  Skill / Agent Guidance Optimization
+    ✓ complete
+
+    7d stable Skill body
+    7e invocation behavior characterized
+    7f semantic cost audit
+
+P8  Semantic Command Semantics Optimization
+    ✓ complete
+    ✓ promoted stable
+
+    8a FQN suffix resolution
+    8b receiver-type member relationships
+    8c callable body identity
+
+P9  Final Agent-Level Evaluation
+    ✓ complete
+
+    9a controlled validation
+    9b.1 fresh symmetric confirmation
+    9b.2 normal-routing final evaluation
+
+P10 Semantic Routing Opportunity / Trigger Reliability
+    → NEXT
+```
+
+## 次の議論での出発点
+
+一文で言えば：
+
+> **Semantic capability is now good enough to be the stable baseline. The next bottleneck is not semantic correctness but selecting that capability on the tasks where it has proven agent-level value.**
+
+そして Phase 10 の設計は、**Phase 8b の「semantic route を使えば明確に勝つ」タスク群を positive set として始める**のが最も evidence-driven です。
