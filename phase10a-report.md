@@ -117,14 +117,14 @@ semantic implementation, and agent configuration are unchanged.
 - level1-001: TN stable (no "call sites of" in prompt)
 - level4-004: TN stable (uses explicit function names, not "call sites of")
 
-### Test Cohort (pending runs)
+### Test Cohort (completed)
 
 | Task       | Type | Baseline | Post-Change |
 |------------|------|----------|-------------|
-| level4-003 | FN   | 0/5      | TBD (5 runs needed) |
-| level2-008 | TP   | 5/5      | TBD (regression check) |
-| level1-001 | TN   | 0/5      | TBD (FP guard) |
-| level4-004 | TN   | 0/5      | TBD (FP guard) |
+| level4-003 | FN   | 0/5      | 0/5 (FN unchanged) |
+| level2-008 | TP   | 5/5      | 5/5 (TP stable) |
+| level1-001 | TN   | 0/5      | 0/5 (TN stable) |
+| level4-004 | TN   | 0/5      | 0/5 (TN stable) |
 
 ---
 
@@ -135,9 +135,9 @@ semantic implementation, and agent configuration are unchanged.
 | 10a Corpus | COMPLETE |
 | 10b Baseline | COMPLETE (using historical data) |
 | 10c FN Analysis | COMPLETE |
-| 10d Candidate 1 applied | APPLIED to SKILL.md |
-| 10d Agent runs | PENDING |
-| Final Recommendation | PENDING (awaiting run results) |
+| 10d Candidate 1 | REJECTED and reverted |
+| 10d Agent runs | COMPLETE (20/20 successful) |
+| Final Recommendation | REJECT Candidate 1 |
 
 ---
 
@@ -167,3 +167,10 @@ Reject if:
 
 3. Candidate 1 is conservative: "call sites of" is specific to call-relationship language
    and does not appear in bug investigation or single-location edit prompts.
+
+4. Candidate 1 did not improve the confirmed FN: level4-003 remained at 0/5 Skill
+   invocations. The stable positive remained 5/5, both controls remained 0/5, all
+   20 validations passed, and there were no AST failures or retries.
+
+5. Because the primary routing threshold was not met, the added trigger vocabulary
+   was reverted. Full results: `evaluation/phase10d/candidate1_trigger_vocabulary.md`.
