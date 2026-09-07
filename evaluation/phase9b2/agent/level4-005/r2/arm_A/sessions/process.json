@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All changes compile cleanly except for a pre-existing bug in `api_handler.cpp` (missing private member declarations in `ApiHandler`'s header, present in the original `HEAD` commit) \u2014 unrelated to this task and out of scope.\n\nSummary of changes:\n- `src/api/api_handler.h`/`.cpp` \u2014 `handleRequest` now takes `const std::string& client_ip`, passed through to `processor_.process`.\n- `src/processor/request_processor.h`/`.cpp` \u2014 `process` now takes `client_ip` as a third parameter, passed to `store_.save`.\n- `src/store/database_store.h`/`.cpp` \u2014 added an overload `save(key, value, client_ip)` that logs `\" ip=\" + client_ip`; the original 2-arg `save` is untouched.\n- `src/main.cpp` \u2014 call site now passes `\"127.0.0.1\"` as the mock IP.\n- `SyncProcessor::process` and `CronJob::runJob` were left completely unchanged, still using the original 2-arg `save`.\n",
+  "fresh_logs": 1
+}

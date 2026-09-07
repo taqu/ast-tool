@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Both jobs already `#include <iostream>`, so no header changes needed. Added `std::cerr << \"[job] audit triggered\\n\";` immediately before `store_.save(data)` in `sync_job.cpp:24` and before `store_.purge()` in `cleanup_job.cpp:13`. `report_job.cpp` calls only `store_.query()`, which doesn't audit-log, so it was left unchanged as instructed.\n",
+  "fresh_logs": 1
+}

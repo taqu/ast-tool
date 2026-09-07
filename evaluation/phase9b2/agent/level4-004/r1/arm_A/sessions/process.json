@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All three signatures are updated and `trace_id` is propagated end-to-end: `CheckoutService::checkout` \u2192 `OrderService::submit` \u2192 `OrderRepository::save`, with the repo's print statement now including `\" trace=\" + trace_id`. `AdminOrderService` and `AdminRepository` were left untouched, and no other call sites needed updates since none exist yet in this repo.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Fixed `src/jobs/subscription_billing_job.cpp:5-7`: the billing job was passing raw cents to `PaymentService::charge`, which expects dollars, causing the 100x overcharge. Now converts cents to dollars (`monthly_fee_cents / 100.0`) before charging. `PaymentService::charge` and `CheckoutService::checkout` signatures/behavior are untouched, so standard checkout flow is unaffected.\n",
+  "fresh_logs": 1
+}

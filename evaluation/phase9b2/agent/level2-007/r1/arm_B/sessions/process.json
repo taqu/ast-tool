@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the log line before both `router_.route(req)` calls in `api_handler.cpp:19` and `upload_handler.cpp:11` \u2014 those were the only two call sites in the codebase (the third match was the `Router::route` definition itself).\n",
+  "fresh_logs": 1
+}

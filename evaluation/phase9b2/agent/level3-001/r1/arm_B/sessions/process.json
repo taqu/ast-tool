@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Both edits use `std::cerr`, and `<iostream>` is already included in both files, so no other changes needed. The retry worker was left untouched.\n",
+  "fresh_logs": 1
+}

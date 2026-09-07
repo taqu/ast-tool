@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Rename complete. `service::ValidationService::validate` \u2192 `validatePayload` in declaration (`validation_service.h:8`), definition (`validation_service.cpp:6`), and its one caller (`request_processor.cpp:13`). `jobs::CronJob::validate` and `store::DatabaseStore::validate` are unaffected, confirmed via `ast-tool search`.\n",
+  "fresh_logs": 1
+}

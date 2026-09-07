@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "No compiler is available in this environment, so I did a manual review instead. All changes are consistent:\n\n- `ApiHandler::handleRequest(req, client_ip)` \u2192 passes to `processor_.process(req_id, req, client_ip)`\n- `RequestProcessor::process(..., client_ip)` \u2192 passes to `store_.save(request_id, enriched, client_ip)`\n- `DatabaseStore::save` now has both the original 2-arg overload (used unchanged by `SyncProcessor`) and a new 3-arg overload that logs `\" ip=\" + client_ip`\n- `main.cpp` calls `handler.handleRequest(\"hello\", \"127.0.0.1\")`\n- `SyncProcessor::process` and `CronJob::runJob` were left untouched, and still compile against the preserved 2-arg `save` overload\n\nNote: `api_handler.h`/`.cpp` already had a pre-existing issue unrelated to this task \u2014 the `processor_`/`registry_` members used in the constructor's initializer list aren't declared in the header. That predates my changes and is out of scope, so I left it as-is; flagging it in case it matters to you.\n",
+  "fresh_logs": 1
+}

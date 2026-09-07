@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Both files already `#include <iostream>`, so `std::cerr` is available without further changes.\n\nAdded the audit-trigger log line in the two jobs whose data-store calls reach `AuditLogger::log`:\n\n- `src/job/sync_job.cpp:23-24` \u2014 before `store_.save(data)` (save \u2192 audit)\n- `src/job/cleanup_job.cpp:12-13` \u2014 before `store_.purge()` (purge \u2192 audit)\n\n`report_job.cpp` only calls `store_.query()`, which never touches the audit logger, so it was left unmodified as instructed.\n",
+  "fresh_logs": 1
+}

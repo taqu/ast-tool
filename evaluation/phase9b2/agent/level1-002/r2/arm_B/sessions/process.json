@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[log] inventory save\\n\";` before all three `InventoryService::save` call sites: both in `src/main.cpp:11,13` and the one in `src/service/order_service.cpp:11`. The `orders.save(p1)` call in `main.cpp` invokes `OrderService::save`, not `InventoryService::save`, so it was left untouched.\n",
+  "fresh_logs": 1
+}

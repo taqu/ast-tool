@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the security check to `RequestProcessor::process` in `src/processor/request_processor.cpp` \u2014 payloads containing \"restricted\" now log to `std::cerr` and abort with `return false`, before validation runs. `SyncProcessor::process` (background sync/cron path) is untouched.\n",
+  "fresh_logs": 1
+}

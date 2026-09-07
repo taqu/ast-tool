@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Validation passes.\n\n**Root cause:** `MessageDispatcher::route` was overloaded on `const Message&` vs `const PriorityMessage&`. Overload resolution in C++ is static (compile-time), based on the declared type of the reference/pointer, not the runtime type. The dispatcher call site (`test_001.cpp`) stores messages as `const Message*` in a heterogeneous vector, so `dispatcher.route(*msg)` always binds to `route(const Message&)` regardless of whether the pointed-to object is actually a `PriorityMessage`. That overload unconditionally enqueued to `standard_queue_`, ignoring `priority()` entirely \u2014 so HIGH/CRITICAL messages landed in the standard queue.\n\n**Fix** (`src/dispatcher/message_dispatcher.cpp`): made `route(const Message&)` route by the message's actual `priority()` field \u2014 CRITICAL/HIGH \u2192 priority queue, LOW/NORMAL \u2192 standard queue, empty payload \u2192 DLQ \u2014 instead of relying on which overload got statically selected. `route(const PriorityMessage&)` now just delegates to the base overload, so behavior is consistent no matter which overload the compiler picks.\n\n`validate_001.py` (compiles and runs `test_001.cpp`) now passes with `SUCCESS`.\n",
+  "fresh_logs": 1
+}

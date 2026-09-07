@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the log line in `OrderService::submit` (src/service/order_service.cpp:19), the order submission flow's caller of `PaymentService::authorize`. Verified `retry_worker.cpp` was left untouched.\n",
+  "fresh_logs": 1
+}

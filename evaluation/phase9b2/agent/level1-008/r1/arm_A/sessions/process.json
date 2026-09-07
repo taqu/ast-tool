@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done \u2014 `Application::init` now checks `config_.load`'s return value, logs `[Application] load failed` to stderr, and returns `false` on failure before proceeding to `validate()`.\n",
+  "fresh_logs": 1
+}

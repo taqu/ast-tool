@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Confirmed clean \u2014 only the intended signature change remains. All the requested edits are complete:\n\n1. `ApiHandler::handleRequest` now takes `client_ip` and forwards it to `RequestProcessor::process`.\n2. `RequestProcessor::process` accepts `client_ip` as a third param and forwards it to `DatabaseStore::save`.\n3. `DatabaseStore::save` is overloaded with a 3-arg version that appends `\" ip=\" + client_ip\"` to its log line; the original 2-arg overload is untouched (still used by `SyncProcessor`).\n4. `main.cpp` now calls `handler.handleRequest(\"hello\", \"127.0.0.1\")`.\n\n`SyncProcessor::process` and `CronJob::runJob` are unmodified. Note: I found a pre-existing bug unrelated to this task \u2014 `ApiHandler`'s header is missing its `processor_`/`registry_` private member declarations (present in the `.cpp` constructor initializer list), so the file won't currently compile on its own. It predates my changes (confirmed via `git show HEAD`), and I left it as-is since it's out of scope \u2014 let me know if you'd like it fixed.\n",
+  "fresh_logs": 1
+}

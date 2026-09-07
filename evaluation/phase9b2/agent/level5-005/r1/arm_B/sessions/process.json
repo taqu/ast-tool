@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "No build system in this fixture (no CMakeLists.txt) \u2014 it's a small evaluation repo, not meant to be built standalone. The fix is a one-line change, verified by inspection.\n\n## Summary\n\n**Root cause:** `src/jobs/subscription_billing_job.cpp` \u2014 `SubscriptionBillingJob::execute_billing()` passed `monthly_fee_cents` straight into `PaymentService::charge()`, which expects the amount in standard units (dollars), not cents. A $9.99 subscription (999 cents) was charged as $999.00 \u2014 roughly a 100x overcharge.\n\n**Fix:** divide by 100.0 before charging, matching how `CheckoutService::checkout()` already correctly passes dollar amounts:\n```cpp\npayment_.charge(user_id, monthly_fee_cents / 100.0, Currency::USD);\n```\n\n`PaymentService::charge` and `CheckoutService::checkout` signatures are untouched, so standard checkout flow is unaffected.\n",
+  "fresh_logs": 1
+}

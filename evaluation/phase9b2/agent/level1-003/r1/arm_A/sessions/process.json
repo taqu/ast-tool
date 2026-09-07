@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the zero-ID guard at the top of `OrderService::save` (src/service/order_service.cpp:9-12), logging to `std::cerr` and returning `false`. `InventoryService` was left untouched.\n",
+  "fresh_logs": 1
+}

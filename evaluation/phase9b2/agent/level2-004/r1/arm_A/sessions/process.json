@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the debug line before all 4 direct call sites of `AuthToken::validate`:\n\n- `src/auth/auth_service.cpp:15` \u2014 in `AuthService::login`\n- `src/web/session_controller.cpp:12` \u2014 in `SessionController::handle`\n- `src/web/auth_controller.cpp:13` \u2014 in `AuthController::handleLogin`\n- `src/web/auth_controller.cpp:27` \u2014 in `AuthController::handleRefresh`\n\n`AuthService::validate` (auth_service.cpp:31) was excluded since it calls `cache_.get`, not `AuthToken::validate`. All affected files already included `<iostream>`.\n",
+  "fresh_logs": 1
+}

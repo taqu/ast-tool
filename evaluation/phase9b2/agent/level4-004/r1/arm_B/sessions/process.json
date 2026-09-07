@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "No other callers exist (no main.cpp invoking checkout, no tests referencing these signatures in .cpp files). The propagation is complete: `CheckoutService::checkout` \u2192 `OrderService::submit` \u2192 `OrderRepository::save`, with `trace_id` included in the save log line. `AdminOrderService` and `AdminRepository` were untouched.\n",
+  "fresh_logs": 1
+}

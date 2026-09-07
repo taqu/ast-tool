@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Rename verified: `service::ValidationService::validatePayload` is now used consistently in its declaration, definition, and the one caller (`RequestProcessor::process`). `jobs::CronJob::validate` and `store::DatabaseStore::validate` remain unmodified, as required.\n",
+  "fresh_logs": 1
+}

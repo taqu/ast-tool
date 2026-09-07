@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[job] audit triggered\\n\";` immediately before the audit-triggering calls in:\n\n- `src/job/sync_job.cpp:25` \u2014 before `store_.save(data)`\n- `src/job/cleanup_job.cpp:14` \u2014 before `store_.purge()`\n\n`report_job.cpp` was left unchanged since it only calls `store_.query()`, which doesn't invoke the audit logger.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the log line to `handle` in both `web_checkout_handler.cpp` and `mobile_checkout_handler.cpp`. The retry worker was not touched.\n",
+  "fresh_logs": 1
+}

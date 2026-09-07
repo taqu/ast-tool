@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the zero-ID guard to `OrderService::save` in `src/service/order_service.cpp:9-13`; `InventoryService` untouched.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the log line before all three call sites of `InventoryService::save`: `main.cpp:12,14` (both direct calls on `inv`) and `order_service.cpp:11` (the call via `inventory_.save(product)` inside `OrderService::save`). Note `orders.save(p1)` in `main.cpp:14` (original numbering) calls `OrderService::save`, not `InventoryService::save` directly, so it wasn't logged there \u2014 it's already covered by the log inside `order_service.cpp`.\n",
+  "fresh_logs": 1
+}

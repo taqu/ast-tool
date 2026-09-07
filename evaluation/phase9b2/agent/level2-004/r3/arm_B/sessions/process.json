@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All three files already included `<iostream>`, so no additional includes were needed. Added the debug line before each of the 4 direct call sites to `AuthToken::validate`:\n\n- `src/auth/auth_service.cpp:14` (in `AuthService::login`)\n- `src/web/auth_controller.cpp:13` (in `AuthController::handleLogin`)\n- `src/web/auth_controller.cpp:27` (in `AuthController::handleRefresh`)\n- `src/web/session_controller.cpp:12` (in `SessionController::handle`)\n\nNote: `AuthService::validate` (`auth_service.cpp:31`) is a distinct method that just checks the token cache \u2014 it doesn't call `AuthToken::validate`, so it was left untouched.\n",
+  "fresh_logs": 1
+}

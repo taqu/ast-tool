@@ -1,0 +1,3898 @@
+{
+  "phase": "9b2",
+  "binary_sha256": {
+    "A": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+    "B": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431"
+  },
+  "binary_git_revision": {
+    "A": "ccc1fbb650bf058aa11602134d4e4fa1795cb98e",
+    "B": "3095337a5ff04c7de723c3a0853682c9cefdf90c"
+  },
+  "skill_sha256": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+  "skill_paths": [
+    "D:\\MyDocuments\\Projects\\cpp\\ast-tool\\skills\\semantic-analysis\\SKILL.md",
+    "C:\\Users\\sakai_takuro\\.claude\\skills\\semantic-analysis\\SKILL.md"
+  ],
+  "all_tasks": [
+    "level1-001",
+    "level1-002",
+    "level1-003",
+    "level1-004",
+    "level1-005",
+    "level1-006",
+    "level1-007",
+    "level1-008",
+    "level2-001",
+    "level2-002",
+    "level2-003",
+    "level2-004",
+    "level2-005",
+    "level2-006",
+    "level2-007",
+    "level2-008",
+    "level3-001",
+    "level3-002",
+    "level3-003",
+    "level3-004",
+    "level3-005",
+    "level3-006",
+    "level3-007",
+    "level3-008",
+    "level4-001",
+    "level4-002",
+    "level4-003",
+    "level4-004",
+    "level4-005",
+    "level4-006",
+    "level4-007",
+    "level4-008",
+    "level5-001",
+    "level5-002",
+    "level5-003",
+    "level5-004",
+    "level5-005",
+    "level5-006",
+    "level5-007",
+    "level5-008",
+    "smoke-001"
+  ],
+  "forced_semantic": false,
+  "checks": [
+    {
+      "task": "level1-001",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-001",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-002",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-002",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-003",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-003",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-004",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-004",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-005",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-005",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-006",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-006",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-007",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-007",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-008",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-008",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-001",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-001",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-002",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-002",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-003",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-003",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-004",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-004",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-005",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-005",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-006",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-006",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-007",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-007",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-008",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-008",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-001",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-001",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-002",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-002",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-003",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-003",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-004",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-004",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-005",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-005",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-006",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-006",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-007",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-007",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-008",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-008",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-001",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-001",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-002",
+      "repeat": 1,
+      "arm": "B",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-002",
+      "repeat": 1,
+      "arm": "A",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-003",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-003",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-004",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-004",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-005",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-005",
+      "repeat": 1,
+      "arm": "B",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-006",
+      "repeat": 1,
+      "arm": "B",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-006",
+      "repeat": 1,
+      "arm": "A",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-007",
+      "repeat": 1,
+      "arm": "A",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Read",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-007",
+      "repeat": 1,
+      "arm": "B",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Read",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-008",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Read",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-008",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Read",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-001",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-001",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-002",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-002",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-003",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-003",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-004",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-004",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-005",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-005",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-006",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-006",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-007",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-007",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-008",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level5-008",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "smoke-001",
+      "repeat": 1,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "D",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "smoke-001",
+      "repeat": 1,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-008",
+      "repeat": 2,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-008",
+      "repeat": 2,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-008",
+      "repeat": 2,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-008",
+      "repeat": 2,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-004",
+      "repeat": 2,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-004",
+      "repeat": 2,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-006",
+      "repeat": 2,
+      "arm": "B",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-006",
+      "repeat": 2,
+      "arm": "A",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-002",
+      "repeat": 2,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-002",
+      "repeat": 2,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-005",
+      "repeat": 2,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-005",
+      "repeat": 2,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-006",
+      "repeat": 2,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-006",
+      "repeat": 2,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-002",
+      "repeat": 2,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-002",
+      "repeat": 2,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "smoke-001",
+      "repeat": 2,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "smoke-001",
+      "repeat": 2,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "D",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-005",
+      "repeat": 2,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-005",
+      "repeat": 2,
+      "arm": "A",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-001",
+      "repeat": 2,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-001",
+      "repeat": 2,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-003",
+      "repeat": 2,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-003",
+      "repeat": 2,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-001",
+      "repeat": 2,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-001",
+      "repeat": 2,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-001",
+      "repeat": 2,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-001",
+      "repeat": 2,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-001",
+      "repeat": 3,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-001",
+      "repeat": 3,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-001",
+      "repeat": 3,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-001",
+      "repeat": 3,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-003",
+      "repeat": 3,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-003",
+      "repeat": 3,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-001",
+      "repeat": 3,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-001",
+      "repeat": 3,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-005",
+      "repeat": 3,
+      "arm": "A",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-005",
+      "repeat": 3,
+      "arm": "B",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "smoke-001",
+      "repeat": 3,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "D",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "smoke-001",
+      "repeat": 3,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "D",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-002",
+      "repeat": 3,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-002",
+      "repeat": 3,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-006",
+      "repeat": 3,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-006",
+      "repeat": 3,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-005",
+      "repeat": 3,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-005",
+      "repeat": 3,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-002",
+      "repeat": 3,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-002",
+      "repeat": 3,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-006",
+      "repeat": 3,
+      "arm": "A",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-006",
+      "repeat": 3,
+      "arm": "B",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-004",
+      "repeat": 3,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "B",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "api-review"
+          }
+        ],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": true
+      }
+    },
+    {
+      "task": "level2-004",
+      "repeat": 3,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-008",
+      "repeat": 3,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-008",
+      "repeat": 3,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-008",
+      "repeat": 3,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-008",
+      "repeat": 3,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-008",
+      "repeat": 4,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-008",
+      "repeat": 4,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-008",
+      "repeat": 4,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-008",
+      "repeat": 4,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-004",
+      "repeat": 4,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-004",
+      "repeat": 4,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-006",
+      "repeat": 4,
+      "arm": "B",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "B",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "api-review"
+          }
+        ],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": true
+      }
+    },
+    {
+      "task": "level4-006",
+      "repeat": 4,
+      "arm": "A",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-002",
+      "repeat": 4,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-002",
+      "repeat": 4,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-005",
+      "repeat": 4,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-005",
+      "repeat": 4,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-006",
+      "repeat": 4,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-006",
+      "repeat": 4,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-002",
+      "repeat": 4,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-002",
+      "repeat": 4,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "smoke-001",
+      "repeat": 4,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "D",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "smoke-001",
+      "repeat": 4,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "D",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-005",
+      "repeat": 4,
+      "arm": "B",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-005",
+      "repeat": 4,
+      "arm": "A",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-001",
+      "repeat": 4,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-001",
+      "repeat": 4,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-003",
+      "repeat": 4,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-003",
+      "repeat": 4,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-001",
+      "repeat": 4,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-001",
+      "repeat": 4,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-001",
+      "repeat": 4,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-001",
+      "repeat": 4,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-001",
+      "repeat": 5,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-001",
+      "repeat": 5,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-001",
+      "repeat": 5,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-001",
+      "repeat": 5,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-003",
+      "repeat": 5,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-003",
+      "repeat": 5,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-001",
+      "repeat": 5,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-001",
+      "repeat": 5,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-005",
+      "repeat": 5,
+      "arm": "A",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-005",
+      "repeat": 5,
+      "arm": "B",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "smoke-001",
+      "repeat": 5,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "D",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "smoke-001",
+      "repeat": 5,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "D",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-002",
+      "repeat": 5,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-002",
+      "repeat": 5,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-006",
+      "repeat": 5,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-006",
+      "repeat": 5,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-005",
+      "repeat": 5,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-005",
+      "repeat": 5,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-002",
+      "repeat": 5,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level1-002",
+      "repeat": 5,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-006",
+      "repeat": 5,
+      "arm": "A",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level4-006",
+      "repeat": 5,
+      "arm": "B",
+      "status": "validation_failure",
+      "success": false,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-004",
+      "repeat": 5,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-004",
+      "repeat": 5,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "A",
+        "first_tool": "Skill",
+        "skill_calls": [
+          {
+            "sequence": 1,
+            "skill": "semantic-analysis"
+          }
+        ],
+        "semantic_analysis_invoked": true,
+        "semantic_analysis_count": 1,
+        "semantic_analysis_first_position": 1,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-008",
+      "repeat": 5,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Bash",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level3-008",
+      "repeat": 5,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-008",
+      "repeat": 5,
+      "arm": "B",
+      "status": "success",
+      "success": true,
+      "binary_before": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_after": "95bbffe793526a88d358cdf2b0b22507fd04aca379ed33d6642d2642eda09431",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    },
+    {
+      "task": "level2-008",
+      "repeat": 5,
+      "arm": "A",
+      "status": "success",
+      "success": true,
+      "binary_before": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_after": "35d17a4297dda52e52a9699f2655fad744846f1ac7f74f4ed68bf9eb3db832a5",
+      "binary_stable": true,
+      "routing": {
+        "category": "E",
+        "first_tool": "Grep",
+        "skill_calls": [],
+        "semantic_analysis_invoked": false,
+        "semantic_analysis_count": 0,
+        "semantic_analysis_first_position": null,
+        "other_skill_invoked": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the `std::cerr << \"[server] send\\n\";` line before both `Connection::send` calls in `src/net/server.cpp` (the only two call sites in the server implementation) and included `<iostream>`.\n",
+  "fresh_logs": 1
+}

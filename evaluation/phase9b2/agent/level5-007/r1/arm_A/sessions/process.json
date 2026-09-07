@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "The fix passes validation. In `src/service/auth_service.cpp:14`, the failed-login path now logs via `StructuredLogger::instance().log(...)` with `user_id` and `ip_address` populated, instead of the legacy plain-text `Logger::log`. The legacy `Logger` class (`logger.h`/`logger.cpp`) is untouched and had no other callers, so text-based fallback logging for legacy CLI tools is unaffected.\n",
+  "fresh_logs": 1
+}

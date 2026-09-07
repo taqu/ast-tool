@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "`order_service.cpp` already includes `<iostream>`, so `std::cerr` works in all three files without extra includes. Added the trace line to `WebCheckoutHandler::handle`, `CheckoutService::process`, and `OrderService::submit`.\n",
+  "fresh_logs": 1
+}

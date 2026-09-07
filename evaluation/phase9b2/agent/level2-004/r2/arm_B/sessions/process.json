@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[auth] validating token\\n\";` immediately before each of the 4 direct calls to `AuthToken::validate`: `AuthService::login`, `AuthController::handleLogin`, `AuthController::handleRefresh`, and `SessionController::handle`. All affected files already included `<iostream>`, so no additional includes were needed.\n",
+  "fresh_logs": 1
+}

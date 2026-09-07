@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Both files already `#include <iostream>`, so `std::cerr` is available.\n\nI added `std::cerr << \"[job] audit triggered\\n\";` before the audit-triggering store calls in:\n- `src/job/sync_job.cpp:24` (before `store_.save(data)`)\n- `src/job/cleanup_job.cpp:13` (before `store_.purge()`)\n\n`report_job.cpp` was left untouched since it only calls `store_.query()`, which doesn't invoke the audit logger.\n",
+  "fresh_logs": 1
+}

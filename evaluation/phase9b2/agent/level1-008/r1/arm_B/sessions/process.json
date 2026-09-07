@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "`Application::init` now returns `false` and logs `[Application] load failed` when `config_.load` fails, skipping validation in that case.\n",
+  "fresh_logs": 1
+}

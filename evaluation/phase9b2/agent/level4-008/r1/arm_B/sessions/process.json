@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. Added `InventoryService::checkAvailability` (delegates to `InventoryRepository::available`) and wired a pre-check into `OrderService::submit` that logs to `std::cerr` and returns `false` when stock is insufficient. `AdminOrderService::submit` is a separate class untouched by this change.\n",
+  "fresh_logs": 1
+}

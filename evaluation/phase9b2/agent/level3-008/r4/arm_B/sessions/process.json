@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Both `sync_job.cpp` (line before `store_.save(data)`) already includes `<iostream>`, as does `cleanup_job.cpp`, so no new includes were needed. `report_job.cpp` was left untouched since it only calls `store_.query()`, which doesn't trigger audit logging.\n",
+  "fresh_logs": 1
+}

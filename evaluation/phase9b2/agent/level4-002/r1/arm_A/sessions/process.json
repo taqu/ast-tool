@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the security check to `RequestProcessor::process` in `src/processor/request_processor.cpp` \u2014 it now rejects any payload containing `\"restricted\"`, logging to `std::cerr` and returning `false` before validation. `SyncProcessor::process` (background sync path) was left untouched as required.\n",
+  "fresh_logs": 1
+}

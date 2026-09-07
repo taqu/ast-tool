@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Root cause found and fixed.\n\n**Bug:** In `src/service/order_service.cpp`, `OrderService::submit_order` correctly passed the incoming `context` (with the real correlation ID) to `inventory_.reserve(...)`, but for the database save it constructed a brand-new default `model::RequestContext empty_context` and passed that instead \u2014 silently dropping the correlation ID before it reached `DatabaseClient::save_order`.\n\n**Fix:** Removed the stray `empty_context` and pass the ambient `context` straight through to `db_.save_order(...)`, matching what's already done for the inventory call.\n\n**Verification:** Built and ran `test_003.cpp` with clang++ \u2014 it now prints `SUCCESS`, confirming both `inventory.last_correlation_id() == \"corr_999\"` (inventory routing still correct) and `db.last_saved_correlation_id_ == \"corr_999\"` (previously failing, now fixed).\n\nNote: there's an unrelated pre-existing bug in `src/service/user_service.cpp` (a `dry_run` flag not being propagated to `TransactionOptions`, covered by `test_004.cpp`) that I left untouched since it's out of scope for this correlation-ID fix \u2014 let me know if you'd like that addressed too.\n",
+  "fresh_logs": 2
+}

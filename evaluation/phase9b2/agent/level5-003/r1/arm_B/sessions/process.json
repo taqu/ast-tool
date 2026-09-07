@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Fix confirmed. Summary:\n\n**Root cause**: `OrderService::submit_order` (`src/service/order_service.cpp`) correctly passed `context` to `inventory_.reserve()`, but then constructed a fresh, empty `model::RequestContext` and passed *that* to `db_.save_order()` instead of the real context \u2014 discarding the correlation ID right before the DB write.\n\n**Fix**: pass `context` directly to `db_.save_order()`, removing the empty-context substitution.\n\n**Verification**:\n- `validate_003.py` (correlation ID propagation to both inventory reservation and DB order save) \u2192 `OK`\n- Inventory reservation path (`InventoryClient::reserve`) was untouched, so reservation routing behavior is unchanged and still verified by the same test (`inventory.last_correlation_id() == \"corr_999\"` passes).\n\nNote: `validate_004.py` fails (`dry_run flag not propagated to DB`), but that's a pre-existing, unrelated issue in `TransactionManager`/`UserService` \u2014 no files in that path were touched by this fix, and it's outside the correlation-ID scope you asked about. Let me know if you'd like me to look into that separately.\n",
+  "fresh_logs": 1
+}

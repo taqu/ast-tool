@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the log line before the `expire` call in `AuthController::handleLogout` (src/web/auth_controller.cpp:21), leaving `AuthService::refresh`'s call untouched.\n",
+  "fresh_logs": 1
+}

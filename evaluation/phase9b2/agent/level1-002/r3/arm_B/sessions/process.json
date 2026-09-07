@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. Added `std::cerr << \"[log] inventory save\\n\";` before all 3 actual `InventoryService::save` call sites:\n\n- `src/main.cpp:11` and `:12` (`inv.save(p1)`, `inv.save(p2)`) \u2014 also added `#include <iostream>`.\n- `src/service/order_service.cpp:11` (`inventory_.save(product)`).\n\nNote: `orders.save(p1)` in `main.cpp:14` calls `OrderService::save`, a distinct method \u2014 not `InventoryService::save` \u2014 so it was correctly left untouched.\n",
+  "fresh_logs": 1
+}

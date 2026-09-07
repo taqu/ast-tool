@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Fixed. Test 006 (validating payment-authorization-failure order status) now passes.\n\n`validate_005.py` fails, but that's a pre-existing, unrelated issue in `subscription_billing_job` (cents-to-dollars conversion) \u2014 untouched by this fix and outside the scope of \"payment authorization vs. order status\" bug.\n\n**Root cause**: `order_processing_workflow.cpp` set `OrderStatus::PAID` immediately after inventory reservation succeeded, *before* `payment_.charge()` was even called. Any downstream failure path did roll the status back to `FAILED`, but the intervening `PAID` write was already persisted \u2014 any read (or audit) that raced ahead of the failure branch, or any success-path assumption resting on the order of writes, would observe an order that says `PAID` without a corresponding successful authorization.\n\n**Fix** (`src/workflow/order_processing_workflow.cpp`): moved the `repo_.update_status(order.id, model::OrderStatus::PAID)` call to *after* `payment_.charge(...)` returns `true`. The failure path is unchanged \u2014 inventory is still released and status still set to `FAILED` when charging fails \u2014 so reservation/release behavior is intact.\n",
+  "fresh_logs": 1
+}

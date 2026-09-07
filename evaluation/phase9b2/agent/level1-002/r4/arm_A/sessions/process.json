@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All three call sites to `InventoryService::save` now log immediately before the call: two in `src\\main.cpp` (`inv.save(p1)`, `inv.save(p2)`) and one in `src\\service\\order_service.cpp` (`inventory_.save(product)`). Note `orders.save(p1)` in main.cpp calls `OrderService::save`, a different method, so it was intentionally left untouched.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the diagnostic line to `ConfigManager::validate()` in `src/config/config_manager.cpp:14`. `SchemaValidator` was not touched.\n",
+  "fresh_logs": 1
+}

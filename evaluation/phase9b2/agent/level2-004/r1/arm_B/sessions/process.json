@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All 4 direct callers of `AuthToken::validate` now emit the debug line immediately before the call:\n\n- `auth::AuthService::login` \u2014 `src/auth/auth_service.cpp:15`\n- `web::AuthController::handleLogin` \u2014 `src/web/auth_controller.cpp:14`\n- `web::AuthController::handleRefresh` \u2014 `src/web/auth_controller.cpp:27`\n- `web::SessionController::handle` \u2014 `src/web/session_controller.cpp:13`\n\nNote: `auth::AuthService::validate` is a separate, unrelated method (doesn't call `AuthToken::validate`), so it wasn't touched. All affected files already include `<iostream>`.\n",
+  "fresh_logs": 1
+}

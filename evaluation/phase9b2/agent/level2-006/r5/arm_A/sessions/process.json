@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[token] validate\\n\";` immediately before each of the 4 `Token::validate` call sites (auth_middleware.cpp, api_handler.cpp, cors_middleware.cpp, rate_limiter.cpp) \u2014 all files already had `<iostream>` included, and `Token::validate` itself in token.cpp was left untouched.\n",
+  "fresh_logs": 1
+}

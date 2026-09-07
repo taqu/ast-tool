@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All three call sites to `InventoryService::save` (two in `main.cpp`, one in `order_service.cpp`) now log immediately before the call, per the AST-tool `callers` results. `order_service.cpp` already included `<iostream>`; I added it to `main.cpp` since it was missing.\n",
+  "fresh_logs": 1
+}

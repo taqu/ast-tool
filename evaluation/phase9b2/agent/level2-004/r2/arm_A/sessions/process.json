@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All four confirmed and covered \u2014 no other call sites exist. Debug lines added immediately before each direct `AuthToken::validate` call:\n\n- `src/web/auth_controller.cpp` \u2014 `handleLogin` (line 13) and `handleRefresh` (line 26)\n- `src/web/session_controller.cpp` \u2014 `handle` (line 12)\n- `src/auth/auth_service.cpp` \u2014 `AuthService::login` (line 14)\n\nNote: `AuthService::validate` (auth_service.cpp:31) was left untouched \u2014 it doesn't call `token_.validate`, it checks `cache_.get(...)` instead.\n\nThe `ast-tool` semantic commands (`search`, `callers`, `references`) returned no results for these call sites despite the symbol existing, so I fell back to grep + manual verification of each call site's receiver type per the skill's guidance.\n",
+  "fresh_logs": 1
+}

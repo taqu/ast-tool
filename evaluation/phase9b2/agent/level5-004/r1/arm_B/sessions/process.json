@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Only `user_service.cpp` was touched \u2014 unrelated to `test_003`'s correlation_id propagation check (a separate, pre-existing issue outside this task's scope), so that failure isn't something my change introduced.\n\nThe dry-run bug is fixed: `UserService::process_transaction` in `src/service/user_service.cpp` now sets `options.dry_run = dry_run` before calling `tx_manager_.execute()`, instead of leaving it at the default `false`. Verified via `validate_004.py`, which compiles and confirms dry-run transactions are no longer committed while still recording the correct flag, and non-dry-run commits remain intact (the `DatabaseClient::write_transaction` commit-skip logic was already correct \u2014 it just never received the true flag). Note: `test_003`/`validate_003.py` fails on an unrelated pre-existing correlation_id issue, untouched by this change.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "`<iostream>` is already included, so no further changes needed. Added the diagnostic line to `ConfigManager::validate()` in src/config/config_manager.cpp:14; `SchemaValidator` was left untouched.\n",
+  "fresh_logs": 1
+}

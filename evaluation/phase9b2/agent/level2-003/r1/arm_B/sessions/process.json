@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the diagnostic line at the entry of `RequestHandler::process(const Request&)` in `request_handler.cpp:15`; the int and string overloads are untouched.\n",
+  "fresh_logs": 1
+}

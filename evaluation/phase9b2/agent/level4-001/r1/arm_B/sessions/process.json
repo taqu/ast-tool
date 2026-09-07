@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the audit log to `OrderService::submit` in `src/service/order_service.cpp:18`, right after `repo_.save(...)` \u2014 this is the path used by `CheckoutService::checkout` for standard customer orders. `AdminOrderService::submit` (admin batch path, separate repo/class) is untouched.\n",
+  "fresh_logs": 1
+}

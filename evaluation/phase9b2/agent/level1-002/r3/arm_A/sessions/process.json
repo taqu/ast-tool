@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[log] inventory save\\n\";` immediately before all three `InventoryService::save` call sites: `main.cpp:12,14` (the two direct `inv.save(...)` calls) and `order_service.cpp:12` (the `inventory_.save(product)` call inside `OrderService::save`). Also added the missing `<iostream>` include to `main.cpp`. Note that `orders.save(p1)` in `main.cpp` calls `OrderService::save`, not `InventoryService::save` directly, so it didn't need its own log line \u2014 the log fires when that call reaches the actual inventory save internally.\n",
+  "fresh_logs": 1
+}

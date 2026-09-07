@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "The rename is complete and verified: `service::ValidationService::validate` \u2192 `validatePayload` in the header/cpp declaration and definition, and its single caller in `RequestProcessor::process` (`request_processor.cpp:13`) updated. `store::DatabaseStore::validate` and `jobs::CronJob::validate` remain untouched, confirmed by `ast-tool search --name validate`.\n",
+  "fresh_logs": 1
+}

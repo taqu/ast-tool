@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "`SyncProcessor::process` and `CronJob::runJob` still call the original two-argument `store_.save(sync_id, payload)`, which the retained overload still supports \u2014 background path is unaffected.\n\nAll four changes are done: `ApiHandler::handleRequest`, `RequestProcessor::process`, and `DatabaseStore::save` (overloaded) now propagate `client_ip`, and `main.cpp` passes `\"127.0.0.1\"`. Background sync path (`SyncProcessor`, `CronJob`) is untouched.\n",
+  "fresh_logs": 1
+}

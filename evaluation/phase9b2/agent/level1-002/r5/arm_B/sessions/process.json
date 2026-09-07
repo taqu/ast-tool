@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "I found all three call sites to `InventoryService::save` (two in `src/main.cpp`, one in `src/service/order_service.cpp` where `OrderService::save` delegates to `inventory_.save`) and added `std::cerr << \"[log] inventory save\\n\";` immediately before each, adding `<iostream>` to `main.cpp`. Note: `orders.save(p1)` in `main.cpp` calls `OrderService::save`, not `InventoryService::save` directly, so it wasn't logged there \u2014 its internal `inventory_.save` call is already covered in `order_service.cpp`.\n",
+  "fresh_logs": 1
+}

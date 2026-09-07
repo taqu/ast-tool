@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Validation passes.\n\n**Root cause:** `PasswordResetWorkflow::execute` (`src/workflow/password_reset_workflow.cpp`) called `user_service_.change_password(...)`, which already sends the \"Password Changed\" email internally, and then called `notification_service_.send_email(...)` again directly \u2014 sending two emails. Profile updates only ever call `UserService::change_password` directly, so they were unaffected.\n\n**Fix:** removed the redundant direct `send_email` call in `PasswordResetWorkflow::execute`, leaving `UserService::change_password` as the single source of the notification. Verified with `validate_008.py`, which compiles and runs `test_008.cpp` (asserts exactly 1 email for both profile update and password reset) and confirms `UserService::change_password` still sends the email directly \u2014 result: `OK`.\n",
+  "fresh_logs": 2
+}

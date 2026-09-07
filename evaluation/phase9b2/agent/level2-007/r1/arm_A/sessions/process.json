@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the `std::cerr << \"[router] route\\n\";` line immediately before both `Router::route` call sites \u2014 in `api_handler.cpp:19` and `upload_handler.cpp:11`. Both files already include `<iostream>`, so no additional includes were needed.\n",
+  "fresh_logs": 1
+}

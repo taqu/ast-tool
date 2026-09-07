@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Validation passes. Summary of changes:\n\n- `src/api/api_handler.h/.cpp` \u2014 `handleRequest` now takes `client_ip` and forwards it to `RequestProcessor::process`; also added the missing `processor_`/`registry_` member declarations that were causing a pre-existing compile failure.\n- `src/processor/request_processor.h/.cpp` \u2014 `process` takes `client_ip` as a third parameter and forwards it to `DatabaseStore::save`.\n- `src/store/database_store.h/.cpp` \u2014 added an overload of `save` taking `client_ip`, printing `\" ip=\" + client_ip`; the original 2-arg overload is untouched (still used by `SyncProcessor`).\n- `src/main.cpp` \u2014 passes `\"127.0.0.1\"` at the call site.\n- `SyncProcessor`/`CronJob` left untouched, confirmed via `validate_005.py`.\n",
+  "fresh_logs": 1
+}

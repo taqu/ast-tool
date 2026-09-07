@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Renamed `service::ValidationService::validate` \u2192 `validatePayload` in its header declaration, .cpp definition, and its single semantic caller in `request_processor.cpp:13`. `store::DatabaseStore::validate` and `jobs::CronJob::validate` were left untouched, as confirmed unrelated by both grep and type inspection.\n",
+  "fresh_logs": 1
+}

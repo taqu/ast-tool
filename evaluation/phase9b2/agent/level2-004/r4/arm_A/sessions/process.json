@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the debug line before all four direct call sites of `AuthToken::validate`:\n\n- `src/auth/auth_service.cpp` \u2014 `AuthService::login`\n- `src/web/auth_controller.cpp` \u2014 `AuthController::handleLogin` and `AuthController::handleRefresh`\n- `src/web/session_controller.cpp` \u2014 `SessionController::handle`\n\nNote: `AuthService::validate` (auth_service.cpp:31) has the same method name but calls `cache_.get(...)`, not `AuthToken::validate` \u2014 it was correctly excluded. `ast-tool callers`/`references` returned no results for this symbol (likely a resolution gap with reference-member calls), so I fell back to `Grep` and manually confirmed each call site's target type, per the skill's guidance. All 4 files already included `<iostream>`, so no additional includes were needed.\n",
+  "fresh_logs": 1
+}

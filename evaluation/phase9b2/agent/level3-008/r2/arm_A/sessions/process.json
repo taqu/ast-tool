@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Only `SyncJob` and `CleanupJob` call `save`/`purge`. Both are now updated with the audit-triggered log line placed immediately before the respective store call; `ReportJob` (uses `query()`, no audit) was left untouched as instructed.\n",
+  "fresh_logs": 1
+}

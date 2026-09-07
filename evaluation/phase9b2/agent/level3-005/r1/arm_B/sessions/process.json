@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[audit] log called\\n\";` before both `auditor_.log(...)` calls in `src/store/data_store.cpp` (in `save` and `purge`) \u2014 the only two call sites for `AuditLogger::log` in the data store implementation.\n",
+  "fresh_logs": 1
+}

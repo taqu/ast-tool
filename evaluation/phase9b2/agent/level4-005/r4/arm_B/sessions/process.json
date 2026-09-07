@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "This repo has no CMakeLists.txt/build system \u2014 it's just source files for the evaluation, so there's nothing to compile-check here (the missing private-member declarations in `api_handler.h` are pre-existing and out of scope). All four requested changes are done:\n\n- `ApiHandler::handleRequest` now takes `client_ip` and forwards it to `processor_.process`.\n- `RequestProcessor::process` takes `client_ip` as a third param and forwards it to `store_.save`.\n- `DatabaseStore::save` is overloaded with a `client_ip` version that appends `\" ip=\" + client_ip\"` to its output; the original two-arg overload is untouched.\n- `main.cpp` now calls `handler.handleRequest(\"hello\", \"127.0.0.1\")`.\n\n`SyncProcessor::process` and `CronJob::runJob` still use the original two-arg `save` and were not touched.\n",
+  "fresh_logs": 1
+}

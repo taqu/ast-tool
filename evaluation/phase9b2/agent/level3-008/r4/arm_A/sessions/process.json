@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. `DataStore::save` and `DataStore::purge` both call `auditor_.log(...)`, while `DataStore::query` (used by `ReportJob`) does not.\n\n- `SyncJob::execute()` (src/job/sync_job.cpp:24) calls `store_.save(data)` \u2192 added the `cerr` line before it.\n- `CleanupJob::execute()` (src/job/cleanup_job.cpp:13) calls `store_.purge()` \u2192 added the `cerr` line before it.\n- `ReportJob::generate()` only calls `store_.query()`, which never logs \u2014 left unmodified as instructed.\n",
+  "fresh_logs": 1
+}

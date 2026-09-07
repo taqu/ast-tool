@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Both handlers now log to stderr at the start of `handle`. Note: `RetryWorker` (src/worker/retry_worker.cpp) actually calls `PaymentService::authorize` directly, not `CheckoutService` \u2014 so its `retry` method was never in scope here anyway, which is consistent with leaving it untouched. Left as-is per instructions.\n",
+  "fresh_logs": 1
+}

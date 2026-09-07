@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the log line at the start of `InventoryRepository::reserve` in src/repository/inventory_repository.cpp \u2014 the terminal step in the order\u2192inventory service\u2192inventory repository chain. Order repository was left untouched.\n",
+  "fresh_logs": 1
+}

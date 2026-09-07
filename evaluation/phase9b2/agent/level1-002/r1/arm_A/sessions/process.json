@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All three call sites to `InventoryService::save` are now covered \u2014 `src/main.cpp` (both `inv.save` calls, plus the `<iostream>` include) and `src/service/order_service.cpp` (the `inventory_.save` call inside `OrderService::save`). `orders.save(p1)` in main.cpp calls `OrderService::save`, not `InventoryService::save` directly, so it's correctly left alone \u2014 its internal delegation is already covered in order_service.cpp.\n",
+  "fresh_logs": 1
+}

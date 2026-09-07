@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "`service::ValidationService::validate` is now `validatePayload`, while `jobs::CronJob::validate` and `store::DatabaseStore::validate` remain untouched. The declaration (`validation_service.h`), definition (`validation_service.cpp`), and the sole caller (`request_processor.cpp:13`) were all updated.\n",
+  "fresh_logs": 1
+}

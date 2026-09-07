@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Good, that file is untouched \u2014 it uses `inventory_.reserve` directly, no `checkAvailability` involved. Changes complete:\n\n- `InventoryService::checkAvailability` added (header + impl), delegating to `InventoryRepository::available`.\n- `OrderService::submit` now checks availability first and bails with the specified `std::cerr` log if insufficient.\n- `AdminOrderService::submit` is unmodified and bypasses the new check.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All call sites are updated. No other references to `PaymentGateway::charge` or `PaymentService::authorize` remain outdated, and `BillingGateway::charge` / `refund` are unchanged.\n",
+  "fresh_logs": 1
+}

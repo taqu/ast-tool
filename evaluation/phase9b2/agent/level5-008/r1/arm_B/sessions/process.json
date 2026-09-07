@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "## Summary\n\nFound the bug: `PasswordResetWorkflow::execute` called `UserService::change_password()` (which already sends the \"Password Changed\" email internally) and then sent a second, duplicate email itself.\n\nFixed by removing the redundant `notification_service_.send_email(...)` call in `src/workflow/password_reset_workflow.cpp:6-11`, leaving the workflow to simply delegate to `UserService::change_password`.\n\nVerified with `test_008.cpp` (compiled via clang++, since no `g++`/`cl` was on PATH):\n- Profile-based password change \u2192 1 email\n- Password reset workflow \u2192 1 email (previously 2)\n\nBoth scenarios pass (`SUCCESS`).\n",
+  "fresh_logs": 1
+}

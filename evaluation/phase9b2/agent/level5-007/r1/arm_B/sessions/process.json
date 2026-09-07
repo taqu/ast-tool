@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "That test_008 is an unrelated task (password reset email duplication), not part of this request. I've completed the logging migration.\n\n## Summary\n\nFixed `src/service/auth_service.cpp` \u2014 the failed-login path was logging through the deprecated `logger::Logger` (plain text, no structured fields), so IP address/user agent metadata never reached the log aggregator. It now logs via `logger::StructuredLogger` with a `StructuredLog{\"ERROR\", message, username, ip_address}` entry, matching the fix the code's own TODO comment specified.\n\n`logger::Logger::log` (the legacy text-based logger) isn't used anywhere else in the codebase, so legacy CLI fallback logging is untouched. Verified with `validate_007.py` \u2192 `OK` (compiles, runs, confirms the structured log entry is populated and the legacy logger stays empty).\n",
+  "fresh_logs": 1
+}

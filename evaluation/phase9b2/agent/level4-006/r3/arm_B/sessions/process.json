@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Rename complete and verified: `service::ValidationService::validate` is now `validatePayload` in both the header declaration and `.cpp` definition, and its one semantic caller (`processor::RequestProcessor::process`) was updated. `jobs::CronJob::validate` and `store::DatabaseStore::validate` remain untouched.\n",
+  "fresh_logs": 1
+}

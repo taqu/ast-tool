@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. Added the log line before the logout call in `AuthController::handleLogout` (src/web/auth_controller.cpp:22), and left the refresh caller in `AuthService::refresh` (src/auth/auth_service.cpp:18) untouched.\n",
+  "fresh_logs": 1
+}

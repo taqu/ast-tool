@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[gateway] charge\\n\";` at the start of `PaymentGateway::charge` in `src/gateway/payment_gateway.cpp:7`, which is the gateway operation `PaymentService::authorize` delegates to.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All four files already `#include <iostream>`, so no additional includes needed.\n\nI found 4 direct callers of `AuthToken::validate` (via grep fallback, since `ast-tool callers` returned no results despite the symbol resolving fine) and added `std::cerr << \"[auth] validating token\\n\";` immediately before each call:\n\n- `src/auth/auth_service.cpp:14` \u2014 `AuthService::login`\n- `src/web/auth_controller.cpp:13` \u2014 `AuthController::handleLogin`\n- `src/web/auth_controller.cpp:26` \u2014 `AuthController::handleRefresh`\n- `src/web/session_controller.cpp:12` \u2014 `SessionController::handle`\n\nI excluded `AuthService::validate` (`auth_service.cpp:31`) \u2014 same method name, but it calls `cache_.get()`, not `AuthToken::validate`, so it's not a caller.\n",
+  "fresh_logs": 1
+}

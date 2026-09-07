@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Guard added to `OrderService::save` in `order_service.cpp`; validation passes and `InventoryService` was left untouched.\n",
+  "fresh_logs": 1
+}

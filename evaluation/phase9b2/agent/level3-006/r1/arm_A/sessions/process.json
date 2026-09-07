@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the log line immediately before `store_.save(data)` in `src/job/sync_job.cpp:24`, since that's the direct call responsible for persisting data.\n",
+  "fresh_logs": 1
+}

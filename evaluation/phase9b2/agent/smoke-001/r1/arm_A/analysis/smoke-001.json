@@ -1,0 +1,90 @@
+{
+  "task_id": "smoke-001",
+  "task_level": null,
+  "agent": "claude",
+  "repository": "repositories/basic-01",
+  "success": true,
+  "validation_success": true,
+  "elapsed_seconds": 88.61,
+  "total_tool_calls": 20,
+  "tools": {
+    "Bash": 15,
+    "Read": 4,
+    "Edit": 1
+  },
+  "bash_calls": 15,
+  "read_calls": 4,
+  "edit_calls": 1,
+  "grep_calls": 0,
+  "glob_calls": 0,
+  "skill_calls": 0,
+  "ast_tool_calls": 11,
+  "ast_tool_successes": 8,
+  "ast_tool_failures": 3,
+  "ast_tool_retries": 5,
+  "ast_tool_help_calls": 5,
+  "ast_tool_json_calls": 1,
+  "ast_tool_pretty_json_calls": 1,
+  "ast_tool_commands": {
+    "find": 3,
+    "references": 5,
+    "search": 2,
+    "callers": 1
+  },
+  "ast_tool_failures_by_command": {
+    "find": 1,
+    "references": 2
+  },
+  "tool_sequence": [
+    "ast-tool:find",
+    "ast-tool:find",
+    "ast-tool:find",
+    "ast-tool:references",
+    "ast-tool:references",
+    "Read",
+    "Read",
+    "ast-tool:references",
+    "ast-tool:search",
+    "ast-tool:search",
+    "ast-tool:callers",
+    "ast-tool:references",
+    "ast-tool:references",
+    "Bash",
+    "Read",
+    "Edit",
+    "Bash",
+    "Bash",
+    "Read",
+    "Bash"
+  ],
+  "ast_tool_sequence": [
+    "find",
+    "find",
+    "find",
+    "references",
+    "references",
+    "references",
+    "search",
+    "search",
+    "callers",
+    "references",
+    "references"
+  ],
+  "ast_tool_recovery_distances": [
+    2,
+    5,
+    1
+  ],
+  "average_ast_tool_recovery_distance": 2.6666666666666665,
+  "max_ast_tool_recovery_distance": 5,
+  "ast_tool_help_by_command": {
+    "find": 1,
+    "references": 2,
+    "search": 1,
+    "callers": 1
+  },
+  "consecutive_ast_tool_retries": 0,
+  "input_tokens": 80,
+  "output_tokens": 11957,
+  "total_tokens": 12037
+}

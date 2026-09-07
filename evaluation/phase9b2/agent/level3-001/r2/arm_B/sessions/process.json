@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Both `<iostream>` were already included, so no header changes needed. Added the log line to `WebCheckoutHandler::handle` and `MobileCheckoutHandler::handle`; `src/worker/retry_worker.cpp` was left untouched.\n",
+  "fresh_logs": 1
+}

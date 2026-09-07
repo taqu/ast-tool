@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[auth] validating token\\n\";` immediately before each of the 4 direct call sites of `AuthToken::validate` found by `ast-tool callers`:\n\n- `auth::AuthService::login` \u2014 src/auth/auth_service.cpp:15\n- `web::AuthController::handleLogin` \u2014 src/web/auth_controller.cpp:14\n- `web::AuthController::handleRefresh` \u2014 src/web/auth_controller.cpp:27\n- `web::SessionController::handle` \u2014 src/web/session_controller.cpp:13\n\nNote: `AuthService::validate` (a different, unrelated method) was excluded \u2014 it doesn't call `AuthToken::validate`. All affected files already `#include <iostream>`.\n",
+  "fresh_logs": 1
+}

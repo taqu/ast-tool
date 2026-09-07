@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "No build system in this repo, so I can't compile \u2014 but I manually verified the call chain and signatures are consistent.\n\nSync processor confirmed untouched, using the original 2-arg `save`. Summary of changes:\n\n- `ApiHandler::handleRequest` / `RequestProcessor::process` / `DatabaseStore::save` now take `client_ip`, threaded through `src/api/api_handler.{h,cpp}`, `src/processor/request_processor.{h,cpp}`, `src/store/database_store.{h,cpp}` (added as an overload, so `SyncProcessor` keeps using the original 2-arg `save`).\n- `DatabaseStore::save`'s 3-arg overload appends `\" ip=\" + client_ip` to its log line.\n- `src/main.cpp` now calls `handler.handleRequest(\"hello\", \"127.0.0.1\")`.\n- `SyncProcessor::process` and `CronJob::runJob` left untouched, as required.\n",
+  "fresh_logs": 1
+}

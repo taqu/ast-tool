@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[log] inventory save\\n\";` before all three direct call sites of `InventoryService::save`:\n\n- `src/main.cpp:11-12` (two `inv.save(...)` calls) \u2014 also added `#include <iostream>` since it wasn't previously included there\n- `src/service/order_service.cpp:11` (`inventory_.save(product)` inside `OrderService::save`)\n\nNote: `orders.save(p1)` in main.cpp calls `OrderService::save`, not `InventoryService::save` directly \u2014 its internal forwarding call is the one already covered in order_service.cpp.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "The rename is complete and verified: `service::ValidationService::validate` no longer exists, `validatePayload` is defined in both the header and .cpp, and its one caller in `request_processor.cpp` was updated. `jobs::CronJob::validate` and `store::DatabaseStore::validate` remain untouched.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[token] validate\\n\";` immediately before each of the 4 `Token::validate` call sites (rate_limiter.cpp, cors_middleware.cpp, auth_middleware.cpp, api_handler.cpp). The `Token::validate` implementation itself was left untouched.\n",
+  "fresh_logs": 1
+}

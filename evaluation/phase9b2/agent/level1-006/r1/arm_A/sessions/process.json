@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the `std::cerr` line at the start of `Server::log` in `src/net/server.cpp:22`, plus the `<iostream>` include it needs. `Connection::log` was left untouched.\n",
+  "fresh_logs": 1
+}

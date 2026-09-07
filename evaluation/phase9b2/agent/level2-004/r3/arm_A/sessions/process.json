@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "I added `std::cerr << \"[auth] validating token\\n\";` immediately before each of the 4 direct call sites of `AuthToken::validate`:\n\n- `src/web/auth_controller.cpp` \u2014 `AuthController::handleLogin` (line 13) and `AuthController::handleRefresh` (line 26)\n- `src/auth/auth_service.cpp` \u2014 `AuthService::login` (line 14)\n- `src/web/session_controller.cpp` \u2014 `SessionController::handle` (line 12)\n\nNote: `ast-tool callers`/`references` reported zero results for `auth::AuthToken::validate` \u2014 it appears the resolver doesn't follow calls through reference-typed members (`AuthToken& token_`). I cross-checked with Grep and manual reading of each call site to confirm all four are genuine calls to `AuthToken::validate` on a `token_` member of that type (as opposed to `AuthService::validate`, a same-named but unrelated method that only calls `cache_.get()`). All three edited files already `#include <iostream>`, so no new includes were needed.\n",
+  "fresh_logs": 1
+}

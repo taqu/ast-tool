@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All three edits applied: the callback type now returns `bool`, `trigger` logs a failure to `std::cerr` when a callback returns `false`, and the lambda in `main.cpp` returns `true`.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Validation passes. Final `src/main.cpp`:\n\n```cpp\n#include \"greeter.h\"\n#include <iostream>\n\nint main() {\n    std::cout << \"Calling greet\" << std::endl;\n    greet(\"Alice\");\n    std::cout << \"Calling greet\" << std::endl;\n    greet(\"Bob\");\n    return 0;\n}\n```\n\nSummary: used `ast-tool find --text greet src/greeter.h` to locate the declaration (line 4), then `ast-tool references greet .` to find both call sites in `src/main.cpp` (lines 4 and 5) \u2014 resolving an ambiguity where the tool couldn't distinguish the header declaration from the `.cpp` definition by briefly moving `greeter.cpp` aside and restoring it right after. Added `#include <iostream>` and a `std::cout << \"Calling greet\" << std::endl;` line before each `greet()` call; `validate.py` confirms the change.\n",
+  "fresh_logs": 1
+}

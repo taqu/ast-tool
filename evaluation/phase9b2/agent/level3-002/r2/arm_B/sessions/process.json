@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the log line in `OrderService::submit` (src/service/order_service.cpp:19) right before the `payment_.authorize` call, which is the order-submission-flow caller. `<iostream>` is already included there. Left `retry_worker.cpp` untouched.\n",
+  "fresh_logs": 1
+}

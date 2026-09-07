@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Renamed cleanly. `service::ValidationService::validate` \u2192 `validatePayload` in declaration (`validation_service.h`), definition (`validation_service.cpp`), and its one caller (`request_processor.cpp:13`). `store::DatabaseStore::validate` and `jobs::CronJob::validate` were left untouched, as required.\n",
+  "fresh_logs": 1
+}

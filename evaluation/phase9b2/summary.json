@@ -1,0 +1,2079 @@
+{
+  "stage1_aggregate": {
+    "A": {
+      "n_runs": 41,
+      "success_rate": 0.927,
+      "total_tool_calls": 10.78,
+      "ast_tool_calls": 0.39,
+      "ast_tool_failures": 0.073,
+      "ast_tool_retries": 0.122,
+      "ast_tool_help_calls": 0.122,
+      "read_calls": 5.098,
+      "grep_calls": 1.707,
+      "glob_calls": 0.195,
+      "bash_calls": 1.537,
+      "edit_calls": 1.976,
+      "skill_calls": 0.049,
+      "total_tokens": 6020.39,
+      "elapsed_seconds": 30.442,
+      "ast_commands_total": {
+        "search": 4,
+        "callers": 3,
+        "references": 6,
+        "find": 3
+      }
+    },
+    "B": {
+      "n_runs": 41,
+      "success_rate": 0.902,
+      "total_tool_calls": 9.39,
+      "ast_tool_calls": 0.61,
+      "ast_tool_failures": 0.049,
+      "ast_tool_retries": 0.049,
+      "ast_tool_help_calls": 0.024,
+      "read_calls": 3.707,
+      "grep_calls": 1.634,
+      "glob_calls": 0.317,
+      "bash_calls": 1.659,
+      "edit_calls": 1.951,
+      "skill_calls": 0.122,
+      "total_tokens": 5737,
+      "elapsed_seconds": 26.259,
+      "ast_commands_total": {
+        "search": 6,
+        "callers": 6,
+        "references": 5,
+        "find": 2,
+        "2": 1,
+        "top_level": 1,
+        "cache": 3,
+        "callees": 1
+      }
+    }
+  },
+  "task_level": [
+    {
+      "task": "level1-001",
+      "n_repeats": 5,
+      "arm_A": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 4.6,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1.6,
+        "grep_calls": 2,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1166.6,
+        "elapsed_seconds": 14.918
+      },
+      "arm_B": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 4.4,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1.4,
+        "grep_calls": 2,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1141.4,
+        "elapsed_seconds": 13.37
+      }
+    },
+    {
+      "task": "level1-002",
+      "n_repeats": 5,
+      "arm_A": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 9.4,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 3.8,
+        "grep_calls": 3,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 2.6,
+        "skill_calls": 0,
+        "total_tokens": 6913.4,
+        "elapsed_seconds": 26.61
+      },
+      "arm_B": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 10,
+        "ast_tool_calls": 1.2,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 3.4,
+        "grep_calls": 1.2,
+        "glob_calls": 0.2,
+        "bash_calls": 1.8,
+        "edit_calls": 3,
+        "skill_calls": 0.4,
+        "total_tokens": 6559.2,
+        "elapsed_seconds": 26.646
+      }
+    },
+    {
+      "task": "level1-003",
+      "n_repeats": 5,
+      "arm_A": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 3.2,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1,
+        "grep_calls": 1.2,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 913.8,
+        "elapsed_seconds": 11.446
+      },
+      "arm_B": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 3.4,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1.2,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 0.2,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 975,
+        "elapsed_seconds": 12.318
+      }
+    },
+    {
+      "task": "level1-004",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 3,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 634,
+        "elapsed_seconds": 9.81
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 4,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1,
+        "grep_calls": 2,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1238,
+        "elapsed_seconds": 17.17
+      }
+    },
+    {
+      "task": "level1-005",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 6,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 3,
+        "skill_calls": 0,
+        "total_tokens": 1690,
+        "elapsed_seconds": 16.48
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 7,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 3,
+        "grep_calls": 1,
+        "glob_calls": 1,
+        "bash_calls": 0,
+        "edit_calls": 2,
+        "skill_calls": 0,
+        "total_tokens": 3833,
+        "elapsed_seconds": 14.22
+      }
+    },
+    {
+      "task": "level1-006",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 5,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1,
+        "grep_calls": 2,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 2,
+        "skill_calls": 0,
+        "total_tokens": 1511,
+        "elapsed_seconds": 14.04
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 4,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 2,
+        "skill_calls": 0,
+        "total_tokens": 1117,
+        "elapsed_seconds": 21.35
+      }
+    },
+    {
+      "task": "level1-007",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 6,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 2,
+        "glob_calls": 1,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1848,
+        "elapsed_seconds": 12.77
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 9,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 6,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 3415,
+        "elapsed_seconds": 24.72
+      }
+    },
+    {
+      "task": "level1-008",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 6,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 2,
+        "glob_calls": 1,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1343,
+        "elapsed_seconds": 19.64
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 4,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1,
+        "grep_calls": 2,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1177,
+        "elapsed_seconds": 17.98
+      }
+    },
+    {
+      "task": "level2-001",
+      "n_repeats": 5,
+      "arm_A": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 5,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1.4,
+        "grep_calls": 2.2,
+        "glob_calls": 0.4,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1412.6,
+        "elapsed_seconds": 16.558
+      },
+      "arm_B": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 5.4,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1.8,
+        "grep_calls": 2.4,
+        "glob_calls": 0.2,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1506.2,
+        "elapsed_seconds": 15.628
+      }
+    },
+    {
+      "task": "level2-002",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 6,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1,
+        "grep_calls": 4,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1747,
+        "elapsed_seconds": 15.42
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 4,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1,
+        "grep_calls": 2,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1054,
+        "elapsed_seconds": 14.75
+      }
+    },
+    {
+      "task": "level2-003",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 4,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1346,
+        "elapsed_seconds": 10.55
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 4,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1344,
+        "elapsed_seconds": 13.36
+      }
+    },
+    {
+      "task": "level2-004",
+      "n_repeats": 5,
+      "arm_A": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 14.6,
+        "ast_tool_calls": 3.6,
+        "ast_tool_failures": 0.2,
+        "ast_tool_retries": 0.4,
+        "ast_tool_help_calls": 0,
+        "read_calls": 5,
+        "grep_calls": 1.2,
+        "glob_calls": 0,
+        "bash_calls": 3.6,
+        "edit_calls": 4,
+        "skill_calls": 0.8,
+        "total_tokens": 13477.8,
+        "elapsed_seconds": 47.502
+      },
+      "arm_B": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 10.2,
+        "ast_tool_calls": 2.2,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 3,
+        "grep_calls": 0,
+        "glob_calls": 0,
+        "bash_calls": 2.2,
+        "edit_calls": 4,
+        "skill_calls": 1,
+        "total_tokens": 8767.8,
+        "elapsed_seconds": 29.57
+      }
+    },
+    {
+      "task": "level2-005",
+      "n_repeats": 5,
+      "arm_A": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 7.2,
+        "ast_tool_calls": 1,
+        "ast_tool_failures": 0.2,
+        "ast_tool_retries": 0.6,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1.8,
+        "grep_calls": 3,
+        "glob_calls": 0.2,
+        "bash_calls": 1,
+        "edit_calls": 1,
+        "skill_calls": 0.2,
+        "total_tokens": 2295.4,
+        "elapsed_seconds": 21.622
+      },
+      "arm_B": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 7.2,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1.6,
+        "grep_calls": 4.4,
+        "glob_calls": 0.2,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 2277.4,
+        "elapsed_seconds": 20.218
+      }
+    },
+    {
+      "task": "level2-006",
+      "n_repeats": 5,
+      "arm_A": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 10,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 4.2,
+        "grep_calls": 1.8,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 4,
+        "skill_calls": 0,
+        "total_tokens": 7616.4,
+        "elapsed_seconds": 20.75
+      },
+      "arm_B": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 11,
+        "ast_tool_calls": 0.4,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 3.4,
+        "grep_calls": 2.8,
+        "glob_calls": 0,
+        "bash_calls": 0.6,
+        "edit_calls": 4,
+        "skill_calls": 0.2,
+        "total_tokens": 9052.6,
+        "elapsed_seconds": 24.372
+      }
+    },
+    {
+      "task": "level2-007",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 6,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 3,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 2,
+        "skill_calls": 0,
+        "total_tokens": 2983,
+        "elapsed_seconds": 16.37
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 5,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 2,
+        "skill_calls": 0,
+        "total_tokens": 3293,
+        "elapsed_seconds": 19.25
+      }
+    },
+    {
+      "task": "level2-008",
+      "n_repeats": 5,
+      "arm_A": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 4,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1666.8,
+        "elapsed_seconds": 14.118
+      },
+      "arm_B": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 4.2,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1.8,
+        "grep_calls": 1.4,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1687.6,
+        "elapsed_seconds": 14.66
+      }
+    },
+    {
+      "task": "level3-001",
+      "n_repeats": 5,
+      "arm_A": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 6.6,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2.6,
+        "grep_calls": 2,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 2,
+        "skill_calls": 0,
+        "total_tokens": 4017.2,
+        "elapsed_seconds": 22.552
+      },
+      "arm_B": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 6,
+        "ast_tool_calls": 0.2,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2.4,
+        "grep_calls": 1,
+        "glob_calls": 0.2,
+        "bash_calls": 0.2,
+        "edit_calls": 2,
+        "skill_calls": 0.2,
+        "total_tokens": 3532.6,
+        "elapsed_seconds": 19.648
+      }
+    },
+    {
+      "task": "level3-002",
+      "n_repeats": 5,
+      "arm_A": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 4.6,
+        "ast_tool_calls": 0.8,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1,
+        "grep_calls": 1.4,
+        "glob_calls": 0,
+        "bash_calls": 0.8,
+        "edit_calls": 1,
+        "skill_calls": 0.4,
+        "total_tokens": 1646.4,
+        "elapsed_seconds": 16.722
+      },
+      "arm_B": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 5,
+        "ast_tool_calls": 0.4,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1.2,
+        "grep_calls": 2.2,
+        "glob_calls": 0,
+        "bash_calls": 0.4,
+        "edit_calls": 1,
+        "skill_calls": 0.2,
+        "total_tokens": 1963.4,
+        "elapsed_seconds": 14.782
+      }
+    },
+    {
+      "task": "level3-003",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 11,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 6,
+        "grep_calls": 1,
+        "glob_calls": 3,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 3581,
+        "elapsed_seconds": 16.4
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 4,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1467,
+        "elapsed_seconds": 11.43
+      }
+    },
+    {
+      "task": "level3-004",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 5,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 2,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1536,
+        "elapsed_seconds": 13.51
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 5,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 2,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 1477,
+        "elapsed_seconds": 12.92
+      }
+    },
+    {
+      "task": "level3-005",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 6,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1,
+        "grep_calls": 3,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 2,
+        "skill_calls": 0,
+        "total_tokens": 1933,
+        "elapsed_seconds": 20.43
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 5,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1,
+        "grep_calls": 2,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 2,
+        "skill_calls": 0,
+        "total_tokens": 2538,
+        "elapsed_seconds": 12.31
+      }
+    },
+    {
+      "task": "level3-006",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 3,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 950,
+        "elapsed_seconds": 10.3
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 3,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 1,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 879,
+        "elapsed_seconds": 9.75
+      }
+    },
+    {
+      "task": "level3-007",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 7,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 3,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 3,
+        "skill_calls": 0,
+        "total_tokens": 4451,
+        "elapsed_seconds": 17.8
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 15,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 4,
+        "grep_calls": 5,
+        "glob_calls": 3,
+        "bash_calls": 0,
+        "edit_calls": 3,
+        "skill_calls": 0,
+        "total_tokens": 8326,
+        "elapsed_seconds": 23.36
+      }
+    },
+    {
+      "task": "level3-008",
+      "n_repeats": 5,
+      "arm_A": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 15,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 9.4,
+        "grep_calls": 1,
+        "glob_calls": 0.6,
+        "bash_calls": 1.6,
+        "edit_calls": 2,
+        "skill_calls": 0.2,
+        "total_tokens": 8907.8,
+        "elapsed_seconds": 32.94
+      },
+      "arm_B": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 12.6,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 8,
+        "grep_calls": 1.2,
+        "glob_calls": 0.6,
+        "bash_calls": 0.6,
+        "edit_calls": 2,
+        "skill_calls": 0,
+        "total_tokens": 6424.8,
+        "elapsed_seconds": 27.316
+      }
+    },
+    {
+      "task": "level4-001",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 10,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 5,
+        "grep_calls": 3,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 3775,
+        "elapsed_seconds": 41.03
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 7,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 5,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 2793,
+        "elapsed_seconds": 18.67
+      }
+    },
+    {
+      "task": "level4-002",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 0.0,
+        "total_tool_calls": 8,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 4,
+        "grep_calls": 2,
+        "glob_calls": 1,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 3369,
+        "elapsed_seconds": 15.4
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 0.0,
+        "total_tool_calls": 7,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 3,
+        "grep_calls": 3,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 3310,
+        "elapsed_seconds": 15.85
+      }
+    },
+    {
+      "task": "level4-003",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 14,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 6,
+        "grep_calls": 2,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 6,
+        "skill_calls": 0,
+        "total_tokens": 15086,
+        "elapsed_seconds": 24.96
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 15,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 6,
+        "grep_calls": 2,
+        "glob_calls": 0,
+        "bash_calls": 1,
+        "edit_calls": 6,
+        "skill_calls": 0,
+        "total_tokens": 15609,
+        "elapsed_seconds": 30.65
+      }
+    },
+    {
+      "task": "level4-004",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 19,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 7,
+        "grep_calls": 4,
+        "glob_calls": 0,
+        "bash_calls": 2,
+        "edit_calls": 6,
+        "skill_calls": 0,
+        "total_tokens": 19144,
+        "elapsed_seconds": 39.2
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 16,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 6,
+        "grep_calls": 4,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 6,
+        "skill_calls": 0,
+        "total_tokens": 16934,
+        "elapsed_seconds": 29.55
+      }
+    },
+    {
+      "task": "level4-005",
+      "n_repeats": 5,
+      "arm_A": {
+        "n": 5,
+        "success_rate": 0.2,
+        "total_tool_calls": 24,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 9.8,
+        "grep_calls": 2,
+        "glob_calls": 0.8,
+        "bash_calls": 4,
+        "edit_calls": 7.4,
+        "skill_calls": 0,
+        "total_tokens": 23988,
+        "elapsed_seconds": 58.962
+      },
+      "arm_B": {
+        "n": 5,
+        "success_rate": 0.2,
+        "total_tool_calls": 21.8,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 7.8,
+        "grep_calls": 3.4,
+        "glob_calls": 0.4,
+        "bash_calls": 3,
+        "edit_calls": 7.2,
+        "skill_calls": 0,
+        "total_tokens": 22846.6,
+        "elapsed_seconds": 57.23
+      }
+    },
+    {
+      "task": "level4-006",
+      "n_repeats": 5,
+      "arm_A": {
+        "n": 5,
+        "success_rate": 0.0,
+        "total_tool_calls": 18,
+        "ast_tool_calls": 4.2,
+        "ast_tool_failures": 0.2,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 5.2,
+        "grep_calls": 2,
+        "glob_calls": 0.4,
+        "bash_calls": 6.4,
+        "edit_calls": 3,
+        "skill_calls": 1,
+        "total_tokens": 9436.6,
+        "elapsed_seconds": 57.028
+      },
+      "arm_B": {
+        "n": 5,
+        "success_rate": 0.0,
+        "total_tool_calls": 12.8,
+        "ast_tool_calls": 4.8,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0.2,
+        "read_calls": 3,
+        "grep_calls": 0,
+        "glob_calls": 0.6,
+        "bash_calls": 5.2,
+        "edit_calls": 3,
+        "skill_calls": 1,
+        "total_tokens": 5988,
+        "elapsed_seconds": 30.124
+      }
+    },
+    {
+      "task": "level4-007",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 0.0,
+        "total_tool_calls": 6,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 3,
+        "skill_calls": 0,
+        "total_tokens": 3700,
+        "elapsed_seconds": 12.92
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 0.0,
+        "total_tool_calls": 7,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 2,
+        "grep_calls": 2,
+        "glob_calls": 0,
+        "bash_calls": 0,
+        "edit_calls": 3,
+        "skill_calls": 0,
+        "total_tokens": 3924,
+        "elapsed_seconds": 19.52
+      }
+    },
+    {
+      "task": "level4-008",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 9,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 4,
+        "grep_calls": 1,
+        "glob_calls": 1,
+        "bash_calls": 0,
+        "edit_calls": 3,
+        "skill_calls": 0,
+        "total_tokens": 6197,
+        "elapsed_seconds": 18.15
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 9,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 5,
+        "grep_calls": 0,
+        "glob_calls": 1,
+        "bash_calls": 0,
+        "edit_calls": 3,
+        "skill_calls": 0,
+        "total_tokens": 5878,
+        "elapsed_seconds": 16.61
+      }
+    },
+    {
+      "task": "level5-001",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 17,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 10,
+        "grep_calls": 2,
+        "glob_calls": 0,
+        "bash_calls": 3,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 10016,
+        "elapsed_seconds": 48.0
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 15,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 7,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 6,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 10295,
+        "elapsed_seconds": 52.87
+      }
+    },
+    {
+      "task": "level5-002",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 31,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 19,
+        "grep_calls": 1,
+        "glob_calls": 1,
+        "bash_calls": 7,
+        "edit_calls": 2,
+        "skill_calls": 0,
+        "total_tokens": 13991,
+        "elapsed_seconds": 104.01
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 17,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 6,
+        "grep_calls": 3,
+        "glob_calls": 1,
+        "bash_calls": 5,
+        "edit_calls": 2,
+        "skill_calls": 0,
+        "total_tokens": 10048,
+        "elapsed_seconds": 68.8
+      }
+    },
+    {
+      "task": "level5-003",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 26,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 17,
+        "grep_calls": 0,
+        "glob_calls": 0,
+        "bash_calls": 7,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 10425,
+        "elapsed_seconds": 91.96
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 16,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 10,
+        "grep_calls": 0,
+        "glob_calls": 0,
+        "bash_calls": 5,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 8556,
+        "elapsed_seconds": 43.9
+      }
+    },
+    {
+      "task": "level5-004",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 28,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 16,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 7,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 14299,
+        "elapsed_seconds": 92.89
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 19,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 7,
+        "grep_calls": 1,
+        "glob_calls": 2,
+        "bash_calls": 8,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 7619,
+        "elapsed_seconds": 50.76
+      }
+    },
+    {
+      "task": "level5-005",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 7,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 4,
+        "grep_calls": 0,
+        "glob_calls": 0,
+        "bash_calls": 2,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 2469,
+        "elapsed_seconds": 18.57
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 11,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 6,
+        "grep_calls": 0,
+        "glob_calls": 1,
+        "bash_calls": 3,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 5915,
+        "elapsed_seconds": 28.07
+      }
+    },
+    {
+      "task": "level5-006",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 19,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 11,
+        "grep_calls": 0,
+        "glob_calls": 0,
+        "bash_calls": 7,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 8811,
+        "elapsed_seconds": 58.06
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 14,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 10,
+        "grep_calls": 0,
+        "glob_calls": 0,
+        "bash_calls": 3,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 7785,
+        "elapsed_seconds": 36.73
+      }
+    },
+    {
+      "task": "level5-007",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 22,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 17,
+        "grep_calls": 1,
+        "glob_calls": 0,
+        "bash_calls": 3,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 22589,
+        "elapsed_seconds": 37.32
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 17,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 11,
+        "grep_calls": 2,
+        "glob_calls": 0,
+        "bash_calls": 3,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 8727,
+        "elapsed_seconds": 38.66
+      }
+    },
+    {
+      "task": "level5-008",
+      "n_repeats": 1,
+      "arm_A": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 20,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 12,
+        "grep_calls": 3,
+        "glob_calls": 0,
+        "bash_calls": 2,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 9817,
+        "elapsed_seconds": 58.21
+      },
+      "arm_B": {
+        "n": 1,
+        "success_rate": 1.0,
+        "total_tool_calls": 13,
+        "ast_tool_calls": 0,
+        "ast_tool_failures": 0,
+        "ast_tool_retries": 0,
+        "ast_tool_help_calls": 0,
+        "read_calls": 5,
+        "grep_calls": 2,
+        "glob_calls": 1,
+        "bash_calls": 4,
+        "edit_calls": 1,
+        "skill_calls": 0,
+        "total_tokens": 5844,
+        "elapsed_seconds": 45.6
+      }
+    },
+    {
+      "task": "smoke-001",
+      "n_repeats": 5,
+      "arm_A": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 18.6,
+        "ast_tool_calls": 10.2,
+        "ast_tool_failures": 3.6,
+        "ast_tool_retries": 4.2,
+        "ast_tool_help_calls": 4,
+        "read_calls": 2.4,
+        "grep_calls": 0.2,
+        "glob_calls": 0,
+        "bash_calls": 14.8,
+        "edit_calls": 1,
+        "skill_calls": 0.2,
+        "total_tokens": 10354.6,
+        "elapsed_seconds": 81.466
+      },
+      "arm_B": {
+        "n": 5,
+        "success_rate": 1.0,
+        "total_tool_calls": 22.4,
+        "ast_tool_calls": 12.6,
+        "ast_tool_failures": 1.4,
+        "ast_tool_retries": 2.8,
+        "ast_tool_help_calls": 3,
+        "read_calls": 3,
+        "grep_calls": 0,
+        "glob_calls": 0,
+        "bash_calls": 18.2,
+        "edit_calls": 1,
+        "skill_calls": 0.2,
+        "total_tokens": 12220.4,
+        "elapsed_seconds": 89.332
+      }
+    }
+  ],
+  "routing_stage1": {
+    "by_arm_category": {
+      "A:E": 38,
+      "B:E": 36,
+      "B:A": 5,
+      "A:A": 2,
+      "A:D": 1
+    },
+    "by_arm_semantic_invoked": {
+      "A:False": 39,
+      "B:False": 36,
+      "B:True": 5,
+      "A:True": 2
+    },
+    "mean_first_position_when_invoked": {
+      "B": 1,
+      "A": 1
+    },
+    "other_skill_invoked_count": {}
+  },
+  "routing_all": {
+    "by_arm_category": {
+      "A:E": 79,
+      "B:E": 77,
+      "B:A": 14,
+      "A:A": 14,
+      "A:D": 4,
+      "B:D": 4,
+      "B:B": 2
+    },
+    "by_arm_semantic_invoked": {
+      "A:False": 83,
+      "B:False": 83,
+      "B:True": 14,
+      "A:True": 14
+    },
+    "mean_first_position_when_invoked": {
+      "B": 1,
+      "A": 1
+    },
+    "other_skill_invoked_count": {
+      "B": 2
+    }
+  },
+  "exact_skill_cohorts": {
+    "cohorts": {
+      "both": [],
+      "neither": [
+        "level1-001",
+        "level1-003",
+        "level1-004",
+        "level1-005",
+        "level1-006",
+        "level1-007",
+        "level1-008",
+        "level2-001",
+        "level2-002",
+        "level2-003",
+        "level2-007",
+        "level2-008",
+        "level3-003",
+        "level3-004",
+        "level3-005",
+        "level3-006",
+        "level3-007",
+        "level4-001",
+        "level4-002",
+        "level4-003",
+        "level4-004",
+        "level4-005",
+        "level4-007",
+        "level4-008",
+        "level5-001",
+        "level5-002",
+        "level5-003",
+        "level5-004",
+        "level5-005",
+        "level5-006",
+        "level5-007",
+        "level5-008"
+      ],
+      "only_A": [
+        "level2-005",
+        "level3-008"
+      ],
+      "only_B": [
+        "level1-002",
+        "level2-006",
+        "level3-001"
+      ],
+      "mixed": [
+        "level2-004",
+        "level3-002",
+        "level4-006",
+        "smoke-001"
+      ]
+    },
+    "per_task": {
+      "level1-001": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 5
+      },
+      "level1-002": {
+        "a_rate": 0.0,
+        "b_rate": 0.4,
+        "n_repeats": 5
+      },
+      "level1-003": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 5
+      },
+      "level1-004": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level1-005": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level1-006": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level1-007": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level1-008": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level2-001": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 5
+      },
+      "level2-002": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level2-003": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level2-004": {
+        "a_rate": 0.8,
+        "b_rate": 0.8,
+        "n_repeats": 5
+      },
+      "level2-005": {
+        "a_rate": 0.2,
+        "b_rate": 0.0,
+        "n_repeats": 5
+      },
+      "level2-006": {
+        "a_rate": 0.0,
+        "b_rate": 0.2,
+        "n_repeats": 5
+      },
+      "level2-007": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level2-008": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 5
+      },
+      "level3-001": {
+        "a_rate": 0.0,
+        "b_rate": 0.2,
+        "n_repeats": 5
+      },
+      "level3-002": {
+        "a_rate": 0.4,
+        "b_rate": 0.2,
+        "n_repeats": 5
+      },
+      "level3-003": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level3-004": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level3-005": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level3-006": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level3-007": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level3-008": {
+        "a_rate": 0.2,
+        "b_rate": 0.0,
+        "n_repeats": 5
+      },
+      "level4-001": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level4-002": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level4-003": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level4-004": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level4-005": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 5
+      },
+      "level4-006": {
+        "a_rate": 1.0,
+        "b_rate": 0.8,
+        "n_repeats": 5
+      },
+      "level4-007": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level4-008": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level5-001": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level5-002": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level5-003": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level5-004": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level5-005": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level5-006": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level5-007": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "level5-008": {
+        "a_rate": 0.0,
+        "b_rate": 0.0,
+        "n_repeats": 1
+      },
+      "smoke-001": {
+        "a_rate": 0.2,
+        "b_rate": 0.2,
+        "n_repeats": 5
+      }
+    }
+  },
+  "phase8_signal": {
+    "level2-008": {
+      "A": {
+        "occurrences": 0,
+        "n_repeats": 5,
+        "cmd_invoked_runs": 0
+      },
+      "B": {
+        "occurrences": 0,
+        "n_repeats": 5,
+        "cmd_invoked_runs": 0
+      }
+    },
+    "level3-008": {
+      "A": {
+        "occurrences": 0,
+        "n_repeats": 5,
+        "cmd_invoked_runs": 0
+      },
+      "B": {
+        "occurrences": 0,
+        "n_repeats": 5,
+        "cmd_invoked_runs": 0
+      }
+    },
+    "level2-004": {
+      "A": {
+        "occurrences": 4,
+        "n_repeats": 5,
+        "cmd_invoked_runs": 4
+      },
+      "B": {
+        "occurrences": 0,
+        "n_repeats": 5,
+        "cmd_invoked_runs": 5
+      }
+    },
+    "level4-006": {
+      "A": {
+        "occurrences": 5,
+        "n_repeats": 5,
+        "cmd_invoked_runs": 5
+      },
+      "B": {
+        "occurrences": 0,
+        "n_repeats": 5,
+        "cmd_invoked_runs": 4
+      }
+    },
+    "level1-002": {
+      "A": {
+        "occurrences": 0,
+        "n_repeats": 5,
+        "cmd_invoked_runs": 0
+      },
+      "B": {
+        "occurrences": 0,
+        "n_repeats": 5,
+        "cmd_invoked_runs": 0
+      }
+    },
+    "level2-005": {
+      "A": {
+        "occurrences": 1,
+        "n_repeats": 5,
+        "cmd_invoked_runs": 1
+      },
+      "B": {
+        "occurrences": 0,
+        "n_repeats": 5,
+        "cmd_invoked_runs": 0
+      }
+    }
+  },
+  "path_artifacts": [
+    {
+      "task": "level2-004",
+      "arm": "A",
+      "repeat": 5,
+      "command": "search"
+    },
+    {
+      "task": "level2-005",
+      "arm": "A",
+      "repeat": 3,
+      "command": "search"
+    }
+  ],
+  "residual_gap_level2_005": {
+    "A": [
+      {
+        "repeat": 1,
+        "used_callees": false,
+        "found_repo_update_via_callees": false
+      },
+      {
+        "repeat": 2,
+        "used_callees": false,
+        "found_repo_update_via_callees": false
+      },
+      {
+        "repeat": 3,
+        "used_callees": true,
+        "found_repo_update_via_callees": false
+      },
+      {
+        "repeat": 4,
+        "used_callees": false,
+        "found_repo_update_via_callees": false
+      },
+      {
+        "repeat": 5,
+        "used_callees": false,
+        "found_repo_update_via_callees": false
+      }
+    ],
+    "B": [
+      {
+        "repeat": 1,
+        "used_callees": false,
+        "found_repo_update_via_callees": false
+      },
+      {
+        "repeat": 2,
+        "used_callees": false,
+        "found_repo_update_via_callees": false
+      },
+      {
+        "repeat": 3,
+        "used_callees": false,
+        "found_repo_update_via_callees": false
+      },
+      {
+        "repeat": 4,
+        "used_callees": false,
+        "found_repo_update_via_callees": false
+      },
+      {
+        "repeat": 5,
+        "used_callees": false,
+        "found_repo_update_via_callees": false
+      }
+    ]
+  },
+  "repeated_tasks": [
+    "level1-001",
+    "level1-002",
+    "level1-003",
+    "level2-001",
+    "level2-004",
+    "level2-005",
+    "level2-006",
+    "level2-008",
+    "level3-001",
+    "level3-002",
+    "level3-008",
+    "level4-005",
+    "level4-006",
+    "smoke-001"
+  ]
+}

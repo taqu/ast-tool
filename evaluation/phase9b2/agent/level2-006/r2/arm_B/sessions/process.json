@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All 4 call sites across the codebase now have the log line, and the `Token::validate` implementation itself is untouched.\n",
+  "fresh_logs": 1
+}

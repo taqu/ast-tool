@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the diagnostic line to `UserRepository::update` in `src/auth/user_repository.cpp:17`, the user-update operation `AuthService::refresh` calls via `repo_.update(u)`.\n",
+  "fresh_logs": 1
+}

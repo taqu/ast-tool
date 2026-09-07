@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Root cause: `serializer::BaseSerializer` (`src/serializer/base_serializer.h`) only declared a virtual `format(const LogMessage&)`. `JsonSerializer`'s audit-specific `format(const AuditLogMessage&)` (`src/serializer/json_serializer.h`) was a plain, non-virtual overload with no matching base declaration to override \u2014 so calling `serializer_.format(msg)` through `AuditLogger`'s `BaseSerializer&` member (`src/logger/audit_logger.h`) always resolved to the generic overload via overload resolution on the static type, silently dropping `user_id`/`ip`.\n\nFix applied:\n- Added `virtual std::string format(const model::AuditLogMessage& msg)` to `BaseSerializer`, defaulting to the standard formatting (delegates to the `LogMessage` overload) so any other future serializer subclasses keep working even without an audit override.\n- Marked `JsonSerializer`'s audit overload with `override`, so it now correctly participates in virtual dispatch.\n\nVerified with `test_002.cpp` (audit logging) \u2014 now prints `SUCCESS` and the formatted output contains `user_id`/`ip`. Regular `LogMessage` formatting path is untouched, so standard log entries are unaffected.\n",
+  "fresh_logs": 2
+}

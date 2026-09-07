@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All three changes applied: the callback type now returns `bool`, `trigger` logs on failure, and the lambda in `main.cpp` returns `true`.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Used `ast-tool callers` to find all 3 direct call sites of `InventoryService::save` (two in `main.cpp`, one in `OrderService::save`), and added `std::cerr << \"[log] inventory save\\n\";` immediately before each. Added `#include <iostream>` to `main.cpp` since it didn't already have it (`order_service.cpp` already included it).\n",
+  "fresh_logs": 1
+}

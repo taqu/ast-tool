@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[repo] update\\n\";` as the first line of `UserRepository::update` (src/auth/user_repository.cpp:17), which is the operation `AuthService::refresh` calls via `repo_.update(u)`.\n",
+  "fresh_logs": 1
+}

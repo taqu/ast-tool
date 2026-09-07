@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Confirmed `src\\worker\\retry_worker.cpp` is a separate file \u2014 left untouched as instructed. Both `WebCheckoutHandler::handle` and `MobileCheckoutHandler::handle` now log `[handler] checkout start` to stderr as the first line of each method.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "## Summary\n\nRenamed `service::ValidationService::validate` \u2192 `validatePayload`:\n\n- **Declaration**: `src/service/validation_service.h:9`\n- **Definition**: `src/service/validation_service.cpp:6`\n- **Only semantic caller**: `src/processor/request_processor.cpp:13` (`validator_.validatePayload(payload)`)\n\n`store::DatabaseStore::validate` and `jobs::CronJob::validate` were left untouched, as confirmed by `ast-tool search --name validate`, which still lists both unrelated methods unchanged. All affected files compile cleanly with clang++; the only compile error found (`api_handler.cpp`) is a pre-existing, unrelated bug (missing member declarations in `ApiHandler`) not touched by this refactor.\n",
+  "fresh_logs": 1
+}

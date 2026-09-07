@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the diagnostic line to `AuthToken::validate` in `src/auth/auth_token.cpp:7`. `AuthService::validate` was left untouched.\n",
+  "fresh_logs": 1
+}

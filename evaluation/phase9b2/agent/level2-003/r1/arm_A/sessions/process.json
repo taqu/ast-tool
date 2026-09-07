@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[handler] process request\\n\";` at the start of `RequestHandler::process(const Request&)` in `src/gateway/request_handler.cpp:15`, leaving the `int` and `std::string` overloads untouched.\n",
+  "fresh_logs": 1
+}
