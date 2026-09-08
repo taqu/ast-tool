@@ -33,15 +33,8 @@
 #endif
 
 #if !defined(_MSC_VER) && !defined(__STDC_LIB_EXT1__)
-/**
- * A compatibility wrapper for fopen_s on compilers that lack Annex K support (like GCC).
- * 
- * @param pFile    Pointer to the file pointer that will hold the result.
- * @param filename Path to the file.
- * @param mode     File access mode (e.g., "r", "w").
- * @return         0 on success, or an errno error code on failure.
- */
-static inline int fopen_s(FILE** pFile, const char* filename, const char* mode) {
+ int32_t fopen_s(FILE** pFile, const char* filename, const char* mode)
+ {
     if (pFile == NULL || filename == NULL || mode == NULL) {
         return EINVAL;
     }

@@ -184,7 +184,7 @@ static std::string read_file(const std::filesystem::path& path)
 {
     FILE* f = nullptr;
 #if defined(SETUP_WINDOWS)
-    errno_t err = fopen_s(&f, path.string().c_str(), "rb");
+    int32_t err = fopen_s(&f, path.string().c_str(), "rb");
     if(err != 0 || !f)
         return {};
 #else
@@ -210,7 +210,7 @@ static bool atomic_write(const std::filesystem::path& target, const std::string&
 
     FILE* f = nullptr;
 #if defined(SETUP_WINDOWS)
-    errno_t err = fopen_s(&f, tmp.string().c_str(), "wb");
+    int32_t err = fopen_s(&f, tmp.string().c_str(), "wb");
     if(err != 0 || !f)
         return false;
 #else

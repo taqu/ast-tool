@@ -137,7 +137,7 @@ static uint64_t cw_hash_file(const std::filesystem::path& path)
     std::string p = path.string();
     FILE* f = nullptr;
 #if defined(WARM_WINDOWS)
-    errno_t err = fopen_s(&f, p.c_str(), "rb");
+    int32_t err = fopen_s(&f, p.c_str(), "rb");
     if(err != 0)
         return 0;
 #else

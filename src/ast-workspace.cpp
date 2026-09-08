@@ -240,7 +240,7 @@ namespace
     {
         std::string p = path.string();
         FILE* file = nullptr;
-        errno_t err = fopen_s(&file, p.c_str(), "rb");
+        int32_t err = fopen_s(&file, p.c_str(), "rb");
         if(0 != err) {
             return 0;
         }
