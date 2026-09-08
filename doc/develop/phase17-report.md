@@ -59,6 +59,10 @@ Immediately before publication, all three artifact hashes matched `release-artif
 
 The published tag and artifacts are immutable. Any correction requiring changed binaries or source will use a new version.
 
+## Repository state after release
+
+The release tag is present locally and remotely, the release record is committed on `main`, and the tracked working tree is clean. The user-provided, untracked `ast-tool.md` operational instruction file was intentionally preserved and was not included in the release record commit.
+
 ## Post-release backlog
 
 Deferred work, with no priority implied:
