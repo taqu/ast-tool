@@ -1,1256 +1,1390 @@
-# Phase 15 — Packaging / Distribution
+# Phase 16 — Release Candidate Validation
 
 ## Objective
 
-Phase 15 prepares the release candidate for actual distribution.
+Phase 16 validates the actual Release Candidate artifacts produced by Phase 15 in disposable or clean environments.
+
+The goal is not to improve the product.
+
+The goal is to answer:
+
+```text
+Can another user obtain the Release Candidate,
+follow the public documentation,
+and successfully use the released artifacts
+without relying on the development environment?
+```
+
+Phase 16 is an end-to-end release rehearsal.
+
+Test the **actual packaged artifacts**, not the developer build tree.
+
+---
+
+# Core Rule
+
+Treat the Release Candidate as if it had already been publicly released.
+
+Do not:
+
+```text
+use files from the development build directory
+
+use undocumented environment variables
+
+use locally installed project-specific dependencies unless documented
+
+patch the RC artifact manually
+
+modify semantic behavior
+
+add new features
+
+change routing behavior
+
+perform opportunistic cleanup
+```
+
+If a defect is found:
+
+```text
+record
+→ classify
+→ fix in source if release-blocking
+→ rebuild a new RC
+→ restart affected validation
+```
+
+Do not silently repair the installed RC environment and continue as though the artifact were correct.
+
+---
+
+# Validation Environments
+
+Use two independent environments.
+
+## Linux RC Environment
+
+Use:
+
+```text
+wsl -d debian2 -u taqu
+```
+
+This environment is disposable for Phase 16 purposes.
+
+It may be modified freely.
+
+You may:
+
+```text
+install/remove packages
+
+delete previous ast-tool installations
+
+delete repositories
+
+modify shell configuration
+
+create temporary users/files
+
+clear caches
+
+overwrite test directories
+
+reinstall dependencies
+```
+
+Do not rely on pre-existing ast-tool development state inside this WSL instance.
+
+Before RC validation, remove or isolate any previous ast-tool installation that could affect the test.
+
+---
+
+## Windows RC Environment
+
+Preferred environment:
+
+```text
+Windows Sandbox
+```
+
+Use Windows Sandbox as the disposable Windows RC validation environment whenever available.
+
+The Sandbox should represent a fresh Windows user environment.
+
+Closing the Sandbox after a validation run should discard its state.
+
+Do not use the host development environment as evidence of clean Windows RC compatibility.
+
+---
+
+# Windows Sandbox Requirements
+
+Before using Windows Sandbox, verify that it is available and enabled.
+
+If Windows Sandbox cannot be used because of host edition, virtualization, policy, or other environment restrictions:
+
+```text
+do not silently substitute the developer machine
+```
+
+Instead classify Windows clean-environment validation as:
+
+```text
+NOT FULLY VALIDATED
+```
+
+A host-based fallback may still be used for diagnostic testing, but it is not equivalent to disposable RC validation.
+
+---
+
+# Windows Sandbox Mapping Policy
+
+Where practical, expose RC input artifacts from the host using a read-only mapped folder.
+
+Conceptual structure:
+
+```text
+Host:
+    rc-input/
+        ast-tool-<version>-windows-x64.zip
+        SHA256SUMS
+        README.md
+
+Sandbox:
+    mapped read-only input
+```
+
+Perform extraction and testing inside a separate writable Sandbox directory.
+
+Do not run directly from a writable host-shared development directory.
 
 The goal is:
 
-```text id="7fmdfh"
-make the frozen, documented release candidate
-easy to obtain,
-build,
-verify,
-and distribute
-on the supported platforms
-```
-
-This phase focuses on:
-
-```text id="kg9qj6"
-release artifacts
-source distribution
-binary packaging where appropriate
-release build reproducibility
-checksums
-version embedding
-GitHub Release readiness
-CI release workflow
-dependency documentation
-license / notice inclusion
-```
-
-This is not a feature-development phase.
-
-Do not introduce new semantic behavior, routing changes, CLI redesign, or new language support.
-
----
-
-# Baseline
-
-Start from the Phase 14 documentation-complete release candidate.
-
-Record:
-
-```text id="7s20bl"
-branch
-commit hash
-target release version
-Phase 14 result
-supported platforms
-known limitations
-```
-
-The semantic and CLI baseline remain frozen.
-
-Any implementation change made during Phase 15 must be required for packaging, distribution, installation, or release correctness.
-
----
-
-# Supported Build Platforms
-
-The initial release supports the following build environments.
-
-## Windows
-
-### Requirements
-
-```text id="g24n5x"
-MSVC 2022+
-CMake 3.11+
-```
-
-The Windows build must work with the documented MSVC toolchain.
-
-Do not assume MinGW, Clang-cl, or other toolchains are supported unless they are separately tested and documented.
-
----
-
-## Linux
-
-### Requirements
-
-```text id="ixboay"
-build-essential
-CMake 3.11+
-pkg-config
-libre2-dev
-libgit2-dev
-```
-
-The Linux build instructions must clearly state these dependencies.
-
-Where Debian/Ubuntu package names are used, make that scope explicit.
-
-Do not imply that the exact package names apply to every Linux distribution.
-
----
-
-# Phase 15a — Packaging Strategy
-
-Define the initial distribution model before implementing release automation.
-
-Decide which of the following will be part of the first release:
-
-```text id="glqlee"
-source archive
-
-Windows binary archive
-
-Linux binary archive
-
-GitHub Release artifacts
-
-checksums
-
-package-manager distribution
-```
-
-Prefer the smallest reliable release surface.
-
-Do not add package-manager support merely because it may be useful later.
-
-For the initial release, a valid strategy may be:
-
-```text id="au0uv1"
-source release
-+
-Windows release binary
-+
-Linux release binary
-+
-checksums
-+
-GitHub Release
-```
-
-if those binaries can be produced reliably.
-
-If portable binary distribution is not practical on a platform, document source build as the supported path instead.
-
----
-
-# Phase 15b — Release Build Configuration
-
-Define and verify the canonical release build.
-
-Use an explicit release configuration.
-
-Conceptually:
-
-```text id="42p2ba"
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
-```
-
-Adjust commands to match the actual project.
-
-On multi-configuration generators such as Visual Studio, ensure the release configuration is explicitly selected.
-
-Do not rely on a developer's previous CMake cache.
-
-Release builds must be validated from a clean build directory.
-
----
-
-# Phase 15c — Windows Release Build
-
-Test the Windows release build from a clean checkout using:
-
-```text id="vfqbf9"
-MSVC 2022+
-CMake 3.11+
-```
-
-Document the exact supported procedure.
-
-Verify:
-
-```text id="w5zf55"
-CMake configure succeeds
-
-Release build succeeds
-
-expected executable is produced
-
-binary starts successfully
-
---help works
-
---version works if supported
-
-basic semantic smoke test passes
-
-JSON smoke test passes
-```
-
-Record:
-
-```text id="shafus"
-Windows version
-architecture
-MSVC version
-CMake version
-generator
-build command
-artifact path
-artifact size
-```
-
-Prefer x64 as the initial architecture if that is the tested release target.
-
-Do not claim additional architectures unless verified.
-
----
-
-# Phase 15d — Linux Release Build
-
-Test the Linux release build from a clean environment.
-
-Required packages:
-
-```text id="qfw75o"
-build-essential
-cmake
-pkg-config
-libre2-dev
-libgit2-dev
-```
-
-Document the minimum CMake requirement separately:
-
-```text id="e1r20y"
-CMake 3.11+
-```
-
-For Debian/Ubuntu-based environments, the prerequisite installation may resemble:
-
-```text id="l74bhe"
-sudo apt update
-sudo apt install build-essential cmake pkg-config libre2-dev libgit2-dev
-```
-
-Verify the exact command in the target test environment before publishing it.
-
-Then verify:
-
-```text id="bsj87a"
-CMake configure succeeds
-
-Release build succeeds
-
-expected executable is produced
-
-binary starts successfully
-
---help works
-
---version works if supported
-
-basic semantic smoke test passes
-
-JSON smoke test passes
-```
-
-Record:
-
-```text id="i1at1d"
-distribution
-distribution version
-architecture
-compiler version
-CMake version
-libre2 version where practical
-libgit2 version where practical
-artifact path
-artifact size
+```text
+immutable RC input
+→ clean Sandbox extraction
+→ validation
 ```
 
 ---
 
-# Phase 15e — Dependency Verification
+# Optional Windows Sandbox Configuration
 
-Verify that documented dependencies match actual build behavior.
+A `.wsb` configuration may be created for repeatable RC validation.
 
-## Windows
+Prefer settings that:
 
-Confirm whether the release requires only:
+```text
+map only the RC input directory
 
-```text id="ivj7ix"
-MSVC 2022+
-CMake 3.11+
+make the mapping read-only where possible
+
+enable networking only when required
+
+avoid mapping the project source tree
+
+avoid exposing unrelated host directories
 ```
 
-from the user's perspective.
+Do not map the entire developer workspace into the Sandbox.
 
-Identify any additional runtime or build dependencies that are currently obtained through:
+If internet access is needed to install MSVC/CMake or other documented prerequisites, networking may be enabled.
 
-```text id="f30im2"
-vendored sources
-CMake FetchContent
-submodules
-prebuilt libraries
-system installation
-```
-
-Do not leave hidden prerequisites undocumented.
+Record this requirement.
 
 ---
 
-## Linux
+# Phase 16a — RC Identity Verification
 
-Confirm that:
+Before testing either platform, record the exact RC.
 
-```text id="n6lxdz"
-build-essential
-CMake 3.11+
-pkg-config
-libre2-dev
-libgit2-dev
-```
+Include:
 
-are sufficient for the intended build environment.
-
-If additional required packages are discovered, classify whether they are:
-
-```text id="7w6gsw"
-real public prerequisite
-CI-only requirement
-test-only requirement
-developer-only requirement
-```
-
-Only public build requirements belong in installation documentation.
-
----
-
-# Phase 15f — Runtime Dependency Audit
-
-Inspect the generated release binaries for runtime dependencies.
-
-On Windows, identify whether the executable requires:
-
-```text id="vv3uku"
-MSVC runtime DLLs
-additional project DLLs
-third-party DLLs
-```
-
-On Linux, inspect dynamically linked libraries where practical.
-
-Confirm that runtime dependency expectations match the intended distribution model.
-
-A binary archive is not useful if required shared libraries are omitted or undocumented.
-
-Do not attempt to force static linking unless there is a clear release requirement.
-
----
-
-# Phase 15g — Artifact Layout
-
-Define a simple, predictable archive layout.
-
-For example:
-
-```text id="n6urz5"
-ast-tool-<version>-windows-x64/
-    ast-tool.exe
-    README.md
-    LICENSE
-
-ast-tool-<version>-linux-x64/
-    ast-tool
-    README.md
-    LICENSE
-```
-
-Add other files only when useful.
-
-Possible additions:
-
-```text id="9trhd3"
-CHANGELOG.md
-NOTICE
-examples/
-```
-
-Avoid shipping:
-
-```text id="f3us3h"
-build directories
-object files
-CMake cache
-test output
-evaluation data
-internal research notes
-temporary files
-developer-only scripts
-```
-
----
-
-# Phase 15h — Artifact Naming
-
-Use deterministic artifact names.
-
-Recommended pattern:
-
-```text id="t6wd1g"
-ast-tool-<version>-windows-x64.zip
-
-ast-tool-<version>-linux-x64.tar.gz
-
-ast-tool-<version>-source.tar.gz
-```
-
-Adjust the project name and architecture suffixes to match the actual release.
-
-Do not use ambiguous names such as:
-
-```text id="bsu4l6"
-release.zip
-latest.zip
-build.zip
-```
-
-The filename should identify:
-
-```text id="5jeizt"
-project
+```text
 version
-platform
-architecture
+
+Git tag or candidate tag
+
+source commit
+
+artifact filenames
+
+artifact sizes
+
+SHA-256 hashes
 ```
 
-where applicable.
+Verify checksums before installation/extraction.
+
+Example outcome:
+
+```text
+RC version:
+    v0.1.0-rc1
+
+Source:
+    <commit>
+
+Artifacts:
+    ast-tool-0.1.0-rc1-windows-x64.zip
+    ast-tool-0.1.0-rc1-linux-x64.tar.gz
+    ast-tool-0.1.0-rc1-source.tar.gz
+    SHA256SUMS
+```
+
+Do not validate an artifact whose provenance is unclear.
 
 ---
 
-# Phase 15i — Version Embedding
+# Phase 16b — Documentation-Only Rule
 
-Ensure the built tool reports the intended release version.
+During end-to-end validation, use only public release documentation.
 
-Prefer:
+The tester may use:
 
-```text id="9r31k0"
-ast-tool --version
-```
-
-with output similar to:
-
-```text id="16w0vi"
-ast-tool 0.1.0
-```
-
-The version should come from one authoritative source where practical.
-
-Avoid manually maintaining unrelated version strings in multiple files.
-
-Verify that:
-
-```text id="e1dwh9"
-source version
-CLI version
-artifact filename
-Git tag
-GitHub Release version
-```
-
-all agree.
-
-A release with mismatched version identifiers should not be published.
-
----
-
-# Phase 15j — Source Archive
-
-Prepare a clean source distribution.
-
-The source archive should contain everything needed to build according to the documented requirements.
-
-Verify that it includes:
-
-```text id="31nfdd"
-source code
-CMake files
-required vendored files
-LICENSE
+```text
 README
-required generated/configuration inputs
+
+installation instructions
+
+command reference
+
+troubleshooting documentation
+
+release notes
 ```
 
-Verify that it does not depend on untracked local files.
+Do not rely on:
 
-Test the source archive itself:
+```text
+internal phase documents
 
-```text id="2m9kn1"
-extract into clean directory
-follow documented prerequisites
-configure
-build
-run smoke test
+development notes
+
+evaluation logs
+
+knowledge of implementation internals
+
+unpublished build commands
 ```
 
-Do not assume that a Git checkout test proves the source archive is complete.
+If documentation is insufficient to complete a normal operation, record a documentation defect.
 
 ---
 
-# Phase 15k — Binary Archive Validation
+# Phase 16c — Linux Clean-State Preparation
 
-If prebuilt binaries are distributed, test the exact packaged archive rather than only the build-tree executable.
+Inside:
 
-For each binary artifact:
+```text
+wsl -d debian2 -u taqu
+```
 
-```text id="znkuaa"
-download/copy archive
+inspect the initial environment.
 
-extract into clean location
+Record:
 
-run binary from extracted archive
+```text
+Debian version
 
-run --help
+architecture
+
+compiler state
+
+CMake version if installed
+
+pkg-config state
+
+RE2/libgit2 package state
+
+existing ast-tool executable if any
+```
+
+Then remove or neutralize previous ast-tool-specific state.
+
+Examples:
+
+```text
+old ast-tool binary
+
+old source checkout used for testing
+
+old test repositories
+
+AST Tool-specific environment variables
+
+old temporary indexes/caches if applicable
+```
+
+Do not unnecessarily erase unrelated user data.
+
+The WSL environment may be dirty globally, but the ast-tool RC test itself must start from a known state.
+
+---
+
+# Phase 16d — Linux Requirements Installation
+
+Using the public documentation, verify the Linux requirements:
+
+```text
+build-essential
+CMake 3.11+
+pkg-config
+libre2-dev
+libgit2-dev
+```
+
+For Debian-based testing, install using the documented package procedure.
+
+Confirm:
+
+```text
+compiler available
+
+cmake >= 3.11
+
+pkg-config available
+
+RE2 development package available
+
+libgit2 development package available
+```
+
+If installation requires an undocumented package, record a release issue.
+
+---
+
+# Phase 16e — Linux Binary RC Test
+
+If a Linux binary artifact is part of the release, test the exact archive.
+
+Procedure:
+
+```text
+copy/download RC artifact
+
+verify SHA-256
+
+extract into a new directory
+
+do not modify extracted binary
 
 run --version
 
-run basic semantic query
-
-run JSON query
+run --help
 ```
-
-This catches missing runtime files and packaging mistakes.
-
----
-
-# Phase 15l — Checksums
-
-Generate cryptographic checksums for public release artifacts.
-
-Prefer:
-
-```text id="zn2ya5"
-SHA-256
-```
-
-Produce a checksum file such as:
-
-```text id="mm6ur2"
-SHA256SUMS
-```
-
-containing all distributed archives.
-
-Verify the checksums after artifact generation.
-
-The release workflow should make it clear which checksum corresponds to which file.
-
----
-
-# Phase 15m — Release Reproducibility
-
-The goal is not necessarily byte-for-byte reproducible builds.
-
-The minimum requirement is **procedural reproducibility**:
-
-```text id="6c21rd"
-same source revision
-+
-documented toolchain
-+
-documented build procedure
-→ valid equivalent release artifact
-```
-
-Record:
-
-```text id="ege9nk"
-source commit
-toolchain versions
-CMake version
-build configuration
-artifact generation procedure
-```
-
-If builds are not byte-identical, do not describe them as reproducible builds in the strict sense.
-
----
-
-# Phase 15n — CI Release Workflow
-
-If the project uses CI, create or verify a release workflow.
-
-The workflow should ideally:
-
-```text id="taqzgn"
-checkout exact tag
-
-configure clean release build
-
-build
-
-run release smoke tests
-
-package artifacts
-
-generate checksums
-
-publish or stage artifacts
-```
-
-Prefer release automation over undocumented manual steps.
-
-However, do not introduce a large CI redesign solely for the initial release.
-
-The workflow should remain understandable and debuggable.
-
----
-
-# Phase 15o — Tag-Triggered Release Behavior
-
-If Git tags trigger packaging, define the expected tag pattern.
-
-For example:
-
-```text id="v5uzwy"
-v0.1.0
-```
-
-Ensure that arbitrary branches or commits do not accidentally create public releases.
-
-A release workflow should distinguish:
-
-```text id="ub1n2p"
-normal CI
-release candidate
-final tagged release
-```
-
-where applicable.
-
----
-
-# Phase 15p — GitHub Release Preparation
-
-Prepare the release process for a GitHub Release or equivalent release hosting system.
-
-The release should contain:
-
-```text id="vnr89b"
-release version
-
-release notes
-
-supported platform information
-
-installation/build summary
-
-known limitations
-
-binary/source artifacts
-
-checksums
-```
-
-Do not publish during Phase 15 unless the project explicitly intends Phase 15 to perform the final release.
-
-The preferred outcome is a fully validated, publishable artifact set for the later release-candidate phase.
-
----
-
-# Phase 15q — License / Notice Packaging
-
-Verify that distributed artifacts satisfy license requirements.
-
-At minimum:
-
-```text id="7qizq1"
-include project LICENSE where appropriate
-
-include required third-party notices
-
-do not omit required attribution files
-```
-
-Inspect dependencies such as:
-
-```text id="f4y2e4"
-RE2
-libgit2
-other bundled dependencies
-```
-
-for redistribution requirements.
-
-Do not guess licensing obligations.
-
-If redistribution requirements are unclear, classify the issue as a release blocker until resolved.
-
----
-
-# Phase 15r — Debug Artifact Exclusion
-
-Verify that public archives do not unintentionally contain:
-
-```text id="w75owr"
-debug logs
-core dumps
-temporary files
-test repositories
-evaluation logs
-credentials
-environment files
-local paths
-developer configuration
-```
-
-Also inspect source archives for unintended generated files.
-
-Treat accidental credential inclusion as a critical release blocker.
-
----
-
-# Phase 15s — Symbol / Debug File Policy
-
-Decide whether debugging symbols are distributed.
-
-Possible policy:
-
-```text id="9bnu2w"
-normal release archive
-    stripped/release binary where appropriate
-
-debug symbols
-    separate artifact if needed
-```
-
-Do not make this more complex than necessary.
-
-For an initial release, it is acceptable to distribute only the normal release executable unless debugging symbols are operationally useful.
-
----
-
-# Phase 15t — Installation Documentation Alignment
-
-Update Phase 14 installation documentation to reflect the actual packaged release.
-
-The documented requirements must include:
-
-## Windows
-
-```text id="itj23z"
-Requirements:
-- MSVC 2022+
-- CMake 3.11+
-```
-
-## Linux
-
-```text id="wrnalo"
-Requirements:
-- build-essential
-- CMake 3.11+
-- pkg-config
-- libre2-dev
-- libgit2-dev
-```
-
-Ensure all commands in the release documentation match the tested packaging workflow.
-
-Do not leave development-only installation steps as the primary public path when a release artifact now exists.
-
----
-
-# Phase 15u — Unsupported Distribution Methods
-
-Do not implement additional distribution systems unless already planned and justified.
-
-Examples to defer by default:
-
-```text id="xf1qxg"
-Homebrew
-
-Scoop
-
-winget
-
-Chocolatey
-
-APT repository
-
-RPM repository
-
-Snap
-
-Flatpak
-
-Docker image
-
-Conan package
-
-vcpkg port
-```
-
-These can be post-release improvements.
-
-The first release should prioritize reliable artifacts over broad distribution coverage.
-
----
-
-# Phase 15v — Package-Manager Decision Record
-
-Even if package-manager distribution is deferred, record the decision.
-
-For example:
-
-```text id="kbal96"
-Homebrew
-    POST-RELEASE
-
-Scoop
-    POST-RELEASE
-
-winget
-    POST-RELEASE
-```
-
-This prevents package-manager work from expanding Phase 15 unexpectedly.
-
----
-
-# Phase 15w — Release Artifact Smoke Matrix
-
-Test every artifact intended for distribution.
-
-Create a matrix such as:
-
-```text id="01jj6y"
-Artifact
-Platform
-Clean extraction
-Starts
---help
---version
-Semantic smoke
-JSON smoke
-Status
-```
-
-An artifact that has not been tested after packaging is not release-qualified.
-
----
-
-# Phase 15x — Release Security Sanity Check
-
-Perform a narrow release-focused security sanity check.
 
 Verify:
 
-```text id="o7irhs"
-no secrets in artifacts
+```text
+binary launches
 
-no private keys
+version matches RC
 
-no access tokens
+help works
 
-no unexpected credentials
+no missing shared-library error
 
-no internal absolute paths where avoidable
-
-no writable executable content from temporary directories
-
-downloads/dependencies are obtained through expected sources
+no unexpected environment dependency
 ```
-
-Do not turn Phase 15 into a broad security-audit project.
-
-Focus on packaging and distribution risks.
 
 ---
 
-# Phase 15y — Final Artifact Rebuild
+# Phase 16f — Linux Source RC Test
 
-Before closing Phase 15, rebuild release artifacts from the final source commit.
+Test the source archive independently of the Git repository.
 
-Do not reuse artifacts produced before the final packaging changes.
+Procedure:
 
-The final process should be:
+```text
+extract source archive into a clean directory
 
-```text id="taedg3"
-clean checkout
+follow README installation/build instructions exactly
 
-exact release commit
+configure
 
+build Release configuration
+
+run resulting binary
+```
+
+Verify:
+
+```text
+source archive is complete
+
+CMake configure succeeds
+
+build succeeds
+
+no untracked developer file is required
+
+resulting binary reports correct version
+```
+
+A successful build from the Git checkout does not substitute for this test.
+
+---
+
+# Phase 16g — Windows Clean Environment Preparation
+
+Start a fresh Windows Sandbox session.
+
+Record:
+
+```text
+Windows version
+
+architecture
+
+Sandbox availability
+
+initial MSVC availability
+
+initial CMake availability
+```
+
+The first run should reveal whether the published prerequisites are sufficient.
+
+Do not assume Visual Studio development components from the host are available inside the Sandbox.
+
+Host-installed applications are not evidence of Sandbox availability.
+
+---
+
+# Phase 16h — Windows Prerequisite Verification
+
+The documented Windows requirements are:
+
+```text
+MSVC 2022+
+CMake 3.11+
+```
+
+Validate the actual installation procedure required to obtain them in the clean environment.
+
+Confirm that the installed MSVC workload contains everything needed by ast-tool.
+
+If the documentation merely says:
+
+```text
+MSVC 2022+
+```
+
+but a specific Visual Studio workload or component is required, identify it.
+
+Examples that may need explicit verification:
+
+```text
+Desktop development with C++
+
+MSVC v143 toolset
+
+Windows SDK
+
+CMake tools
+```
+
+Do not add these requirements to documentation unless the build actually depends on them.
+
+The purpose of this test is to discover hidden Windows prerequisites.
+
+---
+
+# Phase 16i — Windows Binary RC Test
+
+If a Windows prebuilt binary is distributed:
+
+```text
+start fresh Sandbox
+
+copy/map RC archive
+
+verify checksum where tooling permits
+
+extract into Sandbox-local directory
+
+run ast-tool.exe --version
+
+run ast-tool.exe --help
+```
+
+Verify:
+
+```text
+binary starts
+
+version matches RC
+
+required DLLs are available
+
+no development-tree dependency exists
+
+no PATH assumption exists
+```
+
+Do not install the project's source tree simply to make the binary work.
+
+---
+
+# Phase 16j — Windows Source RC Test
+
+If source build is part of the supported release path, test the source archive separately.
+
+From a fresh or appropriately reset Sandbox:
+
+```text
+install documented prerequisites
+
+extract source archive
+
+open appropriate MSVC build environment if required
+
+configure with CMake
+
+build Release configuration
+
+run resulting ast-tool.exe
+```
+
+Verify:
+
+```text
 clean configure
 
-release build
+clean build
 
-tests / smoke tests
+correct release executable
 
-package
+correct --version
 
-checksum
-
-artifact verification
+no undocumented dependency
 ```
-
-Record the exact commit and generated artifact names.
 
 ---
 
-# Release Blocker Policy
+# Phase 16k — Windows Path / Quoting Regression
 
-Treat the following as release blockers:
+Explicitly repeat the historical Windows path/quoting cases.
 
-```text id="wvaskq"
-documented clean build fails
+Create RC test locations containing:
 
-required dependency is missing from documentation
+```text
+spaces
 
-release archive cannot execute
+parentheses
 
-required runtime library is missing
+non-ASCII characters
 
-wrong version embedded in binary
+nested directories
+```
 
-artifact/version/tag mismatch
+Examples:
 
-malformed archive
+```text
+C:\Users\WDAGUtilityAccount\Desktop\AST Tool RC\
 
-source archive cannot rebuild
+C:\Users\WDAGUtilityAccount\Desktop\test (1)\
+
+C:\Users\WDAGUtilityAccount\Desktop\日本語\repository\
+```
+
+Run representative commands against repositories in these locations.
+
+Distinguish failures caused by:
+
+```text
+ast-tool argument parsing
+
+PowerShell quoting
+
+cmd.exe quoting
+
+test harness
+
+Coding Agent command generation
+```
+
+Do not classify a harness-only quoting problem as an ast-tool product defect.
+
+---
+
+# Phase 16l — First-Run User Journey
+
+On each supported platform, perform the same minimal new-user journey.
+
+Using only public documentation:
+
+```text
+1. obtain the RC
+
+2. verify/extract it
+
+3. install/build if required
+
+4. run --version
+
+5. run --help
+
+6. analyze a small repository
+
+7. search for a known symbol
+
+8. run references
+
+9. run callers
+
+10. run callees
+
+11. request JSON output
+
+12. intentionally invoke one invalid command
+
+13. recover using the documented error/help behavior
+```
+
+Record friction or undocumented assumptions.
+
+---
+
+# Phase 16m — Representative Repository Set
+
+Use at least three repository classes if practical:
+
+```text
+small repository
+
+medium representative repository
+
+realistic repository
+```
+
+The purpose is not another semantic benchmark.
+
+The purpose is to ensure the packaged RC behaves normally outside artificial smoke fixtures.
+
+Use repositories that are safe to modify/delete in the disposable environments.
+
+---
+
+# Phase 16n — Semantic Release Smoke Test
+
+Verify only the stable release capabilities.
+
+Include representative checks for:
+
+```text
+search
+
+references
+
+callers
+
+callees
+```
+
+Also verify representative Phase 8 behavior:
+
+```text
+unique partial-FQN relationship resolution
+
+receiver-type member relationship
+
+declaration/definition body resolution
+```
+
+Do not rerun the entire Phase 8/9 research evaluation unless a regression appears.
+
+---
+
+# Phase 16o — JSON End-to-End Test
+
+For representative commands:
+
+```text
+run JSON mode
+
+capture stdout
+
+parse stdout with a real JSON parser
+
+verify stderr does not corrupt stdout
+```
+
+Test:
+
+```text
+normal result
+
+empty result
+
+not-found/error case where supported
+
+path containing spaces
+```
+
+The packaged RC must preserve the Phase 12/13 JSON contract.
+
+---
+
+# Phase 16p — Exit Code End-to-End Test
+
+From an actual shell, verify:
+
+```text
+successful command
+
+unknown command
+
+missing argument
+
+invalid repository/path
+
+fatal failure where safely reproducible
+```
+
+Record the exact exit code.
+
+Do not infer exit behavior from unit tests alone.
+
+---
+
+# Phase 16q — Installation Isolation Test
+
+Check whether the RC relies on accidental machine state.
+
+Examples:
+
+```text
+developer PATH entries
+
+previous ast-tool installation
+
+CMAKE_PREFIX_PATH
+
+custom LIBRARY_PATH
+
+custom INCLUDE paths
+
+Git checkout-relative resources
+
+user-specific config files
+```
+
+The test should still work after ast-tool-specific environment customizations are removed.
+
+---
+
+# Phase 16r — Repository Safety Test
+
+Before representative analysis:
+
+```text
+record repository state
+```
+
+After queries:
+
+```text
+verify repository state again
+```
+
+Read-only analysis must not unexpectedly modify source-controlled files.
+
+In disposable repositories, use:
+
+```text
+git status --short
+```
+
+before and after where applicable.
+
+Unexpected source modification is a release blocker.
+
+---
+
+# Phase 16s — Repeat Invocation Test
+
+Run representative queries repeatedly from the packaged RC.
+
+For example:
+
+```text
+search × 10
+
+references × 10
+
+callers × 10
+
+mixed command sequence
+```
+
+Look for:
+
+```text
+crashes
+
+state leakage
+
+stale results
+
+temporary file problems
+
+output corruption
+```
+
+This is a smoke test, not a performance benchmark.
+
+---
+
+# Phase 16t — Restart / Fresh Environment Test
+
+Linux:
+
+Start a new WSL shell and verify that the installed/built RC still behaves as documented.
+
+Windows:
+
+Close Windows Sandbox completely.
+
+Start a new Sandbox.
+
+Repeat a small subset of the installation/extraction and smoke process.
+
+The Windows restart test is particularly useful because a new Sandbox instance should not contain state from the previous validation run.
+
+---
+
+# Phase 16u — RC Artifact Independence
+
+Verify that no operation requires access to:
+
+```text
+original development repository
+
+developer build directory
+
+Phase evaluation repositories
+
+unpublished scripts
+
+local dependency caches that users would not have
+```
+
+If such access is required, the RC is incomplete.
+
+---
+
+# Phase 16v — Release Notes Verification
+
+Read the RC release notes as a user.
+
+Verify that they accurately state:
+
+```text
+version
+
+supported platforms
+
+requirements
+
+installation path
+
+major capabilities
+
+known limitations
+```
+
+Do not include internal phase history unless intentionally part of the release notes.
+
+---
+
+# Phase 16w — Known Limitation Confirmation
+
+Spot-check important documented limitations.
+
+The objective is not to fix them.
+
+Verify that documentation does not imply support that does not exist.
+
+A known limitation is acceptable when:
+
+```text
+behavior is understood
+
+failure is safe
+
+documentation is accurate
+
+normal supported use remains reliable
+```
+
+---
+
+# Phase 16x — RC Defect Classification
+
+Every issue discovered during RC testing must be classified as:
+
+```text
+RC BLOCKER
+
+RELEASE FIX
+
+DOCUMENTATION FIX
+
+KNOWN LIMITATION
+
+ENVIRONMENT / HARNESS ISSUE
+
+POST-RELEASE
+```
+
+Do not automatically fix every issue.
+
+---
+
+# RC Blockers
+
+Examples:
+
+```text
+packaged binary does not start
+
+source archive cannot build using documented requirements
+
+missing runtime dependency
+
+wrong embedded version
 
 checksum mismatch
 
-license/notice requirement unresolved
+ordinary command crashes
 
-supported platform artifact fails smoke test
+JSON output is invalid
 
-release workflow publishes incorrect artifacts
+supported Windows path fails because of product defect
 
-secret or private data included in release package
+supported platform cannot complete installation
+
+analysis unexpectedly modifies repository
+
+documentation cannot get a clean user to first successful query
 ```
-
-Do not block the release for:
-
-```text id="tev75p"
-missing package-manager integration
-
-absence of installer GUI
-
-lack of automatic update mechanism
-
-lack of Docker package
-
-lack of additional architectures
-
-minor archive-size optimization
-
-cosmetic artifact-layout preferences
-```
-
-unless they are explicitly part of the release scope.
 
 ---
 
-# Fix Policy
+# Non-Blockers
 
-When a packaging issue is discovered:
+Examples:
 
-```text id="fuyuk8"
-identify packaging defect
+```text
+minor wording issue
 
-make smallest necessary fix
+cosmetic help inconsistency
 
-rebuild from clean state
+unsupported advanced semantic edge case
 
-repackage
+small performance variation
 
-rerun artifact smoke tests
+additional package-manager request
+
+agent-routing inefficiency
+
+test harness-specific quoting problem
 ```
 
-Do not patch an already-generated archive manually and call it final.
+Use judgment when a documentation issue prevents basic installation or operation; such an issue may still block the release.
 
-The release artifact must be reproducible from the source revision and documented build process.
+---
+
+# Phase 16y — RC Fix Procedure
+
+If an RC blocker is found:
+
+```text
+1. record reproduction
+
+2. reproduce against source revision
+
+3. identify minimum fix
+
+4. implement fix in source
+
+5. add regression test where appropriate
+
+6. rerun relevant Phase 12/13/14/15 gate
+
+7. create new RC artifact
+```
+
+Increment the RC identifier:
+
+```text
+rc1 → rc2
+```
+
+Do not silently replace an artifact while keeping the same RC identifier.
+
+---
+
+# RC Immutability Rule
+
+Once an RC artifact has been generated and tested:
+
+```text
+never modify that artifact in place
+```
+
+Any source or packaging change requires a new RC.
+
+For example:
+
+```text
+v0.1.0-rc1
+    immutable
+
+fix applied
+
+v0.1.0-rc2
+    new artifacts
+    new checksums
+```
+
+This keeps test evidence traceable.
+
+---
+
+# Phase 16z — Final Clean RC Pass
+
+After all blockers are resolved, perform one final pass against a single immutable RC set.
+
+Do not make code changes during this pass.
+
+Run:
+
+```text
+Linux disposable-environment validation
+
+Windows Sandbox validation
+
+artifact checksum verification
+
+installation/build verification
+
+first-run journey
+
+semantic smoke
+
+JSON smoke
+
+exit-code smoke
+
+repository-safety smoke
+```
+
+The exact artifact set that passes this gate becomes the release candidate eligible for final release.
+
+---
+
+# Linux Validation Report
+
+Record:
+
+```text
+WSL distribution:
+    debian2
+
+User:
+    taqu
+
+Debian version
+
+architecture
+
+requirements installed
+
+artifact tested
+
+checksum result
+
+source build result
+
+binary result
+
+first-run journey
+
+semantic smoke
+
+JSON smoke
+
+exit-code smoke
+
+repository safety
+
+issues
+```
+
+---
+
+# Windows Validation Report
+
+Record:
+
+```text
+environment:
+    Windows Sandbox
+
+Windows version
+
+architecture
+
+MSVC version
+
+CMake version
+
+artifact tested
+
+checksum result
+
+source build result if applicable
+
+binary result
+
+path/quoting tests
+
+first-run journey
+
+semantic smoke
+
+JSON smoke
+
+exit-code smoke
+
+repository safety
+
+issues
+```
+
+If Windows Sandbox was unavailable, state that explicitly.
+
+Do not label a host-only test as equivalent to Sandbox validation.
+
+---
+
+# Cross-Platform Result Matrix
+
+Produce:
+
+```text
+Test                     Linux     Windows
+------------------------------------------------
+Artifact extraction
+Version
+Help
+Source build
+Binary startup
+Search
+References
+Callers
+Callees
+JSON
+Exit codes
+Paths with spaces
+Non-ASCII paths
+Repository safety
+Fresh-environment rerun
+```
+
+Use:
+
+```text
+PASS
+FAIL
+N/A
+NOT VALIDATED
+```
+
+Do not hide platform-specific gaps behind one aggregate status.
 
 ---
 
 # Expected Deliverables
 
-## 1. Distribution Plan
+## 1. RC Identity Record
 
-Document:
-
-```text id="0plq8w"
-release artifact types
-
-supported platforms
-
-supported architectures
-
-source vs binary distribution
-
-deferred package managers
-```
-
----
-
-## 2. Build Requirement Matrix
-
-Include at minimum:
-
-```text id="9pmrkr"
-Platform | Requirements
-Windows  | MSVC 2022+, CMake 3.11+
-Linux    | build-essential, CMake 3.11+, pkg-config, libre2-dev, libgit2-dev
-```
-
-Add only requirements verified by the build.
-
----
-
-## 3. Release Build Report
-
-For each supported platform record:
-
-```text id="gmhbxw"
-OS
-architecture
-toolchain
-CMake version
-build command
-result
-artifact
-```
-
----
-
-## 4. Release Artifact Manifest
-
-Produce a manifest such as:
-
-```text id="1oxgz4"
-Filename
-Platform
-Architecture
-Type
-Size
+```text
+version
+tag
+commit
+artifacts
 SHA-256
-Status
 ```
 
----
+## 2. Linux RC Validation Report
 
-## 5. Runtime Dependency Report
+Use the disposable `debian2` WSL environment.
 
-Document required runtime libraries or state that no additional shipped runtime files are required, if verified.
+## 3. Windows RC Validation Report
 
----
+Prefer Windows Sandbox.
 
-## 6. Source Archive Verification
+## 4. Documentation-Only Walkthrough Report
 
-Record:
+Record every place where undocumented knowledge was required.
 
-```text id="vgosqp"
-archive name
-source commit
-clean extraction result
-clean configure result
-clean build result
-smoke test result
+## 5. Cross-Platform Matrix
+
+Report all relevant checks independently.
+
+## 6. RC Issue List
+
+Use:
+
+```text
+Issue
+Platform
+Classification
+Severity
+Reproduction
+Resolution
+Retest status
 ```
 
----
+## 7. Final RC Commit and Artifact Manifest
 
-## 7. Binary Archive Verification
+Record the exact source and artifact set that passed validation.
 
-For every distributed binary archive record:
-
-```text id="kwl7hu"
-archive
-target platform
-extraction
-startup
---help
---version
-semantic smoke
-JSON smoke
-result
-```
-
----
-
-## 8. CI / Release Workflow Report
-
-Record:
-
-```text id="2jrrlo"
-workflow file
-
-trigger
-
-build matrix
-
-packaging steps
-
-checksum generation
-
-publication/staging behavior
-```
-
-If release creation remains manual, document the exact manual procedure instead.
-
----
-
-## 9. License / Notice Verification
-
-Record:
-
-```text id="5oalg6"
-project license included
-
-third-party notices checked
-
-redistribution concerns
-
-unresolved issues
-```
-
----
-
-## 10. Final Packaging Commit
-
-Record:
-
-```text id="16e3rb"
-branch
-commit hash
-target version
-artifact names
-working tree status
-```
-
----
-
-## 11. Phase 15 Final Recommendation
+## 8. Phase 16 Final Recommendation
 
 End with one of:
 
-```text id="u3egv0"
-PASS — READY FOR RELEASE CANDIDATE
+```text
+PASS — RC APPROVED FOR FINAL RELEASE
 
-PASS WITH DOCUMENTED DISTRIBUTION LIMITATIONS
+PASS WITH KNOWN LIMITATIONS — RC APPROVED
 
-BLOCKED — PACKAGING / DISTRIBUTION ISSUE REMAINS
+BLOCKED — NEW RC REQUIRED
+
+NOT FULLY VALIDATED
 ```
-
-Do not declare PASS while a planned release artifact is known to be broken or incomplete.
 
 ---
 
 # Acceptance Criteria
 
-Phase 15 is complete when:
+Phase 16 is complete when:
 
-```text id="soii6a"
-1. supported release platforms are explicitly defined
+```text
+1. one exact immutable RC artifact set has been identified
 
-2. Windows requirements are documented and verified:
-       MSVC 2022+
-       CMake 3.11+
+2. SHA-256 verification succeeds
 
-3. Linux requirements are documented and verified:
+3. Linux RC validation succeeds in:
+       wsl -d debian2 -u taqu
+
+4. Linux documented requirements are sufficient:
        build-essential
        CMake 3.11+
        pkg-config
        libre2-dev
        libgit2-dev
 
-4. clean release builds succeed for every claimed supported platform
+5. Windows RC is tested in Windows Sandbox when available
 
-5. every intended release artifact can be generated from the frozen source revision
+6. Windows documented requirements are sufficient:
+       MSVC 2022+
+       CMake 3.11+
 
-6. every packaged binary artifact passes post-packaging smoke tests
+7. source archives build independently of the Git checkout
 
-7. source distribution can be rebuilt from a clean extraction
+8. packaged binaries start independently of the development environment
 
-8. version information is consistent across source, binary, artifact names, and release metadata
+9. --help and --version work
 
-9. SHA-256 checksums are generated and verified
+10. first-run workflow succeeds using only public documentation
 
-10. required runtime dependencies are understood
+11. search/references/callers/callees smoke tests succeed
 
-11. required license / notice material is included
+12. stable Phase 8 behavior has no release-time regression
 
-12. no development-only or sensitive files are present in public artifacts
+13. JSON output parses correctly end to end
 
-13. release automation or the manual release procedure is documented and repeatable
+14. exit codes behave as documented
 
-14. Phase 14 installation documentation matches the real distribution process
+15. Windows path/quoting behavior is explicitly validated
 
-15. no unresolved packaging/distribution release blocker remains
+16. analysis does not unexpectedly modify repositories
+
+17. restarting/refreshing the disposable environment does not reveal hidden state dependencies
+
+18. every discovered issue is classified
+
+19. no unresolved RC blocker remains
+
+20. the exact RC that passed validation is preserved unchanged
 ```
 
 ---
 
 # Out of Scope
 
-Do not use Phase 15 for:
+Do not use Phase 16 for:
 
-```text id="9srekh"
-semantic capability changes
+```text
+new features
 
-routing optimization
+semantic improvements
+
+routing experiments
+
+agent optimization
 
 CLI redesign
 
-documentation restructuring unrelated to packaging
+new packaging systems
 
-new language support
+performance optimization
 
-general performance optimization
+new platform support
 
-major dependency upgrades
+refactoring
 
-new package-manager ecosystems
-
-automatic update mechanisms
-
-installer GUI development
+dependency modernization
 ```
 
-Defer those unless required by the defined initial release scope.
+If a useful improvement is discovered but is not required for release correctness:
+
+```text
+POST-RELEASE
+```
 
 ---
 
 # Final Principle
 
-Phase 15 should answer:
+Phase 16 should answer:
 
-```text id="l0shrv"
-Can a release artifact be produced from the frozen source,
-given to another person,
-and successfully built or executed
-using only the documented requirements?
+```text
+If we published these exact files today,
+would a new Windows or Linux user be able to use them successfully?
 ```
 
-The release process should be:
+The RC is not approved because:
 
-```text id="v9zlqq"
-clean
-repeatable
-traceable
-minimal
-verifiable
+```text
+the source tree works
 ```
 
-The goal is not to support every possible distribution channel.
+It is approved only when:
 
-The goal is to produce a small set of release artifacts that can be trusted.
+```text
+the actual release artifacts
++
+the actual public documentation
++
+the declared prerequisites
+```
+
+work together in clean or disposable environments.

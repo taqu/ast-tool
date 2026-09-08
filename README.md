@@ -15,28 +15,52 @@ It is intended for interactive use, shell scripts, editor/IDE tooling, and Codin
 
 ## Installation
 
-Building from source is the only supported installation method for this release; there is no packaged binary or installer yet.
+### Binary release (recommended)
 
-**Prerequisites (Windows):**
-- CMake 3.50+
-- Visual Studio 2022 (MSVC) with a C++23-capable toolchain
-- Windows 10 SDK
+Download the appropriate archive from the [GitHub Releases](https://github.com/taqu/ast-tool/releases) page, extract it, and add the extracted directory to your `PATH`.
+
+**Windows (x64):** Download `ast-tool-<version>-windows-x64.zip`. No additional prerequisites — the MSVC runtime is statically linked and the required grammar DLLs are included.
+
+**Linux (x64):** Download `ast-tool-<version>-linux-x64.tar.gz`. The binary requires these runtime libraries:
 
 ```sh
-cmake -B build -DCMAKE_INSTALL_PREFIX="D:\Programs\ast-tool"
-cmake --build build --config Release
+sudo apt install libgit2-1.9 libre2-11   # Debian 13 / Ubuntu 24.04
 ```
 
-The executable and its required tree-sitter grammar DLLs are written to `bin/`. Copy the entire `bin/` directory to wherever you want to run it from — the tool is self-contained (statically-linked CRT) and works when relocated. `cmake --install` does not currently produce a working install; copying `bin/` is the supported path for this release.
+Package names vary by distribution — install the runtime equivalents of `libgit2` and `libre2`.
 
-**Verify the installation:**
+**Verify:**
 
 ```sh
 ast-tool --version
 ast-tool --help
 ```
 
-Linux build prerequisites are recorded in `doc/build.md`, but Linux is not yet a release-qualified platform — see [Supported Platforms](#supported-platforms--languages) below.
+### Build from source
+
+**Prerequisites (Windows):**
+- CMake 3.11+
+- Visual Studio 2022 (MSVC) with a C++23-capable toolchain
+
+```sh
+cmake -B build -DCMAKE_INSTALL_PREFIX="C:\Programs\ast-tool"
+cmake --build build --config Release
+cmake --install build --config Release
+```
+
+`cmake --install` copies `ast-tool.exe`, the required tree-sitter grammar DLLs, and documentation to the install prefix. The installed `bin/` directory is self-contained and relocatable.
+
+**Prerequisites (Linux):**
+- build-essential, CMake 3.11+, pkg-config, libre2-dev, libgit2-dev
+
+```sh
+sudo apt install build-essential cmake pkg-config libre2-dev libgit2-dev
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+cmake --install build --config Release
+```
+
+See `doc/build.md` for additional build details.
 
 ## Quick Start
 
@@ -106,7 +130,7 @@ This behavior is not guaranteed to be invoked automatically by every agent on ev
 
 ## Supported Platforms / Languages
 
-**Platforms:** Windows (64-bit) is the only platform this release has been built and tested on. Linux build prerequisites exist (`doc/build.md`) but Linux is not release-qualified. macOS is untested.
+**Platforms:** Windows (x64) is release-qualified and fully tested. Linux (x64) binary and source builds are available but best-effort — build and smoke tests pass but the platform has not been through the full release-qualification cycle. macOS is untested and unsupported.
 
 **Languages:** parsers and structural extraction (`outline`, `find`, `dump`, etc.) are available for Bash, C, C++, C#, CSS, Go, HTML, Java, JavaScript, Python, Ruby, Rust, Scala, TypeScript, and TSX. Symbol extraction and semantic relationship resolution (`symbols`, `search`, `references`, `callers`, `callees`) have dedicated regression coverage for C, C++, Python, Rust, Go, Java, and JavaScript; the remaining languages are supported by the same extraction machinery but have lighter test evidence and should be treated as provisional.
 
@@ -118,7 +142,7 @@ This behavior is not guaranteed to be invoked automatically by every agent on ev
 - A callee that itself has a separate declaration and out-of-line definition can, in a narrow case, be omitted from a `callees` result even when the calling function's own body was found correctly.
 - Workspace, file, and cache paths must use characters representable in the active Windows code page; a path mixing scripts outside your system locale (e.g. a Western European accented character on a Japanese-locale system) is not currently supported.
 - Local variables and parameters are not uniformly exposed as workspace symbols across all languages (though `callers`/`callees`/`references` can still resolve calls through a directly-typed local or parameter where the language extractor supports it).
-- There is no `cmake --install` support yet; see Installation above.
+- Non-ASCII workspace/file paths must stay within the active Windows code page; paths mixing characters outside your system locale may fail with an encoding error (Linux is not affected by this limitation).
 
 ## Documentation
 

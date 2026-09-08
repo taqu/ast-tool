@@ -2,21 +2,30 @@
 
 ## Prerequisites
 
-- CMake 3.50 or later
+- CMake 3.11 or later
 - A C++23-capable compiler (MSVC 2022, GCC 13, or Clang 16)
 - The bundled tree-sitter libraries and language grammars (included in the repository under `tree-sitter/`)
 - RE2 and Abseil (included under `thirdparty/`)
 
-## Building
+## Building from Source
 
 On Windows (Visual Studio is a multi-config generator, so the build config is chosen with `--config` at build time, not at configure time):
 
 ```sh
-cmake -B build -DCMAKE_INSTALL_PREFIX="D:\Programs\ast-tool"
+cmake -B build -DCMAKE_INSTALL_PREFIX="C:\Programs\ast-tool"
 cmake --build build --config Release
+cmake --install build --config Release
 ```
 
-The executable and its required tree-sitter grammar DLLs are written to `bin/`. `cmake --install` does not currently produce a working install; copy the `bin/` directory to wherever you want to run the tool from — it is self-contained and works when relocated.
+`cmake --install` copies `ast-tool.exe`, the required tree-sitter grammar DLLs, and documentation to the install prefix. The installed `bin/` directory is self-contained and relocatable.
+
+On Linux:
+
+```sh
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+cmake --install build --config Release
+```
 
 ### Debug Build
 
