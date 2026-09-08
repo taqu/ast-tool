@@ -91,3 +91,8 @@ venv/
 /evaluation/final_analysis
 
 *.db
+
+# Release packaging artifacts
+/release-artifacts/
+/staging/
+/dist/

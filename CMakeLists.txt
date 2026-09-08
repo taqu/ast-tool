@@ -316,4 +316,10 @@ add_custom_command(
 )
 endif()
 
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
+if(MSVC)
+    install(FILES ${DLL_FILES} DESTINATION bin)
+endif()
+install(FILES LICENSE NOTICE README.md CHANGELOG.md DESTINATION .)
+
 add_subdirectory(test)

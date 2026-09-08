@@ -1,0 +1,159 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]*.[0-9]*.[0-9]*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Windows x64
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure (Release)
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=dist/windows
+
+      - name: Build (Release)
+        run: cmake --build build --config Release
+
+      - name: Install to staging directory
+        run: cmake --install build --config Release
+
+      - name: Smoke test
+        run: |
+          dist\windows\bin\ast-tool.exe --version
+          dist\windows\bin\ast-tool.exe --help
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}" -replace '^v', ''
+          $name = "ast-tool-$version-windows-x64"
+          $dir = "pkg/$name"
+          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          Copy-Item dist\windows\bin\ast-tool.exe $dir\
+          Copy-Item dist\windows\bin\*.dll $dir\ -ErrorAction SilentlyContinue
+          Copy-Item dist\windows\README.md $dir\
+          Copy-Item dist\windows\LICENSE $dir\
+          Copy-Item dist\windows\CHANGELOG.md $dir\
+          Copy-Item dist\windows\NOTICE $dir\
+          Compress-Archive -Path $dir -DestinationPath "artifacts/$name.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64
+          path: artifacts/
+
+  build-linux:
+    name: Linux x64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libre2-dev libgit2-dev
+
+      - name: Configure (Release)
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=dist/linux
+
+      - name: Build (Release)
+        run: cmake --build build --config Release
+
+      - name: Install to staging directory
+        run: cmake --install build --config Release
+
+      - name: Smoke test
+        run: |
+          dist/linux/bin/ast-tool --version
+          dist/linux/bin/ast-tool --help
+
+      - name: Package
+        run: |
+          version="${{ github.ref_name }}"
+          version="${version#v}"
+          name="ast-tool-${version}-linux-x64"
+          mkdir -p pkg/$name
+          cp dist/linux/bin/ast-tool pkg/$name/
+          cp dist/linux/README.md pkg/$name/
+          cp dist/linux/LICENSE pkg/$name/
+          cp dist/linux/CHANGELOG.md pkg/$name/
+          cp dist/linux/NOTICE pkg/$name/
+          mkdir -p artifacts
+          tar -czf "artifacts/${name}.tar.gz" -C pkg "$name"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64
+          path: artifacts/
+
+  release:
+    name: Create GitHub Release
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          merge-multiple: true
+
+      - name: Generate source archive
+        run: |
+          version="${{ github.ref_name }}"
+          version="${version#v}"
+          git archive --format=tar.gz --prefix="ast-tool-${version}-source/" \
+            -o "artifacts/ast-tool-${version}-source.tar.gz" HEAD
+
+      - name: Generate SHA256SUMS
+        working-directory: artifacts
+        run: sha256sum * > SHA256SUMS
+
+      - name: Verify checksums
+        working-directory: artifacts
+        run: sha256sum --check SHA256SUMS
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          name: "ast-tool ${{ github.ref_name }}"
+          body: |
+            ## ast-tool ${{ github.ref_name }}
+
+            See [CHANGELOG.md](CHANGELOG.md) for release notes.
+
+            ## Installation
+
+            ### Windows (x64)
+
+            Download `ast-tool-*-windows-x64.zip`, extract, and add the extracted directory to your PATH.
+
+            Requirements: Windows 10/11 x64. No additional runtime libraries required.
+
+            ### Linux (x64)
+
+            Download `ast-tool-*-linux-x64.tar.gz`, extract, and add the extracted directory to your PATH.
+
+            Requirements: `libre2`, `libgit2` (see README for details).
+
+            ### Build from source
+
+            See [README.md](README.md) for build prerequisites and instructions.
+
+            ## Checksums
+
+            Verify downloaded files using `SHA256SUMS`.
+
+          files: |
+            artifacts/*
