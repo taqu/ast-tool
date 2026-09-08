@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. Added the `std::cerr` line at `auth_controller.cpp:21` (logout flow), before `token_.expire()`. The refresh caller in `auth_service.cpp:18` is unchanged.\n",
+  "fresh_logs": 1
+}

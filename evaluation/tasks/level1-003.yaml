@@ -1,0 +1,29 @@
+id: level1-003
+
+repository: repositories/level1-store
+
+prompt: |
+  This is a C++ e-commerce project. Both InventoryService and OrderService have a method
+  named `save`.
+
+  The order service's `save` method should reject products with a zero ID. At the very
+  top of the implementation of OrderService::save, before any other logic, add a guard:
+  if `product.id == 0`, log the following line and return false:
+
+      std::cerr << "[OrderService] invalid id\n";
+
+  Only modify the OrderService implementation. Do not change InventoryService.
+
+evaluation:
+  category: ambiguity
+  relevant_capabilities:
+    - find
+    - search
+
+validation:
+  command: python validate_003.py
+
+expected_files:
+  - src/service/order_service.cpp
+
+timeout: 120

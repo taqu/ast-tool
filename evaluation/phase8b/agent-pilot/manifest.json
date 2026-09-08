@@ -1,0 +1,115 @@
+{
+  "revision": "ede344d2cc1da7dc9e770910c2fefe110754a74e",
+  "tasks": [
+    "level2-004",
+    "level4-006"
+  ],
+  "forced_semantic": true,
+  "skill_before": {
+    "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+    "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+  },
+  "workspace_binary_sha256": "871aedde0290c394f75fab00961a8fa493c57286d0956f6e392a4baecd11975b",
+  "checks": [
+    {
+      "repeat": 1,
+      "task": "level2-004",
+      "status": "success",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "871aedde0290c394f75fab00961a8fa493c57286d0956f6e392a4baecd11975b"
+    },
+    {
+      "repeat": 1,
+      "task": "level4-006",
+      "status": "validation_failure",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "871aedde0290c394f75fab00961a8fa493c57286d0956f6e392a4baecd11975b"
+    },
+    {
+      "repeat": 2,
+      "task": "level4-006",
+      "status": "validation_failure",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "871aedde0290c394f75fab00961a8fa493c57286d0956f6e392a4baecd11975b"
+    },
+    {
+      "repeat": 2,
+      "task": "level2-004",
+      "status": "success",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "871aedde0290c394f75fab00961a8fa493c57286d0956f6e392a4baecd11975b"
+    },
+    {
+      "repeat": 3,
+      "task": "level2-004",
+      "status": "success",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "871aedde0290c394f75fab00961a8fa493c57286d0956f6e392a4baecd11975b"
+    },
+    {
+      "repeat": 3,
+      "task": "level4-006",
+      "status": "validation_failure",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "871aedde0290c394f75fab00961a8fa493c57286d0956f6e392a4baecd11975b"
+    },
+    {
+      "repeat": 4,
+      "task": "level4-006",
+      "status": "validation_failure",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "871aedde0290c394f75fab00961a8fa493c57286d0956f6e392a4baecd11975b"
+    },
+    {
+      "repeat": 4,
+      "task": "level2-004",
+      "status": "success",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "871aedde0290c394f75fab00961a8fa493c57286d0956f6e392a4baecd11975b"
+    },
+    {
+      "repeat": 5,
+      "task": "level2-004",
+      "status": "success",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "871aedde0290c394f75fab00961a8fa493c57286d0956f6e392a4baecd11975b"
+    },
+    {
+      "repeat": 5,
+      "task": "level4-006",
+      "status": "validation_failure",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "871aedde0290c394f75fab00961a8fa493c57286d0956f6e392a4baecd11975b"
+    }
+  ]
+}

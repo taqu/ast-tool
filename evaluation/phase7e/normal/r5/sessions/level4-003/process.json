@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All six changes applied. The clang diagnostics are spurious (C vs C++ detection artifacts, not real errors).\n\n**Summary of changes:**\n- `PaymentGateway::charge` \u2014 declaration and definition updated with `descriptor` parameter (`payment_gateway.h`, `payment_gateway.cpp`)\n- `PaymentService::authorize` \u2014 declaration and definition updated, forwarding `descriptor` to `gateway_.charge` (`payment_service.h`, `payment_service.cpp`)\n- `OrderService::submit` \u2014 call site passes `\"user_checkout\"` (`order_service.cpp:16`)\n- `AdminOrderService::submit` \u2014 call site passes `\"admin_bulk\"` (`admin_order_service.cpp:18`)\n- `BillingGateway::charge` and `PaymentService::refund` left unchanged.\n",
+  "fresh_logs": 2
+}

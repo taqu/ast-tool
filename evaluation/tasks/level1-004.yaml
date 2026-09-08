@@ -1,0 +1,27 @@
+id: level1-004
+
+repository: repositories/level1-store
+
+prompt: |
+  This is a C++ e-commerce project with an OrderService class.
+
+  The order service has a `process` method that retrieves a product from the inventory.
+  Before that inventory lookup, the method should validate its input. Add a guard at the
+  start of the `process` implementation: if `product_id <= 0`, log the following line
+  and return false:
+
+      std::cerr << "[OrderService] invalid product_id\n";
+
+evaluation:
+  category: mixed
+  relevant_capabilities:
+    - find
+    - references
+
+validation:
+  command: python validate_004.py
+
+expected_files:
+  - src/service/order_service.cpp
+
+timeout: 120

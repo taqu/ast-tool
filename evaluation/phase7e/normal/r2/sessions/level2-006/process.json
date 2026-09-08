@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[token] validate\\n\";` immediately before every call to `Token::validate` in all 4 files:\n\n- `src/handlers/api_handler.cpp:15`\n- `src/middleware/auth_middleware.cpp:10`\n- `src/middleware/cors_middleware.cpp:10`\n- `src/middleware/rate_limiter.cpp:10`\n",
+  "fresh_logs": 1
+}

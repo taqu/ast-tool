@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<HandyTools>
+	<UnifyLineFeed>
+		<Code lang="C/C++">
+			LF
+		</Code>
+		<Code lang="CSharp">
+			LF
+		</Code>
+		<Code lang="Others">
+			LF
+		</Code>
+	</UnifyLineFeed>
+	<UnifyEncoding>
+		<Encoding>UTF8</Encoding>
+	</UnifyEncoding>
+	<AI>
+		<ModelGeneral>gemma2</ModelGeneral>
+		<ModelGeneration>gemma2</ModelGeneration>
+		<ModelTranslation>gemma2</ModelTranslation>
+		<ApiKey>XXX</ApiKey>
+		<ApiEndpoint>http://127.0.0.1:9090</ApiEndpoint>
+		<CompletionEndpoint>http://127.0.0.1:9090</CompletionEndpoint>
+		<FormatResponse>False</FormatResponse>
+		<Temperature>0.1</Temperature>
+		<Timeout>30</Timeout>
+		<RealTimeCompletion>False</RealTimeCompletion>
+		<MaxTextLength>3000</MaxTextLength>
+		<CompletionIntervalInMilliseconds>1000</CompletionIntervalInMilliseconds>
+		<MaxCompletionInputSize>4000</MaxCompletionInputSize>
+		<MaxCompletionOutputSize>64</MaxCompletionOutputSize>
+		<PromptCompletion>&lt;|fim_prefix|&gt;{prefix}&lt;|fim_suffix|&gt;{suffix}&lt;|fim_middle|&gt;</PromptCompletion>
+		<PromptExplanation>Explain the next {filetype} code.\ncode:{content}</PromptExplanation>
+		<PromptTranslation>Translate in English\n\n{content}</PromptTranslation>
+		<PromptDocumentation>Create a doxygen comment for the following C++ Function. doxygen comment only\n\n{content}</PromptDocumentation>
+	</AI>
+</HandyTools>

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. Two jobs were modified:\n\n- **`SyncJob::execute`** (`sync_job.cpp:24`) \u2014 calls `store_.save()`, which triggers audit logging. Added `std::cerr` line before it.\n- **`CleanupJob::execute`** (`cleanup_job.cpp:13`) \u2014 calls `store_.purge()`, which triggers audit logging. Added `std::cerr` line before it.\n\n`ReportJob` was left untouched \u2014 it calls `store_.query()`, which does not invoke the audit logger.\n",
+  "fresh_logs": 1
+}

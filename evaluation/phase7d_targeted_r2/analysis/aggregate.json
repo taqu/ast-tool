@@ -1,0 +1,41 @@
+{
+  "tests": 7,
+  "successes": 7,
+  "failures": 0,
+  "success_rate": 1.0,
+  "total_tool_calls": 61,
+  "average_tool_calls_per_test": 8.71,
+  "ast_tool_calls": 22,
+  "ast_tool_failures": 6,
+  "ast_tool_failure_rate": 0.2727,
+  "ast_tool_help_calls": 0,
+  "ast_tool_retries": 4,
+  "bash_calls": 28,
+  "read_calls": 13,
+  "edit_calls": 12,
+  "grep_calls": 0,
+  "glob_calls": 0,
+  "total_elapsed_seconds": 359.88,
+  "average_elapsed_seconds": 51.41,
+  "ast_tool_commands": {
+    "search": 10,
+    "find": 3,
+    "callers": 6,
+    "references": 3
+  },
+  "ast_tool_failures_by_command": {
+    "callers": 2,
+    "find": 1,
+    "references": 3
+  },
+  "all_ast_tool_recovery_distances": [
+    1,
+    1
+  ],
+  "average_ast_tool_recovery_distance": 1,
+  "max_ast_tool_recovery_distance": 1,
+  "total_input_tokens": 145,
+  "total_output_tokens": 21882,
+  "total_tokens": 22027,
+  "average_tokens_per_test": 3146.7
+}

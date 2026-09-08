@@ -1,0 +1,2 @@
+{"event": "task_start", "task_id": "level1-001", "repository": "repositories/level1-store", "agent": "claude", "started_at": "2026-09-05T23:17:47.278194Z"}
+{"event": "task_end", "task_id": "level1-001", "tool_calls": 0, "success": false, "elapsed_seconds": 120.31, "validation_success": false}

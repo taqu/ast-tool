@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added the trace line at the top of all three method bodies:\n\n- `web_checkout_handler.cpp:11` \u2014 `WebCheckoutHandler::handle`\n- `checkout_service.cpp:12` \u2014 `CheckoutService::process`\n- `order_service.cpp:17` \u2014 `OrderService::submit`\n",
+  "fresh_logs": 2
+}

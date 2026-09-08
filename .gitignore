@@ -22,17 +22,11 @@
 *.dylib
 *.dll
 *.so.*
-
+!thirdparty/tree-sitter/bin/win/*dll
 
 # Fortran module files
 *.mod
 *.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
 
 # Executables
 *.exe
@@ -67,3 +61,38 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+__pycache__/
+
+/.claude/settings.local.json
+/.codex/config.local.toml
+
+/bin
+#/ast-tool.md
+#/roadmap.md
+/bench/venv
+/bench/workspace
+/bench/cache
+/.claude
+# ast-tool's own on-disk AST cache directory can be created under any
+# workspace root that's analyzed (e.g. src/.ast-tool if you run ast-tool
+# against its own source), not only the repository root.
+.ast-tool/
+venv/
+
+# Evaluation runner — generated at runtime
+/evaluation/repositories/
+/evaluation/results/
+/evaluation/evaluation/
+/evaluation/tests1/
+/evaluation/tests2/
+/evaluation/tests3/
+/evaluation/tests4/
+/evaluation/tests5/
+/evaluation/final_analysis
+
+*.db
+
+# Release packaging artifacts
+/release-artifacts/
+/staging/
+/dist/

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. The diagnostic line is inserted at `inventory_service.cpp:12`, before the existing logic in `InventoryService::update`.\n",
+  "fresh_logs": 1
+}

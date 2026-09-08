@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[auth] validating token\\n\";` immediately before all 4 direct call sites of `AuthToken::validate`:\n\n| Function | File | Line |\n|---|---|---|\n| `auth::AuthService::login` | `src/auth/auth_service.cpp:14` |\n| `web::AuthController::handleLogin` | `src/web/auth_controller.cpp:13` |\n| `web::AuthController::handleRefresh` | `src/web/auth_controller.cpp:26` |\n| `web::SessionController::handle` | `src/web/session_controller.cpp:12` |\n",
+  "fresh_logs": 1
+}

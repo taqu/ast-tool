@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Added `std::cerr << \"[auth] token expired on logout\\n\";` at `auth_controller.cpp:21`, immediately before `token_.expire(token_str)` in `handleLogout`. The refresh caller in `auth_service.cpp:18` is untouched.\n",
+  "fresh_logs": 1
+}

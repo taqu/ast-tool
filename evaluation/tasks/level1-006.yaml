@@ -1,0 +1,29 @@
+id: level1-006
+
+repository: repositories/level1-logger
+
+prompt: |
+  This is a C++ networking project. Both the Connection class and the Server class have a
+  method named `log`.
+
+  The server class has a `log` method used to record internal server events. Find the
+  implementation of Server::log and add the following line at the very beginning of its
+  body:
+
+      std::cerr << "[Server] " << msg << "\n";
+
+  Only modify the Server implementation. Do not change Connection.
+
+evaluation:
+  category: ambiguity
+  relevant_capabilities:
+    - find
+    - search
+
+validation:
+  command: python validate_006.py
+
+expected_files:
+  - src/net/server.cpp
+
+timeout: 120

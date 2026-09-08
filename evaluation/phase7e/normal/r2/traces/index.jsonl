@@ -1,0 +1,8 @@
+{"task_id": "level2-006", "trace_file": "level2-006.jsonl", "success": true, "tool_calls": 11, "ast_tool_calls": 2}
+{"task_id": "level2-008", "trace_file": "level2-008.jsonl", "success": true, "tool_calls": 5, "ast_tool_calls": 2}
+{"task_id": "level3-003", "trace_file": "level3-003.jsonl", "success": true, "tool_calls": 5, "ast_tool_calls": 2}
+{"task_id": "level3-007", "trace_file": "level3-007.jsonl", "success": true, "tool_calls": 16, "ast_tool_calls": 7}
+{"task_id": "level3-008", "trace_file": "level3-008.jsonl", "success": true, "tool_calls": 9, "ast_tool_calls": 3}
+{"task_id": "level4-003", "trace_file": "level4-003.jsonl", "success": true, "tool_calls": 27, "ast_tool_calls": 0}
+{"task_id": "smoke-001", "trace_file": "smoke-001.jsonl", "success": true, "tool_calls": 16, "ast_tool_calls": 10}
+{"task_id": "level1-001", "trace_file": "level1-001.jsonl", "success": true, "tool_calls": 6, "ast_tool_calls": 0}

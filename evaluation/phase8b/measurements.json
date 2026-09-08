@@ -1,0 +1,1787 @@
+{
+  "environment": {
+    "revision": "ede344d2cc1da7dc9e770910c2fefe110754a74e",
+    "branch": "features/phase8b",
+    "phase8a_final_binary_sha256": "68d5154a86b6afb0142c3a12906a88b715accfb0a2f5a6fe63254d0de6ec16d1",
+    "agent_binary_sha256": "36904dd03fe0b586e9c9372f7fd83a56f99aa3983e4fb982504e233ce2f26ef7",
+    "final_binary_sha256": "36904dd03fe0b586e9c9372f7fd83a56f99aa3983e4fb982504e233ce2f26ef7",
+    "skill_sha256": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+    "installed_skill_sha256": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+  },
+  "agent_runs": [
+    {
+      "task_id": "level2-004",
+      "task_level": 2,
+      "agent": "claude",
+      "repository": "repositories/level2-auth",
+      "success": true,
+      "validation_success": true,
+      "elapsed_seconds": 41.93,
+      "total_tool_calls": 10,
+      "tools": {
+        "Skill": 1,
+        "Bash": 2,
+        "Read": 3,
+        "Edit": 4
+      },
+      "bash_calls": 2,
+      "read_calls": 3,
+      "edit_calls": 4,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 2,
+      "ast_tool_successes": 2,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "search": 1,
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:search",
+        "ast-tool:callers",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "search",
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 22,
+      "output_tokens": 6111,
+      "total_tokens": 6133,
+      "repeat": 1,
+      "trajectory": "search\u2192callers",
+      "skill_first": true
+    },
+    {
+      "task_id": "level4-006",
+      "task_level": 4,
+      "agent": "claude",
+      "repository": "repositories/level4-api",
+      "success": false,
+      "validation_success": false,
+      "elapsed_seconds": 61.0,
+      "total_tool_calls": 10,
+      "tools": {
+        "Skill": 1,
+        "Bash": 3,
+        "Read": 3,
+        "Edit": 3
+      },
+      "bash_calls": 3,
+      "read_calls": 3,
+      "edit_calls": 3,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 3,
+      "ast_tool_successes": 3,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "search": 2,
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:search",
+        "ast-tool:callers",
+        "ast-tool:search",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "search",
+        "callers",
+        "search"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 21,
+      "output_tokens": 2554,
+      "total_tokens": 2575,
+      "repeat": 1,
+      "trajectory": "search\u2192callers\u2192search",
+      "skill_first": true
+    },
+    {
+      "task_id": "level2-004",
+      "task_level": 2,
+      "agent": "claude",
+      "repository": "repositories/level2-auth",
+      "success": true,
+      "validation_success": true,
+      "elapsed_seconds": 44.51,
+      "total_tool_calls": 10,
+      "tools": {
+        "Skill": 1,
+        "Bash": 2,
+        "Read": 3,
+        "Edit": 4
+      },
+      "bash_calls": 2,
+      "read_calls": 3,
+      "edit_calls": 4,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 2,
+      "ast_tool_successes": 2,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "search": 1,
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:search",
+        "ast-tool:callers",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "search",
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 21,
+      "output_tokens": 5065,
+      "total_tokens": 5086,
+      "repeat": 2,
+      "trajectory": "search\u2192callers",
+      "skill_first": true
+    },
+    {
+      "task_id": "level4-006",
+      "task_level": 4,
+      "agent": "claude",
+      "repository": "repositories/level4-api",
+      "success": false,
+      "validation_success": false,
+      "elapsed_seconds": 58.24,
+      "total_tool_calls": 11,
+      "tools": {
+        "Skill": 1,
+        "Bash": 3,
+        "Glob": 1,
+        "Read": 3,
+        "Edit": 3
+      },
+      "bash_calls": 3,
+      "read_calls": 3,
+      "edit_calls": 3,
+      "grep_calls": 0,
+      "glob_calls": 1,
+      "skill_calls": 1,
+      "ast_tool_calls": 3,
+      "ast_tool_successes": 3,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "search": 1,
+        "callers": 1,
+        "references": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:search",
+        "ast-tool:callers",
+        "ast-tool:references",
+        "Glob",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "search",
+        "callers",
+        "references"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 25,
+      "output_tokens": 3150,
+      "total_tokens": 3175,
+      "repeat": 2,
+      "trajectory": "search\u2192callers\u2192references",
+      "skill_first": true
+    },
+    {
+      "task_id": "level2-004",
+      "task_level": 2,
+      "agent": "claude",
+      "repository": "repositories/level2-auth",
+      "success": true,
+      "validation_success": true,
+      "elapsed_seconds": 45.48,
+      "total_tool_calls": 10,
+      "tools": {
+        "Skill": 1,
+        "Bash": 2,
+        "Read": 3,
+        "Edit": 4
+      },
+      "bash_calls": 2,
+      "read_calls": 3,
+      "edit_calls": 4,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 2,
+      "ast_tool_successes": 2,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "search": 1,
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:search",
+        "ast-tool:callers",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "search",
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 22,
+      "output_tokens": 5454,
+      "total_tokens": 5476,
+      "repeat": 3,
+      "trajectory": "search\u2192callers",
+      "skill_first": true
+    },
+    {
+      "task_id": "level4-006",
+      "task_level": 4,
+      "agent": "claude",
+      "repository": "repositories/level4-api",
+      "success": false,
+      "validation_success": false,
+      "elapsed_seconds": 47.87,
+      "total_tool_calls": 10,
+      "tools": {
+        "Skill": 1,
+        "Bash": 3,
+        "Read": 3,
+        "Edit": 3
+      },
+      "bash_calls": 3,
+      "read_calls": 3,
+      "edit_calls": 3,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 3,
+      "ast_tool_successes": 3,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "search": 2,
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:search",
+        "ast-tool:callers",
+        "ast-tool:search",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "search",
+        "callers",
+        "search"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 22,
+      "output_tokens": 4529,
+      "total_tokens": 4551,
+      "repeat": 3,
+      "trajectory": "search\u2192callers\u2192search",
+      "skill_first": true
+    },
+    {
+      "task_id": "level2-004",
+      "task_level": 2,
+      "agent": "claude",
+      "repository": "repositories/level2-auth",
+      "success": true,
+      "validation_success": true,
+      "elapsed_seconds": 46.59,
+      "total_tool_calls": 10,
+      "tools": {
+        "Skill": 1,
+        "Bash": 2,
+        "Read": 3,
+        "Edit": 4
+      },
+      "bash_calls": 2,
+      "read_calls": 3,
+      "edit_calls": 4,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 2,
+      "ast_tool_successes": 2,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "search": 1,
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:search",
+        "ast-tool:callers",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "search",
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 21,
+      "output_tokens": 5068,
+      "total_tokens": 5089,
+      "repeat": 4,
+      "trajectory": "search\u2192callers",
+      "skill_first": true
+    },
+    {
+      "task_id": "level4-006",
+      "task_level": 4,
+      "agent": "claude",
+      "repository": "repositories/level4-api",
+      "success": false,
+      "validation_success": false,
+      "elapsed_seconds": 48.19,
+      "total_tool_calls": 10,
+      "tools": {
+        "Skill": 1,
+        "Bash": 2,
+        "Read": 3,
+        "Glob": 1,
+        "Edit": 3
+      },
+      "bash_calls": 2,
+      "read_calls": 3,
+      "edit_calls": 3,
+      "grep_calls": 0,
+      "glob_calls": 1,
+      "skill_calls": 1,
+      "ast_tool_calls": 2,
+      "ast_tool_successes": 2,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "search": 1,
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:search",
+        "ast-tool:callers",
+        "Read",
+        "Read",
+        "Glob",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "search",
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 23,
+      "output_tokens": 4236,
+      "total_tokens": 4259,
+      "repeat": 4,
+      "trajectory": "search\u2192callers",
+      "skill_first": true
+    },
+    {
+      "task_id": "level2-004",
+      "task_level": 2,
+      "agent": "claude",
+      "repository": "repositories/level2-auth",
+      "success": true,
+      "validation_success": true,
+      "elapsed_seconds": 47.39,
+      "total_tool_calls": 10,
+      "tools": {
+        "Skill": 1,
+        "Bash": 2,
+        "Read": 3,
+        "Edit": 4
+      },
+      "bash_calls": 2,
+      "read_calls": 3,
+      "edit_calls": 4,
+      "grep_calls": 0,
+      "glob_calls": 0,
+      "skill_calls": 1,
+      "ast_tool_calls": 2,
+      "ast_tool_successes": 2,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "search": 1,
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:search",
+        "ast-tool:callers",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "search",
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 22,
+      "output_tokens": 5913,
+      "total_tokens": 5935,
+      "repeat": 5,
+      "trajectory": "search\u2192callers",
+      "skill_first": true
+    },
+    {
+      "task_id": "level4-006",
+      "task_level": 4,
+      "agent": "claude",
+      "repository": "repositories/level4-api",
+      "success": false,
+      "validation_success": false,
+      "elapsed_seconds": 55.54,
+      "total_tool_calls": 10,
+      "tools": {
+        "Skill": 1,
+        "Bash": 2,
+        "Read": 3,
+        "Glob": 1,
+        "Edit": 3
+      },
+      "bash_calls": 2,
+      "read_calls": 3,
+      "edit_calls": 3,
+      "grep_calls": 0,
+      "glob_calls": 1,
+      "skill_calls": 1,
+      "ast_tool_calls": 2,
+      "ast_tool_successes": 2,
+      "ast_tool_failures": 0,
+      "ast_tool_retries": 0,
+      "ast_tool_help_calls": 0,
+      "ast_tool_json_calls": 0,
+      "ast_tool_pretty_json_calls": 0,
+      "ast_tool_commands": {
+        "search": 1,
+        "callers": 1
+      },
+      "ast_tool_failures_by_command": {},
+      "tool_sequence": [
+        "Skill",
+        "ast-tool:search",
+        "ast-tool:callers",
+        "Read",
+        "Read",
+        "Glob",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit"
+      ],
+      "ast_tool_sequence": [
+        "search",
+        "callers"
+      ],
+      "ast_tool_recovery_distances": [],
+      "average_ast_tool_recovery_distance": null,
+      "max_ast_tool_recovery_distance": null,
+      "consecutive_ast_tool_retries": 0,
+      "input_tokens": 23,
+      "output_tokens": 2937,
+      "total_tokens": 2960,
+      "repeat": 5,
+      "trajectory": "search\u2192callers",
+      "skill_first": true
+    }
+  ],
+  "task_aggregates": {
+    "level2-004": {
+      "before_runs": 1,
+      "after_runs": 5,
+      "before_means": {
+        "success": 1.0,
+        "total_tool_calls": 12.0,
+        "ast_tool_calls": 3.0,
+        "ast_tool_failures": 0.0,
+        "ast_tool_retries": 0.0,
+        "ast_tool_help_calls": 0.0,
+        "search_calls": 1.0,
+        "find_calls": 0.0,
+        "callers_calls": 1.0,
+        "callees_calls": 0.0,
+        "references_calls": 1.0,
+        "grep_calls": 0.0,
+        "glob_calls": 0.0,
+        "read_calls": 3.0,
+        "bash_calls": 4.0,
+        "edit_calls": 4.0,
+        "total_tokens": 6276.0,
+        "elapsed_seconds": 60.47
+      },
+      "after_means": {
+        "success": 1.0,
+        "total_tool_calls": 10.0,
+        "ast_tool_calls": 2.0,
+        "ast_tool_failures": 0.0,
+        "ast_tool_retries": 0.0,
+        "ast_tool_help_calls": 0.0,
+        "search_calls": 1.0,
+        "find_calls": 0.0,
+        "callers_calls": 1.0,
+        "callees_calls": 0.0,
+        "references_calls": 0.0,
+        "grep_calls": 0.0,
+        "glob_calls": 0.0,
+        "read_calls": 3.0,
+        "bash_calls": 2.0,
+        "edit_calls": 4.0,
+        "total_tokens": 5543.8,
+        "elapsed_seconds": 45.18
+      },
+      "after_minus_before": {
+        "success": 0.0,
+        "total_tool_calls": -2.0,
+        "ast_tool_calls": -1.0,
+        "ast_tool_failures": 0.0,
+        "ast_tool_retries": 0.0,
+        "ast_tool_help_calls": 0.0,
+        "search_calls": 0.0,
+        "find_calls": 0.0,
+        "callers_calls": 0.0,
+        "callees_calls": 0.0,
+        "references_calls": -1.0,
+        "grep_calls": 0.0,
+        "glob_calls": 0.0,
+        "read_calls": 0.0,
+        "bash_calls": -2.0,
+        "edit_calls": 0.0,
+        "total_tokens": -732.1999999999998,
+        "elapsed_seconds": -15.29
+      },
+      "before_trajectories": {
+        "search\u2192callers\u2192references": 1
+      },
+      "after_trajectories": {
+        "search\u2192callers": 5
+      },
+      "validation_successes": 5,
+      "skill_first_runs": 5,
+      "recovery_mean": null,
+      "recovery_max": null
+    },
+    "level4-006": {
+      "before_runs": 1,
+      "after_runs": 5,
+      "before_means": {
+        "success": 0.0,
+        "total_tool_calls": 9.0,
+        "ast_tool_calls": 3.0,
+        "ast_tool_failures": 0.0,
+        "ast_tool_retries": 0.0,
+        "ast_tool_help_calls": 0.0,
+        "search_calls": 1.0,
+        "find_calls": 0.0,
+        "callers_calls": 1.0,
+        "callees_calls": 0.0,
+        "references_calls": 1.0,
+        "grep_calls": 0.0,
+        "glob_calls": 1.0,
+        "read_calls": 2.0,
+        "bash_calls": 3.0,
+        "edit_calls": 2.0,
+        "total_tokens": 2957.0,
+        "elapsed_seconds": 51.82
+      },
+      "after_means": {
+        "success": 0.0,
+        "total_tool_calls": 10.2,
+        "ast_tool_calls": 2.6,
+        "ast_tool_failures": 0.0,
+        "ast_tool_retries": 0.0,
+        "ast_tool_help_calls": 0.0,
+        "search_calls": 1.4,
+        "find_calls": 0.0,
+        "callers_calls": 1.0,
+        "callees_calls": 0.0,
+        "references_calls": 0.2,
+        "grep_calls": 0.0,
+        "glob_calls": 0.6,
+        "read_calls": 3.0,
+        "bash_calls": 2.6,
+        "edit_calls": 3.0,
+        "total_tokens": 3504.0,
+        "elapsed_seconds": 54.168
+      },
+      "after_minus_before": {
+        "success": 0.0,
+        "total_tool_calls": 1.1999999999999993,
+        "ast_tool_calls": -0.3999999999999999,
+        "ast_tool_failures": 0.0,
+        "ast_tool_retries": 0.0,
+        "ast_tool_help_calls": 0.0,
+        "search_calls": 0.3999999999999999,
+        "find_calls": 0.0,
+        "callers_calls": 0.0,
+        "callees_calls": 0.0,
+        "references_calls": -0.8,
+        "grep_calls": 0.0,
+        "glob_calls": -0.4,
+        "read_calls": 1.0,
+        "bash_calls": -0.3999999999999999,
+        "edit_calls": 1.0,
+        "total_tokens": 547.0,
+        "elapsed_seconds": 2.347999999999999
+      },
+      "before_trajectories": {
+        "search\u2192callers\u2192references": 1
+      },
+      "after_trajectories": {
+        "search\u2192callers\u2192search": 2,
+        "search\u2192callers\u2192references": 1,
+        "search\u2192callers": 2
+      },
+      "validation_successes": 0,
+      "skill_first_runs": 5,
+      "recovery_mean": null,
+      "recovery_max": null
+    }
+  },
+  "agent_manifest_checks": [
+    {
+      "repeat": 1,
+      "task": "level2-004",
+      "status": "success",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "36904dd03fe0b586e9c9372f7fd83a56f99aa3983e4fb982504e233ce2f26ef7"
+    },
+    {
+      "repeat": 1,
+      "task": "level4-006",
+      "status": "validation_failure",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "36904dd03fe0b586e9c9372f7fd83a56f99aa3983e4fb982504e233ce2f26ef7"
+    },
+    {
+      "repeat": 2,
+      "task": "level4-006",
+      "status": "validation_failure",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "36904dd03fe0b586e9c9372f7fd83a56f99aa3983e4fb982504e233ce2f26ef7"
+    },
+    {
+      "repeat": 2,
+      "task": "level2-004",
+      "status": "success",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "36904dd03fe0b586e9c9372f7fd83a56f99aa3983e4fb982504e233ce2f26ef7"
+    },
+    {
+      "repeat": 3,
+      "task": "level2-004",
+      "status": "success",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "36904dd03fe0b586e9c9372f7fd83a56f99aa3983e4fb982504e233ce2f26ef7"
+    },
+    {
+      "repeat": 3,
+      "task": "level4-006",
+      "status": "validation_failure",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "36904dd03fe0b586e9c9372f7fd83a56f99aa3983e4fb982504e233ce2f26ef7"
+    },
+    {
+      "repeat": 4,
+      "task": "level4-006",
+      "status": "validation_failure",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "36904dd03fe0b586e9c9372f7fd83a56f99aa3983e4fb982504e233ce2f26ef7"
+    },
+    {
+      "repeat": 4,
+      "task": "level2-004",
+      "status": "success",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "36904dd03fe0b586e9c9372f7fd83a56f99aa3983e4fb982504e233ce2f26ef7"
+    },
+    {
+      "repeat": 5,
+      "task": "level2-004",
+      "status": "success",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "36904dd03fe0b586e9c9372f7fd83a56f99aa3983e4fb982504e233ce2f26ef7"
+    },
+    {
+      "repeat": 5,
+      "task": "level4-006",
+      "status": "validation_failure",
+      "skill_after": {
+        "D:\\Projects\\Cpp\\temp\\ast-tool\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf",
+        "C:\\Users\\taku_\\.claude\\skills\\semantic-analysis\\SKILL.md": "96b07a6b89ae338f26d45fbfb31dd97d5b9c50efa39922103e8cb3e616807eaf"
+      },
+      "binary_after": "36904dd03fe0b586e9c9372f7fd83a56f99aa3983e4fb982504e233ce2f26ef7"
+    }
+  ],
+  "direct_replays": [
+    {
+      "task": "level2-004",
+      "command": "callers",
+      "target": "auth::AuthToken::validate",
+      "root": "evaluation/repositories/level2-auth",
+      "before_lines": [
+        "note: no callers found for: auth::AuthToken::validate",
+        "next: check references auth::AuthToken::validate"
+      ],
+      "expected_fragments": [
+        "auth::AuthService::login",
+        "web::AuthController::handleLogin",
+        "web::AuthController::handleRefresh",
+        "web::SessionController::handle"
+      ],
+      "actual_lines": [
+        "auth::AuthService::login evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:14:19",
+        "web::AuthController::handleLogin evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:13:17",
+        "web::AuthController::handleRefresh evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:26:17",
+        "web::SessionController::handle evaluation/repositories/level2-auth\\src\\web\\session_controller.cpp:12:17"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "stable_across_five": true,
+      "mean_elapsed_seconds": 0.029111,
+      "runs": [
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.032419,
+          "stdout_lines": [
+            "auth::AuthService::login evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:14:19",
+            "web::AuthController::handleLogin evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:13:17",
+            "web::AuthController::handleRefresh evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:26:17",
+            "web::SessionController::handle evaluation/repositories/level2-auth\\src\\web\\session_controller.cpp:12:17"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.027924,
+          "stdout_lines": [
+            "auth::AuthService::login evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:14:19",
+            "web::AuthController::handleLogin evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:13:17",
+            "web::AuthController::handleRefresh evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:26:17",
+            "web::SessionController::handle evaluation/repositories/level2-auth\\src\\web\\session_controller.cpp:12:17"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.027932,
+          "stdout_lines": [
+            "auth::AuthService::login evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:14:19",
+            "web::AuthController::handleLogin evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:13:17",
+            "web::AuthController::handleRefresh evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:26:17",
+            "web::SessionController::handle evaluation/repositories/level2-auth\\src\\web\\session_controller.cpp:12:17"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.029621,
+          "stdout_lines": [
+            "auth::AuthService::login evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:14:19",
+            "web::AuthController::handleLogin evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:13:17",
+            "web::AuthController::handleRefresh evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:26:17",
+            "web::SessionController::handle evaluation/repositories/level2-auth\\src\\web\\session_controller.cpp:12:17"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.027659,
+          "stdout_lines": [
+            "auth::AuthService::login evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:14:19",
+            "web::AuthController::handleLogin evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:13:17",
+            "web::AuthController::handleRefresh evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:26:17",
+            "web::SessionController::handle evaluation/repositories/level2-auth\\src\\web\\session_controller.cpp:12:17"
+          ],
+          "stderr_lines": []
+        }
+      ]
+    },
+    {
+      "task": "level2-004",
+      "command": "references",
+      "target": "auth::AuthToken::validate",
+      "root": "evaluation/repositories/level2-auth",
+      "before_lines": [
+        "note: no references found for: auth::AuthToken::validate"
+      ],
+      "expected_fragments": [
+        "auth_service.cpp:14:19",
+        "auth_controller.cpp:13:17",
+        "auth_controller.cpp:26:17",
+        "session_controller.cpp:12:17"
+      ],
+      "actual_lines": [
+        "evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:14:19",
+        "evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:13:17",
+        "evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:26:17",
+        "evaluation/repositories/level2-auth\\src\\web\\session_controller.cpp:12:17"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "stable_across_five": true,
+      "mean_elapsed_seconds": 0.0505964,
+      "runs": [
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.032124,
+          "stdout_lines": [
+            "evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:14:19",
+            "evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:13:17",
+            "evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:26:17",
+            "evaluation/repositories/level2-auth\\src\\web\\session_controller.cpp:12:17"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.028841,
+          "stdout_lines": [
+            "evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:14:19",
+            "evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:13:17",
+            "evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:26:17",
+            "evaluation/repositories/level2-auth\\src\\web\\session_controller.cpp:12:17"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.028536,
+          "stdout_lines": [
+            "evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:14:19",
+            "evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:13:17",
+            "evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:26:17",
+            "evaluation/repositories/level2-auth\\src\\web\\session_controller.cpp:12:17"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.136662,
+          "stdout_lines": [
+            "evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:14:19",
+            "evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:13:17",
+            "evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:26:17",
+            "evaluation/repositories/level2-auth\\src\\web\\session_controller.cpp:12:17"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.026819,
+          "stdout_lines": [
+            "evaluation/repositories/level2-auth\\src\\auth\\auth_service.cpp:14:19",
+            "evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:13:17",
+            "evaluation/repositories/level2-auth\\src\\web\\auth_controller.cpp:26:17",
+            "evaluation/repositories/level2-auth\\src\\web\\session_controller.cpp:12:17"
+          ],
+          "stderr_lines": []
+        }
+      ]
+    },
+    {
+      "task": "level4-006",
+      "command": "callers",
+      "target": "service::ValidationService::validate",
+      "root": "evaluation/repositories/level4-api",
+      "before_lines": [
+        "note: no callers found for: service::ValidationService::validate",
+        "next: check references service::ValidationService::validate"
+      ],
+      "expected_fragments": [
+        "processor::RequestProcessor::process"
+      ],
+      "actual_lines": [
+        "processor::RequestProcessor::process evaluation/repositories/level4-api\\src\\processor\\request_processor.cpp:13:21"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "stable_across_five": true,
+      "mean_elapsed_seconds": 0.0273268,
+      "runs": [
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.028356,
+          "stdout_lines": [
+            "processor::RequestProcessor::process evaluation/repositories/level4-api\\src\\processor\\request_processor.cpp:13:21"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.028512,
+          "stdout_lines": [
+            "processor::RequestProcessor::process evaluation/repositories/level4-api\\src\\processor\\request_processor.cpp:13:21"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.025568,
+          "stdout_lines": [
+            "processor::RequestProcessor::process evaluation/repositories/level4-api\\src\\processor\\request_processor.cpp:13:21"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.026797,
+          "stdout_lines": [
+            "processor::RequestProcessor::process evaluation/repositories/level4-api\\src\\processor\\request_processor.cpp:13:21"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.027401,
+          "stdout_lines": [
+            "processor::RequestProcessor::process evaluation/repositories/level4-api\\src\\processor\\request_processor.cpp:13:21"
+          ],
+          "stderr_lines": []
+        }
+      ]
+    },
+    {
+      "task": "level4-006",
+      "command": "references",
+      "target": "service::ValidationService::validate",
+      "root": "evaluation/repositories/level4-api",
+      "before_lines": [
+        "note: no references found for: service::ValidationService::validate"
+      ],
+      "expected_fragments": [
+        "request_processor.cpp:13:21"
+      ],
+      "actual_lines": [
+        "evaluation/repositories/level4-api\\src\\processor\\request_processor.cpp:13:21"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "stable_across_five": true,
+      "mean_elapsed_seconds": 0.0498646,
+      "runs": [
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.029003,
+          "stdout_lines": [
+            "evaluation/repositories/level4-api\\src\\processor\\request_processor.cpp:13:21"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.0289,
+          "stdout_lines": [
+            "evaluation/repositories/level4-api\\src\\processor\\request_processor.cpp:13:21"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.132882,
+          "stdout_lines": [
+            "evaluation/repositories/level4-api\\src\\processor\\request_processor.cpp:13:21"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.029539,
+          "stdout_lines": [
+            "evaluation/repositories/level4-api\\src\\processor\\request_processor.cpp:13:21"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.028999,
+          "stdout_lines": [
+            "evaluation/repositories/level4-api\\src\\processor\\request_processor.cpp:13:21"
+          ],
+          "stderr_lines": []
+        }
+      ]
+    }
+  ],
+  "fixture_measurements": [
+    {
+      "case": "typed-receiver-callers",
+      "command": "callers",
+      "target": "typed::Validator::validate",
+      "expected_fragments": [
+        "Session::fieldObject",
+        "Session::fieldPointer",
+        "typed::localObject",
+        "typed::referenceParameter",
+        "typed::pointerParameter"
+      ],
+      "forbidden_fragments": [
+        "unrelatedField"
+      ],
+      "actual_lines": [
+        "typed::Session::fieldObject test/ast-member-receiver/workspace\\typed_receivers.cpp:16:37",
+        "typed::Session::fieldPointer test/ast-member-receiver/workspace\\typed_receivers.cpp:17:43",
+        "typed::localObject test/ast-member-receiver/workspace\\typed_receivers.cpp:23:15",
+        "typed::pointerParameter test/ast-member-receiver/workspace\\typed_receivers.cpp:31:16",
+        "typed::referenceParameter test/ast-member-receiver/workspace\\typed_receivers.cpp:27:15"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    },
+    {
+      "case": "field-references",
+      "command": "references",
+      "target": "typed::Validator::validate",
+      "expected_fragments": [
+        "typed_receivers.cpp:16:37",
+        "typed_receivers.cpp:17:43",
+        "typed_receivers.cpp:23:15",
+        "typed_receivers.cpp:27:15",
+        "typed_receivers.cpp:31:16"
+      ],
+      "forbidden_fragments": [
+        "18:36"
+      ],
+      "actual_lines": [
+        "test/ast-member-receiver/workspace\\typed_receivers.cpp:16:37",
+        "test/ast-member-receiver/workspace\\typed_receivers.cpp:17:43",
+        "test/ast-member-receiver/workspace\\typed_receivers.cpp:23:15",
+        "test/ast-member-receiver/workspace\\typed_receivers.cpp:27:15",
+        "test/ast-member-receiver/workspace\\typed_receivers.cpp:31:16"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    },
+    {
+      "case": "field-callees",
+      "command": "callees",
+      "target": "typed::Session::fieldObject",
+      "expected_fragments": [
+        "typed::Validator::validate"
+      ],
+      "forbidden_fragments": [],
+      "actual_lines": [
+        "typed::Validator::validate test/ast-member-receiver/workspace\\typed_receivers.cpp:16:37"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    },
+    {
+      "case": "pointer-field-callees",
+      "command": "callees",
+      "target": "typed::Session::fieldPointer",
+      "expected_fragments": [
+        "typed::Validator::validate"
+      ],
+      "forbidden_fragments": [],
+      "actual_lines": [
+        "typed::Validator::validate test/ast-member-receiver/workspace\\typed_receivers.cpp:17:43"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    },
+    {
+      "case": "local-object-callees",
+      "command": "callees",
+      "target": "typed::localObject",
+      "expected_fragments": [
+        "typed::Validator::validate"
+      ],
+      "forbidden_fragments": [],
+      "actual_lines": [
+        "typed::Validator::validate test/ast-member-receiver/workspace\\typed_receivers.cpp:23:15"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    },
+    {
+      "case": "reference-parameter-callees",
+      "command": "callees",
+      "target": "typed::referenceParameter",
+      "expected_fragments": [
+        "typed::Validator::validate"
+      ],
+      "forbidden_fragments": [],
+      "actual_lines": [
+        "typed::Validator::validate test/ast-member-receiver/workspace\\typed_receivers.cpp:27:15"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    },
+    {
+      "case": "pointer-parameter-callees",
+      "command": "callees",
+      "target": "typed::pointerParameter",
+      "expected_fragments": [
+        "typed::Validator::validate"
+      ],
+      "forbidden_fragments": [],
+      "actual_lines": [
+        "typed::Validator::validate test/ast-member-receiver/workspace\\typed_receivers.cpp:31:16"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    },
+    {
+      "case": "unrelated-type",
+      "command": "callers",
+      "target": "typed::OtherValidator::validate",
+      "expected_fragments": [
+        "Session::unrelatedField"
+      ],
+      "forbidden_fragments": [
+        "fieldObject",
+        "fieldPointer"
+      ],
+      "actual_lines": [
+        "typed::Session::unrelatedField test/ast-member-receiver/workspace\\typed_receivers.cpp:18:36"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    },
+    {
+      "case": "namespace-left",
+      "command": "callers",
+      "target": "left::Validator::validate",
+      "expected_fragments": [
+        "NamespaceSession::callLeft"
+      ],
+      "forbidden_fragments": [
+        "callRight"
+      ],
+      "actual_lines": [
+        "NamespaceSession::callLeft test/ast-member-receiver/workspace\\typed_receivers.cpp:62:29"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    },
+    {
+      "case": "namespace-right",
+      "command": "callers",
+      "target": "right::Validator::validate",
+      "expected_fragments": [
+        "NamespaceSession::callRight"
+      ],
+      "forbidden_fragments": [
+        "callLeft"
+      ],
+      "actual_lines": [
+        "NamespaceSession::callRight test/ast-member-receiver/workspace\\typed_receivers.cpp:63:31"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    },
+    {
+      "case": "local-field-name-shadow-field",
+      "command": "callers",
+      "target": "shadow_guard::Validator::validate",
+      "expected_fragments": [
+        "Holder::fieldCall"
+      ],
+      "forbidden_fragments": [
+        "localWithFieldName"
+      ],
+      "actual_lines": [
+        "shadow_guard::Holder::fieldCall test/ast-member-receiver/workspace\\typed_receivers.cpp:72:33"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    },
+    {
+      "case": "local-field-name-shadow-local",
+      "command": "callers",
+      "target": "shadow_guard::OtherValidator::validate",
+      "expected_fragments": [
+        "localWithFieldName"
+      ],
+      "forbidden_fragments": [
+        "Holder::fieldCall"
+      ],
+      "actual_lines": [
+        "shadow_guard::localWithFieldName test/ast-member-receiver/workspace\\typed_receivers.cpp:77:14"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    },
+    {
+      "case": "sibling-scope-hidden",
+      "command": "callers",
+      "target": "scope_guard::Validator::validate",
+      "expected_fragments": [],
+      "forbidden_fragments": [
+        "scope_guard::siblingBlocks"
+      ],
+      "actual_lines": [],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    },
+    {
+      "case": "sibling-scope-visible",
+      "command": "callers",
+      "target": "scope_guard::OtherValidator::validate",
+      "expected_fragments": [
+        "scope_guard::siblingBlocks"
+      ],
+      "forbidden_fragments": [],
+      "actual_lines": [
+        "scope_guard::siblingBlocks test/ast-member-receiver/workspace\\typed_receivers.cpp:87:41"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    },
+    {
+      "case": "overload-fails-closed",
+      "command": "callers",
+      "target": "typed::Overloaded::validate",
+      "expected_fragments": [],
+      "forbidden_fragments": [
+        "ambiguousMember"
+      ],
+      "actual_lines": [],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    },
+    {
+      "case": "complex-receiver-fails-closed",
+      "command": "callees",
+      "target": "typed::unresolvedExpression",
+      "expected_fragments": [
+        "typed::makeValidator"
+      ],
+      "forbidden_fragments": [
+        "Validator::validate"
+      ],
+      "actual_lines": [
+        "typed::makeValidator test/ast-member-receiver/workspace\\typed_receivers.cpp:36:5"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "returncode": 0
+    }
+  ],
+  "existing_relationship_replays": [
+    {
+      "command": "callees",
+      "target": "scSource",
+      "expected_fragments": [
+        "scTarget"
+      ],
+      "actual_lines": [
+        "scTarget test/ast-callees/workspace\\basic.cpp:5:19"
+      ],
+      "missing": [],
+      "unexpected_count": 0,
+      "stable_across_five": true,
+      "runs": [
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.130616,
+          "stdout_lines": [
+            "scTarget test/ast-callees/workspace\\basic.cpp:5:19"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.024918,
+          "stdout_lines": [
+            "scTarget test/ast-callees/workspace\\basic.cpp:5:19"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.026825,
+          "stdout_lines": [
+            "scTarget test/ast-callees/workspace\\basic.cpp:5:19"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.025227,
+          "stdout_lines": [
+            "scTarget test/ast-callees/workspace\\basic.cpp:5:19"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.024208,
+          "stdout_lines": [
+            "scTarget test/ast-callees/workspace\\basic.cpp:5:19"
+          ],
+          "stderr_lines": []
+        }
+      ]
+    },
+    {
+      "command": "callees",
+      "target": "mcSource",
+      "expected_fragments": [
+        "mcAlpha",
+        "mcBeta"
+      ],
+      "actual_lines": [
+        "mcAlpha test/ast-callees/workspace\\basic.cpp:10:19",
+        "mcBeta test/ast-callees/workspace\\basic.cpp:10:30"
+      ],
+      "missing": [],
+      "unexpected_count": 0,
+      "stable_across_five": true,
+      "runs": [
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.129219,
+          "stdout_lines": [
+            "mcAlpha test/ast-callees/workspace\\basic.cpp:10:19",
+            "mcBeta test/ast-callees/workspace\\basic.cpp:10:30"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.024963,
+          "stdout_lines": [
+            "mcAlpha test/ast-callees/workspace\\basic.cpp:10:19",
+            "mcBeta test/ast-callees/workspace\\basic.cpp:10:30"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.030929,
+          "stdout_lines": [
+            "mcAlpha test/ast-callees/workspace\\basic.cpp:10:19",
+            "mcBeta test/ast-callees/workspace\\basic.cpp:10:30"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.132267,
+          "stdout_lines": [
+            "mcAlpha test/ast-callees/workspace\\basic.cpp:10:19",
+            "mcBeta test/ast-callees/workspace\\basic.cpp:10:30"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.025427,
+          "stdout_lines": [
+            "mcAlpha test/ast-callees/workspace\\basic.cpp:10:19",
+            "mcBeta test/ast-callees/workspace\\basic.cpp:10:30"
+          ],
+          "stderr_lines": []
+        }
+      ]
+    },
+    {
+      "command": "callees",
+      "target": "ncNestedSource",
+      "expected_fragments": [
+        "ncPrint",
+        "ncGet"
+      ],
+      "actual_lines": [
+        "ncPrint test/ast-callees/workspace\\basic.cpp:15:25",
+        "ncGet test/ast-callees/workspace\\basic.cpp:15:33"
+      ],
+      "missing": [],
+      "unexpected_count": 0,
+      "stable_across_five": true,
+      "runs": [
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.029318,
+          "stdout_lines": [
+            "ncPrint test/ast-callees/workspace\\basic.cpp:15:25",
+            "ncGet test/ast-callees/workspace\\basic.cpp:15:33"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.025039,
+          "stdout_lines": [
+            "ncPrint test/ast-callees/workspace\\basic.cpp:15:25",
+            "ncGet test/ast-callees/workspace\\basic.cpp:15:33"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.024424,
+          "stdout_lines": [
+            "ncPrint test/ast-callees/workspace\\basic.cpp:15:25",
+            "ncGet test/ast-callees/workspace\\basic.cpp:15:33"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.023861,
+          "stdout_lines": [
+            "ncPrint test/ast-callees/workspace\\basic.cpp:15:25",
+            "ncGet test/ast-callees/workspace\\basic.cpp:15:33"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.13981,
+          "stdout_lines": [
+            "ncPrint test/ast-callees/workspace\\basic.cpp:15:25",
+            "ncGet test/ast-callees/workspace\\basic.cpp:15:33"
+          ],
+          "stderr_lines": []
+        }
+      ]
+    },
+    {
+      "command": "callees",
+      "target": "ncTransitive",
+      "expected_fragments": [
+        "ncNestedSource"
+      ],
+      "actual_lines": [
+        "ncNestedSource test/ast-callees/workspace\\basic.cpp:20:23"
+      ],
+      "missing": [],
+      "unexpected_count": 0,
+      "stable_across_five": true,
+      "runs": [
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.02729,
+          "stdout_lines": [
+            "ncNestedSource test/ast-callees/workspace\\basic.cpp:20:23"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.127798,
+          "stdout_lines": [
+            "ncNestedSource test/ast-callees/workspace\\basic.cpp:20:23"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.024608,
+          "stdout_lines": [
+            "ncNestedSource test/ast-callees/workspace\\basic.cpp:20:23"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.025705,
+          "stdout_lines": [
+            "ncNestedSource test/ast-callees/workspace\\basic.cpp:20:23"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.024149,
+          "stdout_lines": [
+            "ncNestedSource test/ast-callees/workspace\\basic.cpp:20:23"
+          ],
+          "stderr_lines": []
+        }
+      ]
+    },
+    {
+      "command": "callees",
+      "target": "nsCeSource",
+      "expected_fragments": [
+        "NsCe::nsTarget"
+      ],
+      "actual_lines": [
+        "NsCe::nsTarget test/ast-callees/workspace\\ns_callee.cpp:5:27"
+      ],
+      "missing": [],
+      "unexpected_count": 0,
+      "stable_across_five": true,
+      "runs": [
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.031687,
+          "stdout_lines": [
+            "NsCe::nsTarget test/ast-callees/workspace\\ns_callee.cpp:5:27"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.025462,
+          "stdout_lines": [
+            "NsCe::nsTarget test/ast-callees/workspace\\ns_callee.cpp:5:27"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.023962,
+          "stdout_lines": [
+            "NsCe::nsTarget test/ast-callees/workspace\\ns_callee.cpp:5:27"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.025402,
+          "stdout_lines": [
+            "NsCe::nsTarget test/ast-callees/workspace\\ns_callee.cpp:5:27"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.025901,
+          "stdout_lines": [
+            "NsCe::nsTarget test/ast-callees/workspace\\ns_callee.cpp:5:27"
+          ],
+          "stderr_lines": []
+        }
+      ]
+    },
+    {
+      "command": "callers",
+      "target": "DdCalClass::ddCalMethod",
+      "expected_fragments": [
+        "ddCalCaller"
+      ],
+      "actual_lines": [
+        "ddCalCaller test/ast-callers/workspace\\decl_def_impl.cpp:11:9"
+      ],
+      "missing": [],
+      "unexpected_count": 0,
+      "stable_across_five": true,
+      "runs": [
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.028662,
+          "stdout_lines": [
+            "ddCalCaller test/ast-callers/workspace\\decl_def_impl.cpp:11:9"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.026858,
+          "stdout_lines": [
+            "ddCalCaller test/ast-callers/workspace\\decl_def_impl.cpp:11:9"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.024742,
+          "stdout_lines": [
+            "ddCalCaller test/ast-callers/workspace\\decl_def_impl.cpp:11:9"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.027902,
+          "stdout_lines": [
+            "ddCalCaller test/ast-callers/workspace\\decl_def_impl.cpp:11:9"
+          ],
+          "stderr_lines": []
+        },
+        {
+          "returncode": 0,
+          "elapsed_seconds": 0.033875,
+          "stdout_lines": [
+            "ddCalCaller test/ast-callers/workspace\\decl_def_impl.cpp:11:9"
+          ],
+          "stderr_lines": []
+        }
+      ]
+    }
+  ],
+  "level4_validator_defect": {
+    "validation_failures": 5,
+    "reason": "Committed ApiHandler declaration lacks processor_ and registry_ fields used by api_handler.cpp",
+    "intended_three_edits_observed_in_sessions": 5
+  }
+}

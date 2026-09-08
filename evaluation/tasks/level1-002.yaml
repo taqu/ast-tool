@@ -1,0 +1,27 @@
+id: level1-002
+
+repository: repositories/level1-store
+
+prompt: |
+  This is a C++ e-commerce project with an InventoryService class.
+
+  The `save` method on InventoryService is called from more than one place across the
+  codebase. Immediately before every call to that method — across all source files —
+  add the line:
+
+      std::cerr << "[log] inventory save\n";
+
+  Make sure every call site is covered, including those in different source files.
+
+evaluation:
+  category: multiple-call-sites
+  relevant_capabilities:
+    - references
+
+validation:
+  command: python validate_002.py
+
+expected_files:
+  - src/main.cpp
+
+timeout: 120

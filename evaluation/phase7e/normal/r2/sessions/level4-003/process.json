@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All 6 files updated. The diagnostics are a clang tooling false alarm (header files parsed as C instead of C++), not real errors.\n\nChanges made:\n- `PaymentGateway::charge` \u2014 header + `.cpp` updated with `descriptor` param\n- `PaymentService::authorize` \u2014 header + `.cpp` updated, forwarding `descriptor` to `gateway_.charge`\n- `OrderService::submit` \u2014 passes `\"user_checkout\"` to `authorize`\n- `AdminOrderService::submit` \u2014 passes `\"admin_bulk\"` to `authorize`\n- `BillingGateway::charge` and `PaymentService::refund`/`PaymentGateway::refund` left untouched\n",
+  "fresh_logs": 2
+}

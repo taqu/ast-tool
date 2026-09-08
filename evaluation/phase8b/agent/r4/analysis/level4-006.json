@@ -1,0 +1,58 @@
+{
+  "task_id": "level4-006",
+  "task_level": 4,
+  "agent": "claude",
+  "repository": "repositories/level4-api",
+  "success": false,
+  "validation_success": false,
+  "elapsed_seconds": 48.19,
+  "total_tool_calls": 10,
+  "tools": {
+    "Skill": 1,
+    "Bash": 2,
+    "Read": 3,
+    "Glob": 1,
+    "Edit": 3
+  },
+  "bash_calls": 2,
+  "read_calls": 3,
+  "edit_calls": 3,
+  "grep_calls": 0,
+  "glob_calls": 1,
+  "skill_calls": 1,
+  "ast_tool_calls": 2,
+  "ast_tool_successes": 2,
+  "ast_tool_failures": 0,
+  "ast_tool_retries": 0,
+  "ast_tool_help_calls": 0,
+  "ast_tool_json_calls": 0,
+  "ast_tool_pretty_json_calls": 0,
+  "ast_tool_commands": {
+    "search": 1,
+    "callers": 1
+  },
+  "ast_tool_failures_by_command": {},
+  "tool_sequence": [
+    "Skill",
+    "ast-tool:search",
+    "ast-tool:callers",
+    "Read",
+    "Read",
+    "Glob",
+    "Read",
+    "Edit",
+    "Edit",
+    "Edit"
+  ],
+  "ast_tool_sequence": [
+    "search",
+    "callers"
+  ],
+  "ast_tool_recovery_distances": [],
+  "average_ast_tool_recovery_distance": null,
+  "max_ast_tool_recovery_distance": null,
+  "consecutive_ast_tool_retries": 0,
+  "input_tokens": 23,
+  "output_tokens": 4236,
+  "total_tokens": 4259
+}

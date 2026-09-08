@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All three changes applied. The clang diagnostic is a tooling config issue (C vs C++ flag mismatch), not a code problem.\n\n**Summary:** Renamed `validate` \u2192 `validatePayload` in:\n- `src/service/validation_service.h:8` \u2014 declaration\n- `src/service/validation_service.cpp:6` \u2014 definition  \n- `src/processor/request_processor.cpp:13` \u2014 the one call site (`processor::RequestProcessor::process`)\n\n`store::DatabaseStore::validate` and `jobs::CronJob::validate` were not touched.\n",
+  "fresh_logs": 1
+}

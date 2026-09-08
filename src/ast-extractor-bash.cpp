@@ -1,0 +1,91 @@
+#include "ast-tool.h"
+#include "ast-extractor-langs.h"
+#include "ast-extractor-common.h"
+#include "ast-ir.h"
+#include <unordered_set>
+
+namespace ast
+{
+namespace extractor
+{
+namespace
+{
+    // Extract the function name from a function_definition node.
+    // The grammar produces: [optional "function" keyword] word body
+    std::u8string getFuncName(const ast::AST& tree, const ast::ASTNode& node)
+    {
+        for(uintptr_t id : node.children_) {
+            if(id == ast::InvalidId) continue;
+            const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
+            if(child.typeEquals(ASTNodeType::Word)) return child.getText();
+        }
+        return {};
+    }
+
+    // Extract the variable name from a variable_assignment node.
+    std::u8string getVarName(const ast::AST& tree, const ast::ASTNode& node)
+    {
+        for(uintptr_t id : node.children_) {
+            if(id == ast::InvalidId) continue;
+            const ast::ASTNode& child = tree[static_cast<uint32_t>(id)];
+            if(child.typeEquals(ASTNodeType::VariableName)) return child.getText();
+        }
+        return {};
+    }
+
+} // anonymous namespace
+
+std::vector<Symbol> extract_symbols_bash(const ast::AST& tree)
+{
+    std::vector<Symbol>             result;
+    std::unordered_set<std::u8string> seen;
+    std::vector<ScopeFrame>         scopeStack;
+
+    auto emit = [&](Symbol sym) {
+        char8_t buffer[BUFFER_SIZE];
+        std::u8string key = sym.fqn + u8":" + ast::to_string_intermediate(buffer, static_cast<int32_t>(sym.kind));
+        if(!sym.fqn.empty() && seen.insert(key).second)
+            result.push_back(std::move(sym));
+    };
+
+    for(uint32_t i = 0; i < tree.size(); ++i) {
+        const ast::ASTNode& node = tree[i];
+
+        while(!scopeStack.empty() && scopeStack.back().endByte <= node.startByte_)
+            scopeStack.pop_back();
+
+        // ── Function definition ──────────────────────────────────────────────
+        // Handles both `name() { }` and `function name { }` forms.
+        if(node.typeEquals(ASTNodeType::FunctionDefinition)) {
+            std::u8string name = getFuncName(tree, node);
+            if(!name.empty()) {
+                std::u8string fqn = buildFQN(scopeStack, name, u8"::");
+                emit(makeSymbol(name, fqn, SymbolKind::Function, Access::Unknown,
+                               i, node.start_.row_, node.start_.column_));
+                scopeStack.push_back({name, SymbolKind::Function, node.endByte_,
+                                      Access::Unknown, false});
+            }
+            continue;
+        }
+
+        // ── Variable assignment at file/global scope ─────────────────────────
+        // Covers both plain `VAR=value` and variables inside `export`/`readonly`/
+        // `declare` commands, since their variable_assignment children appear
+        // in the DFS traversal at this point as well. Local variables inside
+        // functions are suppressed by the insideFunctionScope guard.
+        if(node.typeEquals(ASTNodeType::VariableAssignment) && !insideFunctionScope(scopeStack)) {
+            std::u8string name = getVarName(tree, node);
+            if(!name.empty()) {
+                std::u8string fqn = buildFQN(scopeStack, name, u8"::");
+                emit(makeSymbol(name, fqn, SymbolKind::Variable, Access::Unknown,
+                               i, node.start_.row_, node.start_.column_));
+            }
+            continue;
+        }
+    }
+
+    return result;
+}
+
+} // namespace extractor
+} // namespace ast

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All 6 files updated. `BillingGateway::charge` and `PaymentGateway::refund` are untouched. The diagnostic warnings about `-std=c++17` are a clang/C language-mode false alarm from the IDE, not a code issue.\n",
+  "fresh_logs": 2
+}

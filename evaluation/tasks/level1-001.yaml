@@ -1,0 +1,28 @@
+id: level1-001
+
+repository: repositories/level1-store
+
+prompt: |
+  This is a C++ e-commerce project with an InventoryService class.
+
+  The inventory service has a method called `update` that modifies existing product records.
+  Find the implementation of this method and add the following diagnostic line at the very
+  start of its body:
+
+      std::cerr << "[InventoryService] update\n";
+
+  Ensure the line appears before any other logic in the method body.
+
+evaluation:
+  category: multi-file
+  relevant_capabilities:
+    - find
+    - symbols
+
+validation:
+  command: python validate_001.py
+
+expected_files:
+  - src/service/inventory_service.cpp
+
+timeout: 120

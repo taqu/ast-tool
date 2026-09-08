@@ -1,0 +1,20 @@
+{
+  "evaluation_date": "2026-09-08",
+  "revision": "11cccd08e0599f46d805e4a0293a1d37f233be4d",
+  "agent": "claude",
+  "runs_per_task": 5,
+  "tasks": [
+    "level4-003",
+    "level2-008",
+    "level1-001",
+    "level4-004"
+  ],
+  "candidate_skill_sha256": "3863d939f93f64696feece9db29b5e497cc13d44ffad55ec7abbb1170990eb04",
+  "candidate_change": [
+    "all callers of",
+    "call sites of",
+    "every call to"
+  ],
+  "result": "REJECT",
+  "reason": "level4-003 remained at 0/5 semantic-analysis invocations"
+}

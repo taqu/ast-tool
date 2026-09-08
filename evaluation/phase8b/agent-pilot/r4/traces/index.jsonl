@@ -1,0 +1,2 @@
+{"task_id": "level4-006", "trace_file": "level4-006.jsonl", "success": false, "tool_calls": 10, "ast_tool_calls": 3}
+{"task_id": "level2-004", "trace_file": "level2-004.jsonl", "success": true, "tool_calls": 10, "ast_tool_calls": 2}

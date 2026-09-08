@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All three changes applied. The clang diagnostic is a tooling misconfiguration (passing `-std=c++17` to a C-mode checker), not a code error \u2014 unrelated to this refactor.\n\n**Summary:** Renamed `validate` \u2192 `validatePayload` in:\n- `src/service/validation_service.h:8` (declaration)\n- `src/service/validation_service.cpp:6` (definition)\n- `src/processor/request_processor.cpp:13` (the one caller, `RequestProcessor::process`)\n\n`store::DatabaseStore::validate` and `jobs::CronJob::validate` were not touched.\n",
+  "fresh_logs": 1
+}

@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "All three changes made:\n\n- `src/service/validation_service.h:8` \u2014 declaration renamed to `validatePayload`\n- `src/service/validation_service.cpp:6` \u2014 definition renamed to `validatePayload`\n- `src/processor/request_processor.cpp:13` \u2014 call site updated to `validatePayload`\n\n`store::DatabaseStore::validate` and `jobs::CronJob::validate` are untouched.\n",
+  "fresh_logs": 1
+}

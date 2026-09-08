@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stderr": "",
+  "stdout": "Done. `src/main.cpp` now has `#include <iostream>` at the top and `std::cout << \"Calling greet\" << std::endl;` immediately before each of the two `greet()` calls (lines 4 and 5, found via `ast-tool find`).\n",
+  "fresh_logs": 1
+}
