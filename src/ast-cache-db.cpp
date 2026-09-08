@@ -32,8 +32,9 @@ ASTCacheDatabase& ASTCacheDatabase::operator=(ASTCacheDatabase&& other) noexcept
 bool ASTCacheDatabase::open(const std::filesystem::path& dbPath)
 {
     close();
-    std::string path = dbPath.string();
-    int rc = sqlite3_open(path.c_str(), &db_);
+    std::u8string u8path = dbPath.u8string();
+    const char* path = reinterpret_cast<const char*>(u8path.c_str());
+    int rc = sqlite3_open(path, &db_);
     if(rc != SQLITE_OK) {
         sqlite3_close(db_);
         db_ = nullptr;
@@ -49,8 +50,9 @@ bool ASTCacheDatabase::open(const std::filesystem::path& dbPath)
 bool ASTCacheDatabase::open_readonly(const std::filesystem::path& dbPath)
 {
     close();
-    std::string path = dbPath.string();
-    int rc = sqlite3_open_v2(path.c_str(), &db_,
+    std::u8string u8path = dbPath.u8string();
+    const char* path = reinterpret_cast<const char*>(u8path.c_str());
+    int rc = sqlite3_open_v2(path, &db_,
                              SQLITE_OPEN_READONLY | SQLITE_OPEN_NOMUTEX, nullptr);
     if(rc != SQLITE_OK) {
         sqlite3_close(db_);

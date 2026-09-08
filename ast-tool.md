@@ -1,29 +1,38 @@
-# Phase 11 — Release Freeze / Baseline Lock
+# Phase 12 — Release Quality / Compatibility
 
 ## Objective
 
-Phase 11 transitions the project from capability development into release preparation.
+Phase 12 validates that the frozen release baseline is stable, installable, predictable, and usable across the supported release environments.
 
-The purpose of this phase is to:
+This phase is about:
 
 ```text
-freeze the accepted implementation baseline
-define the release scope
-separate release blockers from known limitations
-prevent further feature drift before release qualification
+correctness
+stability
+compatibility
+failure behavior
+installation
+CLI contract
+cross-platform reliability
 ```
 
-This is **not** a semantic capability improvement phase.
+This phase is **not** about adding semantic capability, improving routing, optimizing agent behavior, or redesigning the CLI.
 
-Do not introduce new semantic behavior, new commands, new routing strategies, or speculative optimizations unless they are required to resolve a confirmed release blocker.
+The goal is to answer:
 
-The primary outcome of Phase 11 is a clearly defined and reproducible release baseline.
+```text
+Can the frozen baseline be safely distributed to users?
+```
 
 ---
 
-# Release Baseline
+# Baseline
 
-The release baseline is:
+Use the Phase 11 frozen baseline.
+
+Do not change the semantic baseline except to fix a confirmed release defect.
+
+The expected baseline remains:
 
 ```text
 Phase 7d Skill
@@ -38,613 +47,1003 @@ Phase 8c
     callable declaration/definition body identity
 ```
 
-Phase 10 routing experiments are **not** part of the release baseline.
+Phase 10 routing experiments remain excluded.
 
-In particular:
-
-```text
-Phase 10 Candidate 1
-    trigger vocabulary addition
-    → REJECTED
-    → REVERTED
-```
-
-Do not reintroduce rejected Phase 10 changes.
-
----
-
-# Phase 10 Final Status
-
-Record Phase 10 as:
+Before beginning Phase 12, record:
 
 ```text
-Phase 10
-Semantic Routing Opportunity / Trigger Reliability
-
-Status:
-COMPLETE
-
-Final result:
-NO SAFE ROUTING IMPROVEMENT FOUND
+baseline commit
+branch
+target release version
+working tree state
+known release blockers from Phase 11
 ```
 
-The baseline routing behavior should therefore remain unchanged for the release.
-
-The key conclusion is:
-
-```text
-Semantic routing is already reliable for the task shapes
-where semantic capability has demonstrated the strongest value.
-
-Remaining missed opportunities are sparse boundary cases,
-and no safe routing improvement was demonstrated.
-```
-
-Do not continue routing experimentation during release preparation.
+If the baseline changes during Phase 12 because of a release fix, record the new commit and the reason.
 
 ---
 
 # Feature Freeze
 
-After Phase 11 begins, apply a feature freeze.
+The Phase 11 feature freeze remains active.
 
 Do not add:
 
 ```text
-new AST commands
-new semantic commands
-new relationship semantics
-new receiver inference
-new resolution strategies
-new routing heuristics
-new Skill trigger strategies
-new agent-specific optimization behavior
-new output modes
-```
-
-unless a release-blocking defect requires a narrowly scoped change.
-
-The default decision for non-critical enhancement ideas is:
-
-```text
-DEFER TO POST-RELEASE
-```
-
----
-
-# Release Scope
-
-Define exactly what the first release promises.
-
-The release should include only capabilities that are already implemented, tested, and understood.
-
-Document the supported command surface and semantic behavior.
-
-At minimum, identify:
-
-```text
-supported commands
-supported languages
-supported relationship queries
-supported symbol resolution behavior
-supported JSON / machine-readable output
-supported repository/workspace behavior
-supported operating systems
-```
-
-Do not expand support claims based on theoretical capability.
-
-Only document behavior demonstrated by the current implementation and tests.
-
----
-
-# Known Limitations
-
-Create a release-facing known limitations list.
-
-Known limitations are not automatically release blockers.
-
-Current examples include:
-
-```text
-advanced receiver/type inference
-
-auto / decltype-based receiver inference
-
-complex receiver expressions
-
-template-heavy resolution
-
-inheritance-aware relationship resolution
-
-virtual dispatch
-
-overload-sensitive relationship resolution
-
-explicit this-> receiver handling
-
-callee-side residual declaration/definition identity gaps
-
-ambiguous or unsupported language-specific semantic cases
-```
-
-Verify the exact current behavior before publishing each limitation.
-
-Do not attempt to fix these merely because they are known.
-
-A limitation should block release only if it violates the release's documented contract or causes unacceptable correctness or stability problems in ordinary supported use.
-
----
-
-# Rejected and Deferred Work
-
-Create a concise record of important rejected or deferred work.
-
-This should include at least:
-
-```text
-Phase 6
-    Agent-facing command surface
-    REJECTED
-
-Phase 10 Candidate 1
-    Trigger vocabulary addition
-    REJECTED
-
-Stable semantic symbol ID
-    DEFERRED
-
-Additional semantic capability extensions
-    DEFERRED
-
-Further semantic routing optimization
-    DEFERRED
-```
-
-The purpose is to prevent future release work from accidentally reopening already-settled experiments.
-
-Do not delete historical evaluation data.
-
----
-
-# Release Blocker Definition
-
-A release blocker is a defect that makes the current supported release unsafe, unreliable, unusable, or materially misleading.
-
-Examples include:
-
-```text
-crash or panic during normal supported use
-
-repository corruption
-
-incorrect file modification
-
-incorrect exit status
-
-malformed or unstable machine-readable output
-
-installation failure
-
-startup failure
-
-critical cross-platform failure
-
-common valid input producing clearly incorrect semantic results
-
-nondeterministic behavior that violates the documented CLI contract
-
-missing required release files
-
-license or distribution problems
-```
-
-Do not classify every known semantic limitation as a release blocker.
-
----
-
-# Non-Blocker Definition
-
-Examples of issues that normally should not block the release:
-
-```text
-unsupported advanced C++ semantics
-
-edge-case receiver forms
-
-unsupported templates or virtual dispatch
-
-minor efficiency differences
-
-marginal semantic-routing false negatives
-
-extra Read/Grep calls when correctness remains intact
-
-feature requests
-
 new commands
-
-additional output convenience
-
-rare unsupported source constructs
+new semantic behavior
+new routing logic
+new language support
+new inference logic
+new output modes
+new agent optimization
+new convenience features
 ```
 
-Record these as limitations or backlog items instead.
-
----
-
-# Release Baseline Verification
-
-Before declaring the baseline frozen, verify that the repository is in the intended state.
-
-Perform:
+A code change is allowed only if it addresses:
 
 ```text
-1. build from a clean checkout
-
-2. run the complete existing test suite
-
-3. verify no rejected Phase 10 changes remain
-
-4. verify Phase 8a behavior remains present
-
-5. verify Phase 8b behavior remains present
-
-6. verify Phase 8c behavior remains present
-
-7. verify the accepted Phase 7d Skill is present
-
-8. verify no accidental experimental files affect runtime behavior
-
-9. verify working tree cleanliness after tests
-
-10. record the exact commit used as the frozen baseline
+release correctness
+stability
+compatibility
+installation
+packaging prerequisites
+documented CLI contract
+confirmed release blocker
 ```
 
-Do not modify semantics merely to make this verification cleaner.
+If an issue can reasonably be documented as a known limitation, prefer documentation over expanding scope.
 
 ---
 
-# Regression Gate
+# Phase 12a — Clean Build Verification
 
-Run the normal regression suite against the frozen candidate.
+Verify that the project builds successfully from a clean environment.
 
-The purpose is not to optimize metrics.
+Do not rely on artifacts from previous development builds.
 
-The purpose is to detect accidental regression.
+Test at minimum:
 
-Record at least:
+```text
+fresh repository checkout
+
+dependency/bootstrap procedure
+
+clean build
+
+test build
+
+release build if distinct
+
+binary execution after build
+```
+
+Record:
+
+```text
+platform
+compiler/toolchain version
+build command
+result
+warnings
+produced artifact
+artifact size
+```
+
+Warnings should be reviewed, but warnings alone are not release blockers unless they indicate correctness, compatibility, or packaging risk.
+
+---
+
+# Phase 12b — Full Regression Suite
+
+Run the complete existing automated test suite against the frozen baseline.
+
+Record:
 
 ```text
 total tests
 passed
 failed
-success rate
-
-AST failures
-AST retries
-
-unexpected crashes
-unexpected output changes
+skipped
+expected failures
+unexpected failures
+elapsed time
 ```
 
-Where existing agent-level evaluation can be run cheaply, use it as a smoke/regression check.
+Classify every unexpected failure.
 
-Do not require historical token or latency metrics to improve.
+Do not casually modify tests to make the baseline pass.
 
-Release readiness is based on stability, not optimization.
+For each failure, determine whether it is:
+
+```text
+product defect
+platform defect
+test defect
+environment issue
+known limitation
+flaky test
+```
+
+A failing test may only be excluded from the release gate if the reason is understood and documented.
 
 ---
 
-# CLI Contract Inventory
+# Phase 12c — Core Semantic Smoke Tests
 
-Create an inventory of the externally visible CLI contract.
+Run a compact set of release-level semantic smoke tests covering the accepted Phase 8 capabilities.
 
-For every public command, record:
+At minimum verify:
+
+## Phase 8a
 
 ```text
-command name
-arguments
-required arguments
-optional arguments
-exit behavior
-stdout behavior
-stderr behavior
-JSON behavior
-common failure modes
+exact FQN lookup
+
+unique FQN suffix fallback
+
+ambiguity remains ambiguous
+
+not-found remains not-found
 ```
 
-Identify any behavior that is currently unstable or undocumented.
+## Phase 8b
 
-Do not redesign the CLI in Phase 11 unless there is a clear release-blocking problem.
+Verify representative member relationship resolution for:
 
-CLI polish belongs to the later release-preparation phase.
+```text
+object field
+pointer field
+local object
+local pointer
+reference parameter
+pointer parameter
+```
+
+Also verify the false-positive guard:
+
+```text
+same member name
+on unrelated types
+→ must not cross-link
+```
+
+## Phase 8c
+
+Verify:
+
+```text
+free-function declaration → definition body
+
+class method declaration → out-of-line definition
+
+namespaced out-of-line definition
+
+inline method
+```
+
+The purpose is not to re-evaluate Phase 8 performance.
+
+The purpose is to detect release-time regression.
 
 ---
 
-# Versioning Decision
+# Phase 12d — CLI Contract Validation
 
-Choose the intended initial release version.
+Validate every public CLI command recorded during Phase 11.
 
-Prefer a pre-1.0 version unless the project already has a stronger compatibility commitment.
-
-For example:
+For each command, verify:
 
 ```text
-v0.1.0
+valid invocation
+
+required argument handling
+
+optional argument handling
+
+help behavior
+
+normal stdout
+
+normal stderr
+
+exit code
+
+JSON output if supported
+
+invalid argument behavior
+
+not-found behavior
+
+ambiguous-result behavior
 ```
 
-or an appropriate existing project version.
+The CLI should behave consistently and predictably.
+
+Do not redesign the command surface during this phase.
+
+If a CLI inconsistency is non-critical and changing it would introduce compatibility risk, document it for later instead.
+
+---
+
+# Exit Code Validation
+
+Explicitly test exit status behavior.
+
+Verify at minimum:
+
+```text
+successful operation
+    → success exit code
+
+invalid command-line arguments
+    → non-zero
+
+missing repository / invalid path
+    → non-zero
+
+unsupported or invalid operation
+    → non-zero where appropriate
+
+internal fatal failure
+    → non-zero
+```
+
+Do not require every semantic no-result case to be an error unless that is already the documented CLI contract.
+
+Record the current contract rather than inventing a new one.
+
+---
+
+# stdout / stderr Validation
+
+Check that machine-readable and human-readable output are not accidentally mixed.
+
+Verify:
+
+```text
+normal command result
+diagnostics
+warnings
+errors
+JSON mode
+```
+
+For JSON output in particular:
+
+```text
+stdout must remain parseable
+diagnostics must not corrupt JSON
+error behavior must be deterministic
+```
+
+If diagnostics currently appear on stdout and would break machine consumption, treat this as a release-quality issue.
+
+---
+
+# Phase 12e — JSON Stability
+
+For every command with JSON output:
+
+```text
+parse output with a real JSON parser
+```
+
+Do not validate JSON by visual inspection alone.
+
+Check:
+
+```text
+valid JSON syntax
+stable top-level type
+expected required fields
+empty-result representation
+error representation
+escaping
+Unicode content
+paths containing spaces
+```
+
+Where practical, add automated contract tests for JSON output that is intended for external consumers.
+
+Avoid unnecessary schema redesign.
+
+The goal is to prevent accidental malformed or structurally inconsistent output.
+
+---
+
+# Phase 12f — Path and Repository Handling
+
+Test repository and file-path behavior explicitly.
+
+Include:
+
+```text
+absolute paths
+relative paths
+repository root
+nested working directory
+paths containing spaces
+paths containing non-ASCII characters
+missing paths
+file path supplied where directory expected
+directory path supplied where file expected
+```
+
+Also verify repository-root discovery if supported.
+
+Do not assume Unix-style paths.
+
+---
+
+# Phase 12g — Windows Compatibility
+
+The previously observed Windows path quoting issue must be explicitly investigated during release qualification.
+
+Test the actual release CLI on Windows, or the closest supported Windows CI/runtime environment.
+
+Include paths containing:
+
+```text
+spaces
+parentheses
+non-ASCII characters
+nested directories
+```
+
+Test both:
+
+```text
+direct invocation
+
+invocation through the expected shell / agent execution path
+```
+
+Determine whether the historical quoting failures originate from:
+
+```text
+ast-tool itself
+shell invocation
+test harness
+agent-generated command syntax
+```
+
+Do not modify ast-tool to compensate for a harness-only problem unless the real public CLI is affected.
+
+Classify the result as:
+
+```text
+FIXED / NO PRODUCT DEFECT
+
+RELEASE BLOCKER
+
+KNOWN ENVIRONMENT LIMITATION
+```
+
+with evidence.
+
+---
+
+# Phase 12h — Cross-Platform Verification
+
+Test every platform intended to be claimed as supported.
+
+Prefer a matrix such as:
+
+```text
+Linux
+macOS
+Windows
+```
+
+but only include platforms the project actually intends to support.
+
+For each platform verify:
+
+```text
+build
+tests
+basic command invocation
+repository detection
+path handling
+JSON output
+exit codes
+```
+
+If a platform cannot be tested, do not silently claim it as fully supported.
+
+Classify it appropriately, for example:
+
+```text
+tested
+best-effort
+unsupported
+```
+
+---
+
+# Phase 12i — Installation Verification
+
+Test installation from the user-facing installation method, not only from the development tree.
+
+Examples may include:
+
+```text
+building from source
+install script
+package manager
+downloaded binary
+```
+
+depending on what currently exists.
+
+At minimum verify:
+
+```text
+installation succeeds
+
+binary can be located and executed
+
+--help works
+
+version command works if supported
+
+basic semantic command works
+
+uninstallation or removal procedure is understood
+```
+
+Do not build a new packaging ecosystem in Phase 12.
+
+Packaging work that does not yet exist belongs to the packaging/distribution phase.
+
+For Phase 12, verify the installation paths that already exist or are required for the release candidate.
+
+---
+
+# Phase 12j — Clean Environment Smoke Test
+
+Use an environment that does not contain the development repository's cached build state.
+
+Perform a minimal user journey:
+
+```text
+obtain project / binary
+
+install or build according to documentation
+
+run --help
+
+run version command if available
+
+analyze a small repository
+
+perform search
+
+perform callers or references query
+
+run JSON output
+
+handle one expected error
+```
+
+The test should expose assumptions that only work in the developer environment.
+
+---
+
+# Phase 12k — Failure Behavior
+
+Test malformed, incomplete, and unsupported inputs.
+
+Examples:
+
+```text
+empty repository
+
+repository with no supported source files
+
+nonexistent repository
+
+permission-denied path where practical
+
+malformed source file
+
+partially parseable source
+
+unsupported language file
+
+unknown symbol
+
+ambiguous symbol
+
+invalid command
+
+missing command argument
+
+invalid JSON/output flag combination
+```
+
+Expected behavior is:
+
+```text
+no crash
+
+no panic
+
+no repository modification
+
+clear failure or empty-result behavior
+
+appropriate exit code
+
+machine-readable output remains valid where promised
+```
+
+Do not require semantic success for unsupported inputs.
+
+Require graceful behavior.
+
+---
+
+# Phase 12l — Crash / Panic Audit
+
+Search test logs and manual runs for:
+
+```text
+panic
+fatal
+assertion failure
+uncaught exception
+segmentation fault
+stack trace
+```
+
+Any crash reachable through ordinary supported CLI input should be treated as a release blocker unless there is a strong documented reason otherwise.
+
+For every crash:
+
+```text
+capture reproduction
+
+minimize input if practical
+
+identify root cause
+
+add regression coverage
+
+fix narrowly
+
+rerun relevant release tests
+```
+
+Avoid opportunistic refactoring while fixing crashes.
+
+---
+
+# Phase 12m — Repository Safety
+
+Verify that analysis commands do not unexpectedly modify user repositories.
+
+Run representative commands and check:
+
+```text
+git status before
+
+execute ast-tool commands
+
+git status after
+```
+
+Normal read/analysis commands must not:
+
+```text
+rewrite source files
+
+generate persistent files inside the repository unexpectedly
+
+change permissions unexpectedly
+
+modify project configuration
+```
+
+If caches or indexes are created, their location and lifecycle must be intentional and documented.
+
+Unexpected repository modification is a release blocker.
+
+---
+
+# Phase 12n — Concurrency / Repeated Invocation Smoke Test
+
+If the tool may reasonably be invoked repeatedly by agents or IDE integrations, run a lightweight repeated-use test.
+
+Examples:
+
+```text
+same command repeated many times
+
+different semantic commands in sequence
+
+multiple repositories sequentially
+
+parallel invocation if explicitly supported
+```
+
+Look for:
+
+```text
+state leakage
+
+stale repository state
+
+temporary-file collisions
+
+crashes
+
+corrupted output
+
+significant resource growth
+```
+
+Do not introduce concurrency support if it does not already exist.
+
+Only test concurrency if the CLI contract or expected integrations permit it.
+
+---
+
+# Phase 12o — Performance Sanity Check
+
+This is not a performance optimization phase.
+
+Record only enough performance data to detect severe regression.
+
+Use a small representative set and capture:
+
+```text
+startup latency
+simple search latency
+relationship-query latency
+peak or approximate memory usage if easily available
+binary size
+```
+
+Compare with recent accepted behavior where useful.
+
+Do not reject the release because a metric is slightly worse.
+
+Investigate only large unexplained regressions.
+
+---
+
+# Phase 12p — Dependency and Runtime Audit
+
+Identify runtime dependencies required by the release.
 
 Record:
 
 ```text
-release version
-version source of truth
-how the CLI reports the version
-tag format
-release branch policy
+runtime libraries
+external executables
+language runtimes
+parser/runtime assets
+configuration files
+environment variables
 ```
 
-Do not implement a complex versioning system if the project does not need one.
+Verify that missing required dependencies fail clearly.
+
+Avoid dependency upgrades unless required for:
+
+```text
+security
+build compatibility
+release correctness
+distribution
+```
+
+Do not perform routine version churn during freeze.
 
 ---
 
-# Branch and Change Policy
+# Phase 12q — Release Blocker Triage
 
-Define the release preparation policy.
-
-Recommended model:
-
-```text
-main / development branch
-    normal future development after release branch is cut
-
-release branch
-    release-blocking fixes only
-```
-
-If the project does not need a separate release branch, document that explicitly.
-
-After freeze, every code change intended for the release should satisfy:
-
-```text
-Is this required for release correctness,
-stability, compatibility, packaging, documentation,
-or distribution?
-```
-
-If the answer is no:
-
-```text
-defer it
-```
-
----
-
-# Artifact Inventory
-
-Identify all files required for release.
-
-At minimum check for:
-
-```text
-README
-LICENSE
-CHANGELOG or release notes source
-installation instructions
-usage documentation
-supported-platform information
-known limitations
-version information
-CI configuration
-release workflow if applicable
-third-party license notices if required
-```
-
-Phase 11 only inventories these items.
-
-Missing documentation or packaging can be completed in later release phases unless it blocks establishing the baseline.
-
----
-
-# Issue Classification
-
-Review known open issues and classify each as one of:
+Every issue discovered during Phase 12 must be classified as:
 
 ```text
 RELEASE BLOCKER
+
 RELEASE FIX
+
 KNOWN LIMITATION
+
 POST-RELEASE IMPROVEMENT
-REJECTED / NOT PLANNED
+
+TEST / HARNESS ISSUE
 ```
 
-For every release blocker, record:
+Use the Phase 11 blocker definition.
+
+A release blocker generally includes:
 
 ```text
-issue
-impact
-reproduction
-affected platform / command
-required fix
-verification method
+crash in supported normal use
+
+incorrect destructive behavior
+
+broken installation
+
+broken supported platform
+
+invalid machine-readable output
+
+incorrect exit behavior that breaks automation
+
+common semantic correctness failure within documented support
+
+major CLI contract violation
 ```
 
-Avoid vague blocker labels.
+A marginal efficiency problem is not a release blocker.
 
 ---
 
-# No Opportunistic Cleanup
+# Fix Policy
 
-Do not perform unrelated cleanup during Phase 11.
-
-Avoid:
+For confirmed release defects:
 
 ```text
-large refactors
+make the smallest reasonable fix
 
-naming cleanup
+add or update regression coverage
 
-architecture cleanup
+rerun the directly affected tests
 
-dependency upgrades without release need
+rerun the relevant platform/CLI gate
 
-format-only repository-wide changes
-
-test rewrites
-
-performance tuning
-
-new abstractions
-
-semantic simplification
+run the full suite before closing Phase 12
 ```
 
-These changes increase release risk without helping establish the frozen baseline.
+Do not bundle unrelated fixes.
+
+Every release fix should have a clear mapping:
+
+```text
+observed defect
+→ minimal change
+→ verification
+```
+
+If fixing an issue requires substantial semantic redesign, reconsider whether the behavior should instead be documented as unsupported for this release.
+
+---
+
+# Final Regression Run
+
+After all accepted release fixes are complete, perform a final clean verification.
+
+At minimum:
+
+```text
+clean build
+
+full test suite
+
+core semantic smoke suite
+
+CLI contract smoke suite
+
+JSON validation
+
+failure-behavior smoke suite
+
+supported-platform smoke tests
+
+repository-safety check
+```
+
+Record the final commit.
+
+The final result must correspond to an identifiable source revision.
 
 ---
 
 # Expected Deliverables
 
-Produce the following.
+## 1. Environment Matrix
 
-## 1. Frozen Baseline Record
+Produce a table containing:
+
+```text
+OS
+version
+architecture
+compiler/toolchain
+build result
+test result
+CLI smoke result
+status
+```
+
+---
+
+## 2. Regression Report
 
 Include:
 
 ```text
-commit hash
+tests run
+passed
+failed
+skipped
+known failures
+unexpected failures
+```
+
+---
+
+## 3. CLI Compatibility Report
+
+Cover:
+
+```text
+public commands
+exit codes
+stdout/stderr
+JSON
+invalid input behavior
+path behavior
+```
+
+---
+
+## 4. Failure-Behavior Report
+
+Record representative cases and whether each produced:
+
+```text
+expected result
+clean error
+unexpected failure
+crash
+```
+
+---
+
+## 5. Release Issue List
+
+Use a table such as:
+
+```text
+Issue
+Category
+Platform
+Severity
+Release blocker?
+Resolution
+Verification
+```
+
+---
+
+## 6. Final Frozen Commit
+
+Record:
+
+```text
 branch
-version target
-Phase 7d Skill status
-Phase 8a status
-Phase 8b status
-Phase 8c status
-Phase 10 changes excluded
-working tree state
+commit hash
+target version
+working tree status
 ```
 
 ---
 
-## 2. Release Scope
-
-Document:
-
-```text
-supported languages
-supported commands
-supported semantic capabilities
-supported platforms
-supported output modes
-```
-
-Only claim verified support.
-
----
-
-## 3. Known Limitations
-
-Create a concise list suitable for later inclusion in release documentation.
-
-Separate:
-
-```text
-intentional unsupported behavior
-known edge cases
-known low-priority defects
-```
-
----
-
-## 4. Release Blocker List
-
-Produce a table such as:
-
-```text
-Issue | Severity | Blocker? | Required before release? | Verification
-```
-
-If no blockers are found, explicitly state:
-
-```text
-No confirmed release blockers found during Phase 11.
-```
-
----
-
-## 5. Deferred / Rejected Work Record
-
-Include major historical decisions so that release preparation does not reopen them.
-
----
-
-## 6. Release Readiness Summary
+## 7. Phase 12 Final Recommendation
 
 End with one of:
 
 ```text
-BASELINE LOCKED — READY FOR RELEASE QUALIFICATION
+PASS — READY FOR CLI / UX RELEASE POLISH
 
-BASELINE LOCKED WITH RELEASE BLOCKERS
+PASS WITH KNOWN LIMITATIONS
 
-BASELINE NOT SAFE TO FREEZE
+BLOCKED — RELEASE FIXES REQUIRED
 ```
 
-If blockers exist, do not broaden the scope.
-
-Resolve only those blockers in the following release-quality phase.
+Do not declare PASS while confirmed release blockers remain unresolved.
 
 ---
 
 # Acceptance Criteria
 
-Phase 11 is complete when:
+Phase 12 is complete when:
 
 ```text
-1. the exact release baseline is identified
+1. clean builds succeed on every claimed supported environment
 
-2. rejected Phase 10 changes are absent
+2. the full test suite has no unexplained release-critical failures
 
-3. all existing tests pass at the expected baseline level,
-   or every failure is understood and classified
+3. accepted Phase 8 semantic behavior passes smoke regression
 
-4. release scope is documented
+4. public CLI behavior is understood and tested
 
-5. known limitations are separated from release blockers
+5. machine-readable output is syntactically valid and predictable
 
-6. public CLI surface is inventoried
+6. exit-code behavior is suitable for automation
 
-7. versioning / branch policy is defined
+7. supported path/repository cases behave correctly
 
-8. no unresolved uncertainty exists about which implementation
-   is intended for release
+8. Windows quoting/path behavior has been explicitly classified
 
-9. feature freeze is in effect
+9. ordinary invalid input fails gracefully without crashing
+
+10. analysis operations do not unexpectedly modify repositories
+
+11. installation/basic execution works through the intended release path
+
+12. all discovered issues are classified
+
+13. no unresolved release blocker remains for a PASS result
+
+14. the final tested commit is recorded
 ```
 
-Phase 11 does not require the product to be fully packaged or documented.
+---
 
-Those belong to subsequent release-preparation phases.
+# Out of Scope
+
+Do not use Phase 12 for:
+
+```text
+semantic capability expansion
+
+routing improvement
+
+agent trajectory optimization
+
+token reduction work
+
+new command design
+
+large CLI redesign
+
+new language support
+
+major refactoring
+
+general performance optimization
+
+documentation rewrite
+
+distribution ecosystem expansion
+```
+
+These are separate concerns.
 
 ---
 
 # Final Principle
 
-Phase 11 should answer one question:
+Phase 12 should answer:
 
 ```text
-What exact version of the project are we preparing to release?
+Does the frozen product behave reliably as a real command-line tool,
+outside the development and evaluation environment?
 ```
 
-At the end of this phase, that answer must be unambiguous.
-
-From this point onward:
+The preferred outcome is not:
 
 ```text
-stability > optimization
-
-release correctness > new capability
-
-small verified fixes > speculative improvement
+more capable
 ```
+
+but:
+
+```text
+predictable
+stable
+installable
+safe
+compatible
+```
+
+If a defect is found, fix only what is necessary to make the existing release scope trustworthy.
