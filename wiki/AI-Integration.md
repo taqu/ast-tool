@@ -3,7 +3,7 @@
 `ast-tool` is designed for use by AI coding agents as well as human developers.
 This page explains how agents should integrate with the tool, which commands to use for common development tasks, and how to avoid common mistakes.
 
-The companion document [`SKILL.md`](../SKILL.md) in the repository root is a standalone operational guide intended to be passed directly to AI agents as context.
+The companion document [`skills/semantic-analysis/SKILL.md`](../skills/semantic-analysis/SKILL.md) is a standalone operational guide intended to be passed directly to AI agents as context (for example, as a Claude Code Skill).
 
 ---
 
@@ -74,6 +74,21 @@ ast-tool search --kind function --file-regex '\.hpp$' include/
 ast-tool search --kind function --json src/ > symbols.json
 ```
 
+### Tracing relationships
+
+```sh
+# Everywhere a symbol is referenced
+ast-tool references Parser::parse src/
+
+# Every direct caller of a function
+ast-tool callers Parser::parse src/
+
+# Every function a function directly calls
+ast-tool callees Parser::parse src/
+```
+
+`references`/`callers`/`callees` are public CLI commands, not only internal library types — use them directly instead of reconstructing call/reference relationships by reading and cross-referencing files manually. They report only *direct*, semantically-resolved relationships (not a transitive graph, not text matches), and an unqualified name that matches more than one declaration fails closed with a candidate list rather than guessing — retry with a fully-qualified name.
+
 ---
 
 ## Command Selection
@@ -83,6 +98,9 @@ ast-tool search --kind function --json src/ > symbols.json
 | What is the structure of this file? | `outline` |
 | What symbols does this file declare? | `symbols` |
 | Where is symbol X declared? | `search --name X` or `search --fqn X` |
+| Where is symbol X referenced/used? | `references X <root>` |
+| Who calls function X? | `callers X <root>` |
+| What does function X call? | `callees X <root>` |
 | What is at line N, column M? | `find --line N --column M` |
 | What nodes are in this range? | `range --start-line N --end-line M` |
 | What contains this node? | `parent --id <hex>` |
@@ -108,7 +126,7 @@ Plain-text output is designed for human reading and may change formatting betwee
 
 ## Prompting Recommendations
 
-When providing `ast-tool` as a capability to an AI agent, include `SKILL.md` from the repository root as context. It describes:
+When providing `ast-tool` as a capability to an AI agent, include `skills/semantic-analysis/SKILL.md` as context. It describes:
 
 - which command to use for each task
 - how to chain commands using node IDs
@@ -118,20 +136,23 @@ When providing `ast-tool` as a capability to an AI agent, include `SKILL.md` fro
 Example system prompt fragment:
 
 ```
-You have access to ast-tool, an AST analysis CLI. The SKILL.md file in the 
-repository describes how to use it effectively. Prefer semantic commands 
-(symbols, search) over raw AST traversal (dump) when you need information 
-about named declarations.
+You have access to ast-tool, an AST analysis CLI. skills/semantic-analysis/SKILL.md
+in the repository describes how to use it effectively. Prefer semantic commands 
+(symbols, search, references, callers, callees) over raw AST traversal (dump) 
+or manual text search when you need information about named declarations or 
+their relationships.
 ```
 
 ---
 
 ## Semantic vs. AST-Level Commands
 
-Use **semantic commands** (`symbols`, `search`) when the question is about named entities:
+Use **semantic commands** (`symbols`, `search`, `references`, `callers`, `callees`) when the question is about named entities or their relationships:
 - "What functions does this class have?"
 - "Where is `Parser::parse` declared?"
 - "Are there any static methods in namespace `ast`?"
+- "Who calls `Parser::parse`?" / "What does `Parser::parse` call?"
+- "Where is this symbol used?"
 
 Use **AST commands** (`find`, `outline`, `range`, `parent`, `children`) when the question is about syntax structure:
 - "What is at cursor position (42, 17)?"
@@ -140,12 +161,16 @@ Use **AST commands** (`find`, `outline`, `range`, `parent`, `children`) when the
 
 Use **`dump`** only when you need every node including anonymous punctuation tokens, or when investigating parser output.
 
+Do not treat this as guaranteed automatic routing: whether an agent actually invokes a semantic command for a given task depends on the agent's own decision-making, not on ast-tool itself. If a semantic query fails to resolve after following its `--help` disambiguation guidance, fall back to ordinary file inspection rather than retrying the same query indefinitely.
+
 ---
 
 ## Limitations Agents Should Know
 
-- **Local variables are not in the symbol table.** `symbols` and `search` return declarations visible at namespace or class scope. Variables inside function bodies are not extracted.
+- **Local variables and parameters are not uniformly in the symbol table across all languages.** `symbols` and `search` primarily return declarations visible at namespace or class scope; `callers`/`callees`/`references` can still resolve a call through a directly-typed local or parameter where the language extractor supports it.
 - **Node IDs change when files are modified.** Capture IDs and use them within a single analysis session; do not persist them across edits.
-- **Overloaded functions share an FQN.** When multiple overloads exist, the symbol table may deduplicate to the first occurrence. Callers/callees searches are aware of this.
-- **Indirect calls are not resolved.** `callers` and `callees` (library API) report only direct, resolvable calls. Virtual dispatch and function-pointer calls are not reported.
-- **Line numbers are always 1-based** in CLI output.
+- **An ambiguous unqualified name fails closed.** `references`/`callers`/`callees` never guess between multiple matching declarations — they report the candidate list and expect a fully-qualified retry.
+- **Indirect calls are not resolved.** `callers` and `callees` report only direct, resolvable calls. Virtual dispatch and function-pointer calls are not reported, and relationships are not transitive (direct call graph only).
+- **No inferred receiver typing.** Calls through `auto`/`decltype`-typed receivers, complex chained/cast/subscript expressions, or `this->` are not resolved; only directly-typed object/pointer fields, locals, and parameters are.
+- **Paths must stay within the active Windows code page.** A workspace/file path mixing scripts outside your system locale is not currently supported.
+- **Line numbers are always 1-based** in CLI output (0-based internally in the C++ library API).

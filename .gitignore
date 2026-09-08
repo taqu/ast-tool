@@ -73,7 +73,10 @@ __pycache__/
 /bench/workspace
 /bench/cache
 /.claude
-/.ast-tool
+# ast-tool's own on-disk AST cache directory can be created under any
+# workspace root that's analyzed (e.g. src/.ast-tool if you run ast-tool
+# against its own source), not only the repository root.
+.ast-tool/
 venv/
 
 # Evaluation runner — generated at runtime

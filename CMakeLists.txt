@@ -281,8 +281,12 @@ if(MSVC)
     endif()
 
     set(CMAKE_CXX_FLAGS "${DEFAULT_CXX_FLAGS}")
-    set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MDd /Zi /Ob0 /Od /RTC1 /Gy /GR- /GS /Gm-")
-    set(CMAKE_CXX_FLAGS_RELEASE "/MD /O2 /GL /GR- /DNDEBUG")
+    # Runtime library (/MT vs /MD, /MTd vs /MDd) is set via the MSVC_RUNTIME_LIBRARY
+    # target property below, not here -- a hardcoded /MD or /MDd in these flags
+    # conflicts with that property and can cause a nondeterministic
+    # RuntimeLibrary mismatch (LNK2038) depending on flag ordering.
+    set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /Zi /Ob0 /Od /RTC1 /Gy /GR- /GS /Gm-")
+    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /GL /GR- /DNDEBUG")
     target_link_libraries(${PROJECT_NAME}
     PRIVATE
         $<$<CONFIG:Debug>:TREESITTER ${TREESITTER_LANGS} ${ABSL_DEBUG_LIBS} RE2 GIT2 winhttp.lib rpcrt4.lib crypt32.lib>

@@ -606,14 +606,23 @@ Workspace open_workspace(const char8_t* root)
     Workspace ws;
     if(root) {
         ws.workspaceRoot_ = std::filesystem::path(root);
-        std::filesystem::path cacheDir = ws.workspaceRoot_ / ".ast-tool";
-        std::error_code ec;
-        std::filesystem::create_directories(cacheDir, ec);
-        if(!ec) {
-            ws.persistentCache_ = new ASTCacheDatabase();
-            if(!ws.persistentCache_->open(cacheDir / "ast-cache.db")) {
-                delete ws.persistentCache_;
-                ws.persistentCache_ = nullptr;
+        // Only create the on-disk cache directory for a root that already
+        // exists as a real directory. Without this check, analyzing a
+        // nonexistent or invalid root (a common failure path: typo'd path,
+        // missing repository, a file passed where a directory is expected)
+        // would silently fabricate that path on disk via create_directories,
+        // even though the command itself reports failure.
+        std::error_code existsEc;
+        if(std::filesystem::is_directory(ws.workspaceRoot_, existsEc)) {
+            std::filesystem::path cacheDir = ws.workspaceRoot_ / ".ast-tool";
+            std::error_code ec;
+            std::filesystem::create_directories(cacheDir, ec);
+            if(!ec) {
+                ws.persistentCache_ = new ASTCacheDatabase();
+                if(!ws.persistentCache_->open(cacheDir / "ast-cache.db")) {
+                    delete ws.persistentCache_;
+                    ws.persistentCache_ = nullptr;
+                }
             }
         }
     }

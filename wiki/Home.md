@@ -39,6 +39,11 @@ ast-tool find --type function_definition src/parser.cpp
 
 # Search across a workspace
 ast-tool search --kind class src/
+
+# Find references, callers, and callees of a symbol
+ast-tool references Parser::parse src/
+ast-tool callers Parser::parse src/
+ast-tool callees Parser::parse src/
 ```
 
-Run `ast-tool help` to see all commands, or `ast-tool help <command>` for detailed documentation.
+Run `ast-tool --help` to see all commands, `ast-tool <command> --help` for detailed documentation, and `ast-tool --version` to check the installed version.
