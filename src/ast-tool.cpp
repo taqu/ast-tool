@@ -3,6 +3,7 @@
 #include <cassert>
 #include <charconv>
 #include <cstring>
+#include <print>
 #include <span>
 #include <string>
 #include <string_view>
@@ -30,6 +31,31 @@
 #    define STAT_STRUCT struct stat
 #    define STAT_FUNC(path, buf) stat(path, buf)
 #endif
+
+#if !defined(_MSC_VER) && !defined(__STDC_LIB_EXT1__)
+/**
+ * A compatibility wrapper for fopen_s on compilers that lack Annex K support (like GCC).
+ * 
+ * @param pFile    Pointer to the file pointer that will hold the result.
+ * @param filename Path to the file.
+ * @param mode     File access mode (e.g., "r", "w").
+ * @return         0 on success, or an errno error code on failure.
+ */
+static inline int fopen_s(FILE** pFile, const char* filename, const char* mode) {
+    if (pFile == NULL || filename == NULL || mode == NULL) {
+        return EINVAL;
+    }
+    
+    *pFile = fopen(filename, mode);
+    
+    if (*pFile == NULL) {
+        return errno;
+    }
+    
+    return 0;
+}
+#endif
+
 #include "children.h"
 #include "dump.h"
 #include "find.h"
@@ -109,8 +135,19 @@ void initialize()
     absl::InitializeLog();
 }
 
+void print_version()
+{
+    std::print("ast-tool {}\n", kVersion);
+}
+
 namespace
 {
+    bool is_version_flag(const char8_t* arg)
+    {
+        std::u8string_view arg_sv{arg};
+        return arg_sv == u8"--version" || arg_sv == u8"-v";
+    }
+
     bool is_help_flag(const char8_t* arg)
     {
         std::u8string_view arg_sv{arg};
@@ -124,6 +161,19 @@ namespace
         return true;
     }
 
+    // "cache" has two documented subcommands (warm/status) with their own
+    // detailed help pages. Resolve "cache <sub>" to a combined topic so
+    // `ast-tool cache warm --help` / `ast-tool help cache warm` show the
+    // subcommand's own help instead of the generic "cache" overview.
+    const char8_t* cache_subcommand_topic(const char8_t* sub)
+    {
+        if(!sub) return u8"cache";
+        std::u8string_view sub_sv{sub};
+        if(sub_sv == u8"warm")   return u8"cache warm";
+        if(sub_sv == u8"status") return u8"cache status";
+        return u8"cache";
+    }
+
     bool parse_impl(Arguments& arguments, int32_t argc, const char8_t** argv)
     {
         assert(nullptr != argv);
@@ -133,14 +183,25 @@ namespace
             return set_help(arguments, nullptr);
         }
 
+        if(is_version_flag(argv[1])) {
+            arguments.sub_ = SubCommand::Version;
+            return true;
+        }
+
         std::u8string_view arg1_sv{argv[1]};
         if(arg1_sv == u8"help") {
+            if(argc > 2 && std::u8string_view{argv[2]} == u8"cache" && argc > 3) {
+                return set_help(arguments, cache_subcommand_topic(argv[3]));
+            }
             return set_help(arguments, argc > 2 ? argv[2] : nullptr);
         }
 
         // Pre-scan for --help / -h anywhere after the subcommand name.
         for(int32_t i = 2; i < argc; ++i) {
             if(is_help_flag(argv[i])) {
+                if(arg1_sv == u8"cache" && argc > 2) {
+                    return set_help(arguments, cache_subcommand_topic(argv[2]));
+                }
                 return set_help(arguments, argv[1]);
             }
         }
@@ -206,6 +267,9 @@ bool dispatch(const Arguments& arguments)
     switch(arguments.sub_) {
     case SubCommand::Help:
         print_command_help(arguments.help_.topic_);
+        return true;
+    case SubCommand::Version:
+        print_version();
         return true;
     case SubCommand::Dump:
         return dump(arguments.dump_);
@@ -477,7 +541,7 @@ AST::AST(const char8_t* path)
     }
 
     FILE* file = nullptr;
-    errno_t err = fopen_s(&file, reinterpret_cast<const char*>(path), "rb");
+    int32_t err = fopen_s(&file, reinterpret_cast<const char*>(path), "rb");
     if(0 != err) {
         return;
     }

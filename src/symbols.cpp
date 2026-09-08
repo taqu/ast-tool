@@ -47,16 +47,16 @@ bool symbols(const ArgSymbols& arguments)
     std::vector<ast::Symbol> symbols = ast::extract_symbols(ast);
     if(arguments.json_) {
         if(arguments.pretty_) {
-            std::print("{{\n");
+            std::print("[\n");
             for(size_t i = 0; i < symbols.size(); ++i) {
                 std::print(" {{\n");
                 std::print("  \"kind\": \"{}\",\n", getSymbolKindName(symbols[i].kind));
                 std::print("  \"name\": \"{}\",\n", (const char*)symbols[i].name.c_str());
-                std::print("  \"qualified_name\": \"{}\",\n", (const char*)symbols[i].fqn.c_str());
+                std::print("  \"fqn\": \"{}\",\n", (const char*)symbols[i].fqn.c_str());
                 std::print("  \"access\": \"{}\",\n", getAccessName(symbols[i].access));
-                std::print("  \"static\": \"{}\",\n", symbols[i].isStatic);
-                std::print("  \"constexpr\": \"{}\",\n", symbols[i].isConstexpr);
-                std::print("  \"inline\": \"{}\",\n", symbols[i].isInline);
+                std::print("  \"static\": {},\n", symbols[i].isStatic);
+                std::print("  \"constexpr\": {},\n", symbols[i].isConstexpr);
+                std::print("  \"inline\": {},\n", symbols[i].isInline);
                 std::print("  \"id\": \"{:X}\"\n", ast[symbols[i].nodeIndex].hash_);
                 std::print(" }}");
                 if(i < (symbols.size() - 1)) {
@@ -65,25 +65,25 @@ bool symbols(const ArgSymbols& arguments)
                     std::print("\n");
                 }
             }
-            std::print("}}\n");
+            std::print("]\n");
         } else {
-            std::print("{{");
+            std::print("[");
             for(size_t i = 0; i < symbols.size(); ++i) {
                 std::print("{{");
                 std::print("\"kind\":\"{}\",", getSymbolKindName(symbols[i].kind));
                 std::print("\"name\":\"{}\",", (const char*)symbols[i].name.c_str());
-                std::print("\"qualified_name\":\"{}\",", (const char*)symbols[i].fqn.c_str());
+                std::print("\"fqn\":\"{}\",", (const char*)symbols[i].fqn.c_str());
                 std::print("\"access\":\"{}\",", getAccessName(symbols[i].access));
-                std::print("\"static\":\"{}\",", symbols[i].isStatic);
-                std::print("\"constexpr\":\"{}\",", symbols[i].isConstexpr);
-                std::print("\"inline\":\"{}\",", symbols[i].isInline);
+                std::print("\"static\":{},", symbols[i].isStatic);
+                std::print("\"constexpr\":{},", symbols[i].isConstexpr);
+                std::print("\"inline\":{},", symbols[i].isInline);
                 std::print("\"id\":\"{:X}\"", ast[symbols[i].nodeIndex].hash_);
                 std::print("}}");
                 if(i < (symbols.size() - 1)) {
                     std::print(",");
                 }
             }
-            std::print("}}\n");
+            std::print("]\n");
         }
     } else {
         for(const ast::Symbol& symbol: symbols) {

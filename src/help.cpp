@@ -87,7 +87,7 @@ static const char8_t kHelpSymbols[] =
     u8"    <file>    Path to the source file to analyze.\n"
     u8"\n"
     u8"OPTIONS\n"
-    u8"    --json      Output results as a JSON object.\n"
+    u8"    --json      Output results as a JSON array.\n"
     u8"    --pretty    Pretty-print the JSON output. Implies --json.\n"
     u8"\n"
     u8"OUTPUT\n"
@@ -100,14 +100,14 @@ static const char8_t kHelpSymbols[] =
     u8"\n"
     u8"    JSON fields per symbol:\n"
     u8"\n"
-    u8"        kind            Symbol kind (function, class, variable, ...).\n"
-    u8"        name            Unqualified symbol name.\n"
-    u8"        qualified_name  Fully-qualified symbol name.\n"
-    u8"        access          Access specifier (public, protected, private, unknown).\n"
-    u8"        static          true if the symbol is declared static.\n"
-    u8"        constexpr       true if the symbol is declared constexpr.\n"
-    u8"        inline          true if the symbol is declared inline.\n"
-    u8"        id              32-bit node hash in uppercase hexadecimal.\n"
+    u8"        kind      Symbol kind (function, class, variable, ...).\n"
+    u8"        name      Unqualified symbol name.\n"
+    u8"        fqn       Fully-qualified symbol name.\n"
+    u8"        access    Access specifier (public, protected, private, unknown).\n"
+    u8"        static    true if the symbol is declared static.\n"
+    u8"        constexpr true if the symbol is declared constexpr.\n"
+    u8"        inline    true if the symbol is declared inline.\n"
+    u8"        id        32-bit node hash in uppercase hexadecimal.\n"
     u8"\n"
     u8"EXAMPLES\n"
     u8"    List all symbols in a source file:\n"
@@ -812,6 +812,8 @@ static const CommandEntry kCommands[] = {
     {u8"callees",    u8"Find direct callees of a function.",               CommandCategory::SemanticAnalysis, kHelpCallees,    false},
     // Cache Management
     {u8"cache",        u8"Manage the workspace AST cache (warm / status).", CommandCategory::CacheManagement, kHelpCache,  false},
+    {u8"cache warm",   u8"Warm the workspace AST cache in the background.", CommandCategory::CacheManagement, kHelpCacheWarm,   true},
+    {u8"cache status", u8"Show AST cache information for a workspace.",     CommandCategory::CacheManagement, kHelpCacheStatus, true},
     {u8"setup",        u8"Configure coding-agent session-start hooks.",      CommandCategory::CacheManagement, kHelpSetup, false},
 };
 
@@ -847,7 +849,8 @@ void print_top_level_help()
         "    ast-tool <command> [options]\n"
         "\n"
         "Options:\n"
-        "    -h, --help    Show this help message.\n"
+        "    -h, --help       Show this help message.\n"
+        "    -v, --version    Show version information.\n"
         "\n"
         "Commands:\n",
         stdout);

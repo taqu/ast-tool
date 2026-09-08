@@ -84,11 +84,18 @@ uint32_t get_physical_core_count();
 /** Initializes global tree-sitter state (installs the mimalloc-backed allocator). Call once before parsing. */
 void initialize();
 
+/** Release version string, e.g. "0.1.0". Single source of truth for `ast-tool --version`. */
+inline constexpr const char* kVersion = "0.1.0";
+
+/** Prints "ast-tool <version>" to stdout. */
+void print_version();
+
 /** Identifies which command-line subcommand was requested. */
 enum class SubCommand
 {
     None,
     Help,
+    Version,
     Dump,
     Symbols,
     Outline,
