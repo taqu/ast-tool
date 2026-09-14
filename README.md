@@ -126,7 +126,7 @@ The CLI and JSON output are **pre-1.0 and may change between minor releases** �
 
 Prefer a targeted semantic query (`search`, `references`, `callers`, `callees`) over broad file reads when the question is about a symbol's declaration or relationships — it returns exactly the relevant locations instead of requiring the agent to reconstruct them from text search. Fall back to ordinary file inspection (`Read`, `Grep`) when the question isn't about a named symbol, or after a semantic query fails to resolve (see each command's `--help` for its disambiguation guidance).
 
-This behavior is not guaranteed to be invoked automatically by every agent on every task — it depends on the agent's own routing. The `skills/semantic-analysis/SKILL.md` file in this repository is a ready-to-use Skill for Claude Code that documents the recommended command selection and recovery strategy in agent-consumable form.
+Automatic use depends on the agent's own routing. The `skills/` directory, available in this repository and included in release archives, provides ready-to-use skills for semantic analysis (`semantic-analysis`), structural inspection (`ast-inspection`), and API change review (`api-review`). Each skill's `SKILL.md` documents the recommended workflow in agent-consumable form; install the relevant skills using your coding agent's skill setup.
 
 ## Supported Platforms / Languages
 

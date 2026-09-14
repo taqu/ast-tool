@@ -42,6 +42,7 @@ jobs:
           Copy-Item dist\windows\LICENSE $dir\
           Copy-Item dist\windows\CHANGELOG.md $dir\
           Copy-Item dist\windows\NOTICE $dir\
+          Copy-Item skills $dir\ -Recurse
           Compress-Archive -Path $dir -DestinationPath "artifacts/$name.zip"
 
       - name: Upload artifact
@@ -86,6 +87,7 @@ jobs:
           cp dist/linux/LICENSE pkg/$name/
           cp dist/linux/CHANGELOG.md pkg/$name/
           cp dist/linux/NOTICE pkg/$name/
+          cp -r skills pkg/$name/
           mkdir -p artifacts
           tar -czf "artifacts/${name}.tar.gz" -C pkg "$name"
 
