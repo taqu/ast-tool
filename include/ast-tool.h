@@ -97,7 +97,7 @@ uint32_t get_physical_core_count();
 void initialize();
 
 /** Release version string, e.g. "0.1.0". Single source of truth for `ast-tool --version`. */
-inline constexpr const char* kVersion = "0.1.0";
+inline constexpr const char* kVersion = "0.1.1";
 
 /** Prints "ast-tool <version>" to stdout. */
 void print_version();

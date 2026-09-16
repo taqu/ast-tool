@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.1] — 2026-09-16
+
+### Fixed
+
+- Fetch Git LFS dependencies when building release binaries.
+- Create the Windows artifact output directory before packaging.
+
+### Changed
+
+- Bundle agent skills in Windows and Linux release archives.
+- Update installation, platform support, and agent integration documentation.
+- Publish tagged releases automatically after both platform builds succeed.
+
 ## [0.1.0] — 2026-09-08
 
 Initial release.
@@ -27,4 +40,5 @@ Initial release.
 - Linux build is best-effort (prerequisites documented; not release-qualified)
 - macOS is not supported
 
+[0.1.1]: https://github.com/taqu/ast-tool/releases/tag/v0.1.1
 [0.1.0]: https://github.com/taqu/ast-tool/releases/tag/v0.1.0

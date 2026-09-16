@@ -45,6 +45,7 @@ jobs:
           Copy-Item dist\windows\CHANGELOG.md $dir\
           Copy-Item dist\windows\NOTICE $dir\
           Copy-Item skills $dir\ -Recurse
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
           Compress-Archive -Path $dir -DestinationPath "artifacts/$name.zip"
 
       - name: Upload artifact
@@ -132,12 +133,12 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          draft: true
+          draft: false
           name: "ast-tool ${{ github.ref_name }}"
           body: |
             ## ast-tool ${{ github.ref_name }}
 
-            See [CHANGELOG.md](CHANGELOG.md) for release notes.
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md) for release notes.
 
             ## Installation
 
@@ -155,7 +156,7 @@ jobs:
 
             ### Build from source
 
-            See [README.md](README.md) for build prerequisites and instructions.
+            See [README.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/README.md) for build prerequisites and instructions.
 
             ## Checksums
 
