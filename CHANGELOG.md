@@ -6,6 +6,7 @@
 
 - Fetch Git LFS dependencies when building release binaries.
 - Create the Windows artifact output directory before packaging.
+- Build Linux releases on Debian 13 with the required Abseil dependency.
 
 ### Changed
 

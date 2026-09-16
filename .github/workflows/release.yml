@@ -57,15 +57,16 @@ jobs:
   build-linux:
     name: Linux x64
     runs-on: ubuntu-latest
+    container: debian:13
     steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y ca-certificates git git-lfs build-essential cmake pkg-config libre2-dev libgit2-dev libabsl-dev
+
       - uses: actions/checkout@v4
         with:
           lfs: true
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake pkg-config libre2-dev libgit2-dev
 
       - name: Configure (Release)
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=dist/linux
